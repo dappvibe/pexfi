@@ -1,5 +1,5 @@
 const {expect} = require("chai");
-const {ethers} = require("hardhat");
+const {ethers, upgrades} = require("hardhat");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { loadFixture } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 
@@ -7,15 +7,20 @@ const WETH = '0xfff9976782d46cc05630d1f6ebab18b2324d6b14';
 
 describe("Market", function() {
     async function deploy() {
-        const [owner, seller, buyer, mediator]
-            = await ethers.getSigners();
-        const market = await ethers.deployContract("Market");
+        const [owner, seller, buyer, mediator] = await ethers.getSigners();
+        const MarketFactory = await ethers.getContractFactory("Market");
+        const market = await upgrades.deployProxy(MarketFactory, [owner.address]);
         await market.waitForDeployment();
         return { market, owner, seller, buyer, mediator };
     }
 
-    it("Deployment does nothing", async function() {
-        const market = await loadFixture(deploy);
+    it("Deployment is upgradable", async function() {
+        const { market, owner } = await loadFixture(deploy);
+        expect(market.owner()).to.eventually.eq(owner.address);
+
+        const MarketFactory = await ethers.getContractFactory("Market");
+        const newMarket = await upgrades.upgradeProxy(await market.getAddress(), MarketFactory);
+        expect(newMarket.owner()).to.eventually.eq(owner.address);
     });
 
     it('Creates offer', async function() {
