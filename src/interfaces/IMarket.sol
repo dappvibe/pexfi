@@ -24,7 +24,7 @@ interface IMarket
         *      Also avoids situations when advertiser changes terms after trade is initiated saying that published price is for another method.
         *      Also it builds costs for advertisers to include a method so it serves as spam protection.
         */
-        bytes16 deliveryMethod;
+        string deliveryMethod;
 
         // TODO zip and store into array or somehow else allow it to be up to 256? bytes
         // this cannot be stored out-of-chain otherwise actors may change and it will be impossible to verify

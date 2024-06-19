@@ -39,7 +39,7 @@ contract Market is
         uint price;
         uint min;
         uint max;
-        bytes16 deliveryMethod;
+        string deliveryMethod;
         uint16 paymentTimeLimit; // protection from stalled deals. after expiry seller can request refund and buyer still gets failed tx recorded
         string terms; // FIXME can it be another contract deployed by advertiser?
     }
