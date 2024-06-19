@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "npx hardhat --show-stack-traces test"
+    "test": "npx hardhat --show-stack-traces test",
+    "deploy": "node ./deploy.js"
   },
   "keywords": [],
   "author": "",
