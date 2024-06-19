@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
 import "./Deal.sol";
@@ -39,7 +40,7 @@ contract Market is
         uint min;
         uint max;
         bytes16 deliveryMethod;
-        uint16 paymentTimelimit; // protection from stalled deals. after expiry seller can request refund and buyer still gets failed tx recorded
+        uint16 paymentTimeLimit; // protection from stalled deals. after expiry seller can request refund and buyer still gets failed tx recorded
         string terms; // FIXME can it be another contract deployed by advertiser?
     }
 
@@ -54,7 +55,7 @@ contract Market is
             fiatMin: _params.min,
             fiatMax: _params.max,
             deliveryMethod: _params.deliveryMethod,
-            paymentTimelimit: _params.paymentTimelimit,
+            paymentTimelimit: _params.paymentTimeLimit,
             terms: _params.terms,
             kycRequired: false,
             active: true
