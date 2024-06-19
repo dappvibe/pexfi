@@ -3,11 +3,12 @@ pragma solidity ^0.8.0;
 
 import "./Deal.sol";
 import "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {ERC721} from "../lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
 import {IMarket} from "./interfaces/IMarket.sol";
 import {Fiat} from "./enums/fiats.sol";
 import {Country} from "./enums/countries.sol";
 import {PaymentMethodOracle} from "./oracles/PaymentMethodOracle.sol";
+import {UUPSUpgradeable} from "../lib/openzeppelin-contracts/contracts/proxy/utils/UUPSUpgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 /**
  * @title Market
@@ -15,7 +16,9 @@ import {PaymentMethodOracle} from "./oracles/PaymentMethodOracle.sol";
  *   Tracks txs and feedback to build reputation.
  */
 contract Market is
-    IMarket
+    IMarket,
+    OwnableUpgradeable,
+    UUPSUpgradeable
 {
     mapping(uint24 => Offer)    public offers;
     uint24 private _nextOfferId;
@@ -28,9 +31,10 @@ contract Market is
 
     // TODO multiple addresses link rep (in a way protected from DDoS clients when there are too many linked account to fetch logs for)
 
-    constructor(){
-
+    function initialize(address initialOwner) initializer external {
+        __Ownable_init(initialOwner);
     }
+    function _authorizeUpgrade(address) internal onlyOwner override {}
 
     struct OfferCreateParams {
         bool isSell;
