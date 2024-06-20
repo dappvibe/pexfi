@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import {Fiat} from "../../enums/fiats.sol";
-import "../../enums/countries.sol";
+import {Fiat} from "../enums/fiats.sol";
+import "../enums/countries.sol";
 
 interface IOfferManager
 {
