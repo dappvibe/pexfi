@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import "../enums/countries.sol";
-import "../enums/fiats.sol";
-import "../oracles/PaymentMethodOracle.sol";
+import {Fiat} from "../../enums/fiats.sol";
 
-uint8 constant MAX_PAYMENT_METHODS = 1;
-
-interface IMarket
+interface IOfferManager
 {
+    event OfferCreated(bool indexed isSell, address indexed crypto, Fiat indexed fiat, uint24 offerId, Offer offer);
+
     struct Offer {
         address owner;  // Support ENS in client for nicknames
 
@@ -40,19 +38,16 @@ interface IMarket
         bool active;
     }
 
-    event OfferCreated(bool indexed isSell, address indexed crypto, Fiat indexed fiat, uint24 offerId, Offer offer);
-
-    struct Rep {
-        address owner;
-        uint volume; // gwei equivalent volume transacted
-        uint successfulCount;
-        uint canceledCount;
-        uint disputedCount;
-        uint cancelledCount;
-        uint abandonedCount;
-        uint score;
-        uint avgPaymentTime;
-        uint avgReleaseTime;
-        mapping(address => string) feedback; // address's opinion
+    struct OfferCreateParams {
+        bool isSell;
+        address crypto; // ERC20
+        Fiat fiat;
+        uint price;
+        uint min;
+        uint max;
+        string deliveryMethod;
+        uint16 paymentTimeLimit; // protection from stalled deals. after expiry seller can request refund and buyer still gets failed tx recorded
+        string terms; // FIXME can it be another contract deployed by advertiser?
     }
+    function offerCreate(OfferCreateParams calldata _params) external returns(uint);
 }
