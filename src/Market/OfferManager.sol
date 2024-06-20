@@ -15,14 +15,14 @@ contract OfferManager is IOfferManager, OwnableUpgradeable
 
     function offerCreate(OfferCreateParams calldata _params) external returns(uint)
     {
-        require (_params.price > 0, "price must be greater than 0");
-        require (_params.min <= _params.max, "min must be less than or equal to max");
-        require (_params.min > 0, "min must be greater than 0");
-        require (_params.max > 0, "max must be greater than 0");
-        require (_params.paymentTimeLimit >= 15, "paymentTimeLimit must be greater or equal to 15 minutes");
+        require (_params.price > 0, "price");
+        require (_params.min > 0, "min");
+        require (_params.max > 0, "max");
+        require (_params.min <= _params.max, "minmax");
+        require (_params.paymentTimeLimit >= 15, "time");
 
         Method memory method = methods[_params.method];
-        require(bytes(method.name).length > 0, "method is not available");
+        require(bytes(method.name).length > 0, "method");
 
         offers[_nextOfferId] = Offer({
             owner: msg.sender,
@@ -61,8 +61,8 @@ contract OfferManager is IOfferManager, OwnableUpgradeable
 
     function methodRemove(uint16 _methodId) external onlyOwner
     {
-        require(_methodId > 0, "Cannot remove default value");
-        require(_methodId < _nextMethodId, "method does not exist");
+        require(_methodId > 0, "method0");
+        require(_methodId < _nextMethodId, "method!ex");
 
         delete methods[_methodId];
         emit MethodRemoved(_methodId);
