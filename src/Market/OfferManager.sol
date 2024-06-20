@@ -2,11 +2,16 @@
 pragma solidity ^0.8.0;
 
 import {IOfferManager} from "./interfaces/IOfferManager.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "../enums/countries.sol";
 
-contract OfferManager is IOfferManager
+contract OfferManager is IOfferManager, OwnableUpgradeable
 {
     mapping(uint24 => Offer)    public offers;
     uint24 private _nextOfferId;
+
+    mapping(uint16 => Method) public deliveryMethods;
+    uint16 private _nextDeliveryMethodId;
 
     function offerCreate(OfferCreateParams calldata _params) external returns(uint)
     {
@@ -35,5 +40,25 @@ contract OfferManager is IOfferManager
 
         _nextOfferId++;
         return _nextOfferId - 1;
+    }
+
+    function methodAdd(string calldata _name, MethodGroup _group, Country _country) external onlyOwner returns(uint16)
+    {
+        deliveryMethods[_nextDeliveryMethodId] = Method({
+            name: _name,
+            group: _group,
+            country: _country
+        });
+
+        emit MethodAdded(_nextDeliveryMethodId, _country, deliveryMethods[_nextDeliveryMethodId]);
+
+        _nextDeliveryMethodId++;
+        return _nextDeliveryMethodId - 1;
+    }
+
+    function methodRemove(uint16 _methodId) external onlyOwner
+    {
+        delete deliveryMethods[_methodId];
+        emit MethodRemoved(_methodId);
     }
 }
