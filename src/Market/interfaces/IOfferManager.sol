@@ -2,10 +2,14 @@
 pragma solidity ^0.8.0;
 
 import {Fiat} from "../../enums/fiats.sol";
+import "../../enums/countries.sol";
 
 interface IOfferManager
 {
     event OfferCreated(bool indexed isSell, address indexed crypto, Fiat indexed fiat, uint24 offerId, Offer offer);
+
+    event MethodAdded(uint16 indexed id, Country indexed country, Method method);
+    event MethodRemoved(uint16 indexed methodId);
 
     struct Offer {
         address owner;  // Support ENS in client for nicknames
@@ -50,4 +54,22 @@ interface IOfferManager
         string terms; // FIXME can it be another contract deployed by advertiser?
     }
     function offerCreate(OfferCreateParams calldata _params) external returns(uint);
+
+    /**
+    * @dev Payment methods management
+    */
+    enum MethodGroup {
+        Other,  // undefined
+        Crypto, // other chains, mediation can be automated
+        Cash,   // anonymous cash delivery to ATM or otherwise
+        Bank    // any regulated KYC'ed transfer entity
+    }
+    struct Method {
+        string name;
+        MethodGroup group;
+        Country country;
+    }
+
+    function methodAdd(string calldata _name, MethodGroup _group, Country _country) external returns(uint16);
+    function methodRemove(uint16 _methodId) external;
 }
