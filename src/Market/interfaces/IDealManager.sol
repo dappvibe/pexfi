@@ -1,7 +1,31 @@
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-contract Deal
+interface IDealManager
 {
+    struct Deal {
+        address offer;
+
+        // party receiving tokens
+        address buyer;
+
+        // party giving tokens
+        address seller;
+
+        // party receiving fee
+        address mediator;
+        uint fee;
+        address policy; // ??? govern deal rules by another contract ??
+
+        string token0;
+        string token1;
+        uint token0amount;
+        uint token1amount;
+
+        string paymentInstructions;
+        uint paymentMethod;
+    }
+
     enum State {
         // This is an internal state to represent an uninitialized transaction.
         Null,                     // 0
@@ -22,31 +46,5 @@ contract Deal
         ConfirmedAfterEscalation, // 15
         RefundedAfterEscalation,  // 16
         Settled                   // 17
-    }
-    State public state;
-
-    address public offer;
-
-    // party receiving tokens
-    address public buyer;
-
-    // party giving tokens
-    address public seller;
-
-    // party receiving fee
-    address public mediator;
-    uint public fee;
-    address public policy; // ??? govern deal rules by another contract ??
-
-    string public token0;
-    string public token1;
-    uint public token0amount;
-    uint public token1amount;
-
-    string public paymentInstructions;
-    uint public paymentMethod;
-
-    constructor(){
-
     }
 }
