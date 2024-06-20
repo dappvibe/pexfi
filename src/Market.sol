@@ -8,6 +8,7 @@ import {OfferManager} from "./Market/OfferManager.sol";
 import {DealManager} from "./Market/DealManager.sol";
 import {RepManager} from "./Market/RepManager.sol";
 import {Country} from "./enums/countries.sol";
+import {Strings} from "../lib/openzeppelin-contracts/contracts/utils/Strings.sol";
 
 /**
  * @title Market
@@ -22,6 +23,7 @@ contract Market is
     DealManager,
     RepManager
 {
+    using Strings for string;
     // feedback is in blockchain logs?
     // transactions is in blockchain logs?
 
