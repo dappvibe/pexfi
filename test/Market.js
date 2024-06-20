@@ -23,7 +23,7 @@ describe("Market", function() {
         expect(newMarket.owner()).to.eventually.eq(owner.address);
     });
 
-    it('Creates offer', async function() {
+    it('Create offer', async function() {
         const { market } = await loadFixture(deploy);
         const params = {
             isSell: true,
@@ -42,5 +42,40 @@ describe("Market", function() {
             .to.emit(market, 'OfferCreated')
             // bugged plugin changes WETH address case
             .withArgs(true, '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14', 43, 0, anyValue);
+    });
+
+    it('Create offer with invalid fiat currency', async function() {
+        const {market} = await loadFixture(deploy);
+        const params = {
+            isSell: true,
+            crypto: WETH,
+            fiat: 254,
+            price: 100,
+            min: 1000,
+            max: 5000,
+            deliveryMethod: 'bank',
+            paymentTimeLimit: 60,
+            terms: 'No KYC'
+        };
+
+        //await expect(market.offerCreate(params)).to.be.revertedWith('Invalid fiat currency');
+        await expect(market.offerCreate(params)).to.be.reverted;
+    });
+
+    it('Create offer with invalid price', async function() {
+        const {market} = await loadFixture(deploy);
+        const params = {
+            isSell: true,
+            crypto: WETH,
+            fiat: 43,
+            price: 0,
+            min: 1000,
+            max: 5000,
+            deliveryMethod: 'bank',
+            paymentTimeLimit: 60,
+            terms: 'No KYC'
+        };
+
+        await expect(market.offerCreate(params)).to.be.reverted;
     });
 });
