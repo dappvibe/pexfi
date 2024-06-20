@@ -13,6 +13,7 @@
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.2",
     "@openzeppelin/contracts-upgradeable": "^5.0.2",
+    "@solarity/solidity-lib": "^2.7.8",
     "hardhat-ignore-warnings": "^0.2.11",
     "ts-jest": "^29.1.5",
     "ts-node": "^10.9.2",
