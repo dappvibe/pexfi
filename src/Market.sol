@@ -9,7 +9,7 @@ import {DealManager} from "./Market/DealManager.sol";
 import {RepManager} from "./Market/RepManager.sol";
 import {Country} from "./enums/countries.sol";
 import {Strings} from "../lib/openzeppelin-contracts/contracts/utils/Strings.sol";
-import {IPriceOracle} from "./interfaces/IPriceOracle.sol";
+import {IUniswapOracle} from "./interfaces/IUniswapOracle.sol";
 
 /**
  * @title Market
@@ -29,8 +29,7 @@ contract Market is
     mapping(string => address) public tokens; // supported ERC20 tokens, key is symbol
     mapping(string => uint16)  public fiats;  // supported fiat currencies, key is ISO 4217 code, value is latest price to USDT or 0 if no info
 
-    // @dev to keep oracle upgradable, clients fetch address first
-    address public priceOracle;
+    IUniswapOracle private uniswapOracle;
 
     // feedback is in blockchain logs?
     // transactions is in blockchain logs?
@@ -38,6 +37,7 @@ contract Market is
 
     function initialize(
         address initialOwner,
+        address _uniswapOracle,
         string[] calldata _tokenSymbols,
         address[] calldata _tokenAddresses,
         string[] calldata _fiats
@@ -47,6 +47,8 @@ contract Market is
 
         __Ownable_init(initialOwner);
 
+        // price related
+        setUniswapOracle(_uniswapOracle);
         for(uint8 i = 0; i < _tokenSymbols.length; i++) {
             tokens[_tokenSymbols[i]] = _tokenAddresses[i];
         }
@@ -72,7 +74,20 @@ contract Market is
         delete fiats[code];
     }
 
-    function setPriceOracle(address _oracle) external onlyOwner {
-        priceOracle = _oracle;
+    function setUniswapOracle(address _uniswapOracle) public onlyOwner {
+        uniswapOracle = IUniswapOracle(_uniswapOracle);
+    }
+
+    function getPrice(string calldata _token, string calldata _fiat) external view override returns (uint64) {
+        address tokenAddress = tokens[_token];
+        require(tokenAddress != address(0), 'token not supported');
+        require(fiats[_fiat] != 0, 'fiat not supported');
+
+        string memory fiat = 'USD';
+
+        // first get token to USDT value
+        (uint tokenToUsd,) = uniswapOracle.getPrice(tokenAddress, tokens['USDT'], 1, 300); // 5 min twap
+
+        return 0;
     }
 }
