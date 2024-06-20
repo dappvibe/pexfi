@@ -9,7 +9,7 @@ interface IOfferManager
     event OfferCreated(bool indexed isSell, address indexed crypto, Fiat indexed fiat, uint24 offerId, Offer offer);
 
     event MethodAdded(uint16 indexed id, Country indexed country, Method method);
-    event MethodRemoved(uint16 indexed methodId);
+    event MethodRemoved(uint16 indexed id);
 
     struct Offer {
         address owner;  // Support ENS in client for nicknames
@@ -26,7 +26,7 @@ interface IOfferManager
         *      Also avoids situations when advertiser changes terms after trade is initiated saying that published price is for another method.
         *      Also it builds costs for advertisers to include a method so it serves as spam protection.
         */
-        string deliveryMethod;
+        Method method;
 
         // TODO zip and store into array or somehow else allow it to be up to 256? bytes
         // this cannot be stored out-of-chain otherwise actors may change and it will be impossible to verify
@@ -49,7 +49,7 @@ interface IOfferManager
         uint price;
         uint min;
         uint max;
-        string deliveryMethod;
+        uint16 method;
         uint16 paymentTimeLimit; // protection from stalled deals. after expiry seller can request refund and buyer still gets failed tx recorded
         string terms; // FIXME can it be another contract deployed by advertiser?
     }

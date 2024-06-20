@@ -7,6 +7,7 @@ import {IMarket} from "./Market/interfaces/IMarket.sol";
 import {OfferManager} from "./Market/OfferManager.sol";
 import {DealManager} from "./Market/DealManager.sol";
 import {RepManager} from "./Market/RepManager.sol";
+import {Country} from "./enums/countries.sol";
 
 /**
  * @title Market
@@ -28,6 +29,9 @@ contract Market is
 
     function initialize(address initialOwner) initializer external {
         __Ownable_init(initialOwner);
+
+        // mark default mapping value as invalid so that not found is not confused with valid data
+        methods[0] = Method('', MethodGroup.Other, Country.GLOBAL);
     }
     function _authorizeUpgrade(address) internal onlyOwner override {}
 }
