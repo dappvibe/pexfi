@@ -9,6 +9,7 @@ import {DealManager} from "./Market/DealManager.sol";
 import {RepManager} from "./Market/RepManager.sol";
 import {Country} from "./enums/countries.sol";
 import {Strings} from "../lib/openzeppelin-contracts/contracts/utils/Strings.sol";
+import {IPriceOracle} from "./interfaces/IPriceOracle.sol";
 
 /**
  * @title Market
@@ -24,16 +25,54 @@ contract Market is
     RepManager
 {
     using Strings for string;
+
+    mapping(string => address) public tokens; // supported ERC20 tokens, key is symbol
+    mapping(string => uint16)  public fiats;  // supported fiat currencies, key is ISO 4217 code, value is latest price to USDT or 0 if no info
+
+    // @dev to keep oracle upgradable, clients fetch address first
+    address public priceOracle;
+
     // feedback is in blockchain logs?
     // transactions is in blockchain logs?
-
     // TODO multiple addresses link rep (in a way protected from DDoS clients when there are too many linked account to fetch logs for)
 
-    function initialize(address initialOwner) initializer external {
+    function initialize(
+        address initialOwner,
+        string[] calldata _tokenSymbols,
+        address[] calldata _tokenAddresses,
+        string[] calldata _fiats
+    ) initializer external
+    {
+        require(_tokenSymbols.length == _tokenAddresses.length, "token mismatch");
+
         __Ownable_init(initialOwner);
+
+        for(uint8 i = 0; i < _tokenSymbols.length; i++) {
+            tokens[_tokenSymbols[i]] = _tokenAddresses[i];
+        }
+        for(uint8 i = 0; i < _fiats.length; i++) {
+            fiats[_fiats[i]] = 1; // Initialize with a default value
+        }
 
         // mark default mapping value as invalid so that not found is not confused with valid data
         methods[0] = Method('', MethodGroup.Other, Country.GLOBAL);
     }
     function _authorizeUpgrade(address) internal onlyOwner override {}
+
+    function addToken(string calldata symbol, address token_) external onlyOwner {
+        tokens[symbol] = token_;
+    }
+    function removeToken(string calldata symbol) external onlyOwner {
+        delete tokens[symbol];
+    }
+    function addFiat(string calldata code, uint16 price) external onlyOwner {
+        fiats[code] = price;
+    }
+    function removeFiat(string calldata code) external onlyOwner {
+        delete fiats[code];
+    }
+
+    function setPriceOracle(address _oracle) external onlyOwner {
+        priceOracle = _oracle;
+    }
 }
