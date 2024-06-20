@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import {IOfferManager} from "./interfaces/IOfferManager.sol";
+import {IOfferManager} from "../interfaces/IOfferManager.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "../enums/countries.sol";
 
