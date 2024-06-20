@@ -7,17 +7,31 @@ const WETH = '0xfff9976782d46cc05630d1f6ebab18b2324d6b14';
 
 describe("Market", function()
 {
-    let market, owner, seller, buyer, mediator;
+    let uniswapOracle, market, owner, seller, buyer, mediator;
+
+    async function deployUniswapOracle() {
+        const UNISWAP_FACTORY = '0x0227628f3F023bb0B980b67D528571c95c6DaC1c'; // sepolia
+        const uniswapOracleFactory = await ethers.getContractFactory("UniswapOracle");
+        uniswapOracle = await uniswapOracleFactory.deploy(UNISWAP_FACTORY);
+        await uniswapOracle.waitForDeployment();
+    }
 
     async function deploy() {
         const [owner, seller, buyer, mediator] = await ethers.getSigners();
         const MarketFactory = await ethers.getContractFactory("Market");
-        const market = await upgrades.deployProxy(MarketFactory, [owner.address]);
+        const market = await upgrades.deployProxy(MarketFactory, [
+            owner.address,
+            uniswapOracle.target,
+            ['USDT', 'HZ', 'WETH'],
+            ['0xdAC17F958D2ee523a2206206994597C13D831ec7', '0xdAC17F958D2ee523a2206206994597C13D831ec7', '0xCBCdF9626bC03E24f779434178A73a0B4bad62eD'],
+            ['USD']
+        ]);
         await market.waitForDeployment();
         return { market, owner, seller, buyer, mediator };
     }
 
     before(async function() {
+        await deployUniswapOracle();
         const result = await deploy();
         market = result.market;
         owner = result.owner;
@@ -100,5 +114,16 @@ describe("Market", function()
             let invalidParams = {...params, method: 1000};
             await expect(market.offerCreate(invalidParams)).to.be.reverted;
         });
+    });
+
+    describe('Prices', function() {
+        it('ETH / USDT', async function() {
+            const price = await market.getPrice('WETH', 'USD');
+            expect(price).to.be.gt(0);
+        });
+
+        /*it('get price for unknown token', async function() {
+            await expect(market.price('0x'), 43).to.be.reverted;
+        });*/
     });
 });
