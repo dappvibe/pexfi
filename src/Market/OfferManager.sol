@@ -10,6 +10,12 @@ contract OfferManager is IOfferManager
 
     function offerCreate(OfferCreateParams calldata _params) external returns(uint)
     {
+        require (_params.price > 0, "price must be greater than 0");
+        require (_params.min <= _params.max, "min must be less than or equal to max");
+        require (_params.min > 0, "min must be greater than 0");
+        require (_params.max > 0, "max must be greater than 0");
+        require (_params.paymentTimeLimit >= 15, "paymentTimeLimit must be greater or equal to 15 minutes");
+
         offers[_nextOfferId] = Offer({
             owner: msg.sender,
             isSell: _params.isSell,
