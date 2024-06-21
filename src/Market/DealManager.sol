@@ -4,11 +4,10 @@ pragma solidity ^0.8.0;
 import {IDealManager} from "../interfaces/IDealManager.sol";
 import {OfferManager} from "./OfferManager.sol";
 
-contract DealManager is OfferManager, IDealManager {
+contract DealManager is OfferManager, IDealManager
+{
     mapping(uint32 => Deal) public deal;
     uint32 private _nextDealId;
-
-    mapping(uint32 => State) public dealState;
 
     function createDeal(
         uint24 _offerId,
@@ -22,19 +21,17 @@ contract DealManager is OfferManager, IDealManager {
 
         deal[_nextDealId] = Deal({
             offer: _offerId,
-            buyer: msg.sender,
-            seller: offer.owner,
+            state: State.Initiated,
+            buyer:  offer.isSell ? msg.sender  : offer.owner,
+            seller: offer.isSell ? offer.owner : msg.sender,
             mediator: _mediator,
             fee: 0,
-            token0: "",
-            token1: "",
             token0amount: _tokenAmount,
             token1amount: _fiatAmount,
-            paymentInstructions: "",
-            paymentMethod: 0
+            paymentInstructions: ""
         });
 
-        dealState[_nextDealId] = State.Initiated;
+        emit DealCreated(_offerId, _mediator, deal[_nextDealId]);
 
         _nextDealId++;
         return _nextDealId - 1;

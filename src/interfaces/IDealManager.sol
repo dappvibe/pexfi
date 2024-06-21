@@ -3,9 +3,11 @@ pragma solidity ^0.8.0;
 
 interface IDealManager
 {
+    event DealCreated(uint24 indexed offerId, address indexed mediator, Deal deal);
+
     struct Deal {
         uint24 offer;
-
+        State state;
         // party receiving tokens
         address buyer;
 
@@ -17,13 +19,10 @@ interface IDealManager
         uint fee;
         //address policy; // ??? govern deal rules by another contract ??
 
-        string token0;
-        string token1;
         uint token0amount;
         uint token1amount;
 
         string paymentInstructions;
-        uint paymentMethod;
     }
 
     enum State {
