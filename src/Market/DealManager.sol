@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import {IDealManager} from "../interfaces/IDealManager.sol";
 import {OfferManager} from "./OfferManager.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract DealManager is OfferManager, IDealManager
 {
@@ -42,6 +43,7 @@ contract DealManager is OfferManager, IDealManager
     )
     external returns(uint32)
     {
+        require(_offerId > 0, "offerId");
         Offer memory offer = offers[_offerId];
 
         deals[_nextDealId] = Deal({
@@ -76,6 +78,19 @@ contract DealManager is OfferManager, IDealManager
         if (deal.acceptance == ACCEPTED_ALL) {
             deal.state = State.Accepted;
             emit DealState(_dealId, deal.mediator, deal.state);
+
+            if (_fundDeal(_dealId)) {
+                deal.state = State.Funded;
+                emit DealState(_dealId, deal.mediator, deal.state);
+            }
         }
+    }
+
+    // @dev transfer tokens to market
+    function _fundDeal(uint32 _dealId) private returns(bool)
+    {
+        Deal memory deal = deals[_dealId];
+        IERC20 token = IERC20(offers[deal.offerId].crypto);
+        return token.transferFrom(deal.seller, address(this), deal.token0amount);
     }
 }
