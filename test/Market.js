@@ -16,49 +16,47 @@ function address(number) {
 
 describe("Market", function()
 {
-    let priceOracle, market, owner, seller, buyer, mediator, offerId, dealId;
+    let MockBTC, priceOracle, market,
+        deployer, seller, buyer, mediator,
+        offerId, dealId;
 
-    async function deployPriceOracle() {
-        //const UNISWAP_FACTORY = '0x0227628f3F023bb0B980b67D528571c95c6DaC1c'; // sepolia
-        //const priceOracleFactory = await ethers.getContractFactory("PriceOracle");
-        //priceOracle = await priceOracleFactory.deploy(UNISWAP_FACTORY);
-        const priceOracleFactory = await ethers.getContractFactory("MockPriceOracle");
-        priceOracle = await priceOracleFactory.deploy();
-        await priceOracle.waitForDeployment();
+    async function deployBtc() {
+        const BTC = await ethers.getContractFactory("MockWBTC");
+        return await BTC.deploy();
     }
 
-    async function deploy() {
-        const [owner, seller, buyer, mediator] = await ethers.getSigners();
+    async function deployPriceOracle() {
+        const priceOracleFactory = await ethers.getContractFactory("MockPriceOracle");
+        return await priceOracleFactory.deploy();
+    }
+
+    async function deployMarket(MockBTC) {
         const MarketFactory = await ethers.getContractFactory("Market");
-        const market = await upgrades.deployProxy(MarketFactory, [
-            owner.address,
-            ['USDT', 'HZ', 'WETH'],
-            ['0xdAC17F958D2ee523a2206206994597C13D831ec7', '0xdAC17F958D2ee523a2206206994597C13D831ec7', '0xCBCdF9626bC03E24f779434178A73a0B4bad62eD'],
+        return await upgrades.deployProxy(MarketFactory, [
+            ['USDT', 'WETH', 'WBTC'],
+            ['0xdAC17F958D2ee523a2206206994597C13D831ec7',
+            '0xCBCdF9626bC03E24f779434178A73a0B4bad62eD',
+            MockBTC.target],
             ['USD']
         ]);
-        await market.waitForDeployment();
-        return { market, owner, seller, buyer, mediator };
     }
 
     before(async function() {
-        await deployPriceOracle();
-        const result = await deploy();
-        market = result.market;
-        owner = result.owner;
-        seller = result.seller;
-        buyer = result.buyer;
-        mediator = result.mediator;
+        [deployer, seller, buyer, mediator] = await ethers.getSigners();
+        MockBTC = await deployBtc();
+        priceOracle = await deployPriceOracle();
+        market = await deployMarket(MockBTC);
     });
 
     describe('Deploy', function() {
         it('is ownable', async function() {
-            expect(market.owner()).to.eventually.eq(owner.address);
+            expect(market.owner()).to.eventually.eq(deployer.address);
         });
 
         it("is upgradable", async function() {
             const MarketFactory = await ethers.getContractFactory("Market");
             const newMarket = await upgrades.upgradeProxy(await market.getAddress(), MarketFactory);
-            expect(newMarket.owner()).to.eventually.eq(owner.address);
+            expect(newMarket.owner()).to.eventually.eq(deployer.address);
         });
 
         it('Add delivery method', async function() {
@@ -142,7 +140,7 @@ describe("Market", function()
         });
 
         it ('accepted by owner', async function() {
-            market = await market.connect(owner);
+            market = await market.connect(deployer);
             await expect(market.acceptDeal(0)).to.emit(market, 'DealState');
         });
     });
