@@ -4,8 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "npx hardhat --show-stack-traces test",
-    "testFulltrace": "npx hardhat --show-stack-traces test --vv",
-    "deploy": "node ./deploy.js"
+    "testFulltrace": "npx hardhat --show-stack-traces test --vv"
   },
   "keywords": [],
   "author": "",
