@@ -183,4 +183,15 @@ describe("Market", function()
             await expect(response).to.emit(market, 'DealState');
         });
     });
+
+    describe('Seller releases tokens', function() {
+        it('event emitted', async function() {
+            market = await market.connect(seller);
+            const response = market.completeDeal(deal[0]).then((tx) => tx.wait());
+            await expect(response).to.emit(market, 'DealState');
+        });
+        it('buyer receives tokens', async function() {
+            await expect(MockBTC.balanceOf(buyer.address)).to.eventually.eq(deal[7]);
+        });
+    });
 });

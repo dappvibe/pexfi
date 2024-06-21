@@ -47,6 +47,7 @@ interface IDealManager
         RefundedAfterExpiry,      //
         ConfirmedAfterEscalation, //
         RefundedAfterEscalation,  //
-        Settled                   //
+        Settled,
+        Completed
     }
 }
