@@ -6,8 +6,33 @@ import {OfferManager} from "./OfferManager.sol";
 
 contract DealManager is OfferManager, IDealManager
 {
-    mapping(uint32 => Deal) public deal;
+    uint8 constant internal ACCEPTED_MEDIATOR = 1;
+    uint8 constant internal ACCEPTED_OWNER = 2;
+    uint8 constant internal ACCEPTED_ALL = 3;
+
+    mapping(uint32 => Deal) public deals;
     uint32 private _nextDealId;
+
+    modifier onlyMediator(uint32 _dealId) {
+        require(deals[_dealId].mediator == msg.sender, "only mediator");
+        _;
+    }
+    modifier onlySellerOrMediator(uint32 _dealId) {
+        require(deals[_dealId].seller == msg.sender || deals[_dealId].mediator == msg.sender, "only seller");
+        _;
+    }
+    modifier onlyBuyerOrMediator(uint32 _dealId) {
+        require(deals[_dealId].buyer == msg.sender || deals[_dealId].mediator == msg.sender, "only buyer");
+        _;
+    }
+    modifier onlyParticipant(uint32 _dealId) {
+        require(deals[_dealId].buyer == msg.sender || deals[_dealId].seller == msg.sender || deals[_dealId].mediator == msg.sender, "only participant");
+        _;
+    }
+    modifier onlyOfferOwner(uint32 _dealId) {
+        require(offers[deals[_dealId].offerId].owner == msg.sender, "only offer owner");
+        _;
+    }
 
     function createDeal(
         uint24 _offerId,
@@ -19,10 +44,11 @@ contract DealManager is OfferManager, IDealManager
     {
         Offer memory offer = offers[_offerId];
 
-        deal[_nextDealId] = Deal({
-            offer: _offerId,
+        deals[_nextDealId] = Deal({
+            offerId: _offerId,
+            acceptance: ACCEPTED_MEDIATOR, // mediator automatically accepts for now
             state: State.Initiated,
-            buyer:  offer.isSell ? msg.sender  : offer.owner,
+            buyer: offer.isSell ? msg.sender : offer.owner,
             seller: offer.isSell ? offer.owner : msg.sender,
             mediator: _mediator,
             fee: 0,
@@ -31,9 +57,25 @@ contract DealManager is OfferManager, IDealManager
             paymentInstructions: ""
         });
 
-        emit DealCreated(_offerId, _mediator, deal[_nextDealId]);
+        emit DealCreated(_offerId, _mediator, deals[_nextDealId]);
 
         _nextDealId++;
         return _nextDealId - 1;
+    }
+
+    function acceptDeal(uint32 _dealId) external onlyParticipant(_dealId)
+    {
+        Deal storage deal = deals[_dealId];
+        Offer memory offer = offers[deal.offerId];
+        if (msg.sender == offer.owner) {
+            deal.acceptance |= ACCEPTED_OWNER;
+        } else if (msg.sender == deal.mediator) {
+            deal.acceptance |= ACCEPTED_MEDIATOR;
+        }
+
+        if (deal.acceptance == ACCEPTED_ALL) {
+            deal.state = State.Accepted;
+            emit DealState(_dealId, deal.mediator, deal.state);
+        }
     }
 }
