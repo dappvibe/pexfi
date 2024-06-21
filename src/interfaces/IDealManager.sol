@@ -4,9 +4,11 @@ pragma solidity ^0.8.0;
 interface IDealManager
 {
     event DealCreated(uint24 indexed offerId, address indexed mediator, Deal deal);
+    event DealState(uint32 indexed dealId, address indexed mediator, State state);
 
     struct Deal {
-        uint24 offer;
+        uint24 offerId;
+        uint8 acceptance; // bitmap
         State state;
         // party receiving tokens
         address buyer;
@@ -26,8 +28,7 @@ interface IDealManager
     }
 
     enum State {
-        // This is an internal state to represent an uninitialized transaction.
-        Null,                     // 0
+        Invalid,                  // 0
         Initiated,                // 1
         Accepted,                 // 2
         Disputed,                 // 3
