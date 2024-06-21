@@ -5,5 +5,5 @@ interface IUniswapOracle
 {
     function getPrice(address token0, address token1, uint24 fee, uint32 twapPeriod)
     external view returns
-    (uint64 price, uint256 lastUpdateTimestamp);
+    (uint128 price, uint256 lastUpdateTimestamp);
 }
