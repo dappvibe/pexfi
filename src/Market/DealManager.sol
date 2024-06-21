@@ -34,6 +34,10 @@ contract DealManager is OfferManager, IDealManager
         require(offers[deals[_dealId].offerId].owner == msg.sender, "only offer owner");
         _;
     }
+    modifier dealState(uint32 _dealId, State _lessThan) {
+        require(deals[_dealId].state < _lessThan, "state");
+        _;
+    }
 
     function createDeal(
         uint24 _offerId,
