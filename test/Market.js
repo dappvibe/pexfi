@@ -128,7 +128,22 @@ describe("Market", function()
 
     describe('Create deal', function() {
         it('valid data', async function() {
-            await expect(market.createDeal(0, 1**18, 3500 * 10**6, address(1))).to.emit(market, 'DealCreated');
+            await expect(market.createDeal(
+                0,
+                1**18,
+                3500 * 10**6,
+                mediator.getAddress()
+            )).to.emit(market, 'DealCreated');
+        });
+
+        it ('accepted by mediator', async function() {
+            market = await market.connect(mediator);
+            await expect(market.acceptDeal(0)).to.not.emit(market, 'DealState');
+        });
+
+        it ('accepted by owner', async function() {
+            market = await market.connect(owner);
+            await expect(market.acceptDeal(0)).to.emit(market, 'DealState');
         });
     });
 });
