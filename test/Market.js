@@ -83,7 +83,7 @@ describe("Market", function()
         });
     });
 
-    describe('Users post offers', function() {
+    describe('Seller posts an offer', function() {
         function params(options = {}) {
             return {
                 isSell: true,
@@ -99,7 +99,34 @@ describe("Market", function()
             };
         }
 
-        it('seller provides allowance', async function() {
+        describe('with invalid input', async function() {
+            it('invalid fiat currency', async function() {
+                await expect(market.offerCreate(params({fiat: address(0)})))
+                    .to.be.reverted;
+            });
+
+            it('invalid price', async function() {
+                await expect(market.offerCreate(params({price: 0})))
+                    .to.be.reverted;
+            });
+
+            it ('invalid min', async function() {
+                await expect(market.offerCreate(params({min: 0})))
+                    .to.be.reverted;
+            });
+
+            it('invalid max', async function() {
+                await expect(market.offerCreate(params({max: 0})))
+                    .to.be.reverted;
+            });
+
+            it('invalid delivery method', async function() {
+                await expect(market.offerCreate(params({method: 1000})))
+                    .to.be.reverted;
+            });
+        });
+
+        it('provides allowance', async function() {
             market = await market.connect(seller);
             const receipt = MockBTC.approve(market.target, ethers.MaxUint256).then((tx) => tx.wait());
             await expect(receipt).to.emit(MockBTC, 'Approval');
@@ -118,35 +145,10 @@ describe("Market", function()
                 // bugged plugin changes WETH address case
                 .withArgs(seller.address, MockBTC.target, address(840), anyValue);
         });
-
-        it('invalid fiat currency', async function() {
-            await expect(market.offerCreate(params({fiat: address(0)})))
-                .to.be.reverted;
-        });
-
-        it('invalid price', async function() {
-            await expect(market.offerCreate(params({price: 0})))
-                .to.be.reverted;
-        });
-
-        it ('invalid min', async function() {
-            await expect(market.offerCreate(params({min: 0})))
-                .to.be.reverted;
-        });
-
-        it('invalid max', async function() {
-            await expect(market.offerCreate(params({max: 0})))
-                .to.be.reverted;
-        });
-
-        it('invalid delivery method', async function() {
-            await expect(market.offerCreate(params({method: 1000})))
-                .to.be.reverted;
-        });
     });
 
-    describe('Create deal', function() {
-        it('valid data', async function() {
+    describe('Buyer opens deal', function() {
+        it('event emitted', async function() {
             market = await market.connect(buyer);
             const response = market.createDeal(
                 offer[0],
