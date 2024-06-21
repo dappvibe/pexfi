@@ -7,6 +7,7 @@ interface IDealManager
     event DealState(uint32 indexed dealId, address indexed mediator, State state);
 
     struct Deal {
+        uint32 id;
         uint24 offerId;
         uint8 acceptance; // bitmap
         State state;
