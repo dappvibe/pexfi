@@ -26,6 +26,7 @@ contract OfferManager is IOfferManager, OwnableUpgradeable
         require(bytes(method.name).length > 0, "method");
 
         offers[_nextOfferId] = Offer({
+            id: _nextOfferId,
             owner: msg.sender,
             isSell: _params.isSell,
             crypto: _params.crypto,
@@ -40,7 +41,7 @@ contract OfferManager is IOfferManager, OwnableUpgradeable
             active: true
         });
 
-        emit OfferCreated(_params.isSell, _params.crypto, _params.fiat, _nextOfferId, offers[_nextOfferId]);
+        emit OfferCreated(msg.sender, _params.crypto, _params.fiat, offers[_nextOfferId]);
 
         _nextOfferId++;
         return _nextOfferId - 1;

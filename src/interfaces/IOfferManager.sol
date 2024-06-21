@@ -6,12 +6,13 @@ import "../enums/countries.sol";
 
 interface IOfferManager
 {
-    event OfferCreated(bool indexed isSell, address indexed crypto, address indexed fiat, uint24 offerId, Offer offer);
+    event OfferCreated(address indexed owner, address indexed crypto, address indexed fiat, Offer offer);
 
     event MethodAdded(uint16 indexed id, Country indexed country, Method method);
     event MethodRemoved(uint16 indexed id);
 
     struct Offer {
+        uint24  id;
         address owner;  // Support ENS in client for nicknames
 
         bool    isSell;

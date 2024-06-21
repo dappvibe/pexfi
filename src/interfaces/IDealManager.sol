@@ -28,23 +28,24 @@ interface IDealManager
     }
 
     enum State {
-        Invalid,                  // 0
-        Initiated,                // 1
-        Accepted,                 // 2
-        Disputed,                 // 3
-        Escalated,                // 4
-        Revoked,                  // 5
-        RefundedByMediator,       // 6
-        SettledByMediator,        // 7
-        ConfirmedByMediator,      // 8
-        Confirmed,                // 9
-        Refunded,                 // 10
-        ConfirmedAfterExpiry,     // 11
-        ConfirmedAfterDispute,    // 12
-        RefundedAfterDispute,     // 13
-        RefundedAfterExpiry,      // 14
-        ConfirmedAfterEscalation, // 15
-        RefundedAfterEscalation,  // 16
-        Settled                   // 17
+        Invalid,                  //
+        Initiated,                //
+        Accepted,                 //
+        Funded,                   //
+        Disputed,                 //
+        Escalated,                //
+        Revoked,                  //
+        RefundedByMediator,       //
+        SettledByMediator,        //
+        ConfirmedByMediator,      //
+        Confirmed,                //
+        Refunded,                 //
+        ConfirmedAfterExpiry,     //
+        ConfirmedAfterDispute,    //
+        RefundedAfterDispute,     //
+        RefundedAfterExpiry,      //
+        ConfirmedAfterEscalation, //
+        RefundedAfterEscalation,  //
+        Settled                   //
     }
 }
