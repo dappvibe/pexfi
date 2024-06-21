@@ -31,7 +31,6 @@ contract Market is
     // TODO multiple addresses link rep (in a way protected from DDoS clients when there are too many linked account to fetch logs for)
 
     function initialize(
-        address initialOwner,
         string[] calldata _tokenSymbols,
         address[] calldata _tokenAddresses,
         string[] calldata _fiats
@@ -39,7 +38,7 @@ contract Market is
     {
         require(_tokenSymbols.length == _tokenAddresses.length, "token mismatch");
 
-        __Ownable_init(initialOwner);
+        __Ownable_init(msg.sender);
 
         // price related
         for(uint8 i = 0; i < _tokenSymbols.length; i++) {
