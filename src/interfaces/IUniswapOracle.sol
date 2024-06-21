@@ -3,5 +3,7 @@ pragma solidity ^0.8.0;
 
 interface IUniswapOracle
 {
-    function getPrice(address token0, address token1, uint24 fee, uint32 twapPeriod) external view returns (uint256 price, uint256 lastUpdateTimestamp);
+    function getPrice(address token0, address token1, uint24 fee, uint32 twapPeriod)
+    external view returns
+    (uint64 price, uint256 lastUpdateTimestamp);
 }
