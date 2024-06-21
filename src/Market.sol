@@ -80,7 +80,7 @@ contract Market is
 
     function getPrice(string calldata _token, string calldata _fiat)
     external view
-    returns (uint64)
+    returns (uint128)
     {
         address tokenAddress = tokens[_token];
         require(tokenAddress != address(0), 'token not supported');
@@ -89,7 +89,7 @@ contract Market is
         string memory fiat = 'USD';
 
         // first get token to USDT value
-        (uint64 tokenToUsd,) = uniswapOracle.getPrice(tokenAddress, tokens['USDT'], 1, 300); // 5 min twap
+        (uint128 tokenToUsd,) = uniswapOracle.getPrice(tokenAddress, tokens['USDT'], 1, 300); // 5 min twap
 
         return tokenToUsd;
     }
