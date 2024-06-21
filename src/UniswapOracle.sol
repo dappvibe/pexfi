@@ -13,7 +13,7 @@ contract UniswapOracle is UniswapV3Oracle
     // @dev simplified for single pair
     function getPrice(address token0, address token1, uint24 fee, uint32 twapPeriod)
     external view returns
-    (uint64 price, uint256 lastUpdateTimestamp)
+    (uint128 price, uint256 lastUpdateTimestamp)
     {
         address[] memory tokens = new address[](2);
         tokens[0] = token0;
