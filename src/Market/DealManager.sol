@@ -86,6 +86,14 @@ contract DealManager is OfferManager, IDealManager
         }
     }
 
+    function paidDeal(uint32 _dealId) external onlyBuyerOrMediator(_dealId)
+    {
+        Deal storage deal = deals[_dealId];
+        require(deal.state == State.Funded, "funded");
+        deal.state = State.Paid;
+        emit DealState(_dealId, deal.mediator, deal.state);
+    }
+
     // @dev transfer tokens to market
     function _fundDeal(uint32 _dealId) private returns(bool)
     {
