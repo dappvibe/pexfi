@@ -90,7 +90,6 @@ contract DealManager is OfferManager, IDealManager
     function paidDeal(uint32 _dealId) external onlyBuyerOrMediator(_dealId)
     {
         Deal storage deal = deals[_dealId];
-        require(deal.state == State.Funded, "funded");
         deal.state = State.Paid;
         emit DealState(_dealId, deal.mediator, deal.state);
     }
@@ -118,6 +117,15 @@ contract DealManager is OfferManager, IDealManager
         }
 
         deal.state = State.Revoked;
+        emit DealState(_dealId, deal.mediator, deal.state);
+    }
+
+    function disputeDeal(uint32 _dealId) external onlyParticipant(_dealId)
+    {
+        Deal storage deal = deals[_dealId];
+        require(deal.state < State.Disputed, "disputed");
+
+        deal.state = State.Disputed;
         emit DealState(_dealId, deal.mediator, deal.state);
     }
 
