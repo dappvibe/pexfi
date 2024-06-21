@@ -9,7 +9,7 @@ interface IMarket is IOfferManager, IDealManager, IRepManager
 {
     // @dev USDT is used as a base currency for all fiats
     // @return (fiat / token) * 100
-    function getPrice(string calldata _token, string calldata _fiat) external view returns (uint64);
+    function getPrice(string calldata _token, string calldata _fiat) external view returns (uint128);
 
     struct Rep {
         address owner;
