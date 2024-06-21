@@ -49,8 +49,10 @@ contract Market is
             fiats[_fiats[i]] = 1; // Initialize with a default value
         }
 
-        // mark default mapping value as invalid so that not found is not confused with valid data
-        methods[0] = Method('', MethodGroup.Other, Country.GLOBAL);
+        // 0 values are invalid and Upgradable can't use default values
+        _nextOfferId++;
+        _nextDealId++;
+        _nextMethodId++;
     }
     function _authorizeUpgrade(address) internal onlyOwner override {}
 

@@ -8,10 +8,10 @@ import "../enums/countries.sol";
 contract OfferManager is IOfferManager, OwnableUpgradeable
 {
     mapping(uint24 => Offer)    public offers;
-    uint24 private _nextOfferId;
+    uint24 internal _nextOfferId;
 
     mapping(uint16 => Method) public methods;
-    uint16 private _nextMethodId;
+    uint16 internal _nextMethodId;
 
     function offerCreate(OfferCreateParams calldata _params) external returns(uint)
     {
