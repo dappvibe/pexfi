@@ -5,6 +5,7 @@ interface IDealManager
 {
     event DealCreated(uint24 indexed offerId, address indexed mediator, Deal deal);
     event DealState(uint32 indexed dealId, address indexed mediator, State state);
+    event Message(uint32 indexed dealId, address indexed sender, string message);
 
     struct Deal {
         uint32 id;
