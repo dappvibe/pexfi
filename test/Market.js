@@ -16,7 +16,7 @@ function address(number) {
 
 describe("Market", function()
 {
-    let priceOracle, market, owner, seller, buyer, mediator;
+    let priceOracle, market, owner, seller, buyer, mediator, offerId, dealId;
 
     async function deployPriceOracle() {
         //const UNISWAP_FACTORY = '0x0227628f3F023bb0B980b67D528571c95c6DaC1c'; // sepolia
@@ -123,6 +123,12 @@ describe("Market", function()
         it('invalid delivery method', async function() {
             let invalidParams = {...params, method: 1000};
             await expect(market.offerCreate(invalidParams)).to.be.reverted;
+        });
+    });
+
+    describe('Create deal', function() {
+        it('valid data', async function() {
+            await expect(market.createDeal(0, 1**18, 3500 * 10**6, address(1))).to.emit(market, 'DealCreated');
         });
     });
 });
