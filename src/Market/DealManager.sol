@@ -133,6 +133,11 @@ contract DealManager is OfferManager, IDealManager
         emit DealState(_dealId, deal.mediator, deal.state);
     }
 
+    function message(uint32 _dealId, string calldata _message) external onlyParticipant(_dealId)
+    {
+        emit Message(_dealId, msg.sender, _message);
+    }
+
     // @dev transfer tokens to market
     function _fundDeal(uint32 _dealId) private returns(bool)
     {
