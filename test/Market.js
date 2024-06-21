@@ -237,4 +237,15 @@ describe("Market", function()
             await expect(market.disputeDeal(deal[0])).to.emit(market, 'DealState');
         });
     });
+
+    describe('Messaging', function() {
+        it('seller sends message', async function() {
+            market = await market.connect(seller);
+            await expect(market.message(deal[0], 'Hello buyer!')).to.emit(market, 'Message');
+        });
+        it('buyer sends message', async function() {
+            market = await market.connect(buyer);
+            await expect(market.message(deal[0], 'Hello seller!')).to.emit(market, 'Message');
+        });
+    });
 });
