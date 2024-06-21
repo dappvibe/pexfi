@@ -11,7 +11,9 @@ contract UniswapOracle is UniswapV3Oracle
     constructor(address uniswapV3Factory_) UniswapV3Oracle(uniswapV3Factory_) {}
 
     // @dev simplified for single pair
-    function getPrice(address token0, address token1, uint24 fee, uint32 twapPeriod) external view returns (uint256 price, uint256 lastUpdateTimestamp)
+    function getPrice(address token0, address token1, uint24 fee, uint32 twapPeriod)
+    external view returns
+    (uint64 price, uint256 lastUpdateTimestamp)
     {
         address[] memory tokens = new address[](2);
         tokens[0] = token0;

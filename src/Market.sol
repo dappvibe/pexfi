@@ -78,7 +78,10 @@ contract Market is
         uniswapOracle = IUniswapOracle(_uniswapOracle);
     }
 
-    function getPrice(string calldata _token, string calldata _fiat) external view override returns (uint64) {
+    function getPrice(string calldata _token, string calldata _fiat)
+    external view
+    returns (uint64)
+    {
         address tokenAddress = tokens[_token];
         require(tokenAddress != address(0), 'token not supported');
         require(fiats[_fiat] != 0, 'fiat not supported');
@@ -86,8 +89,8 @@ contract Market is
         string memory fiat = 'USD';
 
         // first get token to USDT value
-        (uint tokenToUsd,) = uniswapOracle.getPrice(tokenAddress, tokens['USDT'], 1, 300); // 5 min twap
+        (uint64 tokenToUsd,) = uniswapOracle.getPrice(tokenAddress, tokens['USDT'], 1, 300); // 5 min twap
 
-        return 0;
+        return tokenToUsd;
     }
 }
