@@ -11,7 +11,7 @@ contract DealManager is OfferManager, IDealManager
     uint8 constant internal ACCEPTED_ALL = 3;
 
     mapping(uint32 => Deal) public deals;
-    uint32 private _nextDealId;
+    uint32 internal _nextDealId;
 
     modifier onlyMediator(uint32 _dealId) {
         require(deals[_dealId].mediator == msg.sender, "only mediator");
