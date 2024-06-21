@@ -18,34 +18,40 @@ describe("Market", function()
 {
     let MockBTC, priceOracle, market,
         deployer, seller, buyer, mediator,
-        offerId, dealId;
+        offer, deal;
 
     async function deployBtc() {
         const BTC = await ethers.getContractFactory("MockWBTC");
-        return await BTC.deploy();
+        MockBTC = await BTC.deploy();
+        await MockBTC.waitForDeployment();
+        return MockBTC;
     }
 
     async function deployPriceOracle() {
         const priceOracleFactory = await ethers.getContractFactory("MockPriceOracle");
-        return await priceOracleFactory.deploy();
+        priceOracle = await priceOracleFactory.deploy();
+        await priceOracle.waitForDeployment();
+        return priceOracle;
     }
 
-    async function deployMarket(MockBTC) {
+    async function deployMarket() {
         const MarketFactory = await ethers.getContractFactory("Market");
-        return await upgrades.deployProxy(MarketFactory, [
+        market = await upgrades.deployProxy(MarketFactory, [
             ['USDT', 'WETH', 'WBTC'],
             ['0xdAC17F958D2ee523a2206206994597C13D831ec7',
             '0xCBCdF9626bC03E24f779434178A73a0B4bad62eD',
             MockBTC.target],
             ['USD']
         ]);
+        await market.waitForDeployment();
+        return market;
     }
 
     before(async function() {
         [deployer, seller, buyer, mediator] = await ethers.getSigners();
         MockBTC = await deployBtc();
         priceOracle = await deployPriceOracle();
-        market = await deployMarket(MockBTC);
+        market = await deployMarket();
     });
 
     describe('Deploy', function() {
@@ -78,70 +84,86 @@ describe("Market", function()
     });
 
     describe('Create offer', function() {
-        let params = {
-            isSell: true,
-            crypto: WETH,
-            fiat: address(840), // USD
-            price: 100,
-            min: 1000,
-            max: 5000,
-            method: 2,
-            paymentTimeLimit: 60,
-            terms: 'No KYC'
-        };
+        function params(options = {}) {
+            return {
+                isSell: true,
+                crypto: MockBTC.target,
+                fiat: address(840), // USD
+                price: 100,
+                min: 1000,
+                max: 5000,
+                method: 2,
+                paymentTimeLimit: 60,
+                terms: 'No KYC',
+                ...options
+            };
+        }
 
         it('event emitted', async function() {
-            const response = await market.offerCreate(params).then((tx) => tx.wait());
+            market = market.connect(seller);
+            const response = market.offerCreate(params()).then((tx) => tx.wait()).then(receipt => {
+                const OfferCreated = market.interface.parseLog(receipt.logs[0]);
+                offer = OfferCreated.args[3];
+                return receipt;
+            });
             await expect(response)
                 .to.emit(market, 'OfferCreated')
                 // bugged plugin changes WETH address case
-                .withArgs(true, '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14', address(840), 0, anyValue);
+                .withArgs(seller.address, MockBTC.target, address(840), anyValue);
         });
 
         it('invalid fiat currency', async function() {
-            let invalidParams = {...params, fiat: address(0)};
-            await expect(market.offerCreate(invalidParams)).to.be.reverted;
+            await expect(market.offerCreate(params({fiat: address(0)})))
+                .to.be.reverted;
         });
 
         it('invalid price', async function() {
-            let invalidParams = {...params, price: 0};
-            await expect(market.offerCreate(invalidParams)).to.be.reverted;
+            await expect(market.offerCreate(params({price: 0})))
+                .to.be.reverted;
         });
 
         it ('invalid min', async function() {
-            let invalidParams = {...params, min: 0};
-            await expect(market.offerCreate(invalidParams)).to.be.reverted;
+            await expect(market.offerCreate(params({min: 0})))
+                .to.be.reverted;
         });
 
         it('invalid max', async function() {
-            let invalidParams = {...params, max: 0};
-            await expect(market.offerCreate(invalidParams)).to.be.reverted;
+            await expect(market.offerCreate(params({max: 0})))
+                .to.be.reverted;
         });
 
         it('invalid delivery method', async function() {
-            let invalidParams = {...params, method: 1000};
-            await expect(market.offerCreate(invalidParams)).to.be.reverted;
+            await expect(market.offerCreate(params({method: 1000})))
+                .to.be.reverted;
         });
     });
 
     describe('Create deal', function() {
         it('valid data', async function() {
-            await expect(market.createDeal(
-                0,
+            market = await market.connect(buyer);
+            const response = market.createDeal(
+                offer[0],
                 1**18,
                 3500 * 10**6,
                 mediator.getAddress()
-            )).to.emit(market, 'DealCreated');
+            ).then((tx) => tx.wait()).then(receipt => {
+                const DealCreated = market.interface.parseLog(receipt.logs[0]);
+                deal = DealCreated.args[2];
+                return receipt;
+            });
+            await expect(response)
+                .to.emit(market, 'DealCreated')
+                .withArgs(offer[0], mediator.address, anyValue);
         });
 
         it ('accepted by mediator', async function() {
             market = await market.connect(mediator);
-            await expect(market.acceptDeal(0)).to.not.emit(market, 'DealState');
+            await expect(market.acceptDeal(deal[0])).to.not.emit(market, 'DealState');
         });
 
         it ('accepted by owner', async function() {
-            market = await market.connect(deployer);
-            await expect(market.acceptDeal(0)).to.emit(market, 'DealState');
+            market = await market.connect(seller);
+            await expect(market.acceptDeal(deal[0])).to.emit(market, 'DealState');
         });
     });
 });
