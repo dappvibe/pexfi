@@ -107,6 +107,20 @@ contract DealManager is OfferManager, IDealManager
         emit DealState(_dealId, deal.mediator, deal.state);
     }
 
+    function cancelDeal(uint32 _dealId) external onlyBuyerOrMediator(_dealId)
+    {
+        Deal storage deal = deals[_dealId];
+        require(deal.state < State.Completed, "completed");
+
+        if (deal.state == State.Funded) {
+            IERC20 token = IERC20(offers[deal.offerId].crypto);
+            token.transfer(deal.seller, deal.token0amount);
+        }
+
+        deal.state = State.Revoked;
+        emit DealState(_dealId, deal.mediator, deal.state);
+    }
+
     // @dev transfer tokens to market
     function _fundDeal(uint32 _dealId) private returns(bool)
     {
