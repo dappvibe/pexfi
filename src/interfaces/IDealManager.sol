@@ -35,7 +35,6 @@ interface IDealManager
         Funded,                   //
         Paid,
         Disputed,                 //
-        Escalated,                //
         Revoked,                  //
         RefundedByMediator,       //
         SettledByMediator,        //
