@@ -5,17 +5,26 @@ const { loadFixture } = require("@nomicfoundation/hardhat-toolbox/network-helper
 
 const WETH = '0xfff9976782d46cc05630d1f6ebab18b2324d6b14';
 
+function address(number) {
+    let hexString = number.toString(16);
+
+    while (hexString.length < 40) {
+        hexString = '0' + hexString;
+    }
+    return '0x' + hexString;
+}
+
 describe("Market", function()
 {
-    let uniswapOracle, market, owner, seller, buyer, mediator;
+    let priceOracle, market, owner, seller, buyer, mediator;
 
-    async function deployUniswapOracle() {
+    async function deployPriceOracle() {
         //const UNISWAP_FACTORY = '0x0227628f3F023bb0B980b67D528571c95c6DaC1c'; // sepolia
-        //const uniswapOracleFactory = await ethers.getContractFactory("UniswapOracle");
-        //uniswapOracle = await uniswapOracleFactory.deploy(UNISWAP_FACTORY);
-        const uniswapOracleFactory = await ethers.getContractFactory("MockUniswapOracle");
-        uniswapOracle = await uniswapOracleFactory.deploy();
-        await uniswapOracle.waitForDeployment();
+        //const priceOracleFactory = await ethers.getContractFactory("PriceOracle");
+        //priceOracle = await priceOracleFactory.deploy(UNISWAP_FACTORY);
+        const priceOracleFactory = await ethers.getContractFactory("MockPriceOracle");
+        priceOracle = await priceOracleFactory.deploy();
+        await priceOracle.waitForDeployment();
     }
 
     async function deploy() {
@@ -23,7 +32,6 @@ describe("Market", function()
         const MarketFactory = await ethers.getContractFactory("Market");
         const market = await upgrades.deployProxy(MarketFactory, [
             owner.address,
-            uniswapOracle.target,
             ['USDT', 'HZ', 'WETH'],
             ['0xdAC17F958D2ee523a2206206994597C13D831ec7', '0xdAC17F958D2ee523a2206206994597C13D831ec7', '0xCBCdF9626bC03E24f779434178A73a0B4bad62eD'],
             ['USD']
@@ -33,7 +41,7 @@ describe("Market", function()
     }
 
     before(async function() {
-        await deployUniswapOracle();
+        await deployPriceOracle();
         const result = await deploy();
         market = result.market;
         owner = result.owner;
@@ -75,7 +83,7 @@ describe("Market", function()
         let params = {
             isSell: true,
             crypto: WETH,
-            fiat: 43, // EUR
+            fiat: address(840), // USD
             price: 100,
             min: 1000,
             max: 5000,
@@ -89,11 +97,11 @@ describe("Market", function()
             await expect(response)
                 .to.emit(market, 'OfferCreated')
                 // bugged plugin changes WETH address case
-                .withArgs(true, '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14', 43, 0, anyValue);
+                .withArgs(true, '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14', address(840), 0, anyValue);
         });
 
         it('invalid fiat currency', async function() {
-            let invalidParams = {...params, fiat: 254};
+            let invalidParams = {...params, fiat: address(0)};
             await expect(market.offerCreate(invalidParams)).to.be.reverted;
         });
 
@@ -116,16 +124,5 @@ describe("Market", function()
             let invalidParams = {...params, method: 1000};
             await expect(market.offerCreate(invalidParams)).to.be.reverted;
         });
-    });
-
-    describe('Prices', function() {
-        it('ETH / USDT', async function() {
-            const price = await market.getPrice('WETH', 'USD');
-            expect(price).to.be.gt(0);
-        });
-
-        /*it('get price for unknown token', async function() {
-            await expect(market.price('0x'), 43).to.be.reverted;
-        });*/
     });
 });

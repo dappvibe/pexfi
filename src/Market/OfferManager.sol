@@ -15,6 +15,7 @@ contract OfferManager is IOfferManager, OwnableUpgradeable
 
     function offerCreate(OfferCreateParams calldata _params) external returns(uint)
     {
+        require (_params.fiat != address(0), 'fiat');
         require (_params.price > 0, "price");
         require (_params.min > 0, "min");
         require (_params.max > 0, "max");

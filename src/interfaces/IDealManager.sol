@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 interface IDealManager
 {
     struct Deal {
-        address offer;
+        uint24 offer;
 
         // party receiving tokens
         address buyer;
@@ -15,7 +15,7 @@ interface IDealManager
         // party receiving fee
         address mediator;
         uint fee;
-        address policy; // ??? govern deal rules by another contract ??
+        //address policy; // ??? govern deal rules by another contract ??
 
         string token0;
         string token1;

@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "../lib/openzeppelin-contracts/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {IMarket} from "./interfaces/IMarket.sol";
-import {OfferManager} from "./Market/OfferManager.sol";
 import {DealManager} from "./Market/DealManager.sol";
 import {RepManager} from "./Market/RepManager.sol";
 import {Country} from "./enums/countries.sol";
@@ -19,7 +18,6 @@ contract Market is
     OwnableUpgradeable,
     UUPSUpgradeable,
     IMarket,
-    OfferManager,
     DealManager,
     RepManager
 {

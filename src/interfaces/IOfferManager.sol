@@ -6,7 +6,7 @@ import "../enums/countries.sol";
 
 interface IOfferManager
 {
-    event OfferCreated(bool indexed isSell, address indexed crypto, Fiat indexed fiat, uint24 offerId, Offer offer);
+    event OfferCreated(bool indexed isSell, address indexed crypto, address indexed fiat, uint24 offerId, Offer offer);
 
     event MethodAdded(uint16 indexed id, Country indexed country, Method method);
     event MethodRemoved(uint16 indexed id);
@@ -16,10 +16,10 @@ interface IOfferManager
 
         bool    isSell;
         address crypto;
-        uint    priceRatio; // TODO X96?? X4??
-        Fiat    fiat;
+        address fiat;
         uint    fiatMin;
         uint    fiatMax;
+        uint    priceRatio; // TODO X96?? X4??
 
         /**
         * @dev Single method per offer allows to close trades automatically in case of cryptocurrencies with deterministic pricing for each method.
@@ -45,7 +45,7 @@ interface IOfferManager
     struct OfferCreateParams {
         bool isSell;
         address crypto; // ERC20
-        Fiat fiat;
+        address fiat;
         uint price;
         uint min;
         uint max;
