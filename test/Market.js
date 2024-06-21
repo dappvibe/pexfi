@@ -152,7 +152,7 @@ describe("Market", function()
             market = await market.connect(buyer);
             const response = market.createDeal(
                 offer[0],
-                1**18,
+                1**8,
                 3500 * 10**6,
                 mediator.getAddress()
             ).then((tx) => tx.wait()).then(receipt => {
@@ -191,7 +191,36 @@ describe("Market", function()
             await expect(response).to.emit(market, 'DealState');
         });
         it('buyer receives tokens', async function() {
-            await expect(MockBTC.balanceOf(buyer.address)).to.eventually.eq(deal[7]);
+            await expect(MockBTC.balanceOf(buyer.address)).to.eventually.eq(deal[8]);
+        });
+    });
+
+    describe('Buyer opens another deal', function() {
+        it('event emitted', async function() {
+            market = await market.connect(buyer);
+            await market.createDeal(
+                offer[0],
+                1**18,
+                3500 * 10**6,
+                mediator.getAddress()
+            ).then((tx) => tx.wait()).then(receipt => {
+                const DealCreated = market.interface.parseLog(receipt.logs[0]);
+                deal = DealCreated.args[2];
+                return receipt;
+            });
+        });
+    });
+
+    describe('Buyer cancels deal', function() {
+        it('seller cannot cancel', async function() {
+            market = await market.connect(seller);
+            const response = market.cancelDeal(deal[0]).then((tx) => tx.wait());
+            await expect(response).to.reverted;
+        });
+        it('event emitted', async function() {
+            market = await market.connect(buyer);
+            const response = market.cancelDeal(deal[0]).then((tx) => tx.wait());
+            await expect(response).to.emit(market, 'DealState');
         });
     });
 });
