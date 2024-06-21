@@ -10,9 +10,11 @@ describe("Market", function()
     let uniswapOracle, market, owner, seller, buyer, mediator;
 
     async function deployUniswapOracle() {
-        const UNISWAP_FACTORY = '0x0227628f3F023bb0B980b67D528571c95c6DaC1c'; // sepolia
-        const uniswapOracleFactory = await ethers.getContractFactory("UniswapOracle");
-        uniswapOracle = await uniswapOracleFactory.deploy(UNISWAP_FACTORY);
+        //const UNISWAP_FACTORY = '0x0227628f3F023bb0B980b67D528571c95c6DaC1c'; // sepolia
+        //const uniswapOracleFactory = await ethers.getContractFactory("UniswapOracle");
+        //uniswapOracle = await uniswapOracleFactory.deploy(UNISWAP_FACTORY);
+        const uniswapOracleFactory = await ethers.getContractFactory("MockUniswapOracle");
+        uniswapOracle = await uniswapOracleFactory.deploy();
         await uniswapOracle.waitForDeployment();
     }
 
