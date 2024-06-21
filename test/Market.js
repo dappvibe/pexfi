@@ -17,7 +17,7 @@ function address(number) {
 describe("Market", function()
 {
     let MockBTC, priceOracle, market,
-        deployer, seller, buyer, mediator,
+        seller, buyer, mediator,
         offer, deal;
 
     async function deployBtc() {
@@ -48,7 +48,7 @@ describe("Market", function()
     }
 
     before(async function() {
-        [deployer, seller, buyer, mediator] = await ethers.getSigners();
+        [seller, buyer, mediator] = await ethers.getSigners();
         MockBTC = await deployBtc();
         priceOracle = await deployPriceOracle();
         market = await deployMarket();
@@ -56,13 +56,13 @@ describe("Market", function()
 
     describe('Deploy', function() {
         it('is ownable', async function() {
-            expect(market.owner()).to.eventually.eq(deployer.address);
+            expect(market.owner()).to.eventually.eq(seller.address);
         });
 
         it("is upgradable", async function() {
             const MarketFactory = await ethers.getContractFactory("Market");
             const newMarket = await upgrades.upgradeProxy(await market.getAddress(), MarketFactory);
-            expect(newMarket.owner()).to.eventually.eq(deployer.address);
+            expect(newMarket.owner()).to.eventually.eq(seller.address);
         });
 
         it('Add delivery method', async function() {
@@ -83,7 +83,7 @@ describe("Market", function()
         });
     });
 
-    describe('Create offer', function() {
+    describe('Users post offers', function() {
         function params(options = {}) {
             return {
                 isSell: true,
@@ -98,6 +98,13 @@ describe("Market", function()
                 ...options
             };
         }
+
+        it('seller provides allowance', async function() {
+            market = await market.connect(seller);
+            const receipt = MockBTC.approve(market.target, ethers.MaxUint256).then((tx) => tx.wait());
+            await expect(receipt).to.emit(MockBTC, 'Approval');
+            await expect(MockBTC.allowance(seller.address, market.target)).to.eventually.eq(ethers.MaxUint256);
+        });
 
         it('event emitted', async function() {
             market = market.connect(seller);
