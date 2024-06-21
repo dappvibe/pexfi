@@ -47,6 +47,7 @@ contract DealManager is OfferManager, IDealManager
         Offer memory offer = offers[_offerId];
 
         deals[_nextDealId] = Deal({
+            id: _nextDealId,
             offerId: _offerId,
             acceptance: ACCEPTED_MEDIATOR, // mediator automatically accepts for now
             state: State.Initiated,
