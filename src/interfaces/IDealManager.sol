@@ -32,6 +32,7 @@ interface IDealManager
         Initiated,                //
         Accepted,                 //
         Funded,                   //
+        Paid,
         Disputed,                 //
         Escalated,                //
         Revoked,                  //

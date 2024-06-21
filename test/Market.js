@@ -175,4 +175,12 @@ describe("Market", function()
             await expect(market.acceptDeal(deal[0])).to.emit(market, 'DealState');
         });
     });
+
+    describe('Buyer marks paid', function() {
+        it('event emitted', async function() {
+            market = await market.connect(buyer);
+            const response = market.paidDeal(deal[0]).then((tx) => tx.wait());
+            await expect(response).to.emit(market, 'DealState');
+        });
+    });
 });
