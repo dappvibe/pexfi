@@ -54,10 +54,65 @@ contract RepToken is IRepManager, UUPSUpgradeable, AccessControlUpgradeable, ERC
         _nextTokenId++;
     }
 
+    function merge(uint32 _tokenId, uint32 _otherTokenId) external
+    {
+        require(msg.sender == ownerOf(_tokenId), "owner");
+        require(msg.sender == _getApproved(_otherTokenId), "approve");
+
+        Stats storage stats1 = stats[_tokenId];
+        Stats storage stats2 = stats[_otherTokenId];
+
+        stats1.upvotes += stats2.upvotes;
+        stats1.downvotes += stats2.downvotes;
+        stats1.volumeUSD += stats2.volumeUSD;
+        stats1.dealsCompleted += stats2.dealsCompleted;
+        stats1.dealsExpired += stats2.dealsExpired;
+        stats1.disputesLost += stats2.disputesLost;
+        stats1.avgPaymentTime = (stats1.avgPaymentTime + stats2.avgPaymentTime) / 2;
+        stats1.avgReleaseTime = (stats1.avgReleaseTime + stats2.avgReleaseTime) / 2;
+
+        _burn(_otherTokenId);
+        delete stats[_otherTokenId];
+    }
+
+    function statsUpvote(uint32 _tokenId) onlyRole(MARKET_ROLE) external
+    {
+        stats[_tokenId].upvotes++;
+    }
+    function statsDownvote(uint32 _tokenId) onlyRole(MARKET_ROLE) external
+    {
+        stats[_tokenId].downvotes++;
+    }
+    function statsVolumeUSD(uint32 _tokenId, uint64 _volumeUSD) onlyRole(MARKET_ROLE) external
+    {
+        stats[_tokenId].volumeUSD += _volumeUSD;
+    }
+    function statsDealCompleted(uint32[] calldata _tokens) onlyRole(MARKET_ROLE) external
+    {
+        for (uint i = 0; i < _tokens.length; i++)
+            stats[_tokens[i]].dealsCompleted++;
+    }
+    function statsDealExpired(uint32 _tokenId) onlyRole(MARKET_ROLE) external
+    {
+        stats[_tokenId].dealsExpired++;
+    }
+    function statsDisputeLost(uint32 _tokenId) onlyRole(MARKET_ROLE) external
+    {
+        stats[_tokenId].disputesLost++;
+    }
+    function statsAvgPaymentTime(uint32 _tokenId, uint32 _dealTime) onlyRole(MARKET_ROLE) external
+    {
+        stats[_tokenId].avgPaymentTime = (stats[_tokenId].avgPaymentTime + _dealTime) / 2;
+    }
+    function statsAvgReleaseTime(uint32 _tokenId, uint32 _dealTime) onlyRole(MARKET_ROLE) external
+    {
+        stats[_tokenId].avgReleaseTime = (stats[_tokenId].avgReleaseTime + _dealTime) / 2;
+    }
+
     function _resetStats(uint32 _tokenId) private
     {
         stats[_tokenId] = Stats({
-            createdAt: block.number,
+            createdAt: stats[_tokenId].createdAt,
             upvotes: 0,
             downvotes: 0,
             volumeUSD: 0,
