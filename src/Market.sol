@@ -21,14 +21,11 @@ contract Market is
 {
     using Strings for string;
 
+    // TODO bytes4 key
     mapping(string => address) public tokens; // supported ERC20 tokens, key is symbol
     mapping(string => uint16)  public fiats;  // supported fiat currencies, key is ISO 4217 code, value is latest price to USDT or 0 if no info
 
     address public repToken;
-
-    // feedback is in blockchain logs?
-    // transactions is in blockchain logs?
-    // TODO multiple addresses link rep (in a way protected from DDoS clients when there are too many linked account to fetch logs for)
 
     function initialize(
         address _repToken,
@@ -54,7 +51,6 @@ contract Market is
         // 0 values are invalid and Upgradable can't use default values
         _nextOfferId++;
         _nextDealId++;
-        _nextMethodId++;
     }
     function _authorizeUpgrade(address) internal onlyOwner override {}
 
