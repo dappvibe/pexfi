@@ -8,8 +8,8 @@ interface IOfferManager
 {
     event OfferCreated(address indexed owner, address indexed crypto, address indexed fiat, Offer offer);
 
-    event MethodAdded(uint16 indexed id, Country indexed country, Method method);
-    event MethodRemoved(uint16 indexed id);
+    event MethodAdded(bytes32 indexed name, Method method);
+    event MethodRemoved(bytes32 indexed name);
 
     struct Offer {
         uint24  id;
@@ -27,7 +27,8 @@ interface IOfferManager
         *      Also avoids situations when advertiser changes terms after trade is initiated saying that published price is for another method.
         *      Also it builds costs for advertisers to include a method so it serves as spam protection.
         */
-        Method method;
+        bytes32 method;
+        Country country;
 
         // TODO zip and store into array or somehow else allow it to be up to 256? bytes
         // this cannot be stored out-of-chain otherwise actors may change and it will be impossible to verify
@@ -50,7 +51,8 @@ interface IOfferManager
         uint price;
         uint min;
         uint max;
-        uint16 method;
+        bytes32 method;
+        Country country;
         uint16 paymentTimeLimit; // protection from stalled deals. after expiry seller can request refund and buyer still gets failed tx recorded
         string terms; // FIXME can it be another contract deployed by advertiser?
     }
@@ -66,11 +68,8 @@ interface IOfferManager
         Bank    // any regulated KYC'ed transfer entity
     }
     struct Method {
-        string name;
+        bytes32 name;
         MethodGroup group;
         Country country;
     }
-
-    function methodAdd(string calldata _name, MethodGroup _group, Country _country) external returns(uint16);
-    function methodRemove(uint16 _methodId) external;
 }
