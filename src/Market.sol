@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {UUPSUpgradeable} from "../lib/openzeppelin-contracts/contracts/proxy/utils/UUPSUpgradeable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {IMarket} from "./interfaces/IMarket.sol";
 import {DealManager} from "./Market/DealManager.sol";
 import {RepManager} from "./Market/RepManager.sol";
 import {Country} from "./enums/countries.sol";
-import {Strings} from "../lib/openzeppelin-contracts/contracts/utils/Strings.sol";
 
 /**
  * @title Market
