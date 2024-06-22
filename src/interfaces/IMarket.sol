@@ -7,17 +7,10 @@ import {IRepManager} from "./IRepManager.sol";
 
 interface IMarket is IOfferManager, IDealManager, IRepManager
 {
-    struct Rep {
-        address owner;
-        uint volume; // gwei equivalent volume transacted
-        uint successfulCount;
-        uint canceledCount;
-        uint disputedCount;
-        uint cancelledCount;
-        uint abandonedCount;
-        uint score;
-        uint avgPaymentTime;
-        uint avgReleaseTime;
-        mapping(address => string) feedback; // address's opinion
+    struct Token {
+        address target;
+        string name;
+        string symbol;
+        uint8 decimals;
     }
 }
