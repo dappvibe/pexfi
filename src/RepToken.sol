@@ -15,11 +15,26 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 contract RepToken is IRepManager, UUPSUpgradeable, AccessControlUpgradeable, ERC721BurnableUpgradeable
 {
     bytes32 public constant MARKET_ROLE = keccak256("MARKET_ROLE");
+    uint32 private _nextTokenId;
+
+    mapping(uint32 => Stats) public stats;
+    struct Stats {
+        uint256 createdAt; // block
+        uint32 upvotes;
+        uint32 downvotes;
+        uint64 volumeUSD;
+        uint32 dealsCompleted;
+        uint32 dealsExpired; // ++ when not accepted deal as offer owner
+        uint32 disputesLost;
+        uint32 avgPaymentTime; // in seconds
+        uint32 avgReleaseTime; // in seconds
+    }
 
     function initialize() initializer external
     {
         __ERC721_init("Reputation Token", "REP");
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _nextTokenId = 1;
     }
     function _authorizeUpgrade(address) internal onlyRole(DEFAULT_ADMIN_ROLE) override {}
 
@@ -29,5 +44,28 @@ contract RepToken is IRepManager, UUPSUpgradeable, AccessControlUpgradeable, ERC
         return
             ERC721Upgradeable.supportsInterface(interfaceId) ||
             AccessControlUpgradeable.supportsInterface(interfaceId);
+    }
+
+    function register() external returns(uint32 tokenId)
+    {
+        tokenId = _nextTokenId;
+        _mint(msg.sender, tokenId);
+        _resetStats(tokenId);
+        _nextTokenId++;
+    }
+
+    function _resetStats(uint32 _tokenId) private
+    {
+        stats[_tokenId] = Stats({
+            createdAt: block.number,
+            upvotes: 0,
+            downvotes: 0,
+            volumeUSD: 0,
+            dealsCompleted: 0,
+            dealsExpired: 0,
+            disputesLost: 0,
+            avgPaymentTime: 0,
+            avgReleaseTime: 0
+        });
     }
 }
