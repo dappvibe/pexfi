@@ -83,8 +83,8 @@ describe("Market", function()
         });
 
         it('grant market role to REP', async function() {
-            await repToken.grantRole(ethers.encodeBytes32String('MARKET_ROLE'), market.target);
-            await expect(repToken.hasRole(ethers.encodeBytes32String('MARKET_ROLE'), market.target)).to.eventually.true;
+            await repToken.grantRole(ethers.id('MARKET_ROLE'), market.target);
+            await expect(repToken.hasRole(ethers.id('MARKET_ROLE'), market.target)).to.eventually.true;
         });
     });
 
