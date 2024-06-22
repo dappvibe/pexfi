@@ -70,9 +70,12 @@ describe("Market", function()
                 market = await ethers.deployContract('Market');
                 await market.initialize(
                     repToken.target,
-                    ['USDT', 'WETH', 'WBTC'],
-                    ['0xdAC17F958D2ee523a2206206994597C13D831ec7', '0xCBCdF9626bC03E24f779434178A73a0B4bad62eD', MockBTC.target],
-                    ['USD']
+                    [
+                        {target: '0xdAC17F958D2ee523a2206206994597C13D831ec7', name: 'Tether', symbol: 'USDT', decimals: 6},
+                        {target: '0xCBCdF9626bC03E24f779434178A73a0B4bad62eD', name: 'Wrapped Ether', symbol: 'WETH', decimals: 18},
+                        {target: MockBTC.target, name: 'Wrapped Bitcoin', symbol: 'WBTC', decimals: 8}
+                    ],
+                    [ethers.encodeBytes32String('USD')]
                 );
                 return expect(market.target).to.be.properAddress;
             });
@@ -144,6 +147,14 @@ describe("Market", function()
                 expect(ethers.decodeBytes32String(methods[1])).to.eq('SEPA (EU) Instant');
                 expect(ethers.decodeBytes32String(methods[2])).to.eq('Monero');
                 expect(ethers.decodeBytes32String(methods[3])).to.eq('Cash To ATM');
+            });
+
+            it ('browser gets available currencies', async function() {
+                const currencies = await market.currencies();
+                expect(currencies).to.have.length(3);
+                expect(currencies[0]).to.eq('USDT');
+                expect(currencies[1]).to.eq('WETH');
+                expect(currencies[2]).to.eq('WBTC');
             });
 
             describe('with invalid input', async function() {
