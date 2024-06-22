@@ -7,6 +7,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {IMarket} from "./interfaces/IMarket.sol";
 import {DealManager} from "./Market/DealManager.sol";
 import {Country} from "./enums/countries.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 /**
  * @title Market
@@ -20,32 +21,33 @@ contract Market is
     DealManager
 {
     using Strings for string;
+    using EnumerableSet for EnumerableSet.Bytes32Set;
+    using EnumerableSet for EnumerableSet.AddressSet;
 
-    // TODO bytes4 key
-    mapping(string => address) public tokens; // supported ERC20 tokens, key is symbol
-    mapping(string => uint16)  public fiats;  // supported fiat currencies, key is ISO 4217 code, value is latest price to USDT or 0 if no info
+    EnumerableSet.AddressSet internal _tokens;
+    mapping(address => Token) public token;
+
+    EnumerableSet.Bytes32Set    internal _fiats;
 
     address public repToken;
 
     function initialize(
         address _repToken,
-        string[] calldata _tokenSymbols,
-        address[] calldata _tokenAddresses,
-        string[] calldata _fiats
+        Token[]  calldata tokens_,
+        bytes32[] calldata _addFiats
     ) initializer external
     {
-        require(_tokenSymbols.length == _tokenAddresses.length, "token mismatch");
-
         __Ownable_init(msg.sender);
 
         repToken = _repToken;
 
-        // price related
-        for(uint8 i = 0; i < _tokenSymbols.length; i++) {
-            tokens[_tokenSymbols[i]] = _tokenAddresses[i];
+        for(uint8 i = 0; i < tokens_.length; i++) {
+            if (_tokens.add(tokens_[i].target)) {
+                token[tokens_[i].target] = tokens_[i];
+            }
         }
-        for(uint8 i = 0; i < _fiats.length; i++) {
-            fiats[_fiats[i]] = 1; // Initialize with a default value
+        for(uint8 i = 0; i < _addFiats.length; i++) {
+            _fiats.add(_addFiats[i]);
         }
 
         // 0 values are invalid and Upgradable can't use default values
@@ -54,17 +56,33 @@ contract Market is
     }
     function _authorizeUpgrade(address) internal onlyOwner override {}
 
-    function addToken(string calldata symbol, address token_) external onlyOwner {
-        tokens[symbol] = token_;
+    function addToken(Token calldata token_) external onlyOwner {
+        if (_tokens.add(token_.target)) {
+            token[token_.target] = token_;
+        }
     }
-    function removeToken(string calldata symbol) external onlyOwner {
-        delete tokens[symbol];
+    function removeToken(address token_) external onlyOwner {
+        if (_tokens.remove(token_)) {
+            delete token[token_];
+        }
     }
-    function addFiat(string calldata code, uint16 price) external onlyOwner {
-        fiats[code] = price;
+    function tokens() external view returns (Token[] memory) {
+        uint256 length = _tokens.length();
+        Token[] memory result = new Token[](length);
+        for (uint256 i = 0; i < length; i++) {
+            result[i] = token[_tokens.at(i)];
+        }
+        return result;
     }
-    function removeFiat(string calldata code) external onlyOwner {
-        delete fiats[code];
+
+    function addFiat(bytes32 fiat_) external onlyOwner {
+        _fiats.add(fiat_);
+    }
+    function removeFiat(bytes32 fiat_) external onlyOwner {
+        _fiats.remove(fiat_);
+    }
+    function fiats() external view returns (bytes32[] memory) {
+        return _fiats.values();
     }
 
     function setRepToken(address _repToken) external onlyOwner {
