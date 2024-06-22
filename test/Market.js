@@ -120,6 +120,34 @@ describe("Market", function()
         });
     });
 
+    /**
+     * How to get data for React client.
+     */
+    describe('Browser builds UI', function () {
+        it ('get tokens', async function() {
+            const tokens = await market.tokens();
+            expect(tokens).to.have.length(3);
+            expect(tokens[0][2]).to.eq('USDT');
+            expect(tokens[1][2]).to.eq('WETH');
+            expect(tokens[2][2]).to.eq('WBTC');
+        });
+
+        it ('get fiats', async function() {
+            const fiats = await market.fiats();
+            expect(fiats).to.have.length(1);
+            expect(ethers.decodeBytes32String(fiats[0])).to.eq('USD');
+        });
+
+        it ('get methods', async function() {
+            const methods = await market.methods();
+            expect(methods).to.have.length(4);
+            expect(ethers.decodeBytes32String(methods[0])).to.eq('Zelle');
+            expect(ethers.decodeBytes32String(methods[1])).to.eq('SEPA (EU) Instant');
+            expect(ethers.decodeBytes32String(methods[2])).to.eq('Monero');
+            expect(ethers.decodeBytes32String(methods[3])).to.eq('Cash To ATM');
+        });
+    });
+
     describe('Offer to sell', function()
     {
         describe('1. Seller post an offer', function()
@@ -139,23 +167,6 @@ describe("Market", function()
                     ...replace
                 };
             }
-
-            it ('browser gets available methods', async function() {
-                const methods = await market.methods();
-                expect(methods).to.have.length(4);
-                expect(ethers.decodeBytes32String(methods[0])).to.eq('Zelle');
-                expect(ethers.decodeBytes32String(methods[1])).to.eq('SEPA (EU) Instant');
-                expect(ethers.decodeBytes32String(methods[2])).to.eq('Monero');
-                expect(ethers.decodeBytes32String(methods[3])).to.eq('Cash To ATM');
-            });
-
-            it ('browser gets available currencies', async function() {
-                const currencies = await market.currencies();
-                expect(currencies).to.have.length(3);
-                expect(currencies[0]).to.eq('USDT');
-                expect(currencies[1]).to.eq('WETH');
-                expect(currencies[2]).to.eq('WBTC');
-            });
 
             describe('with invalid input', async function() {
                 it('invalid fiat currency', async function() {
