@@ -12,7 +12,10 @@ function address(number) {
     return '0x' + hexString;
 }
 
-describe("Market", function()
+/**
+ * Top-level suite name is required for IDE mocha test runner.
+ */
+describe("Market Interactions", function()
 {
     let MockBTC, priceOracle, repToken, market,
         seller, buyer, mediator,
