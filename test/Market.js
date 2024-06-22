@@ -13,78 +13,110 @@ function address(number) {
     return '0x' + hexString;
 }
 
+const DEFAULT_ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
+const MARKET_ROLE = ethers.id('MARKET_ROLE');
+
 /**
  * Top-level suite name is required for IDE mocha test runner.
  */
 describe("Market", function()
 {
-    let MockBTC, priceOracle, repToken, market,
-        seller, buyer, mediator,
+    let MockBTC, MockUniswap, priceOracle, repToken, market,
+        deployer, seller, buyer, mediator,
         offer, deal;
-
-    async function deployPriceOracle() {
-        const priceOracleFactory = await ethers.getContractFactory("MockPriceOracle");
-        priceOracle = await priceOracleFactory.deploy();
-        await priceOracle.waitForDeployment();
-        return priceOracle;
-    }
-
-    async function deployMarket() {
-        const MarketFactory = await ethers.getContractFactory("Market");
-        market = await upgrades.deployProxy(MarketFactory, [
-            repToken.target,
-            ['USDT', 'WETH', 'WBTC'],
-            ['0xdAC17F958D2ee523a2206206994597C13D831ec7',
-            '0xCBCdF9626bC03E24f779434178A73a0B4bad62eD',
-            MockBTC.target],
-            ['USD']
-        ]);
-        await market.waitForDeployment();
-        return market;
-    }
 
     /**
      * Only mocks here. Actual deployment is explained in the first test.
      */
     before(async function() {
-        [seller, buyer, mediator] = await ethers.getSigners();
+        [deployer, seller, buyer, mediator] = await ethers.getSigners();
+        MockUniswap = await ethers.deployContract('MockUniswapV3Factory');
         MockBTC = await deployMockERC20('WBTC', 8);
-        priceOracle = await deployPriceOracle();
-        repToken = await deployRepToken();
-        market = await deployMarket();
+        await MockBTC.transfer(seller.address, 10 * 10**8); // seller has 10 coins to sell
     });
 
-    describe('Deploy', function() {
-        it('is ownable', async function() {
-            expect(market.owner()).to.eventually.eq(seller.address);
+    /**
+     * In tests all contracts are deployed directly without proxy to ease debugging, speedup runs and keep stacktraces clean.
+     * Deployment scripts MUST deploy proxies.
+     */
+    describe('Deployment Sequence', function()
+    {
+        describe('1. Reputation token', function(){
+            it ('is upgradable', async function() {
+                const factory = await ethers.getContractFactory("RepToken");
+                return expect(upgrades.validateImplementation(factory)).to.eventually.be.undefined; // no error
+            });
+
+            it('is deployed', async function() {
+                repToken = await ethers.deployContract('RepToken');
+                await expect(repToken.initialize()).to
+                    .emit(repToken, 'RoleGranted')
+                    .withArgs(DEFAULT_ADMIN_ROLE, deployer.address, deployer.address);
+                return expect(repToken.target).to.be.properAddress;
+            });
+
+            it ('deployer is default admin', async function() {
+                return expect(repToken.hasRole(DEFAULT_ADMIN_ROLE, deployer.address)).to.eventually.true;
+            });
         });
 
-        it("is upgradable", async function() {
-            const MarketFactory = await ethers.getContractFactory("Market");
-            const newMarket = await upgrades.upgradeProxy(await market.getAddress(), MarketFactory);
-            expect(newMarket.owner()).to.eventually.eq(seller.address);
+        describe('2. Market', function() {
+            it ('is upgradable', async function() {
+                const MarketFactory = await ethers.getContractFactory("Market");
+                return expect(upgrades.validateImplementation(MarketFactory)).to.eventually.be.undefined; // no error
+            });
+
+            it ('is deployed', async function() {
+                market = await ethers.deployContract('Market');
+                await market.initialize(
+                    repToken.target,
+                    ['USDT', 'WETH', 'WBTC'],
+                    ['0xdAC17F958D2ee523a2206206994597C13D831ec7', '0xCBCdF9626bC03E24f779434178A73a0B4bad62eD', MockBTC.target],
+                    ['USD']
+                );
+                return expect(market.target).to.be.properAddress;
+            });
+
+            it('is owned by deployer', async function() {
+                return expect(market.owner()).to.eventually.eq(deployer.address);
+            });
+
+            it('set market address in rep token', async function() {
+                await repToken.grantRole(MARKET_ROLE, market.target);
+                await expect(repToken.hasRole(MARKET_ROLE, market.target)).to.eventually.true;
+            });
+
+            it('add delivery methods', async function() {
+                const methods = [
+                    {name: 'Zelle', group: 3, country: 188},
+                    {name: 'SEPA',  group: 3, country: 1},
+                    {name: 'Monero', group: 1, country: 0},
+                    {name: 'Cash To ATM',  group: 2, country: 0},
+                ];
+                for (const method of methods) {
+                    let receipt = await market.methodAdd(method.name, method.group, method.country).then((tx) => tx.wait());
+                    await expect(receipt).to.emit(market, 'MethodAdded');
+                    var methodId = receipt.logs[0].topics[1];
+                }
+
+                const receipt = await market.methodRemove(methodId).then((tx) => tx.wait());
+                await expect(receipt).to.emit(market, 'MethodRemoved');
+            });
         });
 
-        it('Add delivery method', async function() {
-            const methods = [
-                {name: 'Zelle', group: 3, country: 188},
-                {name: 'SEPA',  group: 3, country: 1},
-                {name: 'Monero', group: 1, country: 0},
-                {name: 'Cash To ATM',  group: 2, country: 0},
-            ];
-            for (const method of methods) {
-                let receipt = await market.methodAdd(method.name, method.group, method.country).then((tx) => tx.wait());
-                await expect(receipt).to.emit(market, 'MethodAdded');
-                var methodId = receipt.logs[0].topics[1];
-            }
+        describe('3. Price Oracle', function() {
+            it ('is NOT upgradable', async function() {
+                const factory = await ethers.getContractFactory("PriceOracle");
+                return expect(upgrades.validateImplementation(factory)).to.throw;
+            });
 
-            const receipt = await market.methodRemove(methodId).then((tx) => tx.wait());
-            await expect(receipt).to.emit(market, 'MethodRemoved');
-        });
-
-        it('grant market role to REP', async function() {
-            await repToken.grantRole(ethers.id('MARKET_ROLE'), market.target);
-            await expect(repToken.hasRole(ethers.id('MARKET_ROLE'), market.target)).to.eventually.true;
+            it ('is deployed', async function() {
+                priceOracle = await ethers.deployContract('PriceOracle', [
+                    MockUniswap.target,
+                    [], []
+                ]);
+                return (expect(priceOracle.target)).to.be.properAddress;
+            });
         });
     });
 
