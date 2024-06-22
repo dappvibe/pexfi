@@ -57,16 +57,20 @@ contract PriceOracle is IPriceOracle, UniswapV3Oracle
 
     // @param _token address of ERC20 token
     // @param _fiat ISO 4217 code of fiat currency
-    function getPrice(address _token, address _fiat) external view override returns (uint64 price)
+    function getPrice(address _token0, address _token1) external view override returns (uint64 price)
     {
-        price = getPriceInUsdt(_token);
+        price = getPriceInUsdt(_token0);
 
         // convert USD to other currency
-        if (_fiat != getAddress['USD']) {
+        if (_token1 != getAddress['USD']) {
 
         }
 
         return uint64(price);
+    }
+    function getPrice(address _crypto, bytes32 _fiat) external view returns(uint64 price)
+    {
+        return 0;
     }
 
     function getPriceInUsdt(address _token) public view returns (uint64 price)
