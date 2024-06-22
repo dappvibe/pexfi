@@ -9,11 +9,6 @@ import {DealManager} from "./Market/DealManager.sol";
 import {Country} from "./enums/countries.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
-/**
- * @title Market
- * @dev Emits events to securely broadcast ads, reputation.
- *   Tracks txs and feedback to build reputation.
- */
 contract Market is
     OwnableUpgradeable,
     UUPSUpgradeable,
