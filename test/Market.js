@@ -2,6 +2,7 @@ const {expect} = require("chai");
 const {ethers, upgrades} = require("hardhat");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const {deployRepToken} = require("./RepToken");
+const {deployMockERC20} = require("./mocks");
 
 function address(number) {
     let hexString = number.toString(16);
@@ -15,18 +16,11 @@ function address(number) {
 /**
  * Top-level suite name is required for IDE mocha test runner.
  */
-describe("Market Interactions", function()
+describe("Market", function()
 {
     let MockBTC, priceOracle, repToken, market,
         seller, buyer, mediator,
         offer, deal;
-
-    async function deployBtc() {
-        const BTC = await ethers.getContractFactory("MockWBTC");
-        MockBTC = await BTC.deploy();
-        await MockBTC.waitForDeployment();
-        return MockBTC;
-    }
 
     async function deployPriceOracle() {
         const priceOracleFactory = await ethers.getContractFactory("MockPriceOracle");
@@ -49,9 +43,12 @@ describe("Market Interactions", function()
         return market;
     }
 
+    /**
+     * Only mocks here. Actual deployment is explained in the first test.
+     */
     before(async function() {
         [seller, buyer, mediator] = await ethers.getSigners();
-        MockBTC = await deployBtc();
+        MockBTC = await deployMockERC20('WBTC', 8);
         priceOracle = await deployPriceOracle();
         repToken = await deployRepToken();
         market = await deployMarket();
