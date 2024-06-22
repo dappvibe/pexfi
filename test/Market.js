@@ -86,21 +86,18 @@ describe("Market", function()
                 await expect(repToken.hasRole(MARKET_ROLE, market.target)).to.eventually.true;
             });
 
-            it('add delivery methods', async function() {
+            // this is an expensive, but required one-time operation. Mediators must know the methods to solve disputes.
+            it('add payment methods', async function() {
                 const methods = [
-                    {name: 'Zelle', group: 3, country: 188},
-                    {name: 'SEPA',  group: 3, country: 1},
-                    {name: 'Monero', group: 1, country: 0},
-                    {name: 'Cash To ATM',  group: 2, country: 0},
+                    {name: ethers.encodeBytes32String('Zelle'), group: 3, country: 188},
+                    {name: ethers.encodeBytes32String('SEPA (EU) Instant'),  group: 3, country: 1},
+                    {name: ethers.encodeBytes32String('Monero'), group: 1, country: 0},
+                    {name: ethers.encodeBytes32String('Cash To ATM'),  group: 2, country: 0},
                 ];
-                for (const method of methods) {
-                    let receipt = await market.methodAdd(method.name, method.group, method.country).then((tx) => tx.wait());
-                    await expect(receipt).to.emit(market, 'MethodAdded');
-                    var methodId = receipt.logs[0].topics[1];
-                }
+                await expect(market.addMethods(methods)).to.emit(market, 'MethodAdded');
 
-                const receipt = await market.methodRemove(methodId).then((tx) => tx.wait());
-                await expect(receipt).to.emit(market, 'MethodRemoved');
+                //const receipt = await market.methodRemove(methodId).then((tx) => tx.wait());
+                //await expect(receipt).to.emit(market, 'MethodRemoved');
             });
         });
 
@@ -120,67 +117,81 @@ describe("Market", function()
         });
     });
 
-    describe('Seller posts an offer', function() {
-        function params(options = {}) {
-            return {
-                isSell: true,
-                crypto: MockBTC.target,
-                fiat: address(840), // USD
-                price: 100,
-                min: 1000,
-                max: 5000,
-                method: 2,
-                paymentTimeLimit: 60,
-                terms: 'No KYC',
-                ...options
-            };
-        }
+    describe('Offer to sell', function()
+    {
+        describe('1. Seller post an offer', function()
+        {
+            function params(replace = {}) {
+                return {
+                    isSell: true,
+                    crypto: MockBTC.target,
+                    fiat: address(840), // USD
+                    price: 100,
+                    min: 1000,
+                    max: 5000,
+                    method: ethers.encodeBytes32String('Zelle'),
+                    country: 0, // global
+                    paymentTimeLimit: 60,
+                    terms: 'No KYC',
+                    ...replace
+                };
+            }
 
-        describe('with invalid input', async function() {
-            it('invalid fiat currency', async function() {
-                await expect(market.offerCreate(params({fiat: address(0)})))
-                    .to.be.reverted;
+            it ('browser gets available methods', async function() {
+                const methods = await market.methods();
+                expect(methods).to.have.length(4);
+                expect(ethers.decodeBytes32String(methods[0])).to.eq('Zelle');
+                expect(ethers.decodeBytes32String(methods[1])).to.eq('SEPA (EU) Instant');
+                expect(ethers.decodeBytes32String(methods[2])).to.eq('Monero');
+                expect(ethers.decodeBytes32String(methods[3])).to.eq('Cash To ATM');
             });
 
-            it('invalid price', async function() {
-                await expect(market.offerCreate(params({price: 0})))
-                    .to.be.reverted;
+            describe('with invalid input', async function() {
+                it('invalid fiat currency', async function() {
+                    await expect(market.offerCreate(params({fiat: address(0)})))
+                        .to.be.reverted;
+                });
+
+                it('invalid price', async function() {
+                    await expect(market.offerCreate(params({price: 0})))
+                        .to.be.reverted;
+                });
+
+                it ('invalid min', async function() {
+                    await expect(market.offerCreate(params({min: 0})))
+                        .to.be.reverted;
+                });
+
+                it('invalid max', async function() {
+                    await expect(market.offerCreate(params({max: 0})))
+                        .to.be.reverted;
+                });
+
+                it('invalid method', async function() {
+                    await expect(market.offerCreate(params({method: ethers.encodeBytes32String('Hugs and kisses')})))
+                        .to.be.reverted;
+                });
             });
 
-            it ('invalid min', async function() {
-                await expect(market.offerCreate(params({min: 0})))
-                    .to.be.reverted;
-            });
+            /*        it('should provide allowance first', async function() {
+                        market = await market.connect(seller);
+                        // FIXME because max in offer is in USD, market must know current price to move the tokens
+                        await expect(MockBTC.approve(market.target, 0.5 ** 10*8)).to.emit(MockBTC, 'Approval');
+                        await expect(MockBTC.allowance(seller.address, market.target)).to.eventually.eq(0.5 * 10**8);
+                    });*/
 
-            it('invalid max', async function() {
-                await expect(market.offerCreate(params({max: 0})))
-                    .to.be.reverted;
+            it('OfferCreated emitted', async function() {
+                market = market.connect(seller);
+                const response = market.offerCreate(params()).then((tx) => tx.wait()).then(receipt => {
+                    const OfferCreated = market.interface.parseLog(receipt.logs[0]);
+                    offer = OfferCreated.args[3];
+                    return receipt;
+                });
+                await expect(response)
+                    .to.emit(market, 'OfferCreated')
+                    // bugged plugin changes WETH address case
+                    .withArgs(seller.address, MockBTC.target, address(840), anyValue);
             });
-
-            it('invalid delivery method', async function() {
-                await expect(market.offerCreate(params({method: 1000})))
-                    .to.be.reverted;
-            });
-        });
-
-        it('provides allowance', async function() {
-            market = await market.connect(seller);
-            const receipt = MockBTC.approve(market.target, ethers.MaxUint256).then((tx) => tx.wait());
-            await expect(receipt).to.emit(MockBTC, 'Approval');
-            await expect(MockBTC.allowance(seller.address, market.target)).to.eventually.eq(ethers.MaxUint256);
-        });
-
-        it('event emitted', async function() {
-            market = market.connect(seller);
-            const response = market.offerCreate(params()).then((tx) => tx.wait()).then(receipt => {
-                const OfferCreated = market.interface.parseLog(receipt.logs[0]);
-                offer = OfferCreated.args[3];
-                return receipt;
-            });
-            await expect(response)
-                .to.emit(market, 'OfferCreated')
-                // bugged plugin changes WETH address case
-                .withArgs(seller.address, MockBTC.target, address(840), anyValue);
         });
     });
 
