@@ -1,9 +1,7 @@
 const {expect} = require("chai");
 const {ethers, upgrades} = require("hardhat");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
-const { loadFixture } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
-
-const WETH = '0xfff9976782d46cc05630d1f6ebab18b2324d6b14';
+const {deployRepToken} = require("./RepToken");
 
 function address(number) {
     let hexString = number.toString(16);
@@ -16,7 +14,7 @@ function address(number) {
 
 describe("Market", function()
 {
-    let MockBTC, priceOracle, market,
+    let MockBTC, priceOracle, repToken, market,
         seller, buyer, mediator,
         offer, deal;
 
@@ -37,6 +35,7 @@ describe("Market", function()
     async function deployMarket() {
         const MarketFactory = await ethers.getContractFactory("Market");
         market = await upgrades.deployProxy(MarketFactory, [
+            repToken.target,
             ['USDT', 'WETH', 'WBTC'],
             ['0xdAC17F958D2ee523a2206206994597C13D831ec7',
             '0xCBCdF9626bC03E24f779434178A73a0B4bad62eD',
@@ -51,6 +50,7 @@ describe("Market", function()
         [seller, buyer, mediator] = await ethers.getSigners();
         MockBTC = await deployBtc();
         priceOracle = await deployPriceOracle();
+        repToken = await deployRepToken();
         market = await deployMarket();
     });
 
@@ -80,6 +80,11 @@ describe("Market", function()
 
             const receipt = await market.methodRemove(methodId).then((tx) => tx.wait());
             await expect(receipt).to.emit(market, 'MethodRemoved');
+        });
+
+        it('grant market role to REP', async function() {
+            await repToken.grantRole(ethers.encodeBytes32String('MARKET_ROLE'), market.target);
+            await expect(repToken.hasRole(ethers.encodeBytes32String('MARKET_ROLE'), market.target)).to.eventually.true;
         });
     });
 
