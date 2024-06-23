@@ -158,16 +158,6 @@ contract Market is
         return FullMath.mulDiv(numerator1, numerator2, 1 << 192);
     }
 
-    function _sqrtPriceX96ToUint(uint160 sqrtPriceX96, uint8 decimalsToken0)
-    internal
-    pure
-    returns (uint256)
-    {
-        uint256 numerator1 = uint256(sqrtPriceX96) * uint256(sqrtPriceX96);
-        uint256 numerator2 = 10**decimalsToken0;
-        return FullMath.mulDiv(numerator1, numerator2, 1 << 192);
-    }
-
     function _stringToBytes32(string memory source) private pure returns (bytes32 result) {
         bytes memory tempEmptyStringTest = bytes(source);
         if (tempEmptyStringTest.length == 0) {
