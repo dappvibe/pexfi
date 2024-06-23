@@ -1,7 +1,6 @@
 const {expect} = require("chai");
 const {ethers, upgrades} = require("hardhat");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
-const {deployRepToken} = require("./RepToken");
 const {deployMockERC20} = require("./mocks");
 
 function address(number) {
@@ -21,7 +20,10 @@ const MARKET_ROLE = ethers.id('MARKET_ROLE');
  */
 describe("Market", function()
 {
-    let MockBTC, MockUniswap, priceOracle, repToken, market,
+    const fiats = ['THB', 'RUB'];
+    let uniswapOracle, priceFeeds = {},
+        MockUniswap, MockBTC, MockETH, MockUSDT,
+        repToken, market,
         deployer, seller, buyer, mediator,
         offer, deal;
 
@@ -32,7 +34,11 @@ describe("Market", function()
         [deployer, seller, buyer, mediator] = await ethers.getSigners();
         MockUniswap = await ethers.deployContract('MockUniswapV3Factory');
         MockBTC = await deployMockERC20('WBTC', 8);
-        await MockBTC.transfer(seller.address, 10 * 10**8); // seller has 10 coins to sell
+        MockETH =  await deployMockERC20('WETH', 18);
+        MockUSDT = await deployMockERC20('USDT', 6);
+        MockBTC.transfer(seller.address, 10 * 10**8); // seller has 10 coins to sell
+        MockETH.transfer(seller.address, 2 * 10**18);
+        MockUSDT.transfer(buyer.address, 1000 * 10**6); // buyer has 1000 USDT
     });
 
     /**
@@ -41,7 +47,31 @@ describe("Market", function()
      */
     describe('Deployment Sequence', function()
     {
-        describe('1. Reputation token', function(){
+        describe('1. Uniswap Oracle to convert ticks to TWAP', function()
+        {
+            it ('is deployed', async function() {
+                uniswapOracle = await ethers.deployContract('UniswapV3Oracle', [MockUniswap.target]);
+                return expect(uniswapOracle.target).to.be.properAddress;
+            });
+        });
+
+        describe('2. IChainlink feeds for missing fiats', function()
+        {
+            it ('is NOT upgradable', async function() {
+                const factory = await ethers.getContractFactory("PriceFeed");
+                return expect(upgrades.validateImplementation(factory)).to.throw;
+            });
+
+            fiats.forEach((fiat, i) => {
+                it (`${fiat} is deployed`, async function() {
+                    const feed = await ethers.deployContract('PriceFeed', [fiat]);
+                    priceFeeds[fiat] = feed.target;
+                    return expect(feed.target).to.be.properAddress;
+                });
+            })
+        });
+
+        describe('3. Reputation token', function(){
             it ('is upgradable', async function() {
                 const factory = await ethers.getContractFactory("RepToken");
                 return expect(upgrades.validateImplementation(factory)).to.eventually.be.undefined; // no error
@@ -49,7 +79,7 @@ describe("Market", function()
 
             it('is deployed', async function() {
                 repToken = await ethers.deployContract('RepToken');
-                await expect(repToken.initialize()).to
+                await expect(repToken.initialize().then(tx => tx.wait())).to
                     .emit(repToken, 'RoleGranted')
                     .withArgs(DEFAULT_ADMIN_ROLE, deployer.address, deployer.address);
                 return expect(repToken.target).to.be.properAddress;
@@ -60,7 +90,7 @@ describe("Market", function()
             });
         });
 
-        describe('2. Market', function() {
+        describe('4. Market', function() {
             it ('is upgradable', async function() {
                 const MarketFactory = await ethers.getContractFactory("Market");
                 return expect(upgrades.validateImplementation(MarketFactory)).to.eventually.be.undefined; // no error
@@ -68,15 +98,7 @@ describe("Market", function()
 
             it ('is deployed', async function() {
                 market = await ethers.deployContract('Market');
-                await market.initialize(
-                    repToken.target,
-                    [
-                        {target: '0xdAC17F958D2ee523a2206206994597C13D831ec7', name: 'Tether', symbol: 'USDT', decimals: 6},
-                        {target: '0xCBCdF9626bC03E24f779434178A73a0B4bad62eD', name: 'Wrapped Ether', symbol: 'WETH', decimals: 18},
-                        {target: MockBTC.target, name: 'Wrapped Bitcoin', symbol: 'WBTC', decimals: 8}
-                    ],
-                    [ethers.encodeBytes32String('USD')]
-                );
+                await market.initialize(repToken.target, uniswapOracle.target).then(tx => tx.wait());
                 return expect(market.target).to.be.properAddress;
             });
 
@@ -85,8 +107,39 @@ describe("Market", function()
             });
 
             it('set market address in rep token', async function() {
-                await repToken.grantRole(MARKET_ROLE, market.target);
+                await repToken.grantRole(MARKET_ROLE, market.target).then(tx => tx.wait());
                 await expect(repToken.hasRole(MARKET_ROLE, market.target)).to.eventually.true;
+            });
+
+            it ('add supported tokens', async function() {
+                const tokens = [
+                    {
+                        target: MockBTC.target,
+                        name: await MockBTC.name(),
+                        symbol: await MockBTC.symbol(),
+                        decimals: await MockBTC.decimals()
+                    },
+                    {
+                        target: MockETH.target,
+                        name: await MockETH.name(),
+                        symbol: await MockETH.symbol(),
+                        decimals: await MockETH.decimals()
+                    },
+                    {
+                        target: MockUSDT.target,
+                        name: await MockUSDT.name(),
+                        symbol: await MockUSDT.symbol(),
+                        decimals: await MockUSDT.decimals()
+                    }
+                ];
+                await expect(market.addTokens(tokens)).to.emit(market, 'TokenAdded');
+            });
+
+            it ('add supported fiats', async function() {
+                await expect(market.addFiats(
+                    Object.keys(priceFeeds).map(ethers.encodeBytes32String),
+                    Object.values(priceFeeds))
+                ).to.emit(market, 'FiatAdded');
             });
 
             // this is an expensive, but required one-time operation. Mediators must know the methods to solve disputes.
@@ -103,48 +156,42 @@ describe("Market", function()
                 //await expect(receipt).to.emit(market, 'MethodRemoved');
             });
         });
-
-        describe('3. Price Oracle', function() {
-            it ('is NOT upgradable', async function() {
-                const factory = await ethers.getContractFactory("PriceOracle");
-                return expect(upgrades.validateImplementation(factory)).to.throw;
-            });
-
-            it ('is deployed', async function() {
-                priceOracle = await ethers.deployContract('PriceOracle', [
-                    MockUniswap.target,
-                    [], []
-                ]);
-                return (expect(priceOracle.target)).to.be.properAddress;
-            });
-        });
     });
 
     /**
      * How to get data for React client.
      */
-    describe('Browser builds UI', function () {
+    describe('Browser builds UI', function ()
+    {
+        let tokens, fiats, methods = [];
+
         it ('get tokens', async function() {
-            const tokens = await market.tokens();
+            tokens = await market.tokens();
             expect(tokens).to.have.length(3);
-            expect(tokens[0][2]).to.eq('USDT');
+            expect(tokens[0][2]).to.eq('WBTC');
             expect(tokens[1][2]).to.eq('WETH');
-            expect(tokens[2][2]).to.eq('WBTC');
+            expect(tokens[2][2]).to.eq('USDT');
         });
 
         it ('get fiats', async function() {
-            const fiats = await market.fiats();
-            expect(fiats).to.have.length(1);
-            expect(ethers.decodeBytes32String(fiats[0])).to.eq('USD');
+            fiats = await market.fiats();
+            fiats = fiats.map(ethers.decodeBytes32String);
+            expect(fiats).to.have.length(2);
+            expect(fiats[0]).to.eq('THB');
+            expect(fiats[1]).to.eq('RUB');
         });
 
         it ('get methods', async function() {
-            const methods = await market.methods();
+            methods = await market.methods();
+            methods = methods.map(ethers.decodeBytes32String);
             expect(methods).to.have.length(4);
-            expect(ethers.decodeBytes32String(methods[0])).to.eq('Zelle');
-            expect(ethers.decodeBytes32String(methods[1])).to.eq('SEPA (EU) Instant');
-            expect(ethers.decodeBytes32String(methods[2])).to.eq('Monero');
-            expect(ethers.decodeBytes32String(methods[3])).to.eq('Cash To ATM');
+            expect(methods[0]).to.eq('Zelle');
+            expect(methods[1]).to.eq('SEPA (EU) Instant');
+        });
+
+        it ('get rates', async function() {
+            const toFiat = await priceOracle.getPrice(tokens[2][0], 'USD');
+            const toCrypto = await priceOracle.getPrice(tokens[1][0], tokens[2][0]);
         });
     });
 

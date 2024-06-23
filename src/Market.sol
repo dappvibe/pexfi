@@ -8,6 +8,8 @@ import {IMarket} from "./interfaces/IMarket.sol";
 import {DealManager} from "./Market/DealManager.sol";
 import {Country} from "./enums/countries.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
+import "./interfaces/IChainlink.sol";
 
 contract Market is
     OwnableUpgradeable,
@@ -20,30 +22,20 @@ contract Market is
     using EnumerableSet for EnumerableSet.AddressSet;
 
     EnumerableSet.AddressSet internal _tokens;
-    mapping(address => Token) public token;
+    mapping(address => Token) public token; // TODO will it be better to use IERC20?
 
-    EnumerableSet.Bytes32Set    internal _fiats;
+    EnumerableSet.Bytes32Set       internal _fiats;
+    mapping(bytes32 => IChainlink) internal _fiatToUSD;
 
     address public repToken;
+    address public uniswapOracle;
 
-    function initialize(
-        address _repToken,
-        Token[]  calldata tokens_,
-        bytes32[] calldata _addFiats
-    ) initializer external
+    function initialize(address _repToken, address _uniswapOracle) initializer external
     {
         __Ownable_init(msg.sender);
 
         repToken = _repToken;
-
-        for(uint8 i = 0; i < tokens_.length; i++) {
-            if (_tokens.add(tokens_[i].target)) {
-                token[tokens_[i].target] = tokens_[i];
-            }
-        }
-        for(uint8 i = 0; i < _addFiats.length; i++) {
-            _fiats.add(_addFiats[i]);
-        }
+        uniswapOracle = _uniswapOracle;
 
         // 0 values are invalid and Upgradable can't use default values
         _nextOfferId++;
@@ -64,22 +56,37 @@ contract Market is
         return _fiats.values();
     }
 
-    function addToken(Token calldata token_) external onlyOwner {
-        if (_tokens.add(token_.target)) {
-            token[token_.target] = token_;
+    function addTokens(Token[] calldata token_) external onlyOwner {
+        for(uint8 i = 0; i < token_.length; i++) {
+            if (_tokens.add(token_[i].target)) {
+                token[token_[i].target] = token_[i];
+                emit TokenAdded(token_[i].symbol, token_[i].target, token_[i]);
+            }
         }
     }
-    function removeToken(address token_) external onlyOwner {
-        if (_tokens.remove(token_)) {
-            delete token[token_];
+    function removeTokens(address[] calldata token_) external onlyOwner {
+        for(uint8 i = 0; i < token_.length; i++) {
+            _tokens.remove(token_[i]);
+            delete token[token_[i]];
+            emit TokenRemoved(token[token_[i]].symbol, token_[i]);
         }
     }
 
-    function addFiat(bytes32 fiat_) external onlyOwner {
-        _fiats.add(fiat_);
+    function addFiats(bytes32[] calldata fiat_, address[] calldata priceFeed_) external onlyOwner {
+        require(fiat_.length == priceFeed_.length, "Market: invalid input length");
+        for(uint8 i = 0; i < fiat_.length; i++) {
+            _fiats.add(fiat_[i]);
+            // do not check the Set return value to let update feed address
+            _fiatToUSD[fiat_[i]] = IChainlink(priceFeed_[i]);
+            emit FiatAdded(fiat_[i], priceFeed_[i]);
+        }
     }
-    function removeFiat(bytes32 fiat_) external onlyOwner {
-        _fiats.remove(fiat_);
+    function removeFiats(bytes32[] calldata fiat_) external onlyOwner {
+        for(uint8 i = 0; i < fiat_.length; i++) {
+            _fiats.remove(fiat_[i]);
+            delete _fiatToUSD[fiat_[i]];
+            emit FiatRemoved(fiat_[i]);
+        }
     }
 
     function setRepToken(address _repToken) external onlyOwner {
