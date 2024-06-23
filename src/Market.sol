@@ -86,9 +86,8 @@ contract Market is
             IChainlink $fiat = _fiatToUSD[_stringToBytes32(_fiat)];
             require(address($fiat) != address(0), "Market: unknown fiat");
 
-            (,int256 $ratio,,,) = $fiat.latestRoundData();
-            uint128 $unsignedRatio = uint128(uint($ratio));
-            $result = $result * $unsignedRatio / 10**$fiat.decimals();
+            (,int $fiatToUSD,,,) = $fiat.latestRoundData();
+            $result = $result * 10**8 / uint($fiatToUSD); // $fiat.decimals() is always 8
         }
 
         return $result;
@@ -155,7 +154,7 @@ contract Market is
         uint160 sqrtPriceX96 = TickMath.getSqrtPriceAtTick(arithmeticMeanTick);
 
         uint256 numerator1 = uint256(sqrtPriceX96) * uint256(sqrtPriceX96);
-        uint256 numerator2 = 10**($token.decimals() - $USDT.decimals() + 2); // include cents
+        uint256 numerator2 = 10**($token.decimals() - $USDT.decimals() + 2); // precision after dot
         return FullMath.mulDiv(numerator1, numerator2, 1 << 192);
     }
 
