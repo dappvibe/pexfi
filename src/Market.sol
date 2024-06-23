@@ -7,6 +7,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {IMarket} from "./interfaces/IMarket.sol";
 import {DealManager} from "./Market/DealManager.sol";
 import {Country} from "./enums/countries.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import "./interfaces/IChainlink.sol";
@@ -19,10 +20,9 @@ contract Market is
 {
     using Strings for string;
     using EnumerableSet for EnumerableSet.Bytes32Set;
-    using EnumerableSet for EnumerableSet.AddressSet;
 
-    EnumerableSet.AddressSet internal _tokens;
-    mapping(address => Token) public token; // TODO will it be better to use IERC20?
+    EnumerableSet.Bytes32Set            internal _tokens;
+    mapping(bytes32 => IERC20Metadata)  public token;
 
     EnumerableSet.Bytes32Set       internal _fiats;
     mapping(bytes32 => IChainlink) internal _fiatToUSD;
@@ -43,11 +43,23 @@ contract Market is
     }
     function _authorizeUpgrade(address) internal onlyOwner override {}
 
-    function tokens() external view returns (Token[] memory) {
-        uint256 length = _tokens.length();
-        Token[] memory result = new Token[](length);
-        for (uint256 i = 0; i < length; i++) {
-            result[i] = token[_tokens.at(i)];
+    struct TokenMetadata {
+        address target;
+        string symbol;
+        string name;
+        uint8 decimals;
+    }
+    function tokens() external view returns (TokenMetadata[] memory) {
+        uint length = _tokens.length();
+        TokenMetadata[] memory result = new TokenMetadata[](length);
+        for (uint i = 0; i < length; i++) {
+            IERC20Metadata token_ = token[_tokens.at(i)];
+            result[i] = TokenMetadata({
+                target: address(token_),
+                symbol: token_.symbol(),
+                name:   token_.name(),
+                decimals: token_.decimals()
+            });
         }
         return result;
     }
@@ -56,19 +68,23 @@ contract Market is
         return _fiats.values();
     }
 
-    function addTokens(Token[] calldata token_) external onlyOwner {
-        for(uint8 i = 0; i < token_.length; i++) {
-            if (_tokens.add(token_[i].target)) {
-                token[token_[i].target] = token_[i];
-                emit TokenAdded(token_[i].symbol, token_[i].target, token_[i]);
-            }
+    function addTokens(address[] calldata tokens_) external onlyOwner {
+        require(tokens_.length <= type(uint8).max, "symbols length");
+
+        for(uint8 i = 0; i < tokens_.length; i++) {
+            IERC20Metadata token_ = IERC20Metadata(tokens_[i]);
+            bytes32 symbol = _stringToBytes32(token_.symbol());
+            _tokens.add(symbol);
+            token[symbol] = token_;
+            emit TokenAdded(_stringToBytes32(token_.symbol()), tokens_[i], token_);
         }
     }
-    function removeTokens(address[] calldata token_) external onlyOwner {
+    function removeTokens(bytes32[] calldata token_) external onlyOwner {
         for(uint8 i = 0; i < token_.length; i++) {
-            _tokens.remove(token_[i]);
-            delete token[token_[i]];
-            emit TokenRemoved(token[token_[i]].symbol, token_[i]);
+            if (_tokens.remove(token_[i])) {
+                emit TokenRemoved(token_[i], address(token[token_[i]]));
+                delete token[token_[i]];
+            }
         }
     }
 
@@ -89,7 +105,21 @@ contract Market is
         }
     }
 
+    function getPrice(bytes32 _token, bytes32 _fiat) external view returns(uint64)
+    {
+    }
+
     function setRepToken(address _repToken) external onlyOwner {
         repToken = _repToken;
+    }
+
+    function _stringToBytes32(string memory source) private pure returns (bytes32 result) {
+        bytes memory tempEmptyStringTest = bytes(source);
+        if (tempEmptyStringTest.length == 0) {
+            return 0x0;
+        }
+        assembly {
+            result := mload(add(source, 32))
+        }
     }
 }
