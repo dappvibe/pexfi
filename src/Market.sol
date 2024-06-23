@@ -79,7 +79,7 @@ contract Market is
         IERC20Metadata $token = token[_stringToBytes32(_token)];
         require(address($token) != address(0), "unknown token");
 
-        $result = _requestUniswapRate($token, 500);
+        $result = _token.equal('USDT') ? 10**4 : _requestUniswapRate($token, 500);
 
         // convert to other currency
         if (!_fiat.equal("USD")) {
@@ -154,7 +154,7 @@ contract Market is
         uint160 sqrtPriceX96 = TickMath.getSqrtPriceAtTick(arithmeticMeanTick);
 
         uint256 numerator1 = uint256(sqrtPriceX96) * uint256(sqrtPriceX96);
-        uint256 numerator2 = 10**($token.decimals() - $USDT.decimals() + 2); // precision after dot
+        uint256 numerator2 = 10**($token.decimals() - $USDT.decimals() + 4); // precision after dot
         return FullMath.mulDiv(numerator1, numerator2, 1 << 192);
     }
 

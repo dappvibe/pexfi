@@ -179,8 +179,10 @@ describe("Market", function()
         });
 
         it ('get prices', async function() {
-            await expect(market.getPrice(await MockETH.symbol(), "USD")).to.eventually.eq(347480); // 3474.8096 USDT per ETH
-            await expect(market.getPrice(await MockETH.symbol(), "EUR")).to.eventually.eq(324967);
+            await expect(market.getPrice(await MockETH.symbol(), "USD")).to.eventually.eq(34748096); // 3474.8096 USDT per ETH
+            await expect(market.getPrice(await MockETH.symbol(), "EUR")).to.eventually.eq(32496874);
+            await expect(market.getPrice(await MockUSDT.symbol(), "USD")).to.eventually.eq(10000);
+            await expect(market.getPrice(await MockUSDT.symbol(), "EUR")).to.eventually.eq(9352);
         });
     });
 
