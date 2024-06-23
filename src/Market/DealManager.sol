@@ -14,67 +14,65 @@ contract DealManager is OfferManager, IDealManager
     mapping(uint32 => Deal) public deals;
     uint32 internal _nextDealId;
 
-    modifier onlyMediator(uint32 _dealId) {
-        require(deals[_dealId].mediator == msg.sender, "only mediator");
+    modifier onlyMediator(uint32 dealId_) {
+        require(deals[dealId_].mediator == msg.sender, "only mediator");
         _;
     }
-    modifier onlySellerOrMediator(uint32 _dealId) {
-        require(deals[_dealId].seller == msg.sender || deals[_dealId].mediator == msg.sender, "only seller");
+    modifier onlySellerOrMediator(uint32 dealId_) {
+        require(deals[dealId_].seller == msg.sender || deals[dealId_].mediator == msg.sender, "only seller");
         _;
     }
-    modifier onlyBuyerOrMediator(uint32 _dealId) {
-        require(deals[_dealId].buyer == msg.sender || deals[_dealId].mediator == msg.sender, "only buyer");
+    modifier onlyBuyerOrMediator(uint32 dealId_) {
+        require(deals[dealId_].buyer == msg.sender || deals[dealId_].mediator == msg.sender, "only buyer");
         _;
     }
-    modifier onlyParticipant(uint32 _dealId) {
-        require(deals[_dealId].buyer == msg.sender || deals[_dealId].seller == msg.sender || deals[_dealId].mediator == msg.sender, "only participant");
+    modifier onlyParticipant(uint32 dealId_) {
+        require(deals[dealId_].buyer == msg.sender || deals[dealId_].seller == msg.sender || deals[dealId_].mediator == msg.sender, "only participant");
         _;
     }
-    modifier onlyOfferOwner(uint32 _dealId) {
-        require(offers[deals[_dealId].offerId].owner == msg.sender, "only offer owner");
+    modifier onlyOfferOwner(uint32 dealId_) {
+        require(offers[deals[dealId_].offerId].owner == msg.sender, "only offer owner");
         _;
     }
-    modifier dealState(uint32 _dealId, State _lessThan) {
-        require(deals[_dealId].state < _lessThan, "state");
+    modifier dealState(uint32 dealId_, State lessThan_) {
+        require(deals[dealId_].state < lessThan_, "state");
         _;
     }
 
     function createDeal(
-        uint24 _offerId,
-        uint64 _tokenAmount,
-        uint64 _fiatAmount,
-        address _mediator
+        uint24 offerId_,
+        uint64 tokenAmount_,
+        uint64 fiatAmount_,
+        address mediator_
     )
-    external returns(uint32)
+    external returns (uint32)
     {
-        require(_offerId > 0, "offerId");
-        Offer memory offer = offers[_offerId];
+        require(offerId_ > 0, "offerId");
+        Offer storage offer = offers[offerId_];
 
         deals[_nextDealId] = Deal({
             id: _nextDealId,
-            offerId: _offerId,
+            offerId: offerId_,
             acceptance: ACCEPTED_MEDIATOR, // mediator automatically accepts for now
             state: State.Initiated,
             buyer: offer.isSell ? msg.sender : offer.owner,
             seller: offer.isSell ? offer.owner : msg.sender,
-            mediator: _mediator,
+            mediator: mediator_,
             fee: 0,
-            token0amount: _tokenAmount,
-            token1amount: _fiatAmount,
+            token0amount: tokenAmount_,
+            token1amount: fiatAmount_,
             paymentInstructions: ""
         });
 
-        emit DealCreated(_offerId, _mediator, deals[_nextDealId]);
+        emit DealCreated(offerId_, mediator_, deals[_nextDealId]);
 
         _nextDealId++;
         return _nextDealId - 1;
     }
 
-    function acceptDeal(uint32 _dealId) external onlyParticipant(_dealId)
-    {
-        Deal storage deal = deals[_dealId];
-        Offer memory offer = offers[deal.offerId];
-        if (msg.sender == offer.owner) {
+    function acceptDeal(uint32 dealId_) external onlyParticipant(dealId_) {
+        Deal storage deal = deals[dealId_];
+        if (msg.sender == offers[deal.offerId].owner) {
             deal.acceptance |= ACCEPTED_OWNER;
         } else if (msg.sender == deal.mediator) {
             deal.acceptance |= ACCEPTED_MEDIATOR;
@@ -82,66 +80,60 @@ contract DealManager is OfferManager, IDealManager
 
         if (deal.acceptance == ACCEPTED_ALL) {
             deal.state = State.Accepted;
-            emit DealState(_dealId, deal.mediator, deal.state);
+            emit DealState(dealId_, deal.mediator, deal.state);
 
-            if (_fundDeal(_dealId)) {
+            if (_fundDeal(dealId_)) {
                 deal.state = State.Funded;
-                emit DealState(_dealId, deal.mediator, deal.state);
+                emit DealState(dealId_, deal.mediator, deal.state);
             }
         }
     }
 
-    function paidDeal(uint32 _dealId) external onlyBuyerOrMediator(_dealId)
-    {
-        Deal storage deal = deals[_dealId];
+    function paidDeal(uint32 dealId_) external onlyBuyerOrMediator(dealId_) {
+        Deal storage deal = deals[dealId_];
         deal.state = State.Paid;
-        emit DealState(_dealId, deal.mediator, deal.state);
+        emit DealState(dealId_, deal.mediator, deal.state);
     }
 
-    function completeDeal(uint32 _dealId) external onlySellerOrMediator(_dealId)
-    {
-        Deal storage deal = deals[_dealId];
+    function completeDeal(uint32 dealId_) external onlySellerOrMediator(dealId_) {
+        Deal storage deal = deals[dealId_];
         require(deal.state < State.Completed, "completed");
 
-        IERC20 token = IERC20(offers[deal.offerId].crypto);
-        token.transfer(deal.buyer, deal.token0amount);
+        IERC20 $token = IERC20(offers[deal.offerId].crypto);
+        $token.transfer(deal.buyer, deal.token0amount);
 
         deal.state = State.Completed;
-        emit DealState(_dealId, deal.mediator, deal.state);
+        emit DealState(dealId_, deal.mediator, deal.state);
     }
 
-    function cancelDeal(uint32 _dealId) external onlyBuyerOrMediator(_dealId)
-    {
-        Deal storage deal = deals[_dealId];
+    function cancelDeal(uint32 dealId_) external onlyBuyerOrMediator(dealId_) {
+        Deal storage deal = deals[dealId_];
         require(deal.state < State.Completed, "completed");
 
         if (deal.state == State.Funded) {
-            IERC20 token = IERC20(offers[deal.offerId].crypto);
-            token.transfer(deal.seller, deal.token0amount);
+            IERC20 $token = IERC20(offers[deal.offerId].crypto);
+            $token.transfer(deal.seller, deal.token0amount);
         }
 
         deal.state = State.Revoked;
-        emit DealState(_dealId, deal.mediator, deal.state);
+        emit DealState(dealId_, deal.mediator, deal.state);
     }
 
-    function disputeDeal(uint32 _dealId) external onlyParticipant(_dealId)
-    {
-        Deal storage deal = deals[_dealId];
+    function disputeDeal(uint32 dealId_) external onlyParticipant(dealId_) {
+        Deal storage deal = deals[dealId_];
         require(deal.state < State.Disputed, "disputed");
 
         deal.state = State.Disputed;
-        emit DealState(_dealId, deal.mediator, deal.state);
+        emit DealState(dealId_, deal.mediator, deal.state);
     }
 
-    function message(uint32 _dealId, string calldata _message) external onlyParticipant(_dealId)
-    {
-        emit Message(_dealId, msg.sender, _message);
+    function message(uint32 dealId_, string calldata message_) external onlyParticipant(dealId_) {
+        emit Message(dealId_, msg.sender, message_);
     }
 
     // @dev transfer tokens to market
-    function _fundDeal(uint32 _dealId) private returns(bool)
-    {
-        Deal memory deal = deals[_dealId];
+    function _fundDeal(uint32 dealId_) private returns (bool) {
+        Deal memory deal = deals[dealId_];
         IERC20 token = IERC20(offers[deal.offerId].crypto);
         return token.transferFrom(deal.seller, address(this), deal.token0amount);
     }
