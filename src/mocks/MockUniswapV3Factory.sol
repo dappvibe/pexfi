@@ -8,7 +8,7 @@ contract MockUniswapV3Factory {
         uint24 fee
     ) external view returns (address pool)
     {
-        return address(this);
+        return address(this); // mock both pool and factory
     }
 
     function observe(uint32[] calldata secondsAgos)
