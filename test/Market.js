@@ -21,9 +21,8 @@ const MARKET_ROLE = ethers.id('MARKET_ROLE');
 describe("Market", function()
 {
     const fiats = ['THB', 'RUB', 'XXX'];
-    let uniswapOracle, priceFeeds = {},
-        MockUniswap, MockBTC, MockETH, MockUSDT, MockDummy,
-        repToken, market,
+    let MockUniswap, MockBTC, MockETH, MockUSDT, MockDummy,
+        priceFeeds = {}, repToken, market,
         deployer, seller, buyer, mediator,
         offer, deal;
 
@@ -48,15 +47,7 @@ describe("Market", function()
      */
     describe('Deployment Sequence', function()
     {
-        describe('1. Uniswap Oracle to convert ticks to TWAP', function()
-        {
-            it ('is deployed', async function() {
-                uniswapOracle = await ethers.deployContract('UniswapV3Oracle', [MockUniswap.target]);
-                return expect(uniswapOracle.target).to.be.properAddress;
-            });
-        });
-
-        describe('2. IChainlink feeds for missing fiats', function()
+        describe('IChainlink feeds for missing fiats', function()
         {
             it ('is NOT upgradable', async function() {
                 const factory = await ethers.getContractFactory("PriceFeed");
@@ -72,7 +63,7 @@ describe("Market", function()
             })
         });
 
-        describe('3. Reputation token', function(){
+        describe('Reputation token', function(){
             it ('is upgradable', async function() {
                 const factory = await ethers.getContractFactory("RepToken");
                 return expect(upgrades.validateImplementation(factory)).to.eventually.be.undefined; // no error
@@ -91,7 +82,7 @@ describe("Market", function()
             });
         });
 
-        describe('4. Market', function() {
+        describe('Market', function() {
             it ('is upgradable', async function() {
                 const MarketFactory = await ethers.getContractFactory("Market");
                 return expect(upgrades.validateImplementation(MarketFactory)).to.eventually.be.undefined; // no error
@@ -99,7 +90,7 @@ describe("Market", function()
 
             it ('is deployed', async function() {
                 market = await ethers.deployContract('Market');
-                await market.initialize(repToken.target, uniswapOracle.target).then(tx => tx.wait());
+                await market.initialize(repToken.target, MockUniswap.target).then(tx => tx.wait());
                 return expect(market.target).to.be.properAddress;
             });
 
@@ -176,14 +167,14 @@ describe("Market", function()
         it ('get methods', async function() {
             methods = await market.methods();
             methods = methods.map(ethers.decodeBytes32String);
-            expect(methods).to.have.length(4);
-            expect(methods[0]).to.eq('Zelle');
-            expect(methods[1]).to.eq('SEPA (EU) Instant');
+            await expect(methods).to.have.length(4);
+            await expect(methods[0]).to.eq('Zelle');
+            await expect(methods[1]).to.eq('SEPA (EU) Instant');
         });
 
-        it ('get rates', async function() {
-            const toFiat = await priceOracle.getPrice(tokens[2][0], 'USD');
-            const toCrypto = await priceOracle.getPrice(tokens[1][0], tokens[2][0]);
+        it ('get prices', async function() {
+            await expect(market.getPrice(await MockETH.symbol(), "USD")).to.eventually.eq(347480); // 3474.80 USDT per ETH
+            await expect(market.getPrice(await MockETH.symbol(), "EUR")).to.eventually.eq(347480); // 3474.80 USDT per ETH
         });
     });
 

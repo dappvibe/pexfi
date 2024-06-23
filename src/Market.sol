@@ -2,16 +2,21 @@
 pragma solidity ^0.8.0;
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {FullMath} from "../lib/v4-core/src/libraries/FullMath.sol";
+import {TickMath} from "../lib/v4-core/src/libraries/TickMath.sol";
+import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
+
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {IChainlink} from "./interfaces/IChainlink.sol";
+import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
+
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {IMarket} from "./interfaces/IMarket.sol";
 import {DealManager} from "./Market/DealManager.sol";
-import {Country} from "./enums/countries.sol";
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
-import "./interfaces/IChainlink.sol";
-import {TickMath} from "./lib/v4-periphery/lib/v4-core/src
+import {IRepManager} from "./interfaces/IRepManager.sol";
 
 contract Market is
     OwnableUpgradeable,
@@ -28,15 +33,15 @@ contract Market is
     EnumerableSet.Bytes32Set       internal _fiats;
     mapping(bytes32 => IChainlink) internal _fiatToUSD;
 
-    address public repToken;
-    address public uniswapOracle;
+    IRepManager     public repToken;
+    IUniswapV3Factory  public uniswap;
 
-    function initialize(address _repToken, address _uniswapOracle) initializer external
+    function initialize(address _repToken, IUniswapV3Factory _uniswap) initializer external
     {
         __Ownable_init(msg.sender);
 
-        repToken = _repToken;
-        uniswapOracle = _uniswapOracle;
+        setRepToken(_repToken);
+        uniswap = _uniswap;
 
         // 0 values are invalid and Upgradable can't use default values
         _nextOfferId++;
@@ -106,12 +111,61 @@ contract Market is
         }
     }
 
-    function getPrice(bytes32 _token, bytes32 _fiat) external view returns(uint64)
+    function getPrice(string calldata _token, string calldata _fiat) external view returns(uint256 $result)
     {
+        IERC20Metadata $token = token[_stringToBytes32(_token)];
+        require(address($token) != address(0), "unknown token");
+
+        $result = _requestUniswapRate($token, 500);
+
+        // convert to other currency
+        if (!_fiat.equal("USD")) {
+            IChainlink $fiat = _fiatToUSD[_stringToBytes32(_fiat)];
+            require(address($fiat) != address(0), "Market: unknown fiat");
+
+            (,int256 $ratio,,,) = $fiat.latestRoundData();
+            uint128 $unsignedRatio = uint128(uint($ratio));
+            $result = $result * $unsignedRatio / 10**$fiat.decimals();
+        }
+
+        return $result;
     }
 
-    function setRepToken(address _repToken) external onlyOwner {
-        repToken = _repToken;
+    function setRepToken(address _repToken) public onlyOwner {
+        repToken = IRepManager(_repToken);
+    }
+
+    function _requestUniswapRate(IERC20Metadata $token, uint24 $fee) internal view returns(uint)
+    {
+        IERC20Metadata $USDT = token[_stringToBytes32("USDT")];
+        require(address($USDT) != address(0), "USDT not found");
+
+        address $poolAddress = uniswap.getPool(address($token), address($USDT), $fee);
+        require($poolAddress != address(0), "Market: pool not found");
+
+        IUniswapV3Pool $pool = IUniswapV3Pool($poolAddress);
+
+        uint32[] memory secs = new uint32[](2);
+        secs[0] = 300;
+        secs[1] = 0;
+        (int56[] memory tickCumulatives,) = IUniswapV3Pool($pool).observe(secs);
+        int56 tickCumulativesDelta = tickCumulatives[1] - tickCumulatives[0];
+        int24 arithmeticMeanTick = int24(tickCumulativesDelta / 300);
+        uint160 sqrtPriceX96 = TickMath.getSqrtPriceAtTick(arithmeticMeanTick);
+
+        uint256 numerator1 = uint256(sqrtPriceX96) * uint256(sqrtPriceX96);
+        uint256 numerator2 = 10**($token.decimals() - $USDT.decimals() + 2); // include cents
+        return FullMath.mulDiv(numerator1, numerator2, 1 << 192);
+    }
+
+    function _sqrtPriceX96ToUint(uint160 sqrtPriceX96, uint8 decimalsToken0)
+    internal
+    pure
+    returns (uint256)
+    {
+        uint256 numerator1 = uint256(sqrtPriceX96) * uint256(sqrtPriceX96);
+        uint256 numerator2 = 10**decimalsToken0;
+        return FullMath.mulDiv(numerator1, numerator2, 1 << 192);
     }
 
     function _stringToBytes32(string memory source) private pure returns (bytes32 result) {
