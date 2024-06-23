@@ -20,7 +20,7 @@ const MARKET_ROLE = ethers.id('MARKET_ROLE');
  */
 describe("Market", function()
 {
-    const fiats = ['THB', 'RUB', 'XXX'];
+    const fiats = ['THB', 'EUR', 'XXX'];
     let MockUniswap, MockBTC, MockETH, MockUSDT, MockDummy,
         priceFeeds = {}, repToken, market,
         deployer, seller, buyer, mediator,
@@ -47,7 +47,7 @@ describe("Market", function()
      */
     describe('Deployment Sequence', function()
     {
-        describe('IChainlink feeds for missing fiats', function()
+        describe('price feeds not in chainlink', function()
         {
             it ('is NOT upgradable', async function() {
                 const factory = await ethers.getContractFactory("PriceFeed");
@@ -57,10 +57,16 @@ describe("Market", function()
             fiats.forEach((fiat, i) => {
                 it (`${fiat} is deployed`, async function() {
                     const feed = await ethers.deployContract('PriceFeed', [fiat]);
-                    priceFeeds[fiat] = feed.target;
+                    priceFeeds[fiat] = feed;
                     return expect(feed.target).to.be.properAddress;
                 });
             })
+
+            it ('keep the feeds updated', async function() {
+                await priceFeeds['EUR'].set(106927500);
+                const data = await priceFeeds['EUR'].latestRoundData();
+                expect(data[1]).to.eq(106927500);
+            });
         });
 
         describe('Reputation token', function(){
@@ -116,8 +122,8 @@ describe("Market", function()
             it ('add supported fiats', async function() {
                 await expect(market.addFiats(
                     Object.keys(priceFeeds).map(ethers.encodeBytes32String),
-                    Object.values(priceFeeds))
-                ).to.emit(market, 'FiatAdded');
+                    Object.values(priceFeeds).map(f => f.target)
+                )).to.emit(market, 'FiatAdded');
             });
 
             it ('remove fiat', async function() {
@@ -161,7 +167,7 @@ describe("Market", function()
             fiats = fiats.map(ethers.decodeBytes32String);
             expect(fiats).to.have.length(2);
             expect(fiats[0]).to.eq('THB');
-            expect(fiats[1]).to.eq('RUB');
+            expect(fiats[1]).to.eq('EUR');
         });
 
         it ('get methods', async function() {
@@ -173,8 +179,8 @@ describe("Market", function()
         });
 
         it ('get prices', async function() {
-            await expect(market.getPrice(await MockETH.symbol(), "USD")).to.eventually.eq(347480); // 3474.80 USDT per ETH
-            await expect(market.getPrice(await MockETH.symbol(), "EUR")).to.eventually.eq(347480); // 3474.80 USDT per ETH
+            await expect(market.getPrice(await MockETH.symbol(), "USD")).to.eventually.eq(347480); // 3474.8096 USDT per ETH
+            await expect(market.getPrice(await MockETH.symbol(), "EUR")).to.eventually.eq(324967);
         });
     });
 
