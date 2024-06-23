@@ -20,9 +20,9 @@ const MARKET_ROLE = ethers.id('MARKET_ROLE');
  */
 describe("Market", function()
 {
-    const fiats = ['THB', 'RUB'];
+    const fiats = ['THB', 'RUB', 'XXX'];
     let uniswapOracle, priceFeeds = {},
-        MockUniswap, MockBTC, MockETH, MockUSDT,
+        MockUniswap, MockBTC, MockETH, MockUSDT, MockDummy,
         repToken, market,
         deployer, seller, buyer, mediator,
         offer, deal;
@@ -36,6 +36,7 @@ describe("Market", function()
         MockBTC = await deployMockERC20('WBTC', 8);
         MockETH =  await deployMockERC20('WETH', 18);
         MockUSDT = await deployMockERC20('USDT', 6);
+        MockDummy = await deployMockERC20('Dummy', 18);
         MockBTC.transfer(seller.address, 10 * 10**8); // seller has 10 coins to sell
         MockETH.transfer(seller.address, 2 * 10**18);
         MockUSDT.transfer(buyer.address, 1000 * 10**6); // buyer has 1000 USDT
@@ -112,27 +113,13 @@ describe("Market", function()
             });
 
             it ('add supported tokens', async function() {
-                const tokens = [
-                    {
-                        target: MockBTC.target,
-                        name: await MockBTC.name(),
-                        symbol: await MockBTC.symbol(),
-                        decimals: await MockBTC.decimals()
-                    },
-                    {
-                        target: MockETH.target,
-                        name: await MockETH.name(),
-                        symbol: await MockETH.symbol(),
-                        decimals: await MockETH.decimals()
-                    },
-                    {
-                        target: MockUSDT.target,
-                        name: await MockUSDT.name(),
-                        symbol: await MockUSDT.symbol(),
-                        decimals: await MockUSDT.decimals()
-                    }
-                ];
+                const tokens = [MockBTC.target, MockETH.target, MockUSDT.target, MockDummy.target];
                 await expect(market.addTokens(tokens)).to.emit(market, 'TokenAdded');
+            });
+
+            it ('remove token', async function() {
+                const kill = ethers.encodeBytes32String(await MockDummy.symbol());
+                await expect(market.removeTokens([kill])).to.emit(market, 'TokenRemoved');
             });
 
             it ('add supported fiats', async function() {
@@ -140,6 +127,11 @@ describe("Market", function()
                     Object.keys(priceFeeds).map(ethers.encodeBytes32String),
                     Object.values(priceFeeds))
                 ).to.emit(market, 'FiatAdded');
+            });
+
+            it ('remove fiat', async function() {
+                const kill = ethers.encodeBytes32String('XXX');
+                await expect(market.removeFiats([kill])).to.emit(market, 'FiatRemoved');
             });
 
             // this is an expensive, but required one-time operation. Mediators must know the methods to solve disputes.
@@ -168,9 +160,9 @@ describe("Market", function()
         it ('get tokens', async function() {
             tokens = await market.tokens();
             expect(tokens).to.have.length(3);
-            expect(tokens[0][2]).to.eq('WBTC');
-            expect(tokens[1][2]).to.eq('WETH');
-            expect(tokens[2][2]).to.eq('USDT');
+            expect(tokens[0][1]).to.eq('WBTC');
+            expect(tokens[1][1]).to.eq('WETH');
+            expect(tokens[2][1]).to.eq('USDT');
         });
 
         it ('get fiats', async function() {
