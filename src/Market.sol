@@ -74,6 +74,27 @@ contract Market is
         return _fiats.values();
     }
 
+    function getPrice(string calldata _token, string calldata _fiat) external view returns(uint256 $result)
+    {
+        IERC20Metadata $token = token[_stringToBytes32(_token)];
+        require(address($token) != address(0), "unknown token");
+
+        $result = _requestUniswapRate($token, 500);
+
+        // convert to other currency
+        if (!_fiat.equal("USD")) {
+            IChainlink $fiat = _fiatToUSD[_stringToBytes32(_fiat)];
+            require(address($fiat) != address(0), "Market: unknown fiat");
+
+            (,int256 $ratio,,,) = $fiat.latestRoundData();
+            uint128 $unsignedRatio = uint128(uint($ratio));
+            $result = $result * $unsignedRatio / 10**$fiat.decimals();
+        }
+
+        return $result;
+    }
+
+
     function addTokens(address[] calldata tokens_) external onlyOwner {
         require(tokens_.length <= type(uint8).max, "symbols length");
 
@@ -109,26 +130,6 @@ contract Market is
             delete _fiatToUSD[fiat_[i]];
             emit FiatRemoved(fiat_[i]);
         }
-    }
-
-    function getPrice(string calldata _token, string calldata _fiat) external view returns(uint256 $result)
-    {
-        IERC20Metadata $token = token[_stringToBytes32(_token)];
-        require(address($token) != address(0), "unknown token");
-
-        $result = _requestUniswapRate($token, 500);
-
-        // convert to other currency
-        if (!_fiat.equal("USD")) {
-            IChainlink $fiat = _fiatToUSD[_stringToBytes32(_fiat)];
-            require(address($fiat) != address(0), "Market: unknown fiat");
-
-            (,int256 $ratio,,,) = $fiat.latestRoundData();
-            uint128 $unsignedRatio = uint128(uint($ratio));
-            $result = $result * $unsignedRatio / 10**$fiat.decimals();
-        }
-
-        return $result;
     }
 
     function setRepToken(address _repToken) public onlyOwner {
