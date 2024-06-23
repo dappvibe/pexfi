@@ -10,10 +10,10 @@ contract MockERC20 is ERC20
 
     uint8 private _decimals;
 
-    constructor(string memory _symbol, uint8 _decimals)
-    ERC20(string.concat('Mock', _symbol), _symbol)
+    constructor(string memory $symbol, uint8 $decimals)
+    ERC20(string.concat('Mock', $symbol), $symbol)
     {
-        _decimals = _decimals;
+        _decimals = $decimals;
         _mint(msg.sender, type(uint256).max);
     }
 
