@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import {IRepManager} from "./interfaces/IRepManager.sol";
+import {IRepToken} from "./interfaces/IRepToken.sol";
 import {ERC721BurnableUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
@@ -12,7 +12,7 @@ import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC72
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 // @dev separate rep token allows multiple markets attached and rep be shared across them
-contract RepToken is IRepManager, UUPSUpgradeable, AccessControlUpgradeable, ERC721BurnableUpgradeable
+contract RepToken is IRepToken, UUPSUpgradeable, AccessControlUpgradeable, ERC721BurnableUpgradeable
 {
     bytes32 public constant MARKET_ROLE = keccak256("MARKET_ROLE");
     uint32 private _nextTokenId;
