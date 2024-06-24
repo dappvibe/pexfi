@@ -80,7 +80,7 @@ contract Market is IMarket,
         string token;
         string fiat;
         string method;
-        uint16 rate; // ratio to multiply market price at time of deal creation (2 decimals)
+        uint16 rate; // ratio to multiply market price at time of deal creation (4 decimals)
         uint32 min; // in fiat
         uint32 max;
         uint16 paymentTimeLimit; // protection from stalled deals. after expiry seller can request refund and buyer still gets failed tx recorded
@@ -123,8 +123,8 @@ contract Market is IMarket,
     {
         Offer memory $offer = offers[offerId_];
 
-        uint $price = inventory.getPrice($offer.token, $offer.fiat);
-        uint $tokenAmount = fiatAmount_ * 100 / ($offer.rate * $price);
+        uint $tokenAmount = inventory.convert(fiatAmount_ * 10**2, $offer.fiat, $offer.token);
+        $tokenAmount = $tokenAmount * 10**4 / $offer.rate;
 
         Deal $deal = new Deal(
             offers[offerId_],

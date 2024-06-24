@@ -24,7 +24,7 @@ describe("Market", function()
     let MockUniswap, MockBTC, MockETH, MockUSDT, MockDummy,
         priceFeeds = {}, repToken, inventory, market,
         deployer, seller, buyer, mediator,
-        offer, deal;
+        offers = [], deal;
 
     /**
      * Only mocks here. Actual deployment is explained in the first test.
@@ -221,7 +221,7 @@ describe("Market", function()
                 market = market.connect(provider);
                 const response = market.offerCreate(params).then((tx) => tx.wait()).then(receipt => {
                     const OfferCreated = market.interface.parseLog(receipt.logs[0]);
-                    offer = OfferCreated.args[3];
+                    offers.push(OfferCreated.args[3]);
                     return receipt;
                 });
                 await expect(response)
@@ -284,22 +284,22 @@ describe("Market", function()
         it('event emitted', async function() {
             market = await market.connect(buyer);
             const response = market.createDeal(
-                offer[0],
-                100000,
+                offers[2][0],
+                123450,
                 'IBAN:DE89370400440532013000',
             ).then((tx) => tx.wait()).then(receipt => {
-                const DealCreated = market.interface.parseLog(receipt.logs[9]);
+                const DealCreated = market.interface.parseLog(receipt.logs[10]);
                 deal = DealCreated.args[2];
                 return receipt;
             });
             await expect(response)
                 .to.emit(market, 'DealCreated')
-                .withArgs(offer[0], mediator.address, anyValue);
+                .withArgs(offers[2][0], mediator.address, anyValue);
             deal = await ethers.getContractAt('Deal', deal);
         });
 
         it ('has correct values', async function() {
-            await expect(deal.tokenAmount()).to.eventually.eq(500);
+            await expect(deal.tokenAmount()).to.eventually.eq(37053658); // 8 decimals
         });
 
         it ('accepted by mediator', async function() {
