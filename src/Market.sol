@@ -148,8 +148,11 @@ contract Market is IMarket,
         IDeal $deal = IDeal(msg.sender);
         require($deal.state() == IDeal.State.Accepted, "not accepted");
 
-        Offer storage $offer = offers[$deal.offerId()];
+        Offer memory $offer = offers[$deal.offerId()];
         require ($offer.isSell, "not selling offer");
+
+        IERC20Metadata $token = IERC20Metadata(inventory.token(bytes32(bytes($offer.token))));
+        $token.safeTransferFrom($deal.seller(), address($deal), $deal.tokenAmount() * 10**($token.decimals() - 8));
 
         return true;
     }

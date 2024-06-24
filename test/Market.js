@@ -36,9 +36,9 @@ describe("Market", function()
         MockETH =  await deployMockERC20('WETH', 18);
         MockUSDT = await deployMockERC20('USDT', 6);
         MockDummy = await deployMockERC20('Dummy', 18);
-        MockBTC.transfer(seller.address, 10 * 10**8); // seller has 10 coins to sell
-        MockETH.transfer(seller.address, 2 * 10**18);
-        MockUSDT.transfer(buyer.address, 1000 * 10**6); // buyer has 1000 USDT
+        await MockBTC.transfer(seller.address, 10n * 10n**8n); // seller has 10 coins to sell
+        await MockETH.transfer(seller.address, 2n * 10n**18n);
+        await MockUSDT.transfer(buyer.address, 1000n * 10n**6n); // buyer has 1000 USDT
     });
 
     /**
@@ -137,8 +137,9 @@ describe("Market", function()
                 return expect(market.owner()).to.eventually.eq(deployer.address);
             });
 
-            it ('set mediator address in market', async function() {
-                return expect(market.setMediator(mediator.address)).to.not.throw;
+            it ('set mediator address', async function() {
+                await expect(await market.setMediator(mediator.address)).to.not.throw;
+                await expect(await market.mediator()).to.eq(mediator.address);
             });
 
             it('set market address in rep token', async function() {
@@ -203,7 +204,13 @@ describe("Market", function()
 
     describe('Users post offers', function()
     {
-        const offerParams = [
+        it ('seller provides allowance', async function() {
+            await MockBTC.connect(seller).approve(market.target, 10n**8n);
+            await MockETH.connect(seller).approve(market.target, 10n**18n);
+            await expect(MockETH.balanceOf(seller.address)).to.eventually.eq(2n * 10n**18n);
+        });
+
+        [
             [true, 'WBTC', 'USD', 'Zelle', 10250, 1000, 5000, 60, ''],
             [true, 'WBTC', 'USD', 'Zelle', 10400, 100,  1000, 60, ''],
             [true, 'WETH', 'EUR', 'SEPA',  10250, 1000, 5000, 60, ''],
@@ -212,9 +219,7 @@ describe("Market", function()
             [false, 'WBTC', 'USD', 'Zelle', 9650, 100,  1000, 60, ''],
             [false, 'WETH', 'EUR', 'SEPA',  9750, 1000, 5000, 60, ''],
             [false, 'USDT', 'USD', 'Zelle', 9950, 1000, 5000, 60, ''],
-        ];
-
-        offerParams.forEach((params, i) => {
+        ].forEach((params, i) => {
             const title = `#${i+1} ${params[0] ? 'Sell' : 'Buy'} ${params[1]} for ${params[2]}`;
             it(title, async function() {
                 const provider = params[0] ? seller : buyer;
@@ -303,14 +308,18 @@ describe("Market", function()
         });
 
         it ('accepted by mediator', async function() {
-            market = await market.connect(mediator);
-            await expect(market.acceptDeal(deal[0])).to.not.emit(market, 'DealState');
+            deal = await deal.connect(mediator);
+            await expect(deal.accept()).to.not.emit(deal, 'DealState');
         });
 
         it ('accepted by owner', async function() {
-            market = await market.connect(seller);
-            await expect(market.acceptDeal(deal[0])).to.emit(market, 'DealState');
+            deal = await deal.connect(seller);
+            await expect(deal.accept()).to.emit(deal, 'DealState');
         });
+
+        it ('tokens are deposited', async function() {
+            await expect(MockETH.balanceOf(deal.target)).to.eventually.eq(37053658n * 10n**10n); // ETH precision - 8
+        })
     });
 
     describe('Buyer marks paid', function() {
