@@ -206,7 +206,7 @@ describe("Market", function()
     {
         it ('seller provides allowance', async function() {
             await MockBTC.connect(seller).approve(market.target, 10n**8n);
-            await MockETH.connect(seller).approve(market.target, 10n**18n);
+            await MockETH.connect(seller).approve(market.target, 37053658n * 10n**10n);
             await expect(MockETH.balanceOf(seller.address)).to.eventually.eq(2n * 10n**18n);
         });
 
@@ -324,20 +324,26 @@ describe("Market", function()
 
     describe('Buyer marks paid', function() {
         it('event emitted', async function() {
-            market = await market.connect(buyer);
-            const response = market.paidDeal(deal[0]).then((tx) => tx.wait());
-            await expect(response).to.emit(market, 'DealState');
+            deal = await deal.connect(buyer);
+            const response = deal.paid(deal).then((tx) => tx.wait());
+            await expect(response).to.emit(deal, 'DealState');
         });
     });
 
     describe('Seller releases tokens', function() {
         it('event emitted', async function() {
-            market = await market.connect(seller);
-            const response = market.completeDeal(deal[0]).then((tx) => tx.wait());
-            await expect(response).to.emit(market, 'DealState');
+            deal = await deal.connect(seller);
+            const response = deal.release(deal).then((tx) => tx.wait());
+            await expect(response).to
+                .emit(deal, 'DealState')
+                .emit(MockETH, 'Transfer')
+                .emit(MockETH, 'Transfer');
         });
         it('buyer receives tokens', async function() {
-            await expect(MockBTC.balanceOf(buyer.address)).to.eventually.eq(deal[8]);
+            await expect(MockETH.balanceOf(buyer.address)).to.eventually.eq(366831220000000000n);
+        });
+        it('mediator receives fees', async function() {
+            await expect(MockETH.balanceOf(mediator.address)).to.eventually.eq(3705360000000000n);
         });
     });
 
