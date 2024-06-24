@@ -135,7 +135,7 @@ describe("Market", function()
             it('add payment methods', async function() {
                 const methods = [
                     {name: ethers.encodeBytes32String('Zelle'), group: 3, country: 188},
-                    {name: ethers.encodeBytes32String('SEPA (EU) Instant'),  group: 3, country: 1},
+                    {name: ethers.encodeBytes32String('SEPA'),  group: 3, country: 1},
                     {name: ethers.encodeBytes32String('Monero'), group: 1, country: 0},
                     {name: ethers.encodeBytes32String('Cash To ATM'),  group: 2, country: 0},
                 ];
@@ -175,7 +175,7 @@ describe("Market", function()
             methods = methods.map(ethers.decodeBytes32String);
             await expect(methods).to.have.length(4);
             await expect(methods[0]).to.eq('Zelle');
-            await expect(methods[1]).to.eq('SEPA (EU) Instant');
+            await expect(methods[1]).to.eq('SEPA');
         });
 
         it ('get prices', async function() {
@@ -186,72 +186,82 @@ describe("Market", function()
         });
     });
 
-    describe('Offer to sell', function()
+    describe('Users post offers', function()
     {
-        describe('1. Seller post an offer', function()
-        {
-            function params(replace = {}) {
-                return {
-                    isSell: true,
-                    crypto: MockBTC.target,
-                    fiat: address(840), // USD
-                    price: 100,
-                    min: 1000,
-                    max: 5000,
-                    method: ethers.encodeBytes32String('Zelle'),
-                    country: 0, // global
-                    paymentTimeLimit: 60,
-                    terms: 'No KYC',
-                    ...replace
-                };
-            }
+        const offerParams = [
+            [true, 'WBTC', 'USD', 'Zelle', 10250, 1000, 5000, 60, ''],
+            [true, 'WBTC', 'USD', 'Zelle', 10400, 100,  1000, 60, ''],
+            [true, 'WETH', 'EUR', 'SEPA',  10250, 1000, 5000, 60, ''],
+            [true, 'USDT', 'USD', 'Zelle', 10250, 1000, 5000, 60, 'arbitrary terms'],
+            [false, 'WBTC', 'USD', 'Zelle', 9800, 1000, 5000, 60, ''],
+            [false, 'WBTC', 'USD', 'Zelle', 9650, 100,  1000, 60, ''],
+            [false, 'WETH', 'EUR', 'SEPA',  9750, 1000, 5000, 60, ''],
+            [false, 'USDT', 'USD', 'Zelle', 9950, 1000, 5000, 60, ''],
+        ];
 
-            describe('with invalid input', async function() {
-                it('invalid fiat currency', async function() {
-                    await expect(market.offerCreate(params({fiat: address(0)})))
-                        .to.be.reverted;
-                });
-
-                it('invalid price', async function() {
-                    await expect(market.offerCreate(params({price: 0})))
-                        .to.be.reverted;
-                });
-
-                it ('invalid min', async function() {
-                    await expect(market.offerCreate(params({min: 0})))
-                        .to.be.reverted;
-                });
-
-                it('invalid max', async function() {
-                    await expect(market.offerCreate(params({max: 0})))
-                        .to.be.reverted;
-                });
-
-                it('invalid method', async function() {
-                    await expect(market.offerCreate(params({method: ethers.encodeBytes32String('Hugs and kisses')})))
-                        .to.be.reverted;
-                });
-            });
-
-            /*        it('should provide allowance first', async function() {
-                        market = await market.connect(seller);
-                        // FIXME because max in offer is in USD, market must know current price to move the tokens
-                        await expect(MockBTC.approve(market.target, 0.5 ** 10*8)).to.emit(MockBTC, 'Approval');
-                        await expect(MockBTC.allowance(seller.address, market.target)).to.eventually.eq(0.5 * 10**8);
-                    });*/
-
-            it('OfferCreated emitted', async function() {
-                market = market.connect(seller);
-                const response = market.offerCreate(params()).then((tx) => tx.wait()).then(receipt => {
+        offerParams.forEach((params, i) => {
+            const title = `#${i+1} ${params[0] ? 'Sell' : 'Buy'} ${params[1]} for ${params[2]}`;
+            it(title, async function() {
+                const provider = params[0] ? seller : buyer;
+                market = market.connect(provider);
+                const response = market.offerCreate(params).then((tx) => tx.wait()).then(receipt => {
                     const OfferCreated = market.interface.parseLog(receipt.logs[0]);
                     offer = OfferCreated.args[3];
                     return receipt;
                 });
                 await expect(response)
                     .to.emit(market, 'OfferCreated')
-                    // bugged plugin changes WETH address case
-                    .withArgs(seller.address, MockBTC.target, address(840), anyValue);
+                    .withArgs(provider.address, anyValue, anyValue, anyValue);
             });
+        });
+
+        describe('invalid input', async function() {
+            function params(replace = {}) {
+                return {
+                    isSell: true,
+                    token: "WBTC",
+                    fiat:  "EUR",
+                    rate: 10250, // 1.025 * market price
+                    min: 1000,
+                    max: 5000,
+                    method: 'Zelle',
+                    paymentTimeLimit: 60,
+                    terms: 'No KYC',
+                    ...replace
+                };
+            }
+            it('invalid fiat currency', async function() {
+                await expect(market.offerCreate(params({fiat: 'USDT'}))).to.be.reverted;
+                await expect(market.offerCreate(params({fiat: 'XXX'}))).to.be.reverted;
+            });
+
+            it('invalid rate', async function() {
+                await expect(market.offerCreate(params({rate: 0}))).to.be.reverted;
+            });
+
+            it ('invalid min', async function() {
+                await expect(market.offerCreate(params({min: 0}))).to.be.reverted;
+            });
+
+            it('invalid max', async function() {
+                await expect(market.offerCreate(params({max: 0}))).to.be.reverted;
+            });
+
+            it('invalid method', async function() {
+                await expect(market.offerCreate(params({method: 'Hugs and kisses'}))).to.be.reverted;
+            });
+        });
+    });
+
+    describe('Browser fetches offers', function() {
+        it('get SELL WBTC for USD with Zelle', async function() {
+            const offers = await market.getOffers(true, 'WBTC', 'USD', 'Zelle');
+            expect(offers).to.have.length(2);
+        });
+
+        it('get BUY WETH for EUR with any method', async function() {
+            const offers = await market.getOffers(true, 'WETH', 'EUR', '');
+            expect(offers).to.have.length(1);
         });
     });
 
