@@ -187,48 +187,53 @@ contract Market is IMarket,
             bytes32 $symbol = _stringToBytes32($token.symbol());
             _tokens.add($symbol);
             token[$symbol] = $token;
-            emit TokenAdded(_stringToBytes32($token.symbol()), tokens_[i], $token);
+            emit TokenAdded($token.symbol(), tokens_[i], $token);
         }
     }
-    function removeTokens(bytes32[] calldata token_) external onlyOwner {
+    function removeTokens(string[] calldata token_) external onlyOwner {
         for (uint8 i = 0; i < token_.length; i++) {
-            if (_tokens.remove(token_[i])) {
-                emit TokenRemoved(token_[i], address(token[token_[i]]));
-                delete token[token_[i]];
+            bytes32 $symbol = _stringToBytes32(token_[i]);
+            if (_tokens.remove($symbol)) {
+                emit TokenRemoved(token_[i], address(token[$symbol]));
+                delete token[$symbol];
             }
         }
     }
 
-    function addFiats(bytes32[] calldata fiat_, address[] calldata priceFeed_) external onlyOwner {
+    function addFiats(string[] calldata fiat_, address[] calldata priceFeed_) external onlyOwner {
         require(fiat_.length == priceFeed_.length, "Market: invalid input length");
 
         for (uint8 i = 0; i < fiat_.length; i++) {
-            _fiats.add(fiat_[i]);
+            bytes32 $fiat = _stringToBytes32(fiat_[i]);
+            _fiats.add($fiat);
             // do not check the Set return value to let update feed address
-            _fiatToUSD[fiat_[i]] = IChainlink(priceFeed_[i]);
+            _fiatToUSD[$fiat] = IChainlink(priceFeed_[i]);
             emit FiatAdded(fiat_[i], priceFeed_[i]);
         }
     }
-    function removeFiats(bytes32[] calldata fiat_) external onlyOwner {
+    function removeFiats(string[] calldata fiat_) external onlyOwner {
         for (uint8 i = 0; i < fiat_.length; i++) {
-            _fiats.remove(fiat_[i]);
-            delete _fiatToUSD[fiat_[i]];
+            bytes32 $fiat = _stringToBytes32(fiat_[i]);
+            _fiats.remove($fiat);
+            delete _fiatToUSD[$fiat];
             emit FiatRemoved(fiat_[i]);
         }
     }
 
     function addMethods(Method[] calldata new_) external onlyOwner {
         for (uint i = 0; i < new_.length; i++) {
-            if (_methods.add(new_[i].name)) {
-                method[new_[i].name] = new_[i];
+            bytes32 $name = _stringToBytes32(new_[i].name);
+            if (_methods.add($name)) {
+                method[$name] = new_[i];
                 emit MethodAdded(new_[i].name, new_[i]);
             }
         }
     }
-    function removeMethods(bytes32[] calldata names_) external onlyOwner {
+    function removeMethods(string[] calldata names_) external onlyOwner {
         for (uint i = 0; i < names_.length; i++) {
-            if (_methods.remove(names_[i])) {
-                delete method[names_[i]];
+            bytes32 $name = _stringToBytes32(names_[i]);
+            if (_methods.remove($name)) {
+                delete method[$name];
                 emit MethodRemoved(names_[i]);
             }
         }
