@@ -205,9 +205,8 @@ describe("Market", function()
     describe('Users post offers', function()
     {
         it ('seller provides allowance', async function() {
-            await MockBTC.connect(seller).approve(market.target, 10n**8n);
-            await MockETH.connect(seller).approve(market.target, 37053658n * 10n**10n);
-            await expect(MockETH.balanceOf(seller.address)).to.eventually.eq(2n * 10n**18n);
+            await MockBTC.connect(seller).approve(market.target, ethers.MaxUint256);
+            await MockETH.connect(seller).approve(market.target, ethers.MaxUint256);
         });
 
         [
@@ -314,7 +313,7 @@ describe("Market", function()
 
         it ('accepted by owner', async function() {
             deal = await deal.connect(seller);
-            await expect(deal.accept()).to.emit(deal, 'DealState');
+            await expect(deal.accept()).to.emit(deal, 'DealState').emit(MockETH, 'Transfer');
         });
 
         it ('tokens are deposited', async function() {
@@ -350,26 +349,39 @@ describe("Market", function()
     describe('Buyer cancels deal', function() {
         it ('open another deal', async function() {
             market = await market.connect(buyer);
-            await market.createDeal(
-                offer[0],
-                1**18,
-                3500 * 10**6,
-                mediator.getAddress()
+            const response = market.createDeal(
+                offers[2][0],
+                123450,
+                'IBAN:DE89370400440532013000',
             ).then((tx) => tx.wait()).then(receipt => {
-                const DealCreated = market.interface.parseLog(receipt.logs[0]);
+                const DealCreated = market.interface.parseLog(receipt.logs[10]);
                 deal = DealCreated.args[2];
                 return receipt;
             });
+            await expect(response)
+                .to.emit(market, 'DealCreated')
+                .withArgs(offers[2][0], mediator.address, anyValue);
+            deal = await ethers.getContractAt('Deal', deal);
+        });
+        it ('accepted by seller', async function() {
+            deal = await deal.connect(seller);
+            await expect(deal.accept()).to.emit(deal, 'DealState').emit(MockETH, 'Transfer');
         });
         it('seller cannot cancel', async function() {
-            market = await market.connect(seller);
-            const response = market.cancelDeal(deal[0]).then((tx) => tx.wait());
+            deal = await deal.connect(seller);
+            const response = deal.cancel().then((tx) => tx.wait());
             await expect(response).to.reverted;
         });
         it('event emitted', async function() {
-            market = await market.connect(buyer);
-            const response = market.cancelDeal(deal[0]).then((tx) => tx.wait());
-            await expect(response).to.emit(market, 'DealState');
+            deal = await deal.connect(buyer);
+            const response = deal.cancel().then((tx) => tx.wait());
+            await expect(response).to
+                .emit(deal, 'DealState')
+                .emit(MockETH, 'Transfer');
+        });
+        it ('seller gets refund', async function() {
+            await expect(MockETH.balanceOf(deal.target)).to.eventually.eq(0);
+            await expect(MockETH.balanceOf(seller.address)).to.eventually.eq(1629463420000000000n);
         });
     });
 
