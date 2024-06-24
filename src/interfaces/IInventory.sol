@@ -7,6 +7,7 @@ interface IInventory {
     event FiatAdded(string indexed symbol, address indexed oracle);
     event FiatRemoved(string indexed symbol);
 
+    function convert(uint amount_, string memory fromFiat_, string memory toToken_) external view returns (uint256);
     function getPrice(string memory token_, string memory fiat_) external view returns (uint256 $result);
     function getFiatToUSD(string memory fiat_) external view returns (uint);
 }
