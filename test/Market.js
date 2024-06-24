@@ -411,11 +411,11 @@ describe("Market", function()
     describe('Messaging', function() {
         it('seller sends message', async function() {
             deal = await deal.connect(seller);
-            await expect(deal.message(deal[0], 'Hello buyer!')).to.emit(deal, 'Message');
+            await expect(deal.message('Hello buyer!')).to.emit(deal, 'Message');
         });
         it('buyer sends message', async function() {
             deal = await deal.connect(buyer);
-            await expect(deal.message(deal[0], 'Hello seller!')).to.emit(deal, 'Message');
+            await expect(deal.message('Hello seller!')).to.emit(deal, 'Message');
         });
     });
 });
