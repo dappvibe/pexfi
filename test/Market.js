@@ -115,29 +115,28 @@ describe("Market", function()
             });
 
             it ('remove token', async function() {
-                const kill = ethers.encodeBytes32String(await MockDummy.symbol());
+                const kill = await MockDummy.symbol();
                 await expect(market.removeTokens([kill])).to.emit(market, 'TokenRemoved');
             });
 
             it ('add supported fiats', async function() {
                 await expect(market.addFiats(
-                    Object.keys(priceFeeds).map(ethers.encodeBytes32String),
+                    Object.keys(priceFeeds),
                     Object.values(priceFeeds).map(f => f.target)
                 )).to.emit(market, 'FiatAdded');
             });
 
             it ('remove fiat', async function() {
-                const kill = ethers.encodeBytes32String('XXX');
-                await expect(market.removeFiats([kill])).to.emit(market, 'FiatRemoved');
+                await expect(market.removeFiats(['XXX'])).to.emit(market, 'FiatRemoved');
             });
 
             // this is an expensive, but required one-time operation. Mediators must know the methods to solve disputes.
             it('add payment methods', async function() {
                 const methods = [
-                    {name: ethers.encodeBytes32String('Zelle'), group: 3, country: 188},
-                    {name: ethers.encodeBytes32String('SEPA'),  group: 3, country: 1},
-                    {name: ethers.encodeBytes32String('Monero'), group: 1, country: 0},
-                    {name: ethers.encodeBytes32String('Cash To ATM'),  group: 2, country: 0},
+                    {name: 'Zelle', group: 3, country: 188},
+                    {name: 'SEPA',  group: 3, country: 1},
+                    {name: 'Monero', group: 1, country: 0},
+                    {name: 'Cash To ATM',  group: 2, country: 0},
                 ];
                 await expect(market.addMethods(methods)).to.emit(market, 'MethodAdded');
 
