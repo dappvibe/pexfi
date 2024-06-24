@@ -6,6 +6,8 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {IDeal} from "./interfaces/IDeal.sol";
 import {IMarket} from "./interfaces/IMarket.sol";
+import {IERC20} from "../lib/forge-std/src/interfaces/IERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 contract Deal is IDeal, AccessControl
 {
@@ -17,6 +19,7 @@ contract Deal is IDeal, AccessControl
     address public buyer;
     address public seller;
     address public mediator;
+    IERC20Metadata  public token;
     uint    public tokenAmount;
     uint    public fiatAmount;
     uint    public fee;
@@ -48,6 +51,7 @@ contract Deal is IDeal, AccessControl
         IMarket.Offer memory offer_,
         address taker_,
         address mediator_,
+        IERC20Metadata token_,
         uint tokenAmount_,
         uint fiatAmount_,
         uint fee_,
@@ -60,6 +64,7 @@ contract Deal is IDeal, AccessControl
         buyer = offer.isSell ? taker_ : offer.owner;
         seller = offer.isSell ? offer.owner : taker_;
         mediator = mediator_;
+        token = token_;
         tokenAmount = tokenAmount_;
         fiatAmount = fiatAmount_;
         fee = fee_;
@@ -101,16 +106,19 @@ contract Deal is IDeal, AccessControl
         emit DealState(state);
     }
 
-    /*function received() external onlyRole(SELLER) dealState(State.Paid) {
-        //require(deal.state < State.Completed, "completed");
+    function release() external onlyRole(SELLER) {
+        token.transfer(buyer, (tokenAmount - (tokenAmount * fee / 10000)) * 10**(token.decimals() - 8));
+        token.transfer(mediator, token.balanceOf(address(this)));
 
-        IERC20 $token = IERC20(offers[deal.offerId].crypto);
-        $token.transfer(deal.buyer, deal.token0amount);
-
-        deal.state = State.Completed;
-        emit DealState(dealId_, deal.mediator, deal.state);
+        state = State.Completed;
+        emit DealState(state);
     }
 
+    function refund() external onlyRole(SELLER) {
+
+    }
+
+    /**
     function cancel() external onlyRole(BUYER) {
         require(deal.state < State.Completed, "completed");
 
