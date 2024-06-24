@@ -15,26 +15,32 @@ import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {IMarket} from "./interfaces/IMarket.sol";
-import {DealManager} from "./Market/DealManager.sol";
-import {IRepManager} from "./interfaces/IRepManager.sol";
+import {IRepToken} from "./interfaces/IRepToken.sol";
 
-contract Market is
+contract Market is IMarket,
     OwnableUpgradeable,
-    UUPSUpgradeable,
-    IMarket,
-    DealManager
+    UUPSUpgradeable
 {
     using Strings for string;
     using EnumerableSet for EnumerableSet.Bytes32Set;
+    using EnumerableSet for EnumerableSet.UintSet;
 
-    EnumerableSet.Bytes32Set internal _tokens;
-    mapping(bytes32 => IERC20Metadata)  public token;
-
-    EnumerableSet.Bytes32Set internal _fiats;
-    mapping(bytes32 => IChainlink) internal _fiatToUSD;
-
-    IRepManager public repToken;
+    IRepToken public repToken;
     IUniswapV3Factory public uniswap;
+
+    mapping(bytes32 => IERC20Metadata)  public token;
+    EnumerableSet.Bytes32Set private _tokens;
+    EnumerableSet.Bytes32Set private _fiats;
+    mapping(bytes32 => IChainlink) private _fiatToUSD;
+    mapping (bytes32 => Method) public method;
+    EnumerableSet.Bytes32Set private _methods;
+
+    mapping(uint => Offer) public offers;
+    /// @dev crypto => fiat => method => ids[] ("0" is a special method to list all offers)
+    mapping(bytes32 => mapping(bytes32 => mapping(bytes32 => EnumerableSet.UintSet))) private _sellOffersByPair;
+    mapping(bytes32 => mapping(bytes32 => mapping(bytes32 => EnumerableSet.UintSet))) private _buyOffersByPair;
+    uint24 private _nextOfferId;
+
 
     function initialize(address repToken_, IUniswapV3Factory uniswap_) initializer external {
         __Ownable_init(msg.sender);
@@ -44,7 +50,6 @@ contract Market is
 
         // 0 values are invalid and Upgradable can't use default values
         _nextOfferId++;
-        _nextDealId++;
     }
     function _authorizeUpgrade(address) internal onlyOwner override {}
 
@@ -68,10 +73,8 @@ contract Market is
         }
         return $result;
     }
-
-    function fiats() external view returns (bytes32[] memory) {
-        return _fiats.values();
-    }
+    function fiats() external view returns (bytes32[] memory) { return _fiats.values(); }
+    function methods() public view returns (bytes32[] memory) { return _methods.values(); }
 
     function getPrice(string calldata token_, string calldata fiat_) external view returns (uint256 $result) {
         IERC20Metadata $token = token[_stringToBytes32(token_)];
@@ -81,16 +84,100 @@ contract Market is
 
         // convert to other currency
         if (!fiat_.equal("USD")) {
-            IChainlink $fiat = _fiatToUSD[_stringToBytes32(fiat_)];
-            require(address($fiat) != address(0), "Market: unknown fiat");
-
-            (,int $fiatToUSD,,,) = $fiat.latestRoundData();
-            $result = $result * 10**8 / uint($fiatToUSD); // $fiat.decimals() is always 8
+            // $fiat.decimals() is always 8
+            $result = $result * 10**8 / getFiatToUSD(fiat_);
         }
 
         return $result;
     }
+
+    function getFiatToUSD(string calldata fiat_) public view returns (uint) {
+        IChainlink $fiat = _fiatToUSD[_stringToBytes32(fiat_)];
+        require(address($fiat) != address(0), "Market: unknown fiat");
+
+        (,int $fiatToUSD,,,) = $fiat.latestRoundData();
+        return uint($fiatToUSD);
+    }
+
+
+    /// @param isSell_ offers posted by Sellers, i.e. offers to buy tokens for fiat
+    /// @param method_ may be empty string to list all offers
+    function getOffers(bool isSell_, string calldata token_, string calldata fiat_, string calldata method_)
+    external view
+    returns (Offer[] memory $offers)
+    {
+        bytes32 $token = _stringToBytes32(token_);
+        bytes32 $fiat = _stringToBytes32(fiat_);
+        bytes32 $method = _stringToBytes32(method_);
+
+        EnumerableSet.UintSet storage $offersSet = isSell_ ? _sellOffersByPair[$token][$fiat][$method] : _buyOffersByPair[$token][$fiat][$method];
+        uint $length = $offersSet.length();
+        $offers = new Offer[]($length);
+
+        for (uint i = 0; i < $length; i++) {
+            $offers[i] = offers[$offersSet.at(i)];
+        }
+    }
+
+    struct OfferCreateParams {
+        bool isSell;
+        string token;
+        string fiat;
+        string method;
+        uint16 rate; // ratio to multiply market price at time of deal creation (2 decimals)
+        uint32 min; // in fiat
+        uint32 max;
+        uint16 paymentTimeLimit; // protection from stalled deals. after expiry seller can request refund and buyer still gets failed tx recorded
+        string terms;
+    }
+    function offerCreate(OfferCreateParams calldata params_) external {
+        require(_tokens.contains(_stringToBytes32(params_.token)), "token not exist");
+        require(params_.fiat.equal("USD") || _fiats.contains(_stringToBytes32(params_.fiat)), "fiat not exist");
+        require(_methods.contains(_stringToBytes32(params_.method)), "method not exist");
+        require (params_.rate > 0, "empty rate");
+        require (params_.min > 0, "min");
+        require (params_.max > 0, "max");
+        require (params_.min <= params_.max, "minmax");
+        require (params_.paymentTimeLimit >= 15, "time");
+
+        Offer memory $offer = Offer({
+            id: _nextOfferId,
+            owner: msg.sender,
+            isSell: params_.isSell,
+            token: params_.token,
+            fiat: params_.fiat,
+            method: params_.method,
+            rate: params_.rate,
+            min: params_.min,
+            max: params_.max,
+            paymentTimelimit: params_.paymentTimeLimit,
+            terms: params_.terms,
+            kycRequired: false
+        });
+
+        _saveOffer($offer);
+
+        emit OfferCreated(msg.sender, params_.token, params_.fiat, $offer);
+    }
     // ---- end of public functions
+
+    function _saveOffer(Offer memory offer_) private {
+        offers[_nextOfferId] = offer_;
+
+        bytes32 $token = _stringToBytes32(offer_.token);
+        bytes32 $fiat = _stringToBytes32(offer_.fiat);
+        bytes32 $method = _stringToBytes32(offer_.method);
+
+        if (offer_.isSell) {
+            _sellOffersByPair[$token][$fiat][''].add(offer_.id);
+            _sellOffersByPair[$token][$fiat][$method].add(offer_.id);
+        } else {
+            _buyOffersByPair[$token][$fiat][''].add(offer_.id);
+            _buyOffersByPair[$token][$fiat][$method].add(offer_.id);
+        }
+
+        _nextOfferId++;
+    }
 
     function addTokens(address[] calldata tokens_) external onlyOwner {
         require(tokens_.length <= type(uint8).max, "symbols length");
@@ -130,8 +217,25 @@ contract Market is
         }
     }
 
+    function addMethods(Method[] calldata new_) external onlyOwner {
+        for (uint i = 0; i < new_.length; i++) {
+            if (_methods.add(new_[i].name)) {
+                method[new_[i].name] = new_[i];
+                emit MethodAdded(new_[i].name, new_[i]);
+            }
+        }
+    }
+    function removeMethods(bytes32[] calldata names_) external onlyOwner {
+        for (uint i = 0; i < names_.length; i++) {
+            if (_methods.remove(names_[i])) {
+                delete method[names_[i]];
+                emit MethodRemoved(names_[i]);
+            }
+        }
+    }
+
     function setRepToken(address repToken_) public onlyOwner {
-        repToken = IRepManager(repToken_);
+        repToken = IRepToken(repToken_);
     }
 
     function _requestUniswapRate(IERC20Metadata token_, uint24 fee_) internal view returns (uint)
