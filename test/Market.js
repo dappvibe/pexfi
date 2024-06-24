@@ -104,6 +104,10 @@ describe("Market", function()
                 return expect(market.owner()).to.eventually.eq(deployer.address);
             });
 
+            it ('set mediator address in market', async function() {
+                return expect(market.setMediator(mediator.address)).to.not.throw;
+            });
+
             it('set market address in rep token', async function() {
                 await repToken.grantRole(MARKET_ROLE, market.target).then(tx => tx.wait());
                 await expect(repToken.hasRole(MARKET_ROLE, market.target)).to.eventually.true;
@@ -269,17 +273,21 @@ describe("Market", function()
             market = await market.connect(buyer);
             const response = market.createDeal(
                 offer[0],
-                1**8,
-                3500 * 10**6,
-                mediator.getAddress()
+                100000,
+                'IBAN:DE89370400440532013000',
             ).then((tx) => tx.wait()).then(receipt => {
-                const DealCreated = market.interface.parseLog(receipt.logs[0]);
+                const DealCreated = market.interface.parseLog(receipt.logs[9]);
                 deal = DealCreated.args[2];
                 return receipt;
             });
             await expect(response)
                 .to.emit(market, 'DealCreated')
                 .withArgs(offer[0], mediator.address, anyValue);
+            deal = await ethers.getContractAt('Deal', deal);
+        });
+
+        it ('has correct values', async function() {
+            await expect(deal.tokenAmount()).to.eventually.eq(500);
         });
 
         it ('accepted by mediator', async function() {
