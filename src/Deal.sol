@@ -1,0 +1,137 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.0;
+
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+//import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {IDeal} from "./interfaces/IDeal.sol";
+import {IMarket} from "./interfaces/IMarket.sol";
+
+contract Deal is IDeal, AccessControl
+{
+    using Strings for string;
+
+    IMarket public market;
+    IMarket.Offer public offer;
+    uint    public offerId;
+    address public buyer;
+    address public seller;
+    address public mediator;
+    uint    public tokenAmount;
+    uint    public fiatAmount;
+    uint    public fee;
+    string  public paymentInstructions;
+    uint8   public acceptance; // bitmap
+    State   public state = State.Initiated;
+
+    uint8 private constant ACCEPTED_MEDIATOR = 1;
+    uint8 private constant ACCEPTED_OWNER    = 2;
+    uint8 private constant ACCEPTED_ALL      = 3;
+
+    bytes32 private constant MEDIATOR    = 'MEDIATOR';
+    bytes32 private constant SELLER      = 'SELLER';
+    bytes32 private constant BUYER       = 'BUYER';
+    bytes32 private constant MEMBER      = 'MEMBER';
+    bytes32 private constant OFFER_OWNER = 'OFFER_OWNER';
+
+
+    modifier stateIs(State state_) {
+        if (state != state_) revert InvalidState(state);
+        _;
+    }
+    modifier stateBefore(State state_) {
+        if (state >= state_) revert InvalidState(state);
+        _;
+    }
+
+    constructor(
+        IMarket.Offer memory offer_,
+        address taker_,
+        address mediator_,
+        uint tokenAmount_,
+        uint fiatAmount_,
+        uint fee_,
+        string memory paymentInstructions_
+    )
+    {
+        market = IMarket(msg.sender);
+        offer = offer_;
+        offerId = offer.id;
+        buyer = offer.isSell ? taker_ : offer.owner;
+        seller = offer.isSell ? offer.owner : taker_;
+        mediator = mediator_;
+        tokenAmount = tokenAmount_;
+        fiatAmount = fiatAmount_;
+        fee = fee_;
+        paymentInstructions = paymentInstructions_;
+
+        _grantRole(DEFAULT_ADMIN_ROLE, address(market));
+        _grantRole(MEMBER, mediator);
+        _grantRole(MEDIATOR, mediator);
+        _grantRole(SELLER, mediator);
+        _grantRole(BUYER, mediator);
+        _grantRole(MEMBER, seller);
+        _grantRole(SELLER, seller);
+        _grantRole(MEMBER, buyer);
+        _grantRole(BUYER, buyer);
+        _grantRole(OFFER_OWNER, offer.owner);
+    }
+
+    function accept() external onlyRole(MEMBER) stateBefore(State.Accepted) {
+        if (hasRole(OFFER_OWNER, msg.sender)) {
+            acceptance |= ACCEPTED_OWNER;
+        } else if (hasRole(MEDIATOR, msg.sender)) {
+            acceptance |= ACCEPTED_MEDIATOR;
+        }
+
+        if (acceptance == ACCEPTED_ALL) {
+            state = State.Accepted;
+            emit DealState(state);
+
+            if (seller == msg.sender) {
+                market.fundDeal();
+                state = State.Funded;
+                emit DealState(State.Funded);
+            }
+        }
+    }
+
+    function paid() external onlyRole(BUYER) {
+        state = State.Paid;
+        emit DealState(state);
+    }
+
+    /*function received() external onlyRole(SELLER) dealState(State.Paid) {
+        //require(deal.state < State.Completed, "completed");
+
+        IERC20 $token = IERC20(offers[deal.offerId].crypto);
+        $token.transfer(deal.buyer, deal.token0amount);
+
+        deal.state = State.Completed;
+        emit DealState(dealId_, deal.mediator, deal.state);
+    }
+
+    function cancel() external onlyRole(BUYER) {
+        require(deal.state < State.Completed, "completed");
+
+        if (deal.state == State.Funded) {
+            IERC20 $token = IERC20(offers[deal.offerId].crypto);
+            $token.transfer(deal.seller, deal.token0amount);
+        }
+
+        deal.state = State.Revoked;
+        emit DealState(dealId_, deal.mediator, deal.state);
+    }
+
+    function disputeDeal(uint32 dealId_) external onlyParticipant(dealId_) {
+        Deal storage deal = deals[dealId_];
+        require(deal.state < State.Disputed, "disputed");
+
+        deal.state = State.Disputed;
+        emit DealState(dealId_, deal.mediator, deal.state);
+    }*/
+
+    function message(string calldata message_) external onlyRole(MEMBER) {
+        emit Message(msg.sender, message_);
+    }
+}

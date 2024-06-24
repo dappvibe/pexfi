@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import {IDealManager} from "../../IDealManager.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "../Deal.sol";
 
-interface IMarket is IDealManager
+interface IMarket
 {
     event TokenAdded(string indexed symbol, address indexed target, IERC20 token);
     event TokenRemoved(string indexed symbol, address indexed target);
@@ -14,12 +14,13 @@ interface IMarket is IDealManager
     event MethodRemoved(string indexed name);
 
     event OfferCreated(address indexed owner, string indexed crypto, string indexed fiat, Offer offer);
+    event DealCreated(uint indexed offerId, address indexed mediator, Deal deal);
 
     struct Offer {
         uint id;
         address owner;  // TODO Support ENS in client for nicknames
 
-        bool    isSell;
+        bool isSell;
         string token;
         string fiat;
         string method;
@@ -60,4 +61,5 @@ interface IMarket is IDealManager
         //Country country;
     }
 
+    function fundDeal() external returns (bool);
 }
