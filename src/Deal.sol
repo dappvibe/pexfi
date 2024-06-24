@@ -21,7 +21,7 @@ contract Deal is IDeal, AccessControl
     uint    public fiatAmount;
     uint    public fee;
     string  public paymentInstructions;
-    uint8   public acceptance; // bitmap
+    uint8   public acceptance = 1; // mediator autoaccept for now
     State   public state = State.Initiated;
 
     uint8 private constant ACCEPTED_MEDIATOR = 1;
