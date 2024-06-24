@@ -122,14 +122,10 @@ contract Deal is IDeal, AccessControl
         emit DealState(State.Revoked);
     }
 
-    /**
-    function disputeDeal(uint32 dealId_) external onlyParticipant(dealId_) {
-        Deal storage deal = deals[dealId_];
-        require(deal.state < State.Disputed, "disputed");
-
-        deal.state = State.Disputed;
-        emit DealState(dealId_, deal.mediator, deal.state);
-    }*/
+    function dispute() external onlyRole(MEMBER) stateBefore(State.Disputed) {
+        state = State.Disputed;
+        emit DealState(State.Disputed);
+    }
 
     function message(string calldata message_) external onlyRole(MEMBER) {
         emit Message(msg.sender, message_);
