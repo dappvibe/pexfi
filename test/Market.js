@@ -386,30 +386,36 @@ describe("Market", function()
     });
 
     describe('buyer disputes deal', function() {
-        it ('event emitted', async function() {
+        it ('open another deal', async function() {
             market = await market.connect(buyer);
-            await market.createDeal(
-                offer[0],
-                1**18,
-                3500 * 10**6,
-                mediator.getAddress()
+            const response = market.createDeal(
+                offers[2][0],
+                123450,
+                'IBAN:DE89370400440532013000',
             ).then((tx) => tx.wait()).then(receipt => {
-                const DealCreated = market.interface.parseLog(receipt.logs[0]);
+                const DealCreated = market.interface.parseLog(receipt.logs[10]);
                 deal = DealCreated.args[2];
+                return receipt;
             });
-            await market.paidDeal(deal[0]).then((tx) => tx.wait());
-            await expect(market.disputeDeal(deal[0])).to.emit(market, 'DealState');
+            await expect(response)
+                .to.emit(market, 'DealCreated')
+                .withArgs(offers[2][0], mediator.address, anyValue);
+            deal = await ethers.getContractAt('Deal', deal);
+        });
+        it ('deal state changed', async function() {
+            deal = await deal.connect(buyer);
+            await expect(deal.dispute(deal)).to.emit(deal, 'DealState');
         });
     });
 
     describe('Messaging', function() {
         it('seller sends message', async function() {
-            market = await market.connect(seller);
-            await expect(market.message(deal[0], 'Hello buyer!')).to.emit(market, 'Message');
+            deal = await deal.connect(seller);
+            await expect(deal.message(deal[0], 'Hello buyer!')).to.emit(deal, 'Message');
         });
         it('buyer sends message', async function() {
-            market = await market.connect(buyer);
-            await expect(market.message(deal[0], 'Hello seller!')).to.emit(market, 'Message');
+            deal = await deal.connect(buyer);
+            await expect(deal.message(deal[0], 'Hello seller!')).to.emit(deal, 'Message');
         });
     });
 });
