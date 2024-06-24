@@ -2,16 +2,10 @@
 pragma solidity ^0.8.20;
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {FullMath} from "../lib/v4-core/src/libraries/FullMath.sol";
-import {TickMath} from "../lib/v4-core/src/libraries/TickMath.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {IChainlink} from "./interfaces/IChainlink.sol";
-import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
-
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {IMarket} from "./interfaces/IMarket.sol";
@@ -19,6 +13,7 @@ import {IRepToken} from "./interfaces/IRepToken.sol";
 import {IDeal} from "./interfaces/IDeal.sol";
 import {Deal} from "./Deal.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IInventory} from "./interfaces/IInventory.sol";
 
 contract Market is IMarket,
     OwnableUpgradeable,
@@ -31,12 +26,8 @@ contract Market is IMarket,
     using SafeERC20 for IERC20Metadata;
 
     IRepToken public repToken;
-    IUniswapV3Factory public uniswap;
+    IInventory public inventory;
 
-    mapping(bytes32 => IERC20Metadata)  public token;
-    EnumerableSet.Bytes32Set private _tokens;
-    EnumerableSet.Bytes32Set private _fiats;
-    mapping(bytes32 => IChainlink) private _fiatToUSD;
     mapping (bytes32 => Method) public method;
     EnumerableSet.Bytes32Set private _methods;
 
@@ -52,63 +43,18 @@ contract Market is IMarket,
     address public mediator;
     uint8 internal constant FEE = 100; // 1%
 
-    function initialize(address repToken_, IUniswapV3Factory uniswap_) initializer external {
+    function initialize(address repToken_, address inventory_) initializer external {
         __Ownable_init(msg.sender);
 
         setRepToken(repToken_);
-        uniswap = uniswap_;
+        inventory = IInventory(inventory_);
 
         // 0 values are invalid and Upgradable can't use default values
         _nextOfferId++;
     }
     function _authorizeUpgrade(address) internal onlyOwner override {}
 
-    struct TokenMetadata {
-        address target;
-        string symbol;
-        string name;
-        uint8 decimals;
-    }
-    function tokens() external view returns (TokenMetadata[] memory) {
-        uint $length = _tokens.length();
-        TokenMetadata[] memory $result = new TokenMetadata[]($length);
-        for (uint i = 0; i < $length; i++) {
-            IERC20Metadata $token = token[_tokens.at(i)];
-            $result[i] = TokenMetadata({
-                target:     address($token),
-                symbol:     $token.symbol(),
-                name:       $token.name(),
-                decimals:   $token.decimals()
-            });
-        }
-        return $result;
-    }
-    function fiats() external view returns (bytes32[] memory) { return _fiats.values(); }
     function methods() public view returns (bytes32[] memory) { return _methods.values(); }
-
-    function getPrice(string memory token_, string memory fiat_) public view returns (uint256 $result) {
-        IERC20Metadata $token = token[_stringToBytes32(token_)];
-        require(address($token) != address(0), "unknown token");
-
-        $result = token_.equal('USDT') ? 10**4 : _requestUniswapRate($token, 500);
-
-        // convert to other currency
-        if (!fiat_.equal("USD")) {
-            // $fiat.decimals() is always 8
-            $result = $result * 10**8 / getFiatToUSD(fiat_);
-        }
-
-        return $result;
-    }
-
-    function getFiatToUSD(string memory fiat_) public view returns (uint) {
-        IChainlink $fiat = _fiatToUSD[_stringToBytes32(fiat_)];
-        require(address($fiat) != address(0), "unknown fiat");
-
-        (,int $fiatToUSD,,,) = $fiat.latestRoundData();
-        return uint($fiatToUSD);
-    }
-
 
     /// @param isSell_ offers posted by Sellers, i.e. offers to buy tokens for fiat
     /// @param method_ may be empty string to list all offers
@@ -116,9 +62,9 @@ contract Market is IMarket,
     external view
     returns (Offer[] memory $offers)
     {
-        bytes32 $token = _stringToBytes32(token_);
-        bytes32 $fiat = _stringToBytes32(fiat_);
-        bytes32 $method = _stringToBytes32(method_);
+        bytes32 $token = bytes32(bytes(token_));
+        bytes32 $fiat = bytes32(bytes(fiat_));
+        bytes32 $method = bytes32(bytes(method_));
 
         EnumerableSet.UintSet storage $offersSet = isSell_ ? _sellOffersByPair[$token][$fiat][$method] : _buyOffersByPair[$token][$fiat][$method];
         uint $length = $offersSet.length();
@@ -141,9 +87,8 @@ contract Market is IMarket,
         string terms;
     }
     function offerCreate(OfferCreateParams calldata params_) external {
-        require(_tokens.contains(_stringToBytes32(params_.token)), "token not exist");
-        require(params_.fiat.equal("USD") || _fiats.contains(_stringToBytes32(params_.fiat)), "fiat not exist");
-        require(_methods.contains(_stringToBytes32(params_.method)), "method not exist");
+        try inventory.getPrice(params_.token, params_.fiat) returns (uint) {} catch { revert("invalid pair"); }
+        require(_methods.contains(bytes32(bytes(params_.method))), "method not exist");
         require (params_.rate > 0, "empty rate");
         require (params_.min > 0, "min");
         require (params_.max > 0, "max");
@@ -178,7 +123,7 @@ contract Market is IMarket,
     {
         Offer memory $offer = offers[offerId_];
 
-        uint $price = getPrice($offer.token, $offer.fiat);
+        uint $price = inventory.getPrice($offer.token, $offer.fiat);
         uint $tokenAmount = fiatAmount_ * 100 / ($offer.rate * $price);
 
         Deal $deal = new Deal(
@@ -213,9 +158,9 @@ contract Market is IMarket,
     function _saveOffer(Offer memory offer_) private {
         offers[_nextOfferId] = offer_;
 
-        bytes32 $token = _stringToBytes32(offer_.token);
-        bytes32 $fiat = _stringToBytes32(offer_.fiat);
-        bytes32 $method = _stringToBytes32(offer_.method);
+        bytes32 $token = bytes32(bytes(offer_.token));
+        bytes32 $fiat = bytes32(bytes(offer_.fiat));
+        bytes32 $method = bytes32(bytes(offer_.method));
 
         if (offer_.isSell) {
             _sellOffersByPair[$token][$fiat][''].add(offer_.id);
@@ -228,50 +173,9 @@ contract Market is IMarket,
         _nextOfferId++;
     }
 
-    function addTokens(address[] calldata tokens_) external onlyOwner {
-        require(tokens_.length <= type(uint8).max, "symbols length");
-
-        for (uint8 i = 0; i < tokens_.length; i++) {
-            IERC20Metadata $token = IERC20Metadata(tokens_[i]);
-            bytes32 $symbol = _stringToBytes32($token.symbol());
-            _tokens.add($symbol);
-            token[$symbol] = $token;
-            emit TokenAdded($token.symbol(), tokens_[i], $token);
-        }
-    }
-    function removeTokens(string[] calldata token_) external onlyOwner {
-        for (uint8 i = 0; i < token_.length; i++) {
-            bytes32 $symbol = _stringToBytes32(token_[i]);
-            if (_tokens.remove($symbol)) {
-                emit TokenRemoved(token_[i], address(token[$symbol]));
-                delete token[$symbol];
-            }
-        }
-    }
-
-    function addFiats(string[] calldata fiat_, address[] calldata priceFeed_) external onlyOwner {
-        require(fiat_.length == priceFeed_.length, "Market: invalid input length");
-
-        for (uint8 i = 0; i < fiat_.length; i++) {
-            bytes32 $fiat = _stringToBytes32(fiat_[i]);
-            _fiats.add($fiat);
-            // do not check the Set return value to let update feed address
-            _fiatToUSD[$fiat] = IChainlink(priceFeed_[i]);
-            emit FiatAdded(fiat_[i], priceFeed_[i]);
-        }
-    }
-    function removeFiats(string[] calldata fiat_) external onlyOwner {
-        for (uint8 i = 0; i < fiat_.length; i++) {
-            bytes32 $fiat = _stringToBytes32(fiat_[i]);
-            _fiats.remove($fiat);
-            delete _fiatToUSD[$fiat];
-            emit FiatRemoved(fiat_[i]);
-        }
-    }
-
     function addMethods(Method[] calldata new_) external onlyOwner {
         for (uint i = 0; i < new_.length; i++) {
-            bytes32 $name = _stringToBytes32(new_[i].name);
+            bytes32 $name = bytes32(bytes((new_[i].name)));
             if (_methods.add($name)) {
                 method[$name] = new_[i];
                 emit MethodAdded(new_[i].name, new_[i]);
@@ -280,7 +184,7 @@ contract Market is IMarket,
     }
     function removeMethods(string[] calldata names_) external onlyOwner {
         for (uint i = 0; i < names_.length; i++) {
-            bytes32 $name = _stringToBytes32(names_[i]);
+            bytes32 $name = bytes32(bytes(names_[i]));
             if (_methods.remove($name)) {
                 delete method[$name];
                 emit MethodRemoved(names_[i]);
@@ -288,41 +192,7 @@ contract Market is IMarket,
         }
     }
 
-    function setRepToken(address repToken_) public onlyOwner {
-        repToken = IRepToken(repToken_);
-    }
+    function setRepToken(address repToken_) public onlyOwner { repToken = IRepToken(repToken_); }
+    function setInventory(address inventory_) public onlyOwner { inventory = IInventory(inventory_); }
     function setMediator(address mediator_) public onlyOwner { mediator = mediator_; }
-
-    function _requestUniswapRate(IERC20Metadata token_, uint24 fee_) internal view returns (uint)
-    {
-        IERC20Metadata $USDT = token[_stringToBytes32("USDT")];
-        require(address($USDT) != address(0), "USDT not found");
-
-        address $poolAddress = uniswap.getPool(address(token_), address($USDT), fee_);
-        require($poolAddress != address(0), "Market: pool not found");
-
-        IUniswapV3Pool $pool = IUniswapV3Pool($poolAddress);
-
-        uint32[] memory secs = new uint32[](2);
-        secs[0] = 300;
-        secs[1] = 0;
-        (int56[] memory tickCumulatives,) = IUniswapV3Pool($pool).observe(secs);
-        int56 tickCumulativesDelta = tickCumulatives[1] - tickCumulatives[0];
-        int24 arithmeticMeanTick = int24(tickCumulativesDelta / 300);
-        uint160 sqrtPriceX96 = TickMath.getSqrtPriceAtTick(arithmeticMeanTick);
-
-        uint256 numerator1 = uint256(sqrtPriceX96) * uint256(sqrtPriceX96);
-        uint256 numerator2 = 10**(token_.decimals() - $USDT.decimals() + 4); // precision after dot
-        return FullMath.mulDiv(numerator1, numerator2, 1 << 192);
-    }
-
-    function _stringToBytes32(string memory source_) private pure returns (bytes32 result) {
-        bytes memory tempEmptyStringTest = bytes(source_);
-        if (tempEmptyStringTest.length == 0) {
-            return 0x0;
-        }
-        assembly {
-            result := mload(add(source_, 32))
-        }
-    }
 }
