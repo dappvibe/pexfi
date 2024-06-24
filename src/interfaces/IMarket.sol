@@ -6,10 +6,6 @@ import "../Deal.sol";
 
 interface IMarket
 {
-    event TokenAdded(string indexed symbol, address indexed target, IERC20 token);
-    event TokenRemoved(string indexed symbol, address indexed target);
-    event FiatAdded(string indexed symbol, address indexed oracle);
-    event FiatRemoved(string indexed symbol);
     event MethodAdded(string indexed name, Method method);
     event MethodRemoved(string indexed name);
 

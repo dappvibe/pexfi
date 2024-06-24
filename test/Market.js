@@ -22,7 +22,7 @@ describe("Market", function()
 {
     const fiats = ['THB', 'EUR', 'XXX'];
     let MockUniswap, MockBTC, MockETH, MockUSDT, MockDummy,
-        priceFeeds = {}, repToken, market,
+        priceFeeds = {}, repToken, inventory, market,
         deployer, seller, buyer, mediator,
         offer, deal;
 
@@ -88,6 +88,39 @@ describe("Market", function()
             });
         });
 
+        describe('Inventory', function() {
+            it('is NOT upgradable', async function () {
+                const inventory = await ethers.getContractFactory("Inventory");
+                return expect(upgrades.validateImplementation(inventory)).to.throw;
+            });
+
+            it('is deployed', async function() {
+                inventory = await ethers.deployContract('Inventory', [MockUniswap.target]);
+                return expect(inventory.target).to.be.properAddress;
+            });
+
+            it ('add supported tokens', async function() {
+                const tokens = [MockBTC.target, MockETH.target, MockUSDT.target, MockDummy.target];
+                await expect(inventory.addTokens(tokens)).to.emit(inventory, 'TokenAdded');
+            });
+
+            it ('remove token', async function() {
+                const kill = await MockDummy.symbol();
+                await expect(inventory.removeTokens([kill])).to.emit(inventory, 'TokenRemoved');
+            });
+
+            it ('add supported fiats', async function() {
+                await expect(inventory.addFiats(
+                    Object.keys(priceFeeds),
+                    Object.values(priceFeeds).map(f => f.target)
+                )).to.emit(inventory, 'FiatAdded');
+            });
+
+            it ('remove fiat', async function() {
+                await expect(inventory.removeFiats(['XXX'])).to.emit(inventory, 'FiatRemoved');
+            });
+        });
+
         describe('Market', function() {
             it ('is upgradable', async function() {
                 const MarketFactory = await ethers.getContractFactory("Market");
@@ -96,7 +129,7 @@ describe("Market", function()
 
             it ('is deployed', async function() {
                 market = await ethers.deployContract('Market');
-                await market.initialize(repToken.target, MockUniswap.target).then(tx => tx.wait());
+                await market.initialize(repToken.target, inventory.target).then(tx => tx.wait());
                 return expect(market.target).to.be.properAddress;
             });
 
@@ -111,27 +144,6 @@ describe("Market", function()
             it('set market address in rep token', async function() {
                 await repToken.grantRole(MARKET_ROLE, market.target).then(tx => tx.wait());
                 await expect(repToken.hasRole(MARKET_ROLE, market.target)).to.eventually.true;
-            });
-
-            it ('add supported tokens', async function() {
-                const tokens = [MockBTC.target, MockETH.target, MockUSDT.target, MockDummy.target];
-                await expect(market.addTokens(tokens)).to.emit(market, 'TokenAdded');
-            });
-
-            it ('remove token', async function() {
-                const kill = await MockDummy.symbol();
-                await expect(market.removeTokens([kill])).to.emit(market, 'TokenRemoved');
-            });
-
-            it ('add supported fiats', async function() {
-                await expect(market.addFiats(
-                    Object.keys(priceFeeds),
-                    Object.values(priceFeeds).map(f => f.target)
-                )).to.emit(market, 'FiatAdded');
-            });
-
-            it ('remove fiat', async function() {
-                await expect(market.removeFiats(['XXX'])).to.emit(market, 'FiatRemoved');
             });
 
             // this is an expensive, but required one-time operation. Mediators must know the methods to solve disputes.
@@ -158,7 +170,7 @@ describe("Market", function()
         let tokens, fiats, methods = [];
 
         it ('get tokens', async function() {
-            tokens = await market.tokens();
+            tokens = await inventory.tokens();
             expect(tokens).to.have.length(3);
             expect(tokens[0][1]).to.eq('WBTC');
             expect(tokens[1][1]).to.eq('WETH');
@@ -166,7 +178,7 @@ describe("Market", function()
         });
 
         it ('get fiats', async function() {
-            fiats = await market.fiats();
+            fiats = await inventory.fiats();
             fiats = fiats.map(ethers.decodeBytes32String);
             expect(fiats).to.have.length(2);
             expect(fiats[0]).to.eq('THB');
@@ -182,10 +194,10 @@ describe("Market", function()
         });
 
         it ('get prices', async function() {
-            await expect(market.getPrice(await MockETH.symbol(), "USD")).to.eventually.eq(34748096); // 3474.8096 USDT per ETH
-            await expect(market.getPrice(await MockETH.symbol(), "EUR")).to.eventually.eq(32496874);
-            await expect(market.getPrice(await MockUSDT.symbol(), "USD")).to.eventually.eq(10000);
-            await expect(market.getPrice(await MockUSDT.symbol(), "EUR")).to.eventually.eq(9352);
+            await expect(inventory.getPrice(await MockETH.symbol(), "USD")).to.eventually.eq(34748096); // 3474.8096 USDT per ETH
+            await expect(inventory.getPrice(await MockETH.symbol(), "EUR")).to.eventually.eq(32496874);
+            await expect(inventory.getPrice(await MockUSDT.symbol(), "USD")).to.eventually.eq(10000);
+            await expect(inventory.getPrice(await MockUSDT.symbol(), "EUR")).to.eventually.eq(9352);
         });
     });
 
