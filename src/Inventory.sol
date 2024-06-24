@@ -34,19 +34,26 @@ contract Inventory is IInventory, Ownable
         uniswap = IUniswapV3Factory(uniswap_);
     }
 
-    function getPrice(string memory token_, string memory fiat_) public view returns (uint256 $result) {
+    /// @param amount_ must have 4 decimals
+    /// @return amount decimals 8
+    function convert(uint amount_, string memory fromFiat_, string memory toToken_) public view returns (uint256) {
+        return amount_ * 10**4 / getPrice(toToken_, fromFiat_) * 10**4;
+    }
+
+    /// @return price with 4 decimals
+    function getPrice(string memory token_, string memory fiat_) public view returns (uint256 price) {
         IERC20Metadata $token = token[bytes32(bytes(token_))];
         require(address($token) != address(0), "unknown token");
 
-        $result = token_.equal('USDT') ? 10**4 : _requestUniswapRate($token, 500);
+        price = token_.equal('USDT') ? 10**4 : _requestUniswapRate($token, 500);
 
         // convert to other currency
         if (!fiat_.equal("USD")) {
             // $fiat.decimals() is always 8
-            $result = $result * 10**8 / getFiatToUSD(fiat_);
+            price = price * 10**8 / getFiatToUSD(fiat_);
         }
 
-        return $result;
+        return price;
     }
 
     function getFiatToUSD(string memory fiat_) public view returns (uint) {
