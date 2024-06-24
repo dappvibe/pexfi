@@ -2,11 +2,9 @@
 pragma solidity ^0.8.0;
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-//import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {IDeal} from "./interfaces/IDeal.sol";
 import {IMarket} from "./interfaces/IMarket.sol";
-import {IERC20} from "../lib/forge-std/src/interfaces/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 contract Deal is IDeal, AccessControl
