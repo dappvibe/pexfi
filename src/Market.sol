@@ -16,6 +16,9 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {IMarket} from "./interfaces/IMarket.sol";
 import {IRepToken} from "./interfaces/IRepToken.sol";
+import {IDeal} from "./interfaces/IDeal.sol";
+import {Deal} from "./Deal.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract Market is IMarket,
     OwnableUpgradeable,
@@ -24,6 +27,8 @@ contract Market is IMarket,
     using Strings for string;
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.UintSet;
+    using EnumerableSet for EnumerableSet.AddressSet;
+    using SafeERC20 for IERC20Metadata;
 
     IRepToken public repToken;
     IUniswapV3Factory public uniswap;
@@ -41,6 +46,11 @@ contract Market is IMarket,
     mapping(bytes32 => mapping(bytes32 => mapping(bytes32 => EnumerableSet.UintSet))) private _buyOffersByPair;
     uint24 private _nextOfferId;
 
+    EnumerableSet.AddressSet private _deals;
+    mapping(uint => IDeal[]) private _offerDeals;
+
+    address public mediator;
+    uint8 internal constant FEE = 100; // 1%
 
     function initialize(address repToken_, IUniswapV3Factory uniswap_) initializer external {
         __Ownable_init(msg.sender);
@@ -76,7 +86,7 @@ contract Market is IMarket,
     function fiats() external view returns (bytes32[] memory) { return _fiats.values(); }
     function methods() public view returns (bytes32[] memory) { return _methods.values(); }
 
-    function getPrice(string calldata token_, string calldata fiat_) external view returns (uint256 $result) {
+    function getPrice(string memory token_, string memory fiat_) public view returns (uint256 $result) {
         IERC20Metadata $token = token[_stringToBytes32(token_)];
         require(address($token) != address(0), "unknown token");
 
@@ -91,9 +101,9 @@ contract Market is IMarket,
         return $result;
     }
 
-    function getFiatToUSD(string calldata fiat_) public view returns (uint) {
+    function getFiatToUSD(string memory fiat_) public view returns (uint) {
         IChainlink $fiat = _fiatToUSD[_stringToBytes32(fiat_)];
-        require(address($fiat) != address(0), "Market: unknown fiat");
+        require(address($fiat) != address(0), "unknown fiat");
 
         (,int $fiatToUSD,,,) = $fiat.latestRoundData();
         return uint($fiatToUSD);
@@ -158,6 +168,45 @@ contract Market is IMarket,
         _saveOffer($offer);
 
         emit OfferCreated(msg.sender, params_.token, params_.fiat, $offer);
+    }
+
+    function createDeal(
+        uint offerId_,
+        uint fiatAmount_, // 2 decimals
+        string memory paymentInstructions_ // FIXME this is not the case if buying
+    ) external
+    {
+        Offer memory $offer = offers[offerId_];
+
+        uint $price = getPrice($offer.token, $offer.fiat);
+        uint $tokenAmount = fiatAmount_ * 100 / ($offer.rate * $price);
+
+        Deal $deal = new Deal(
+            offers[offerId_],
+            msg.sender,
+            mediator,
+            $tokenAmount,
+            fiatAmount_,
+            FEE,
+            paymentInstructions_
+        );
+        _deals.add(address($deal));
+        _offerDeals[offerId_].push($deal);
+
+        emit DealCreated(offerId_, mediator, $deal);
+    }
+
+    /// @dev users provide allowance once to the market
+    function fundDeal() external returns (bool) {
+        require(_deals.contains(msg.sender), "no deal");
+
+        IDeal $deal = IDeal(msg.sender);
+        require($deal.state() == IDeal.State.Accepted, "not accepted");
+
+        Offer storage $offer = offers[$deal.offerId()];
+        require ($offer.isSell, "not selling offer");
+
+        return true;
     }
     // ---- end of public functions
 
@@ -242,6 +291,7 @@ contract Market is IMarket,
     function setRepToken(address repToken_) public onlyOwner {
         repToken = IRepToken(repToken_);
     }
+    function setMediator(address mediator_) public onlyOwner { mediator = mediator_; }
 
     function _requestUniswapRate(IERC20Metadata token_, uint24 fee_) internal view returns (uint)
     {
