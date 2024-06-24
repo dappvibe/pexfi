@@ -114,23 +114,15 @@ contract Deal is IDeal, AccessControl
         emit DealState(state);
     }
 
-    function refund() external onlyRole(SELLER) {
-
+    function cancel() external onlyRole(BUYER) {
+        if (state == State.Funded) {
+            token.transfer(seller, tokenAmount * 10**(token.decimals() - 8));
+        }
+        state = State.Revoked;
+        emit DealState(State.Revoked);
     }
 
     /**
-    function cancel() external onlyRole(BUYER) {
-        require(deal.state < State.Completed, "completed");
-
-        if (deal.state == State.Funded) {
-            IERC20 $token = IERC20(offers[deal.offerId].crypto);
-            $token.transfer(deal.seller, deal.token0amount);
-        }
-
-        deal.state = State.Revoked;
-        emit DealState(dealId_, deal.mediator, deal.state);
-    }
-
     function disputeDeal(uint32 dealId_) external onlyParticipant(dealId_) {
         Deal storage deal = deals[dealId_];
         require(deal.state < State.Disputed, "disputed");
