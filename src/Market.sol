@@ -90,7 +90,7 @@ contract Market is
 
         return $result;
     }
-
+    // ---- end of public functions
 
     function addTokens(address[] calldata tokens_) external onlyOwner {
         require(tokens_.length <= type(uint8).max, "symbols length");
