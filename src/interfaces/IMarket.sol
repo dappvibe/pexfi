@@ -6,12 +6,12 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface IMarket is IDealManager
 {
-    event TokenAdded(bytes32 indexed symbol, address indexed target, IERC20 token);
-    event TokenRemoved(bytes32 indexed symbol, address indexed target);
-    event FiatAdded(bytes32 indexed symbol, address indexed oracle);
-    event FiatRemoved(bytes32 indexed symbol);
-    event MethodAdded(bytes32 indexed name, Method method);
-    event MethodRemoved(bytes32 indexed name);
+    event TokenAdded(string indexed symbol, address indexed target, IERC20 token);
+    event TokenRemoved(string indexed symbol, address indexed target);
+    event FiatAdded(string indexed symbol, address indexed oracle);
+    event FiatRemoved(string indexed symbol);
+    event MethodAdded(string indexed name, Method method);
+    event MethodRemoved(string indexed name);
 
     event OfferCreated(address indexed owner, string indexed crypto, string indexed fiat, Offer offer);
 
@@ -55,7 +55,7 @@ interface IMarket is IDealManager
         Bank    // any regulated KYC'ed transfer entity
     }
     struct Method {
-        bytes32 name;
+        string name;
         MethodGroup group;
         //Country country;
     }
