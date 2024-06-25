@@ -105,16 +105,20 @@ contract Deal is IDeal, AccessControl
     }
 
     function release() external onlyRole(SELLER) {
-        token.transfer(buyer, (tokenAmount - (tokenAmount * fee / 10000)) * 10**(token.decimals() - 8));
+        token.transfer(buyer, tokenAmount - (tokenAmount * fee / 10000));
         token.transfer(mediator, token.balanceOf(address(this)));
 
         state = State.Completed;
         emit DealState(state);
     }
 
-    function cancel() external onlyRole(BUYER) {
+    function cancel() external onlyRole(MEMBER) {
+        require(hasRole(BUYER, msg.sender)
+            || (hasRole(SELLER, msg.sender) && acceptanceDeadline < block.timestamp && state < State.Paid),
+        'denied');
+
         if (state == State.Funded) {
-            token.transfer(seller, tokenAmount * 10**(token.decimals() - 8));
+            token.transfer(seller, tokenAmount);
         }
         state = State.Revoked;
         emit DealState(State.Revoked);

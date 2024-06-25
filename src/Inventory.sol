@@ -22,7 +22,6 @@ contract Inventory is IInventory, Ownable
     using Strings for string;
     using EnumerableSet for EnumerableSet.Bytes32Set;
 
-
     mapping(bytes32 => IERC20Metadata)  public token;
     EnumerableSet.Bytes32Set private _tokens;
     EnumerableSet.Bytes32Set private _fiats;
@@ -34,18 +33,24 @@ contract Inventory is IInventory, Ownable
         uniswap = IUniswapV3Factory(uniswap_);
     }
 
-    /// @param amount_ must have 4 decimals
-    /// @return amount decimals 8
-    function convert(uint amount_, string memory fromFiat_, string memory toToken_) public view returns (uint256) {
-        return amount_ * 10**4 / getPrice(toToken_, fromFiat_) * 10**4;
+    /// @param amount_ must have 6 decimals as a fiat amount
+    /// @param denominator ratio (4 decimal) to apply to resulting amount
+    /// @return $amount of tokens in precision of given token
+    function convert(uint amount_, string memory fromFiat_, string memory toToken_, uint denominator) public view returns (uint256 $amount) {
+        if (fromFiat_.equal("USD") && toToken_.equal("USDT")) return FullMath.mulDiv(amount_, 10**4, denominator);
+
+        uint decimals = token[bytes32(bytes(toToken_))].decimals();
+        $amount = FullMath.mulDiv(amount_, 10**decimals, getPrice(toToken_, fromFiat_));
+        return FullMath.mulDiv($amount, 10**4, denominator);
     }
 
     /// @return price with 4 decimals
     function getPrice(string memory token_, string memory fiat_) public view returns (uint256 price) {
-        IERC20Metadata $token = token[bytes32(bytes(token_))];
-        require(address($token) != address(0), "unknown token");
-
-        price = token_.equal('USDT') ? 10**4 : _requestUniswapRate($token, 500);
+        if (!token_.equal('USDT')) {
+            IERC20Metadata $token = token[bytes32(bytes(token_))];
+            price = _uniswapRateForUSDT($token);
+        }
+        else price = 10**6;
 
         // convert to other currency
         if (!fiat_.equal("USD")) {
@@ -118,26 +123,23 @@ contract Inventory is IInventory, Ownable
         }
     }
 
-    function _requestUniswapRate(IERC20Metadata token_, uint24 fee_) internal view returns (uint)
+    /// @return price of token_ in USDT (6 decimals)
+    function _uniswapRateForUSDT(IERC20Metadata token_) internal view returns (uint)
     {
-        IERC20Metadata $USDT = token[bytes32(bytes("USDT"))];
-        require(address($USDT) != address(0), "USDT not found");
-
-        address $poolAddress = uniswap.getPool(address(token_), address($USDT), fee_);
-        require($poolAddress != address(0), "Market: pool not found");
-
-        IUniswapV3Pool $pool = IUniswapV3Pool($poolAddress);
+        IUniswapV3Pool pool = IUniswapV3Pool(uniswap.getPool(
+            address(token_),
+            address(token[bytes32(bytes("USDT"))]),
+            500 // FIXME poll with such fee might not exist
+        ));
 
         uint32[] memory secs = new uint32[](2);
-        secs[0] = 300;
+        secs[0] = 300; // 5 minutes TWAP
         secs[1] = 0;
-        (int56[] memory tickCumulatives,) = IUniswapV3Pool($pool).observe(secs);
+        (int56[] memory tickCumulatives,) = pool.observe(secs);
         int56 tickCumulativesDelta = tickCumulatives[1] - tickCumulatives[0];
-        int24 arithmeticMeanTick = int24(tickCumulativesDelta / 300);
-        uint160 sqrtPriceX96 = TickMath.getSqrtPriceAtTick(arithmeticMeanTick);
+        uint160 sqrtPriceX96 = TickMath.getSqrtPriceAtTick(int24(tickCumulativesDelta / 300));
 
-        uint256 numerator1 = uint256(sqrtPriceX96) * uint256(sqrtPriceX96);
-        uint256 numerator2 = 10**(token_.decimals() - $USDT.decimals() + 4); // precision after dot
-        return FullMath.mulDiv(numerator1, numerator2, 1 << 192);
+        // return in USDT (tokenB) precision
+        return FullMath.mulDiv(uint256(sqrtPriceX96) * uint256(sqrtPriceX96), 10**token_.decimals(), 1 << 192);
     }
 }

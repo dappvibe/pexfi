@@ -10,6 +10,6 @@ interface IInventory {
     event FiatRemoved(string indexed symbol);
 
     function token(bytes32 symbol_) external view returns (IERC20Metadata);
-    function convert(uint amount_, string memory fromFiat_, string memory toToken_) external view returns (uint256);
+    function convert(uint amount_, string memory fromFiat_, string memory toToken_, uint denominator) external view returns (uint256);
     function getPrice(string memory token_, string memory fiat_) external view returns (uint256 $result);
 }
