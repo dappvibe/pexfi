@@ -9,31 +9,20 @@ interface IDeal
     event DealState(State state);
     event Message(address indexed sender, string message);
 
-    error InvalidState(State state);
+    error ActionNotAllowedInThisState(State state);
 
     enum State {
-        Initiated,                //
-        Accepted,                 //
-        Funded,                   //
+        Initiated,
+        Accepted,
+        Funded,
         Paid,
-        Disputed,                 //
-        Revoked,                  //
-        RefundedByMediator,       //
-        SettledByMediator,        //
-        ConfirmedByMediator,      //
-        Confirmed,                //
-        Refunded,                 //
-        ConfirmedAfterExpiry,     //
-        ConfirmedAfterDispute,    //
-        RefundedAfterDispute,     //
-        RefundedAfterExpiry,      //
-        ConfirmedAfterEscalation, //
-        RefundedAfterEscalation,  //
-        Settled,
+        Disputed,
+        Canceled,
+        Resolved,
         Completed
     }
 
-    function market() external view returns (IMarket);
+    //function market() external view returns (IMarket);
     function offerId() external view returns (uint);
     function buyer() external view returns (address);
     function seller() external view returns (address);

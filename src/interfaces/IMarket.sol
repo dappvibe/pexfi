@@ -34,7 +34,7 @@ interface IMarket
         // alternatively, we could store the hash of the terms and terms itself outside of the chain
         // use sign data with metamask?
         string terms; // FIXME can it be another contract deployed by advertiser?
-        uint16 paymentTimelimit; // protection from stalled deals. after expiry seller can request refund and buyer still gets failed tx recorded
+        uint acceptanceTime; // protection from stalled deals. after expiry seller can request refund and buyer still gets failed tx recorded
         bool kycRequired ; // flag showing if seller mandate fiat sender to KYC (out of chain by their own means)
 
         // to check on execution: https://medium.com/coinmonks/testing-time-dependent-logic-in-ethereum-smart-contracts-1b24845c7f72 ?

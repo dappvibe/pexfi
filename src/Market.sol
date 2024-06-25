@@ -83,7 +83,7 @@ contract Market is IMarket,
         uint16 rate; // 4 decimals
         uint32 min; // in fiat
         uint32 max;
-        uint16 paymentTimeLimit; // protection from stalled deals. after expiry seller can request refund and buyer still gets failed tx recorded
+        uint16 acceptanceTime; // protection from stalled deals. after expiry seller can request refund and buyer still gets failed tx recorded
         string terms;
     }
     function offerCreate(OfferCreateParams calldata params_) external {
@@ -93,7 +93,9 @@ contract Market is IMarket,
         require (params_.min > 0, "min");
         require (params_.max > 0, "max");
         require (params_.min <= params_.max, "minmax");
-        require (params_.paymentTimeLimit >= 15, "time");
+        require (params_.acceptanceTime >= 900, "time");
+
+        // TODO convert min to USD and check offers' minimum
 
         Offer memory $offer = Offer({
             id: _nextOfferId,
@@ -105,7 +107,7 @@ contract Market is IMarket,
             rate: params_.rate,
             min: params_.min,
             max: params_.max,
-            paymentTimelimit: params_.paymentTimeLimit,
+            acceptanceTime: params_.acceptanceTime,
             terms: params_.terms,
             kycRequired: false
         });
@@ -135,7 +137,9 @@ contract Market is IMarket,
             $tokenAmount,
             fiatAmount_,
             FEE,
-            paymentInstructions_
+            paymentInstructions_,
+            block.timestamp + $offer.acceptanceTime,
+            1 hours
         );
         _deals.add(address($deal));
         _offerDeals[offerId_].push($deal);
