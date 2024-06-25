@@ -6,13 +6,25 @@ import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {IDeal} from "./interfaces/IDeal.sol";
 import {Market} from "./Market.sol";
 import {IMarket} from "./interfaces/IMarket.sol";
+import {IRepToken} from "./interfaces/IRepToken.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 contract Deal is IDeal, AccessControl
 {
     using Strings for string;
 
+    uint8 private constant ACCEPTED_MEDIATOR = 1;
+    uint8 private constant ACCEPTED_OWNER    = 2;
+    uint8 private constant ACCEPTED_ALL      = 3;
+
+    bytes32 private constant MEDIATOR    = 'MEDIATOR';
+    bytes32 private constant SELLER      = 'SELLER';
+    bytes32 private constant BUYER       = 'BUYER';
+    bytes32 private constant MEMBER      = 'MEMBER';
+    bytes32 private constant OFFER_OWNER = 'OFFER_OWNER';
+
     Market public market;
+    IRepToken private repToken;
     //IMarket.Offer private offer;
     uint    public offerId;
     address public buyer;
@@ -29,16 +41,13 @@ contract Deal is IDeal, AccessControl
     uint    private paymentWindow;
     State   public state = State.Initiated;
 
-    uint8 private constant ACCEPTED_MEDIATOR = 1;
-    uint8 private constant ACCEPTED_OWNER    = 2;
-    uint8 private constant ACCEPTED_ALL      = 3;
-
-    bytes32 private constant MEDIATOR    = 'MEDIATOR';
-    bytes32 private constant SELLER      = 'SELLER';
-    bytes32 private constant BUYER       = 'BUYER';
-    bytes32 private constant MEMBER      = 'MEMBER';
-    bytes32 private constant OFFER_OWNER = 'OFFER_OWNER';
-
+    struct Feedback {
+        bool given;
+        bool upvote;
+        string message;
+    }
+    Feedback public feedbackForSeller;
+    Feedback public feedbackForBuyer;
 
     modifier stateBetween(State from_, State to_) {
         if (state < from_ || state > to_) revert ActionNotAllowedInThisState(state);
@@ -46,6 +55,7 @@ contract Deal is IDeal, AccessControl
     }
 
     constructor(
+        IRepToken repToken_,
         uint offerId_,
         bool isSell,
         address maker_,
@@ -61,6 +71,7 @@ contract Deal is IDeal, AccessControl
     )
     {
         market = Market(msg.sender);
+        repToken = repToken_;
         offerId = offerId_;
         buyer = isSell ? taker_ : maker_;
         seller = isSell ? maker_ : taker_;
@@ -116,6 +127,15 @@ contract Deal is IDeal, AccessControl
 
         state = State.Completed;
         emit DealState(state);
+
+        uint $tokenId = repToken.ownerToTokenId(buyer);
+        if ($tokenId != 0) {
+            repToken.statsDealCompleted($tokenId);
+        }
+        $tokenId = repToken.ownerToTokenId(seller);
+        if ($tokenId != 0) {
+            repToken.statsDealCompleted($tokenId);
+        }
     }
 
     function cancel() external onlyRole(MEMBER) {
@@ -143,5 +163,28 @@ contract Deal is IDeal, AccessControl
 
     function message(string calldata message_) external onlyRole(MEMBER) {
         emit Message(msg.sender, message_);
+    }
+
+    function feedback(bool upvote, string calldata message_) external {
+        if (hasRole(SELLER, msg.sender) && !feedbackForBuyer.given) {
+            feedbackForBuyer.given = true;
+            feedbackForBuyer.upvote = upvote;
+            feedbackForBuyer.message = message_;
+            uint $tokenId = repToken.ownerToTokenId(buyer);
+            if ($tokenId != 0) {
+                repToken.statsVote($tokenId, upvote);
+            }
+            emit FeedbackGiven(buyer, upvote, message_);
+        }
+        else if (hasRole(BUYER, msg.sender) && !feedbackForSeller.given) {
+            feedbackForSeller.given = true;
+            feedbackForSeller.upvote = upvote;
+            feedbackForSeller.message = message_;
+            uint $tokenId = repToken.ownerToTokenId(seller);
+            if ($tokenId != 0) {
+                repToken.statsVote($tokenId, upvote);
+            }
+            emit FeedbackGiven(seller, upvote, message_);
+        }
     }
 }
