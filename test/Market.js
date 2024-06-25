@@ -30,8 +30,8 @@ before(async function() {
     MockUSDT = await deployMockERC20('USDT', 6);
     MockDummy = await deployMockERC20('Dummy', 18);
     await MockBTC.transfer(seller.address, 10n * 10n**8n); // seller has 10 coins to sell
-    await MockETH.transfer(seller.address, 2n * 10n**18n);
-    await MockUSDT.transfer(seller.address, 20000n * 10n**6n);
+    await MockETH.transfer(seller.address, 2000n * 10n**18n);
+    await MockUSDT.transfer(seller.address, 20000000n * 10n**6n);
 
     const PoolBTC = await ethers.deployContract('PoolBTC');
     const PoolETH = await ethers.deployContract('PoolETH');
@@ -392,7 +392,7 @@ describe('Buyer cancels deal', function() {
         const response = deal.cancel().then((tx) => tx.wait());
         await expect(response).to.reverted;
     });
-    it('event emitted', async function() {
+    it('buyer can cancel any time', async function() {
         deal = await deal.connect(buyer);
         const response = deal.cancel().then((tx) => tx.wait());
         await expect(response).to
@@ -401,7 +401,7 @@ describe('Buyer cancels deal', function() {
     });
     it ('seller gets refund', async function() {
         await expect(MockETH.balanceOf(deal.target)).to.eventually.eq(0);
-        await expect(MockETH.balanceOf(seller.address)).to.eventually.eq(1629382757630597321n);
+        await expect(MockETH.balanceOf(seller.address)).to.eventually.eq(1999629382757630597321n);
     });
 });
 
@@ -422,13 +422,17 @@ describe('buyer disputes deal', function() {
             .withArgs(offers[2][0], mediator.address, anyValue);
         deal = await ethers.getContractAt('Deal', deal);
     });
-    it ('deal state changed', async function() {
+    it ('accepted by seller', async function() {
+        deal = await deal.connect(seller);
+        await expect(deal.accept()).to.emit(deal, 'DealState').emit(MockETH, 'Transfer');
+    });
+    it ('deal disputed', async function() {
         deal = await deal.connect(buyer);
         await expect(deal.dispute(deal)).to.emit(deal, 'DealState');
     });
 });
 
-describe('Cancelation', async function() {
+describe('Cancelation by state', async function() {
     async function openDeal(provider, offer) {
         Market = await Market.connect(provider);
         const response = Market.createDeal(offer[0], 1234_500000, 'IBAN:DE89370400440532013000', )
@@ -441,13 +445,16 @@ describe('Cancelation', async function() {
         });
         await expect(response)
             .to.emit(Market, 'DealCreated')
-            .withArgs(offers[2][0], mediator.address, anyValue);
+            .withArgs(offer[0], mediator.address, anyValue);
         deal = await ethers.getContractAt('Deal', deal);
     }
 
-    it ('seller can cancel before acceptance', async function() {
+    it ('everyone can cancel before acceptance', async function() {
         await openDeal(seller, offers[7]);
         deal = await deal.connect(seller);
+        await expect(deal.cancel()).to.emit(deal, 'DealState');
+        await openDeal(buyer, offers[1]);
+        deal = await deal.connect(buyer);
         await expect(deal.cancel()).to.emit(deal, 'DealState');
     });
 
@@ -455,6 +462,19 @@ describe('Cancelation', async function() {
         await openDeal(seller, offers[7]);
         await deal.connect(buyer).accept();
         await expect(deal.cancel()).to.be.reverted;
+    });
+
+    it ('seller can cancel if not accepted in time', async function() {
+        await openDeal(seller, offers[7]);
+        await ethers.provider.send('evm_increaseTime', [901]);
+        await expect(deal.connect(seller).cancel()).to.emit(deal, 'DealState');
+    });
+
+    it ('seller can cancel if not paid in time', async function() {
+        await openDeal(seller, offers[7]);
+        await deal.connect(buyer).accept();
+        await ethers.provider.send('evm_increaseTime', [3601]);
+        await expect(deal.connect(seller).cancel()).to.emit(deal, 'DealState');
     });
 });
 
