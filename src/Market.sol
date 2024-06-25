@@ -80,7 +80,7 @@ contract Market is IMarket,
         string token;
         string fiat;
         string method;
-        uint16 rate; // ratio to multiply market price at time of deal creation (4 decimals)
+        uint16 rate; // 4 decimals
         uint32 min; // in fiat
         uint32 max;
         uint16 paymentTimeLimit; // protection from stalled deals. after expiry seller can request refund and buyer still gets failed tx recorded
@@ -117,14 +117,13 @@ contract Market is IMarket,
 
     function createDeal(
         uint offerId_,
-        uint fiatAmount_, // 2 decimals
+        uint fiatAmount_, // 6 decimals
         string memory paymentInstructions_ // FIXME this is not the case if buying
     ) external
     {
         Offer memory $offer = offers[offerId_];
 
-        uint $tokenAmount = inventory.convert(fiatAmount_ * 10**2, $offer.fiat, $offer.token);
-        $tokenAmount = $tokenAmount * 10**4 / $offer.rate;
+        uint $tokenAmount = inventory.convert(fiatAmount_, $offer.fiat, $offer.token, $offer.rate);
 
         Deal $deal = new Deal(
             offerId_,
@@ -160,7 +159,7 @@ contract Market is IMarket,
         require ($offer.isSell, "not selling offer");
 
         IERC20Metadata $token = IERC20Metadata(inventory.token(bytes32(bytes($offer.token))));
-        $token.safeTransferFrom($deal.seller(), address($deal), $deal.tokenAmount() * 10**($token.decimals() - 8));
+        $token.safeTransferFrom($deal.seller(), address($deal), $deal.tokenAmount());
 
         return true;
     }
