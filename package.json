@@ -5,7 +5,7 @@
   "scripts": {
     "build": "npx hardhat compile",
     "test": "npx hardhat --show-stack-traces test",
-    "testFulltrace": "npx hardhat --show-stack-traces test --vv"
+    "test-sepolia": "npx hardhat --config hardhat.sepolia.js test"
   },
   "keywords": [],
   "author": "",
