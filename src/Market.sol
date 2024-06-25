@@ -127,7 +127,9 @@ contract Market is IMarket,
         $tokenAmount = $tokenAmount * 10**4 / $offer.rate;
 
         Deal $deal = new Deal(
-            offers[offerId_],
+            offerId_,
+            $offer.isSell,
+            $offer.owner,
             msg.sender,
             mediator,
             inventory.token(bytes32(bytes($offer.token))),

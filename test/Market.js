@@ -271,7 +271,7 @@ describe('Buyer opens deal', function() {
             123450,
             'IBAN:DE89370400440532013000',
         ).then((tx) => tx.wait()).then(receipt => {
-            const DealCreated = Market.interface.parseLog(receipt.logs[10]);
+            const DealCreated = Market.interface.parseLog(receipt.logs[9]);
             deal = DealCreated.args[2];
             return receipt;
         });
@@ -333,7 +333,7 @@ describe('Buyer cancels deal', function() {
             123450,
             'IBAN:DE89370400440532013000',
         ).then((tx) => tx.wait()).then(receipt => {
-            const DealCreated = Market.interface.parseLog(receipt.logs[10]);
+            const DealCreated = Market.interface.parseLog(receipt.logs[9]);
             deal = DealCreated.args[2];
             return receipt;
         });
@@ -372,7 +372,7 @@ describe('buyer disputes deal', function() {
             123450,
             'IBAN:DE89370400440532013000',
         ).then((tx) => tx.wait()).then(receipt => {
-            const DealCreated = Market.interface.parseLog(receipt.logs[10]);
+            const DealCreated = Market.interface.parseLog(receipt.logs[9]);
             deal = DealCreated.args[2];
             return receipt;
         });

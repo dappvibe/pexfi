@@ -17,7 +17,7 @@ contract Deal is IDeal, AccessControl
     address public buyer;
     address public seller;
     address public mediator;
-    IERC20Metadata  public token;
+    IERC20Metadata public token;
     uint    public tokenAmount;
     uint    public fiatAmount;
     uint    public fee;
@@ -46,7 +46,9 @@ contract Deal is IDeal, AccessControl
     }
 
     constructor(
-        IMarket.Offer memory offer_,
+        uint offerId_,
+        bool isSell,
+        address maker_,
         address taker_,
         address mediator_,
         IERC20Metadata token_,
@@ -57,10 +59,9 @@ contract Deal is IDeal, AccessControl
     )
     {
         market = IMarket(msg.sender);
-        offer = offer_;
-        offerId = offer.id;
-        buyer = offer.isSell ? taker_ : offer.owner;
-        seller = offer.isSell ? offer.owner : taker_;
+        offerId = offerId_;
+        buyer = isSell ? taker_ : maker_;
+        seller = isSell ? maker_ : taker_;
         mediator = mediator_;
         token = token_;
         tokenAmount = tokenAmount_;
@@ -68,16 +69,15 @@ contract Deal is IDeal, AccessControl
         fee = fee_;
         paymentInstructions = paymentInstructions_;
 
-        _grantRole(DEFAULT_ADMIN_ROLE, address(market));
-        _grantRole(MEMBER, mediator);
+        _grantRole(OFFER_OWNER, maker_);
         _grantRole(MEDIATOR, mediator);
-        _grantRole(SELLER, mediator);
-        _grantRole(BUYER, mediator);
-        _grantRole(MEMBER, seller);
         _grantRole(SELLER, seller);
-        _grantRole(MEMBER, buyer);
+        _grantRole(BUYER, mediator);
+        _grantRole(SELLER, mediator);
         _grantRole(BUYER, buyer);
-        _grantRole(OFFER_OWNER, offer.owner);
+        _grantRole(MEMBER, mediator);
+        _grantRole(MEMBER, seller);
+        _grantRole(MEMBER, buyer);
     }
 
     function accept() external onlyRole(MEMBER) stateBefore(State.Accepted) {
