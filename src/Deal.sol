@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {IDeal} from "./interfaces/IDeal.sol";
+import {Market} from "./Market.sol";
 import {IMarket} from "./interfaces/IMarket.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
@@ -11,8 +12,8 @@ contract Deal is IDeal, AccessControl
 {
     using Strings for string;
 
-    IMarket public market;
-    IMarket.Offer public offer;
+    Market public market;
+    //IMarket.Offer private offer;
     uint    public offerId;
     address public buyer;
     address public seller;
@@ -23,6 +24,9 @@ contract Deal is IDeal, AccessControl
     uint    public fee;
     string  public paymentInstructions;
     uint8   public acceptance = 1; // mediator autoaccept for now
+    uint    private allowCancelUnacceptedAfter;
+    uint    private allowCancelUnpaidAfter = 999999999999999;
+    uint    private paymentWindow;
     State   public state = State.Initiated;
 
     uint8 private constant ACCEPTED_MEDIATOR = 1;
@@ -36,12 +40,8 @@ contract Deal is IDeal, AccessControl
     bytes32 private constant OFFER_OWNER = 'OFFER_OWNER';
 
 
-    modifier stateIs(State state_) {
-        if (state != state_) revert InvalidState(state);
-        _;
-    }
-    modifier stateBefore(State state_) {
-        if (state >= state_) revert InvalidState(state);
+    modifier stateBetween(State from_, State to_) {
+        if (state < from_ || state > to_) revert ActionNotAllowedInThisState(state);
         _;
     }
 
@@ -55,10 +55,12 @@ contract Deal is IDeal, AccessControl
         uint tokenAmount_,
         uint fiatAmount_,
         uint fee_,
-        string memory paymentInstructions_
+        string memory paymentInstructions_,
+        uint allowCancelUnacceptedAfter_,
+        uint paymentWindow_
     )
     {
-        market = IMarket(msg.sender);
+        market = Market(msg.sender);
         offerId = offerId_;
         buyer = isSell ? taker_ : maker_;
         seller = isSell ? maker_ : taker_;
@@ -68,6 +70,8 @@ contract Deal is IDeal, AccessControl
         fiatAmount = fiatAmount_;
         fee = fee_;
         paymentInstructions = paymentInstructions_;
+        allowCancelUnacceptedAfter = allowCancelUnacceptedAfter_;
+        paymentWindow = paymentWindow_;
 
         _grantRole(OFFER_OWNER, maker_);
         _grantRole(MEDIATOR, mediator);
@@ -80,7 +84,7 @@ contract Deal is IDeal, AccessControl
         _grantRole(MEMBER, buyer);
     }
 
-    function accept() external onlyRole(MEMBER) stateBefore(State.Accepted) {
+    function accept() external onlyRole(MEMBER) stateBetween(State.Initiated, State.Initiated) {
         if (hasRole(OFFER_OWNER, msg.sender)) {
             acceptance |= ACCEPTED_OWNER;
         } else if (hasRole(MEDIATOR, msg.sender)) {
@@ -96,15 +100,17 @@ contract Deal is IDeal, AccessControl
                 state = State.Funded;
                 emit DealState(State.Funded);
             }
+
+            allowCancelUnpaidAfter = block.timestamp + paymentWindow;
         }
     }
 
-    function paid() external onlyRole(BUYER) {
+    function paid() external onlyRole(BUYER) stateBetween(State.Accepted, State.Funded) {
         state = State.Paid;
         emit DealState(state);
     }
 
-    function release() external onlyRole(SELLER) {
+    function release() external onlyRole(SELLER) stateBetween(State.Funded, State.Disputed) {
         token.transfer(buyer, tokenAmount - (tokenAmount * fee / 10000));
         token.transfer(mediator, token.balanceOf(address(this)));
 
@@ -113,18 +119,24 @@ contract Deal is IDeal, AccessControl
     }
 
     function cancel() external onlyRole(MEMBER) {
-        require(hasRole(BUYER, msg.sender)
-            || (hasRole(SELLER, msg.sender) && acceptanceDeadline < block.timestamp && state < State.Paid),
-        'denied');
-
-        if (state == State.Funded) {
-            token.transfer(seller, tokenAmount);
+        if (state < State.Accepted
+        || (hasRole(BUYER, msg.sender) && state < State.Canceled)
+        || (hasRole(SELLER, msg.sender) && (
+                (state < State.Paid && block.timestamp > allowCancelUnpaidAfter) ||
+                (state < State.Accepted && block.timestamp > allowCancelUnacceptedAfter)
+            ))
+        )
+        {
+            if (state == State.Funded) {
+                token.transfer(seller, tokenAmount);
+            }
+            state = State.Canceled;
+            emit DealState(State.Canceled);
         }
-        state = State.Revoked;
-        emit DealState(State.Revoked);
+        else revert ActionNotAllowedInThisState(state);
     }
 
-    function dispute() external onlyRole(MEMBER) stateBefore(State.Disputed) {
+    function dispute() external onlyRole(MEMBER) stateBetween(State.Accepted, State.Paid) {
         state = State.Disputed;
         emit DealState(State.Disputed);
     }
