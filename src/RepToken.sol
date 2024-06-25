@@ -9,17 +9,14 @@ import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 // @dev separate rep token allows multiple markets attached and rep be shared across them
 contract RepToken is IRepToken, UUPSUpgradeable, AccessControlUpgradeable, ERC721BurnableUpgradeable
 {
-    bytes32 public constant MARKET_ROLE = keccak256("MARKET_ROLE");
-    uint32 private _nextTokenId;
-
-    mapping(uint32 => Stats) public stats;
     struct Stats {
-        uint256 createdAt; // block
+        uint32 createdAt;
         uint32 upvotes;
         uint32 downvotes;
         uint64 volumeUSD;
@@ -29,37 +26,47 @@ contract RepToken is IRepToken, UUPSUpgradeable, AccessControlUpgradeable, ERC72
         uint32 avgPaymentTime; // in seconds
         uint32 avgReleaseTime; // in seconds
     }
+    mapping(uint => Stats) public stats;
+    uint private _nextTokenId;
+
+    mapping(address owner => uint) public ownerToTokenId;
+
+    bytes32 internal constant MARKET_ROLE = "MARKET_ROLE";
+    bytes32 internal constant DEAL_ROLE = "DEAL_ROLE";
 
     function initialize() initializer external
     {
         __ERC721_init("Reputation Token", "REP");
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setRoleAdmin(DEAL_ROLE, MARKET_ROLE);
         _nextTokenId = 1;
     }
     function _authorizeUpgrade(address) internal onlyRole(DEFAULT_ADMIN_ROLE) override {}
 
     function supportsInterface(bytes4 interfaceId) public view
-    override(ERC721Upgradeable, AccessControlUpgradeable)
+    override(IERC165, ERC721Upgradeable, AccessControlUpgradeable)
     returns (bool) {
         return
             ERC721Upgradeable.supportsInterface(interfaceId) ||
             AccessControlUpgradeable.supportsInterface(interfaceId);
     }
 
-    function register() external returns(uint32 tokenId)
+    function register() external returns(uint tokenId)
     {
         tokenId = _nextTokenId;
         _mint(msg.sender, tokenId);
         _resetStats(tokenId);
+        stats[tokenId].createdAt = uint32(block.timestamp);
+        ownerToTokenId[msg.sender] = tokenId;
         _nextTokenId++;
     }
 
-    function merge(uint32 _tokenId, uint32 _otherTokenId) external
+    function merge(uint tokenId_, uint _otherTokenId) external
     {
-        require(msg.sender == ownerOf(_tokenId), "owner");
+        require(msg.sender == ownerOf(tokenId_), "owner");
         require(msg.sender == _getApproved(_otherTokenId), "approve");
 
-        Stats storage stats1 = stats[_tokenId];
+        Stats storage stats1 = stats[tokenId_];
         Stats storage stats2 = stats[_otherTokenId];
 
         stats1.upvotes += stats2.upvotes;
@@ -73,46 +80,42 @@ contract RepToken is IRepToken, UUPSUpgradeable, AccessControlUpgradeable, ERC72
 
         _burn(_otherTokenId);
         delete stats[_otherTokenId];
+        delete ownerToTokenId[ownerOf(_otherTokenId)];
     }
 
-    function statsUpvote(uint32 _tokenId) onlyRole(MARKET_ROLE) external
+    function statsVote(uint tokenId_, bool up_) onlyRole(DEAL_ROLE) external
     {
-        stats[_tokenId].upvotes++;
+        up_ ? stats[tokenId_].upvotes++ : stats[tokenId_].downvotes++;
     }
-    function statsDownvote(uint32 _tokenId) onlyRole(MARKET_ROLE) external
+    function statsVolumeUSD(uint tokenId_, uint64 _volumeUSD) onlyRole(DEAL_ROLE) external
     {
-        stats[_tokenId].downvotes++;
+        stats[tokenId_].volumeUSD += _volumeUSD;
     }
-    function statsVolumeUSD(uint32 _tokenId, uint64 _volumeUSD) onlyRole(MARKET_ROLE) external
+    function statsDealCompleted(uint tokenId_) onlyRole(DEAL_ROLE) external
     {
-        stats[_tokenId].volumeUSD += _volumeUSD;
+        stats[tokenId_].dealsCompleted++;
     }
-    function statsDealCompleted(uint32[] calldata _tokens) onlyRole(MARKET_ROLE) external
+    function statsDealExpired(uint tokenId_) onlyRole(DEAL_ROLE) external
     {
-        for (uint i = 0; i < _tokens.length; i++)
-            stats[_tokens[i]].dealsCompleted++;
+        stats[tokenId_].dealsExpired++;
     }
-    function statsDealExpired(uint32 _tokenId) onlyRole(MARKET_ROLE) external
+    function statsDisputeLost(uint tokenId_) onlyRole(DEAL_ROLE) external
     {
-        stats[_tokenId].dealsExpired++;
+        stats[tokenId_].disputesLost++;
     }
-    function statsDisputeLost(uint32 _tokenId) onlyRole(MARKET_ROLE) external
+    function statsAvgPaymentTime(uint tokenId_, uint32 _dealTime) onlyRole(DEAL_ROLE) external
     {
-        stats[_tokenId].disputesLost++;
+        stats[tokenId_].avgPaymentTime = (stats[tokenId_].avgPaymentTime + _dealTime) / 2;
     }
-    function statsAvgPaymentTime(uint32 _tokenId, uint32 _dealTime) onlyRole(MARKET_ROLE) external
+    function statsAvgReleaseTime(uint tokenId_, uint32 _dealTime) onlyRole(DEAL_ROLE) external
     {
-        stats[_tokenId].avgPaymentTime = (stats[_tokenId].avgPaymentTime + _dealTime) / 2;
-    }
-    function statsAvgReleaseTime(uint32 _tokenId, uint32 _dealTime) onlyRole(MARKET_ROLE) external
-    {
-        stats[_tokenId].avgReleaseTime = (stats[_tokenId].avgReleaseTime + _dealTime) / 2;
+        stats[tokenId_].avgReleaseTime = (stats[tokenId_].avgReleaseTime + _dealTime) / 2;
     }
 
-    function _resetStats(uint32 _tokenId) private
+    function _resetStats(uint tokenId_) private
     {
-        stats[_tokenId] = Stats({
-            createdAt: stats[_tokenId].createdAt,
+        stats[tokenId_] = Stats({
+            createdAt: stats[tokenId_].createdAt,
             upvotes: 0,
             downvotes: 0,
             volumeUSD: 0,
