@@ -9,7 +9,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {IMarket} from "./interfaces/IMarket.sol";
-import {IRepToken} from "./interfaces/IRepToken.sol";
+import {RepToken} from "./RepToken.sol";
 import {IDeal} from "./interfaces/IDeal.sol";
 import {Deal} from "./Deal.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -25,7 +25,7 @@ contract Market is IMarket,
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeERC20 for IERC20Metadata;
 
-    IRepToken public repToken;
+    RepToken public repToken;
     IInventory public inventory;
 
     mapping (bytes32 => Method) public method;
@@ -128,6 +128,7 @@ contract Market is IMarket,
         uint $tokenAmount = inventory.convert(fiatAmount_, $offer.fiat, $offer.token, $offer.rate);
 
         Deal $deal = new Deal(
+            repToken,
             offerId_,
             $offer.isSell,
             $offer.owner,
@@ -150,6 +151,8 @@ contract Market is IMarket,
             IERC20Metadata $token = IERC20Metadata(inventory.token(bytes32(bytes($offer.token))));
             $token.safeTransferFrom(msg.sender, address($deal), $tokenAmount);
         }
+
+        repToken.grantRole('DEAL_ROLE', address($deal));
     }
 
     /// @dev users provide allowance once to the market
@@ -166,6 +169,10 @@ contract Market is IMarket,
         $token.safeTransferFrom($deal.seller(), address($deal), $deal.tokenAmount());
 
         return true;
+    }
+
+    function feedback(address deal_, bool upvote_, string calldata message_) external {
+
     }
     // ---- end of public functions
 
@@ -206,7 +213,7 @@ contract Market is IMarket,
         }
     }
 
-    function setRepToken(address repToken_) public onlyOwner { repToken = IRepToken(repToken_); }
+    function setRepToken(address repToken_) public onlyOwner { repToken = RepToken(repToken_); }
     function setInventory(address inventory_) public onlyOwner { inventory = IInventory(inventory_); }
     function setMediator(address mediator_) public onlyOwner { mediator = mediator_; }
 }

@@ -13,7 +13,7 @@ function address(number) {
 }
 
 const DEFAULT_ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
-const MARKET_ROLE = ethers.id('MARKET_ROLE');
+const MARKET_ROLE = ethers.encodeBytes32String('MARKET_ROLE');
 
 let MockUniswap, MockBTC, MockETH, MockUSDT, MockDummy,
     PriceFeed = {}, RepToken, Inventory, Market,
@@ -486,5 +486,16 @@ describe('Messaging', function() {
     it('buyer sends message', async function() {
         deal = await deal.connect(buyer);
         await expect(deal.message('Hello seller!')).to.emit(deal, 'Message');
+    });
+});
+
+describe('Feedback', function() {
+    it('seller rates buyer', async function() {
+        deal = await deal.connect(seller);
+        await expect(deal.feedback(true, 'good')).to.emit(deal, 'FeedbackGiven');
+    });
+    it('buyer rates seller', async function() {
+        deal = await deal.connect(buyer);
+        await expect(deal.feedback(false, 'bad')).to.emit(deal, 'FeedbackGiven');
     });
 });
