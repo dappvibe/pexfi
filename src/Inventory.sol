@@ -49,19 +49,9 @@ contract Inventory is IInventory, Ownable
 
         // convert to other currency
         if (!fiat_.equal("USD")) {
-            // $fiat.decimals() is always 8
-            price = price * 10**8 / getFiatToUSD(fiat_);
+            (,int $fiatToUSD,,,) = _fiatToUSD[bytes32(bytes(fiat_))].latestRoundData();
+            price = price * 10**8 / uint($fiatToUSD); // $fiat.decimals() is always 8
         }
-
-        return price;
-    }
-
-    function getFiatToUSD(string memory fiat_) public view returns (uint) {
-        IChainlink $fiat = _fiatToUSD[bytes32(bytes(fiat_))];
-        require(address($fiat) != address(0), "unknown fiat");
-
-        (,int $fiatToUSD,,,) = $fiat.latestRoundData();
-        return uint($fiatToUSD);
     }
 
     struct TokenMetadata {
