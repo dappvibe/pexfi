@@ -19,12 +19,12 @@ contract RepToken is IRepToken, UUPSUpgradeable, AccessControlUpgradeable, ERC72
         uint32 createdAt;
         uint32 upvotes;
         uint32 downvotes;
-        uint64 volumeUSD;
+        uint64 volumeUSD;       // TODO
         uint32 dealsCompleted;
-        uint32 dealsExpired; // ++ when not accepted deal as offer owner
-        uint32 disputesLost;
-        uint32 avgPaymentTime; // in seconds
-        uint32 avgReleaseTime; // in seconds
+        uint32 dealsExpired;    // TODO ++ when not accepted deal as offer owner
+        uint32 disputesLost;    // TODO
+        uint32 avgPaymentTime;  // TODO
+        uint32 avgReleaseTime;  // TODO
     }
     mapping(uint => Stats) public stats;
     uint private _nextTokenId;
