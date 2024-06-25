@@ -8,6 +8,7 @@ interface IDeal
 {
     event DealState(State state);
     event Message(address indexed sender, string message);
+    event FeedbackGiven(address indexed to, bool upvote, string message);
 
     error ActionNotAllowedInThisState(State state);
 
