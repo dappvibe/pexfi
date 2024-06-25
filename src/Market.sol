@@ -142,6 +142,11 @@ contract Market is IMarket,
         _offerDeals[offerId_].push($deal);
 
         emit DealCreated(offerId_, mediator, $deal);
+
+        if (!$offer.isSell) {
+            IERC20Metadata $token = IERC20Metadata(inventory.token(bytes32(bytes($offer.token))));
+            $token.safeTransferFrom(msg.sender, address($deal), $tokenAmount);
+        }
     }
 
     /// @dev users provide allowance once to the market
