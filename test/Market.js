@@ -32,7 +32,7 @@ before(async function() {
     MockDummy = await deployMockERC20('Dummy', 18);
     await MockBTC.transfer(seller.address, 10n * 10n**8n); // seller has 10 coins to sell
     await MockETH.transfer(seller.address, 2n * 10n**18n);
-    await MockUSDT.transfer(buyer.address, 1000n * 10n**6n); // buyer has 1000 USDT
+    await MockUSDT.transfer(seller.address, 10000n * 10n**6n);
 });
 
 /**
@@ -260,6 +260,44 @@ describe('Browser fetches offers', function() {
     it('get BUY WETH for EUR with any method', async function() {
         const offers = await Market.getOffers(true, 'WETH', 'EUR', '');
         expect(offers).to.have.length(1);
+    });
+});
+
+describe('Taker sells', function() {
+    it ('provides allowance', async function() {
+        await MockUSDT.connect(seller).approve(Market.target, ethers.MaxUint256);
+    });
+
+    it('deal created', async function() {
+        Market = await Market.connect(seller);
+        const response = Market.createDeal(offers[7][0], 5002, 'zelle@google.com')
+            .then((tx) => tx.wait()).then(receipt => {
+                receipt.logs.forEach(log => {
+                    const DealCreated = Market.interface.parseLog(log);
+                    if (DealCreated) {
+                        deal = DealCreated.args[2];
+                    }
+                });
+                return receipt;
+            });
+        await expect(response)
+            .to.emit(Market, 'DealCreated')
+            .withArgs(offers[7][0], mediator.address, anyValue);
+        deal = await ethers.getContractAt('Deal', deal);
+    });
+
+    it ('tokens are deposited', async function() {
+        await expect(MockUSDT.balanceOf(deal.target)).to.eventually.eq(5027135678);
+    })
+
+    it ('accepted by mediator', async function() {
+        deal = await deal.connect(mediator);
+        await expect(deal.accept()).to.not.emit(deal, 'DealState');
+    });
+
+    it ('accepted by owner', async function() {
+        deal = await deal.connect(buyer);
+        await expect(deal.accept()).to.emit(deal, 'DealState').not.emit(MockUSDT, 'Transfer');
     });
 });
 
