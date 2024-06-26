@@ -193,14 +193,14 @@ describe('Users post offers', function()
     });
 
     [
-        [true, 'WBTC', 'USD', 'Zelle', 10250, 1000, 5000, 900, ''],
-        [true, 'WBTC', 'USD', 'Zelle', 10400, 100,  1000, 900, ''],
-        [true, 'WETH', 'EUR', 'SEPA',  10250, 1000, 5000, 900, ''],
-        [true, 'USDT', 'USD', 'Zelle', 10250, 1000, 5000, 900, 'arbitrary terms'],
-        [false, 'WBTC', 'USD', 'Zelle', 9800, 1000, 5000, 900, ''],
-        [false, 'WBTC', 'USD', 'Zelle', 9650, 100,  1000, 900, ''],
-        [false, 'WETH', 'EUR', 'SEPA',  9750, 1000, 5000, 900, ''],
-        [false, 'USDT', 'USD', 'Zelle', 9950, 1000, 5000, 900, ''],
+        [true, 'WBTC', 'USD', 'Zelle', 10250, 1000, 5000, ''],
+        [true, 'WBTC', 'USD', 'Zelle', 10400, 100,  1000, ''],
+        [true, 'WETH', 'EUR', 'SEPA',  10250, 1000, 5000, ''],
+        [true, 'USDT', 'USD', 'Zelle', 10250, 1000, 5000, 'arbitrary terms'],
+        [false, 'WBTC', 'USD', 'Zelle', 9800, 1000, 5000, ''],
+        [false, 'WBTC', 'USD', 'Zelle', 9650, 100,  1000, ''],
+        [false, 'WETH', 'EUR', 'SEPA',  9750, 1000, 5000, ''],
+        [false, 'USDT', 'USD', 'Zelle', 9950, 1000, 5000, ''],
     ].forEach((params, i) => {
         const title = `#${i+1} ${params[0] ? 'Sell' : 'Buy'} ${params[1]} for ${params[2]}`;
         it(title, async function() {
