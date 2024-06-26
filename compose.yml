@@ -4,4 +4,6 @@ services:
     volumes:
       - ./:/srv
     working_dir: /srv
+    ports:
+        - "8545:8545"
     command: npx hardhat node
