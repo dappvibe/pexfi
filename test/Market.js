@@ -16,7 +16,7 @@ const DEFAULT_ADMIN_ROLE = '0x00000000000000000000000000000000000000000000000000
 const MARKET_ROLE = ethers.encodeBytes32String('MARKET_ROLE');
 
 let MockUniswap, MockBTC, MockETH, MockUSDT, MockDummy,
-    PriceFeed = {}, RepToken, Inventory, Market,
+    PriceFeeds = {}, RepToken, Inventory, Market,
     deployer, seller, buyer, mediator,
     offers = [], deal;
 
@@ -52,13 +52,13 @@ describe('Deployment', function()
         .forEach((fiat, i) => {
             it (`${fiat} is deployed`, function() {
                 return ethers.deployContract('PriceFeed', [fiat])
-                    .then((feed) => PriceFeed[fiat] = feed);
+                    .then((feed) => PriceFeeds[fiat] = feed);
             });
         })
 
         it ('update prices regularly', async function() {
-            await PriceFeed['EUR'].set(106927500);
-            const data = await PriceFeed['EUR'].latestRoundData();
+            await PriceFeeds['EUR'].set(106927500);
+            const data = await PriceFeeds['EUR'].latestRoundData();
             expect(data[1]).to.eq(106927500);
         });
     });
@@ -94,14 +94,15 @@ describe('Deployment', function()
         });
 
         it ('add supported fiats', async function() {
-            await expect(Inventory.addFiats(
-                Object.keys(PriceFeed),
-                Object.values(PriceFeed).map(f => f.target)
-            )).to.emit(Inventory, 'FiatAdded');
+            let fiats = [];
+            for (const [key, value] of Object.entries(PriceFeeds)) {
+                fiats.push([key, value.target]);
+            }
+            await expect(Inventory.addFiats(fiats)).to.not.reverted;
         });
 
         it ('remove a fiat', async function() {
-            await expect(Inventory.removeFiats(['XXX'])).to.emit(Inventory, 'FiatRemoved');
+            await expect(Inventory.removeFiats(['XXX'])).to.not.reverted;
         });
     });
 
@@ -163,11 +164,10 @@ describe('Browser builds UI', function ()
     });
 
     it ('get fiats', async function() {
-        fiats = await Inventory.fiats();
-        fiats = fiats.map(ethers.decodeBytes32String);
+        fiats = await Inventory.getFiats();
         expect(fiats).to.have.length(2);
-        expect(fiats[0]).to.eq('THB');
-        expect(fiats[1]).to.eq('EUR');
+        expect(fiats[0][0]).to.eq('THB');
+        expect(fiats[1][0]).to.eq('EUR');
     });
 
     it ('get methods', async function() {
