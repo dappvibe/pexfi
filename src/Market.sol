@@ -66,11 +66,11 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
         string terms;
     }
     function offerCreate(OfferCreateParams calldata params_) external {
-        if (!methods.has(params_.method)) revert InvalidArgument("method");
-        if (params_.rate <= 0) revert InvalidArgument("rate");
-        if (params_.min <= 0 || params_.max <= 0) revert InvalidArgument("minmax");
-        if (params_.min >= params_.max) revert InvalidArgument("lowmax");
-        if (params_.acceptanceTime < 900) revert InvalidArgument("quick");
+        if (!methods.has(params_.method))           revert InvalidArgument("method");
+        if (params_.rate <= 0)                      revert InvalidArgument("rate");
+        if (params_.min <= 0 || params_.max <= 0)   revert InvalidArgument("minmax");
+        if (params_.min >= params_.max)             revert InvalidArgument("lowmax");
+        if (params_.acceptanceTime < 900)           revert InvalidArgument("quick");
         try inventory.getPrice(params_.token, params_.fiat) returns (uint) {} catch { revert InvalidArgument("pair"); }
         // TODO convert min to USD and check offers' minimum
 
