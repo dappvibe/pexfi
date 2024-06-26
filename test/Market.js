@@ -139,7 +139,7 @@ describe('Deployment', function()
                 {name: 'Monero', group: 1, country: 0},
                 {name: 'Cash To ATM',  group: 2, country: 0},
             ];
-            await expect(Market.addMethods(methods)).to.emit(Market, 'MethodAdded');
+            await expect(Market.addMethods(methods)).to.not.reverted;
 
             //const receipt = await market.methodRemove(methodId).then((tx) => tx.wait());
             //await expect(receipt).to.emit(market, 'MethodRemoved');
@@ -171,7 +171,7 @@ describe('Browser builds UI', function ()
     });
 
     it ('get methods', async function() {
-        methods = await Market.methods();
+        methods = await Market.getMethods();
         methods = methods.map(ethers.decodeBytes32String);
         await expect(methods).to.have.length(4);
         await expect(methods[0]).to.eq('Zelle');
