@@ -3,7 +3,6 @@ pragma solidity ^0.8.20;
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -15,6 +14,7 @@ import {Deal} from "./Deal.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IInventory} from "./interfaces/IInventory.sol";
 import {Offers} from "./libraries/Offers.sol";
+import {Deals} from "./libraries/Deals.sol";
 
 contract Market is IMarket,
     OwnableUpgradeable,
@@ -22,21 +22,18 @@ contract Market is IMarket,
 {
     using Strings for string;
     using EnumerableSet for EnumerableSet.Bytes32Set;
-    using EnumerableSet for EnumerableSet.UintSet;
-    using EnumerableSet for EnumerableSet.AddressSet;
     using SafeERC20 for IERC20Metadata;
     using Offers for Offers.Storage;
+    using Deals for Deals.Storage;
 
     Offers.Storage private offers;
+    Deals.Storage  private deals;
 
     RepToken public repToken;
     IInventory public inventory;
 
     mapping (bytes32 => Method) public method;
     EnumerableSet.Bytes32Set private _methods;
-
-    EnumerableSet.AddressSet private _deals;
-    mapping(uint => IDeal[]) private _offerDeals;
 
     address public mediator;
     uint8 internal constant FEE = 100; // 1%
@@ -104,7 +101,8 @@ contract Market is IMarket,
         uint offerId_,
         uint fiatAmount_, // 6 decimals
         string memory paymentInstructions_ // FIXME this is not the case if buying
-    ) external
+    )
+    external
     {
         Offers.Offer memory $offer = offers.all[offerId_];
 
@@ -125,8 +123,7 @@ contract Market is IMarket,
             block.timestamp + $offer.acceptanceTime,
             1 hours
         );
-        _deals.add(address($deal));
-        _offerDeals[offerId_].push($deal);
+        deals.add(address($deal), offerId_);
 
         emit DealCreated(offerId_, mediator, $deal);
 
@@ -140,7 +137,7 @@ contract Market is IMarket,
 
     /// @dev users provide allowance once to the market
     function fundDeal() external returns (bool) {
-        require(_deals.contains(msg.sender), "no deal");
+        require(deals.has(msg.sender), "NE");
 
         IDeal $deal = IDeal(msg.sender);
         require($deal.state() == IDeal.State.Accepted, "not accepted");
