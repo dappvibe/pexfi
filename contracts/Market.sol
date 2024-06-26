@@ -34,7 +34,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
 
     function initialize(address repToken_, address inventory_) initializer external {
         __Ownable_init(msg.sender);
-
+        mediator = msg.sender;
         setRepToken(repToken_);
         inventory = IInventory(inventory_);
     }
