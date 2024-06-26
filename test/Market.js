@@ -172,10 +172,9 @@ describe('Browser builds UI', function ()
 
     it ('get methods', async function() {
         methods = await Market.getMethods();
-        methods = methods.map(ethers.decodeBytes32String);
         await expect(methods).to.have.length(4);
-        await expect(methods[0]).to.eq('Zelle');
-        await expect(methods[1]).to.eq('SEPA');
+        await expect(methods[0][0]).to.eq('Zelle');
+        await expect(methods[1][0]).to.eq('SEPA');
     });
 
     it ('get prices', async function() {
