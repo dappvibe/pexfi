@@ -2,7 +2,6 @@
 pragma solidity ^0.8.20;
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "./libraries/Errors.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -20,7 +19,6 @@ import {Methods} from "./libraries/Methods.sol";
 contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
 {
     using Strings       for string;
-    using EnumerableSet for EnumerableSet.Bytes32Set;
     using SafeERC20     for IERC20Metadata;
     using Offers        for Offers.Storage;
     using Deals         for Deals.Storage;
@@ -44,7 +42,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     }
     function _authorizeUpgrade(address) internal onlyOwner override {}
 
-    function getMethods() public view returns (bytes32[] memory) { return methods.keys.values(); }
+    function getMethods() public view returns (Methods.Method[] memory) { return methods.list(); }
 
     /// @param isSell_ offers posted by Sellers, i.e. offers to buy tokens for fiat
     /// @param method_ may be empty string to list all offers
