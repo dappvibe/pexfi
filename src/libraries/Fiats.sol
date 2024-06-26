@@ -13,31 +13,30 @@ library Fiats {
     }
 
     struct Storage {
-        EnumerableSet.Bytes32Set set;
-        mapping(bytes32 => Fiat) fiat;
+        EnumerableSet.Bytes32Set keys;
+        mapping(bytes32 => Fiat) values;
     }
 
     function add(Storage storage self, Fiat memory fiat) internal {
         bytes32 key = bytes32(bytes(fiat.symbol));
-        self.set.add(key);
-        self.fiat[key] = fiat;
+        self.keys.add(key);
+        self.values[key] = fiat;
     }
 
     function get(Storage storage self, string memory symbol) internal view returns (Fiat storage) {
-        return self.fiat[bytes32(bytes(symbol))];
+        return self.values[bytes32(bytes(symbol))];
     }
 
     function list(Storage storage self) internal view returns (Fiat[] memory fiats) {
-        fiats = new Fiat[](self.set.length());
+        fiats = new Fiat[](self.keys.length());
         for (uint i = 0; i < fiats.length; i++) {
-            bytes32 key = self.set.at(i);
-            fiats[i] = self.fiat[key];
+            fiats[i] = self.values[self.keys.at(i)];
         }
     }
 
     function remove(Storage storage self, string memory symbol) internal {
         bytes32 key = bytes32(bytes(symbol));
-        self.set.remove(key);
-        delete self.fiat[key];
+        self.keys.remove(key);
+        delete self.values[key];
     }
 }

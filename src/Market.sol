@@ -44,7 +44,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     }
     function _authorizeUpgrade(address) internal onlyOwner override {}
 
-    function getMethods() public view returns (bytes32[] memory) { return methods.names.values(); }
+    function getMethods() public view returns (bytes32[] memory) { return methods.keys.values(); }
 
     /// @param isSell_ offers posted by Sellers, i.e. offers to buy tokens for fiat
     /// @param method_ may be empty string to list all offers

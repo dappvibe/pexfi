@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
-library  Methods {
+library Methods {
     using EnumerableSet for EnumerableSet.Bytes32Set;
 
     enum Group {
@@ -19,24 +19,24 @@ library  Methods {
     }
 
     struct Storage {
-        EnumerableSet.Bytes32Set names;
-        mapping (bytes32 => Method) details;
+        EnumerableSet.Bytes32Set keys;
+        mapping (bytes32 => Method) values;
     }
 
     function add(Storage storage self, Method calldata method) internal {
         bytes32 $name = bytes32(bytes(method.name));
-        if (self.names.add($name)) {
-            self.details[$name] = method;
+        if (self.keys.add($name)) {
+            self.values[$name] = method;
         }
     }
 
     function has(Storage storage self, string memory name) internal view returns (bool) {
-        return self.names.contains(bytes32(bytes(name)));
+        return self.keys.contains(bytes32(bytes(name)));
     }
 
     function remove(Storage storage self, string memory name) internal {
         bytes32 $name = bytes32(bytes(name));
-        self.names.remove($name);
-        delete self.details[$name];
+        self.keys.remove($name);
+        delete self.values[$name];
     }
 }

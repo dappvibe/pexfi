@@ -12,37 +12,36 @@ library Tokens {
         string symbol;
         string name;
         uint8 decimals;
+        // TODO uniswapPoolFee
     }
 
     struct Storage {
-        EnumerableSet.Bytes32Set set;
-        mapping(bytes32 => Token) metadata;
+        EnumerableSet.Bytes32Set keys;
+        mapping(bytes32 => Token) values;
     }
 
     function add(Storage storage self, address token) internal {
         IERC20Metadata api = IERC20Metadata(token);
         string memory symbol = api.symbol();
         bytes32 symbol32 = bytes32(bytes(symbol));
-        self.set.add(symbol32);
-        self.metadata[symbol32] = Token(api, symbol, api.name(), api.decimals());
+        self.keys.add(symbol32);
+        self.values[symbol32] = Token(api, symbol, api.name(), api.decimals());
     }
 
     function get(Storage storage self, string memory symbol) internal view returns (Token storage) {
-        return self.metadata[bytes32(bytes(symbol))];
+        return self.values[bytes32(bytes(symbol))];
     }
 
-    function list(Storage storage self) internal view returns (Token[] memory) {
-        uint length = self.set.length();
-        Token[] memory result = new Token[](length);
-        for (uint i = 0; i < length; i++) {
-            result[i] = self.metadata[self.set.at(i)];
+    function list(Storage storage self) internal view returns (Token[] memory tokens) {
+        tokens = new Token[](self.keys.length());
+        for (uint i = 0; i < tokens.length; i++) {
+            tokens[i] = self.values[self.keys.at(i)];
         }
-        return result;
     }
 
     function remove(Storage storage self, string memory symbol) internal {
         bytes32 $symbol = bytes32(bytes(symbol));
-        self.set.remove($symbol);
-        delete self.metadata[$symbol];
+        self.keys.remove($symbol);
+        delete self.values[$symbol];
     }
 }
