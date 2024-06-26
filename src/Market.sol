@@ -15,25 +15,23 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {IInventory} from "./interfaces/IInventory.sol";
 import {Offers} from "./libraries/Offers.sol";
 import {Deals} from "./libraries/Deals.sol";
+import {Methods} from "./libraries/Methods.sol";
 
-contract Market is IMarket,
-    OwnableUpgradeable,
-    UUPSUpgradeable
+contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
 {
-    using Strings for string;
+    using Strings       for string;
     using EnumerableSet for EnumerableSet.Bytes32Set;
-    using SafeERC20 for IERC20Metadata;
-    using Offers for Offers.Storage;
-    using Deals for Deals.Storage;
+    using SafeERC20     for IERC20Metadata;
+    using Offers        for Offers.Storage;
+    using Deals         for Deals.Storage;
+    using Methods       for Methods.Storage;
 
-    Offers.Storage private offers;
-    Deals.Storage  private deals;
+    Offers.Storage  private offers;
+    Deals.Storage   private deals;
+    Methods.Storage private methods;
 
     RepToken public repToken;
     IInventory public inventory;
-
-    mapping (bytes32 => Method) public method;
-    EnumerableSet.Bytes32Set private _methods;
 
     address public mediator;
     uint8 internal constant FEE = 100; // 1%
@@ -46,7 +44,7 @@ contract Market is IMarket,
     }
     function _authorizeUpgrade(address) internal onlyOwner override {}
 
-    function methods() public view returns (bytes32[] memory) { return _methods.values(); }
+    function getMethods() public view returns (bytes32[] memory) { return methods.names.values(); }
 
     /// @param isSell_ offers posted by Sellers, i.e. offers to buy tokens for fiat
     /// @param method_ may be empty string to list all offers
@@ -71,7 +69,7 @@ contract Market is IMarket,
     }
     function offerCreate(OfferCreateParams calldata params_) external {
         try inventory.getPrice(params_.token, params_.fiat) returns (uint) {} catch { revert("invalid pair"); }
-        require(_methods.contains(bytes32(bytes(params_.method))), "method not exist");
+        require(methods.names.contains(bytes32(bytes(params_.method))), "method not exist");
         require (params_.rate > 0, "empty rate");
         require (params_.min > 0, "min");
         require (params_.max > 0, "max");
@@ -156,22 +154,14 @@ contract Market is IMarket,
     }
     // ---- end of public functions
 
-    function addMethods(Method[] calldata new_) external onlyOwner {
+    function addMethods(Methods.Method[] calldata new_) external onlyOwner {
         for (uint i = 0; i < new_.length; i++) {
-            bytes32 $name = bytes32(bytes((new_[i].name)));
-            if (_methods.add($name)) {
-                method[$name] = new_[i];
-                emit MethodAdded(new_[i].name, new_[i]);
-            }
+            methods.add(new_[i]);
         }
     }
     function removeMethods(string[] calldata names_) external onlyOwner {
         for (uint i = 0; i < names_.length; i++) {
-            bytes32 $name = bytes32(bytes(names_[i]));
-            if (_methods.remove($name)) {
-                delete method[$name];
-                emit MethodRemoved(names_[i]);
-            }
+            methods.remove(names_[i]);
         }
     }
 
