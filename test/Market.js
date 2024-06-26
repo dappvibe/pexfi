@@ -257,6 +257,7 @@ describe('Users post offers', function()
 
 describe('Browser fetches offers', function() {
     it('get SELL WBTC for USD with Zelle', async function() {
+        //const offers = await Market.getOffers(true, 'WBTC', 'USD', 'Zelle');
         const offers = await Market.getOffers(true, 'WBTC', 'USD', 'Zelle');
         expect(offers).to.have.length(2);
     });

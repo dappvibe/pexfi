@@ -18,17 +18,17 @@ import {Methods} from "./libraries/Methods.sol";
 
 contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
 {
-    using Strings       for string;
-    using SafeERC20     for IERC20Metadata;
-    using Offers        for Offers.Storage;
-    using Deals         for Deals.Storage;
-    using Methods       for Methods.Storage;
+    using Strings   for string;
+    using SafeERC20 for IERC20Metadata;
+    using Offers    for Offers.Storage;
+    using Deals     for Deals.Storage;
+    using Methods   for Methods.Storage;
 
     Offers.Storage  private offers;
     Deals.Storage   private deals;
     Methods.Storage private methods;
 
-    RepToken public repToken;
+    RepToken   public repToken;
     IInventory public inventory;
 
     address public mediator;
