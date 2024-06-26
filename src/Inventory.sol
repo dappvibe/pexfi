@@ -14,6 +14,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IInventory} from "./interfaces/IInventory.sol";
 import {Tokens} from "./libraries/Tokens.sol";
 import "./libraries/Fiats.sol";
+import "./libraries/Methods.sol";
 
 /**
  * @title Stores available tokens and fiats and provides their rates.
@@ -24,9 +25,11 @@ contract Inventory is IInventory, Ownable
     using Strings for string;
     using Tokens for Tokens.Storage;
     using Fiats for Fiats.Storage;
+    using Methods   for Methods.Storage;
 
     Tokens.Storage private tokens;
     Fiats.Storage  private fiats;
+    Methods.Storage private methods;
 
     IUniswapV3Factory private uniswap;
 
@@ -61,7 +64,10 @@ contract Inventory is IInventory, Ownable
 
     function token(string memory symbol_) external view returns (IERC20Metadata) { return tokens.get(symbol_).api; }
     function getTokens() external view returns (Tokens.Token[] memory) { return tokens.list(); }
+    function fiat(string memory symbol_) external view returns (Fiats.Fiat memory) { return fiats.get(symbol_); }
     function getFiats() external view returns (Fiats.Fiat[] memory) { return fiats.list(); }
+    function method(string memory symbol_) external view returns (Methods.Method memory) { return methods.get(symbol_); }
+    function getMethods() public view returns (Methods.Method[] memory) { return methods.list(); }
 
     function addTokens(address[] calldata tokens_, uint16 uniswapPoolFee) external onlyOwner {
         for (uint8 i = 0; i < tokens_.length; i++) {
@@ -81,6 +87,16 @@ contract Inventory is IInventory, Ownable
     function removeFiats(string[] calldata fiat_) external onlyOwner {
         for (uint8 i = 0; i < fiat_.length; i++) {
             fiats.remove(fiat_[i]);
+        }
+    }
+    function addMethods(Methods.Method[] calldata new_) external onlyOwner {
+        for (uint i = 0; i < new_.length; i++) {
+            methods.add(new_[i]);
+        }
+    }
+    function removeMethods(string[] calldata names_) external onlyOwner {
+        for (uint i = 0; i < names_.length; i++) {
+            methods.remove(names_[i]);
         }
     }
 
