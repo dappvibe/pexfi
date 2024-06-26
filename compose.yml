@@ -6,4 +6,4 @@ services:
     working_dir: /srv
     ports:
         - "8545:8545"
-    command: npx hardhat node
+    command: npx hardhat node --fork https://arb1.arbitrum.io/rpc --fork-block-number 225947589
