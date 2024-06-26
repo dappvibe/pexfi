@@ -14,7 +14,12 @@ contract MockERC20 is ERC20
     ERC20(string.concat('Mock', $symbol), $symbol)
     {
         _decimals = $decimals;
-        _mint(msg.sender, type(uint256).max);
+        giveme(type(uint256).max);
+    }
+
+    function giveme(uint amount) public
+    {
+        _mint(msg.sender, uint(amount));
     }
 
     function decimals() public view override returns (uint8)
