@@ -23,7 +23,6 @@ interface IDeal
         Completed
     }
 
-    //function market() external view returns (IMarket);
     function offerId() external view returns (uint);
     function buyer() external view returns (address);
     function seller() external view returns (address);

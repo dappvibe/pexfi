@@ -60,7 +60,6 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
         uint16 rate; // 4 decimals
         uint32 min; // in fiat
         uint32 max;
-        uint16 acceptanceTime; // protection from stalled deals. after expiry seller can request refund and buyer still gets failed tx recorded
         string terms;
     }
     function offerCreate(OfferCreateParams calldata params_) external {
@@ -68,7 +67,6 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
         if (params_.rate <= 0)                      revert InvalidArgument("rate");
         if (params_.min <= 0 || params_.max <= 0)   revert InvalidArgument("minmax");
         if (params_.min >= params_.max)             revert InvalidArgument("lowmax");
-        if (params_.acceptanceTime < 900)           revert InvalidArgument("quick");
         try inventory.getPrice(params_.token, params_.fiat) returns (uint) {} catch { revert InvalidArgument("pair"); }
         // TODO convert min to USD and check offers' minimum
 
@@ -82,7 +80,6 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
             rate: params_.rate,
             min: params_.min,
             max: params_.max,
-            acceptanceTime: params_.acceptanceTime,
             terms: params_.terms,
             kycRequired: false
         }));
@@ -110,9 +107,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
             $tokenAmount,
             fiatAmount_,
             FEE,
-            paymentInstructions_,
-            block.timestamp + $offer.acceptanceTime,
-            1 hours
+            paymentInstructions_
         );
         deals.add(address($deal), offerId_);
 
