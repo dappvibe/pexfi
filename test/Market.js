@@ -54,7 +54,7 @@ describe('Deployment', function()
                 return ethers.deployContract('PriceFeed', [fiat])
                     .then((feed) => PriceFeeds[fiat] = feed);
             });
-        })
+        });
 
         it ('update prices regularly', async function() {
             await PriceFeeds['EUR'].set(106927500);
