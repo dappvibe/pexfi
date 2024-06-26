@@ -25,7 +25,6 @@ contract Deal is IDeal, AccessControl
 
     Market public market;
     IRepToken private repToken;
-    //IMarket.Offer private offer;
     uint    public offerId;
     address public buyer;
     address public seller;
@@ -103,13 +102,11 @@ contract Deal is IDeal, AccessControl
         }
 
         if (acceptance == ACCEPTED_ALL) {
-            state = State.Accepted;
-            emit DealState(state);
+            _state(State.Accepted);
 
             if (seller == msg.sender) {
                 market.fundDeal();
-                state = State.Funded;
-                emit DealState(State.Funded);
+                _state(State.Funded);
             }
 
             allowCancelUnpaidAfter = block.timestamp + paymentWindow;
@@ -117,16 +114,14 @@ contract Deal is IDeal, AccessControl
     }
 
     function paid() external onlyRole(BUYER) stateBetween(State.Accepted, State.Funded) {
-        state = State.Paid;
-        emit DealState(state);
+        _state(State.Paid);
     }
 
     function release() external onlyRole(SELLER) stateBetween(State.Funded, State.Disputed) {
         token.transfer(buyer, tokenAmount - (tokenAmount * fee / 10000));
         token.transfer(mediator, token.balanceOf(address(this)));
 
-        state = State.Completed;
-        emit DealState(state);
+        _state(State.Completed);
 
         uint $tokenId = repToken.ownerToTokenId(buyer);
         if ($tokenId != 0) {
@@ -150,15 +145,13 @@ contract Deal is IDeal, AccessControl
             if (state == State.Funded) {
                 token.transfer(seller, tokenAmount);
             }
-            state = State.Canceled;
-            emit DealState(State.Canceled);
+            _state(State.Canceled);
         }
         else revert ActionNotAllowedInThisState(state);
     }
 
     function dispute() external onlyRole(MEMBER) stateBetween(State.Accepted, State.Paid) {
-        state = State.Disputed;
-        emit DealState(State.Disputed);
+        _state(State.Disputed);
     }
 
     function message(string calldata message_) external onlyRole(MEMBER) {
@@ -186,5 +179,10 @@ contract Deal is IDeal, AccessControl
             }
             emit FeedbackGiven(seller, upvote, message_);
         }
+    }
+
+    function _state(State state_) private {
+        state = state_;
+        emit DealState(state);
     }
 }
