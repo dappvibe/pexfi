@@ -31,6 +31,10 @@ library Methods {
         }
     }
 
+    function get(Storage storage self, string memory name) internal view returns (Method memory) {
+        return self.values[bytes32(bytes(name))];
+    }
+
     function list(Storage storage self) internal view returns (Method[] memory) {
         Method[] memory result = new Method[](self.keys.length());
         for (uint i = 0; i < self.keys.length(); i++) {
