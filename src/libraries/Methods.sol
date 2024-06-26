@@ -30,6 +30,10 @@ library  Methods {
         }
     }
 
+    function has(Storage storage self, string memory name) internal view returns (bool) {
+        return self.names.contains(bytes32(bytes(name)));
+    }
+
     function remove(Storage storage self, string memory name) internal {
         bytes32 $name = bytes32(bytes(name));
         self.names.remove($name);
