@@ -206,7 +206,7 @@ describe('Users post offers', function()
         it(title, async function() {
             const provider = params[0] ? seller : buyer;
             Market = Market.connect(provider);
-            const response = Market.offerCreate(params).then((tx) => tx.wait()).then(receipt => {
+            const response = Market.createOffer(params).then((tx) => tx.wait()).then(receipt => {
                 const OfferCreated = Market.interface.parseLog(receipt.logs[0]);
                 offers.push(OfferCreated.args[3]);
                 return receipt;
@@ -233,24 +233,24 @@ describe('Users post offers', function()
             };
         }
         it('invalid fiat currency', async function() {
-            await expect(Market.offerCreate(params({fiat: 'USDT'}))).to.be.reverted;
-            await expect(Market.offerCreate(params({fiat: 'XXX'}))).to.be.reverted;
+            await expect(Market.createOffer(params({fiat: 'USDT'}))).to.be.reverted;
+            await expect(Market.createOffer(params({fiat: 'XXX'}))).to.be.reverted;
         });
 
         it('invalid rate', async function() {
-            await expect(Market.offerCreate(params({rate: 0}))).to.be.reverted;
+            await expect(Market.createOffer(params({rate: 0}))).to.be.reverted;
         });
 
         it ('invalid min', async function() {
-            await expect(Market.offerCreate(params({min: 0}))).to.be.reverted;
+            await expect(Market.createOffer(params({min: 0}))).to.be.reverted;
         });
 
         it('invalid max', async function() {
-            await expect(Market.offerCreate(params({max: 0}))).to.be.reverted;
+            await expect(Market.createOffer(params({max: 0}))).to.be.reverted;
         });
 
         it('invalid method', async function() {
-            await expect(Market.offerCreate(params({method: 'Hugs and kisses'}))).to.be.reverted;
+            await expect(Market.createOffer(params({method: 'Hugs and kisses'}))).to.be.reverted;
         });
     });
 });
