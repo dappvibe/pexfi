@@ -102,7 +102,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     )
     external
     {
-        Offers.Offer memory $offer = offers.all[offerId_];
+        Offers.Offer storage $offer = offers.all[offerId_];
 
         uint $tokenAmount = inventory.convert(fiatAmount_, $offer.fiat, $offer.token, $offer.rate);
 
