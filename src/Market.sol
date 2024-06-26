@@ -108,7 +108,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
             $offer.owner,
             msg.sender,
             mediator,
-            inventory.token(bytes32(bytes($offer.token))),
+            inventory.token($offer.token),
             $tokenAmount,
             fiatAmount_,
             FEE,
@@ -121,7 +121,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
         emit DealCreated(offerId_, mediator, $deal);
 
         if (!$offer.isSell) {
-            IERC20Metadata $token = IERC20Metadata(inventory.token(bytes32(bytes($offer.token))));
+            IERC20Metadata $token = IERC20Metadata(inventory.token($offer.token));
             $token.safeTransferFrom(msg.sender, address($deal), $tokenAmount);
         }
 
@@ -138,7 +138,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
         Offers.Offer memory $offer = offers.all[$deal.offerId()];
         require ($offer.isSell, "not selling offer");
 
-        IERC20Metadata $token = IERC20Metadata(inventory.token(bytes32(bytes($offer.token))));
+        IERC20Metadata $token = IERC20Metadata(inventory.token($offer.token));
         $token.safeTransferFrom($deal.seller(), address($deal), $deal.tokenAmount());
 
         return true;

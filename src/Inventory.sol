@@ -12,6 +12,7 @@ import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Po
 import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IInventory} from "./interfaces/IInventory.sol";
+import {Tokens} from "./libraries/Tokens.sol";
 
 /**
  * @title Stores available tokens and fiats and provides their rates.
@@ -21,9 +22,10 @@ contract Inventory is IInventory, Ownable
 {
     using Strings for string;
     using EnumerableSet for EnumerableSet.Bytes32Set;
+    using Tokens for Tokens.Storage;
 
-    mapping(bytes32 => IERC20Metadata)  public token;
-    EnumerableSet.Bytes32Set private _tokens;
+    Tokens.Storage private tokens;
+
     EnumerableSet.Bytes32Set private _fiats;
     mapping(bytes32 => IChainlink) private _fiatToUSD;
 
@@ -33,13 +35,17 @@ contract Inventory is IInventory, Ownable
         uniswap = IUniswapV3Factory(uniswap_);
     }
 
+    function token(string memory symbol_) external view returns (IERC20Metadata) {
+        return tokens.get(symbol_).api;
+    }
+
     /// @param amount_ must have 6 decimals as a fiat amount
     /// @param denominator ratio (4 decimal) to apply to resulting amount
     /// @return $amount of tokens in precision of given token
     function convert(uint amount_, string memory fromFiat_, string memory toToken_, uint denominator) public view returns (uint256 $amount) {
         if (fromFiat_.equal("USD") && toToken_.equal("USDT")) return FullMath.mulDiv(amount_, 10**4, denominator);
 
-        uint decimals = token[bytes32(bytes(toToken_))].decimals();
+        uint decimals = tokens.get(toToken_).decimals;
         $amount = FullMath.mulDiv(amount_, 10**decimals, getPrice(toToken_, fromFiat_));
         return FullMath.mulDiv($amount, 10**4, denominator);
     }
@@ -47,8 +53,7 @@ contract Inventory is IInventory, Ownable
     /// @return price with 4 decimals
     function getPrice(string memory token_, string memory fiat_) public view returns (uint256 price) {
         if (!token_.equal('USDT')) {
-            IERC20Metadata $token = token[bytes32(bytes(token_))];
-            price = _uniswapRateForUSDT($token);
+            price = _uniswapRateForUSDT(tokens.get(token_).api);
         }
         else price = 10**6;
 
@@ -59,47 +64,18 @@ contract Inventory is IInventory, Ownable
         }
     }
 
-    struct TokenMetadata {
-        address target;
-        string symbol;
-        string name;
-        uint8 decimals;
-    }
-    function tokens() external view returns (TokenMetadata[] memory) {
-        uint $length = _tokens.length();
-        TokenMetadata[] memory $result = new TokenMetadata[]($length);
-        for (uint i = 0; i < $length; i++) {
-            IERC20Metadata $token = token[_tokens.at(i)];
-            $result[i] = TokenMetadata({
-                target:     address($token),
-                symbol:     $token.symbol(),
-                name:       $token.name(),
-                decimals:   $token.decimals()
-            });
-        }
-        return $result;
-    }
+    function getTokens() external view returns (Tokens.Token[] memory) { return tokens.list(); }
     function fiats() external view returns (bytes32[] memory) { return _fiats.values(); }
     // ------------------------------------------------------------------------------------
 
     function addTokens(address[] calldata tokens_) external onlyOwner {
-        require(tokens_.length <= type(uint8).max, "symbols length");
-
         for (uint8 i = 0; i < tokens_.length; i++) {
-            IERC20Metadata $token = IERC20Metadata(tokens_[i]);
-            bytes32 $symbol = bytes32(bytes($token.symbol()));
-            _tokens.add($symbol);
-            token[$symbol] = $token;
-            emit TokenAdded($token.symbol(), tokens_[i], address($token));
+            tokens.add(tokens_[i]);
         }
     }
     function removeTokens(string[] calldata token_) external onlyOwner {
         for (uint8 i = 0; i < token_.length; i++) {
-            bytes32 $symbol = bytes32(bytes(token_[i]));
-            if (_tokens.remove($symbol)) {
-                emit TokenRemoved(token_[i], address(token[$symbol]));
-                delete token[$symbol];
-            }
+            tokens.remove(token_[i]);
         }
     }
 
@@ -128,7 +104,7 @@ contract Inventory is IInventory, Ownable
     {
         IUniswapV3Pool pool = IUniswapV3Pool(uniswap.getPool(
             address(token_),
-            address(token[bytes32(bytes("USDT"))]),
+            address(tokens.get("USDT").api),
             500 // FIXME poll with such fee might not exist
         ));
 

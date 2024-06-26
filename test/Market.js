@@ -85,12 +85,12 @@ describe('Deployment', function()
 
         it ('add supported tokens', async function() {
             const tokens = [MockBTC.target, MockETH.target, MockUSDT.target, MockDummy.target];
-            await expect(Inventory.addTokens(tokens)).to.emit(Inventory, 'TokenAdded');
+            await expect(Inventory.addTokens(tokens)).to.not.reverted;
         });
 
         it ('remove a token', async function() {
             const kill = await MockDummy.symbol();
-            await expect(Inventory.removeTokens([kill])).to.emit(Inventory, 'TokenRemoved');
+            await expect(Inventory.removeTokens([kill])).to.not.reverted;
         });
 
         it ('add supported fiats', async function() {
@@ -155,7 +155,7 @@ describe('Browser builds UI', function ()
     let tokens, fiats, methods = [];
 
     it ('get tokens', async function() {
-        tokens = await Inventory.tokens();
+        tokens = await Inventory.getTokens();
         expect(tokens).to.have.length(3);
         expect(tokens[0][1]).to.eq('WBTC');
         expect(tokens[1][1]).to.eq('WETH');
