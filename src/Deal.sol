@@ -13,6 +13,10 @@ contract Deal is IDeal, AccessControl
 {
     using Strings for string;
 
+    // protection from stalled deals. after expiry seller can request refund and buyer still gets failed tx recorded
+    uint16 private ACCEPTANCE_TIME = 15 minutes;
+    uint16 private PAYMENT_WINDOW  = 1 hours;
+
     uint8 private constant ACCEPTED_MEDIATOR = 1;
     uint8 private constant ACCEPTED_OWNER    = 2;
     uint8 private constant ACCEPTED_ALL      = 3;
@@ -23,8 +27,6 @@ contract Deal is IDeal, AccessControl
     bytes32 private constant MEMBER      = 'MEMBER';
     bytes32 private constant OFFER_OWNER = 'OFFER_OWNER';
 
-    Market public market;
-    IRepToken private repToken;
     uint    public offerId;
     address public buyer;
     address public seller;
@@ -35,10 +37,11 @@ contract Deal is IDeal, AccessControl
     uint    public fee;
     string  public paymentInstructions;
     uint8   public acceptance = 1; // mediator autoaccept for now
-    uint    private allowCancelUnacceptedAfter;
-    uint    private allowCancelUnpaidAfter = 999999999999999;
-    uint    private paymentWindow;
+    uint    public allowCancelUnacceptedAfter;
+    uint    public allowCancelUnpaidAfter = 999999999999999;
     State   public state = State.Initiated;
+    Market private market;
+    IRepToken private repToken;
 
     struct Feedback {
         bool given;
@@ -64,9 +67,7 @@ contract Deal is IDeal, AccessControl
         uint tokenAmount_,
         uint fiatAmount_,
         uint fee_,
-        string memory paymentInstructions_,
-        uint allowCancelUnacceptedAfter_,
-        uint paymentWindow_
+        string memory paymentInstructions_
     )
     {
         market = Market(msg.sender);
@@ -80,8 +81,7 @@ contract Deal is IDeal, AccessControl
         fiatAmount = fiatAmount_;
         fee = fee_;
         paymentInstructions = paymentInstructions_;
-        allowCancelUnacceptedAfter = allowCancelUnacceptedAfter_;
-        paymentWindow = paymentWindow_;
+        allowCancelUnacceptedAfter = block.timestamp + ACCEPTANCE_TIME;
 
         _grantRole(OFFER_OWNER, maker_);
         _grantRole(MEDIATOR, mediator);
@@ -109,7 +109,7 @@ contract Deal is IDeal, AccessControl
                 _state(State.Funded);
             }
 
-            allowCancelUnpaidAfter = block.timestamp + paymentWindow;
+            allowCancelUnpaidAfter = block.timestamp + PAYMENT_WINDOW;
         }
     }
 
