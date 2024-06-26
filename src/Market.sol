@@ -14,6 +14,7 @@ import {IDeal} from "./interfaces/IDeal.sol";
 import {Deal} from "./Deal.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IInventory} from "./interfaces/IInventory.sol";
+import {Offers} from "./libraries/Offers.sol";
 
 contract Market is IMarket,
     OwnableUpgradeable,
@@ -24,18 +25,15 @@ contract Market is IMarket,
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeERC20 for IERC20Metadata;
+    using Offers for Offers.Storage;
+
+    Offers.Storage private offers;
 
     RepToken public repToken;
     IInventory public inventory;
 
     mapping (bytes32 => Method) public method;
     EnumerableSet.Bytes32Set private _methods;
-
-    mapping(uint => Offer) public offers;
-    /// @dev crypto => fiat => method => ids[] ("0" is a special method to list all offers)
-    mapping(bytes32 => mapping(bytes32 => mapping(bytes32 => EnumerableSet.UintSet))) private _sellOffersByPair;
-    mapping(bytes32 => mapping(bytes32 => mapping(bytes32 => EnumerableSet.UintSet))) private _buyOffersByPair;
-    uint24 private _nextOfferId;
 
     EnumerableSet.AddressSet private _deals;
     mapping(uint => IDeal[]) private _offerDeals;
@@ -48,9 +46,6 @@ contract Market is IMarket,
 
         setRepToken(repToken_);
         inventory = IInventory(inventory_);
-
-        // 0 values are invalid and Upgradable can't use default values
-        _nextOfferId++;
     }
     function _authorizeUpgrade(address) internal onlyOwner override {}
 
@@ -60,19 +55,10 @@ contract Market is IMarket,
     /// @param method_ may be empty string to list all offers
     function getOffers(bool isSell_, string calldata token_, string calldata fiat_, string calldata method_)
     external view
-    returns (Offer[] memory $offers)
+    //returns (Offer[] memory $offers)
+    returns (Offers.Offer[] memory)
     {
-        bytes32 $token = bytes32(bytes(token_));
-        bytes32 $fiat = bytes32(bytes(fiat_));
-        bytes32 $method = bytes32(bytes(method_));
-
-        EnumerableSet.UintSet storage $offersSet = isSell_ ? _sellOffersByPair[$token][$fiat][$method] : _buyOffersByPair[$token][$fiat][$method];
-        uint $length = $offersSet.length();
-        $offers = new Offer[]($length);
-
-        for (uint i = 0; i < $length; i++) {
-            $offers[i] = offers[$offersSet.at(i)];
-        }
+        return offers.list(isSell_, token_, fiat_, method_);
     }
 
     struct OfferCreateParams {
@@ -94,11 +80,10 @@ contract Market is IMarket,
         require (params_.max > 0, "max");
         require (params_.min <= params_.max, "minmax");
         require (params_.acceptanceTime >= 900, "time");
-
         // TODO convert min to USD and check offers' minimum
 
-        Offer memory $offer = Offer({
-            id: _nextOfferId,
+        Offers.Offer storage $offer = offers.add(Offers.Offer({
+            id: 0,
             owner: msg.sender,
             isSell: params_.isSell,
             token: params_.token,
@@ -110,9 +95,7 @@ contract Market is IMarket,
             acceptanceTime: params_.acceptanceTime,
             terms: params_.terms,
             kycRequired: false
-        });
-
-        _saveOffer($offer);
+        }));
 
         emit OfferCreated(msg.sender, params_.token, params_.fiat, $offer);
     }
@@ -123,7 +106,7 @@ contract Market is IMarket,
         string memory paymentInstructions_ // FIXME this is not the case if buying
     ) external
     {
-        Offer memory $offer = offers[offerId_];
+        Offers.Offer memory $offer = offers.all[offerId_];
 
         uint $tokenAmount = inventory.convert(fiatAmount_, $offer.fiat, $offer.token, $offer.rate);
 
@@ -162,7 +145,7 @@ contract Market is IMarket,
         IDeal $deal = IDeal(msg.sender);
         require($deal.state() == IDeal.State.Accepted, "not accepted");
 
-        Offer memory $offer = offers[$deal.offerId()];
+        Offers.Offer memory $offer = offers.all[$deal.offerId()];
         require ($offer.isSell, "not selling offer");
 
         IERC20Metadata $token = IERC20Metadata(inventory.token(bytes32(bytes($offer.token))));
@@ -175,24 +158,6 @@ contract Market is IMarket,
 
     }
     // ---- end of public functions
-
-    function _saveOffer(Offer memory offer_) private {
-        offers[_nextOfferId] = offer_;
-
-        bytes32 $token = bytes32(bytes(offer_.token));
-        bytes32 $fiat = bytes32(bytes(offer_.fiat));
-        bytes32 $method = bytes32(bytes(offer_.method));
-
-        if (offer_.isSell) {
-            _sellOffersByPair[$token][$fiat][''].add(offer_.id);
-            _sellOffersByPair[$token][$fiat][$method].add(offer_.id);
-        } else {
-            _buyOffersByPair[$token][$fiat][''].add(offer_.id);
-            _buyOffersByPair[$token][$fiat][$method].add(offer_.id);
-        }
-
-        _nextOfferId++;
-    }
 
     function addMethods(Method[] calldata new_) external onlyOwner {
         for (uint i = 0; i < new_.length; i++) {
