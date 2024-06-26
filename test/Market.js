@@ -85,7 +85,7 @@ describe('Deployment', function()
 
         it ('add supported tokens', async function() {
             const tokens = [MockBTC.target, MockETH.target, MockUSDT.target, MockDummy.target];
-            await expect(Inventory.addTokens(tokens)).to.not.reverted;
+            await expect(Inventory.addTokens(tokens, 500)).to.not.reverted;
         });
 
         it ('remove a token', async function() {
