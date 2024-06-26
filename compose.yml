@@ -1,0 +1,7 @@
+services:
+  hardhat:
+    image: node:18
+    volumes:
+      - ./:/srv
+    working_dir: /srv
+    command: npx hardhat node
