@@ -12,7 +12,7 @@ library Tokens {
         string symbol;
         string name;
         uint8 decimals;
-        // TODO uniswapPoolFee
+        uint16 uniswapPoolFee;
     }
 
     struct Storage {
@@ -20,12 +20,12 @@ library Tokens {
         mapping(bytes32 => Token) values;
     }
 
-    function add(Storage storage self, address token) internal {
+    function add(Storage storage self, address token, uint16 uniswapPoolFee) internal {
         IERC20Metadata api = IERC20Metadata(token);
         string memory symbol = api.symbol();
-        bytes32 symbol32 = bytes32(bytes(symbol));
-        self.keys.add(symbol32);
-        self.values[symbol32] = Token(api, symbol, api.name(), api.decimals());
+        bytes32 key = bytes32(bytes(symbol));
+        self.keys.add(key);
+        self.values[key] = Token(api, symbol, api.name(), api.decimals(), uniswapPoolFee);
     }
 
     function get(Storage storage self, string memory symbol) internal view returns (Token storage) {

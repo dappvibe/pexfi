@@ -48,7 +48,7 @@ contract Inventory is IInventory, Ownable
     /// @return price with 4 decimals
     function getPrice(string memory token_, string memory fiat_) public view returns (uint256 price) {
         if (!token_.equal('USDT')) {
-            price = _uniswapRateForUSDT(tokens.get(token_).api);
+            price = _uniswapRateForUSDT(tokens.get(token_));
         }
         else price = 10**6;
 
@@ -63,9 +63,9 @@ contract Inventory is IInventory, Ownable
     function getTokens() external view returns (Tokens.Token[] memory) { return tokens.list(); }
     function getFiats() external view returns (Fiats.Fiat[] memory) { return fiats.list(); }
 
-    function addTokens(address[] calldata tokens_) external onlyOwner {
+    function addTokens(address[] calldata tokens_, uint16 uniswapPoolFee) external onlyOwner {
         for (uint8 i = 0; i < tokens_.length; i++) {
-            tokens.add(tokens_[i]);
+            tokens.add(tokens_[i], uniswapPoolFee);
         }
     }
     function removeTokens(string[] calldata token_) external onlyOwner {
@@ -85,12 +85,12 @@ contract Inventory is IInventory, Ownable
     }
 
     /// @return price of token_ in USDT (6 decimals)
-    function _uniswapRateForUSDT(IERC20Metadata token_) internal view returns (uint)
+    function _uniswapRateForUSDT(Tokens.Token storage token_) internal view returns (uint)
     {
         IUniswapV3Pool pool = IUniswapV3Pool(uniswap.getPool(
-            address(token_),
+            address(token_.api),
             address(tokens.get("USDT").api),
-            500 // FIXME poll with such fee might not exist
+            token_.uniswapPoolFee
         ));
 
         uint32[] memory secs = new uint32[](2);
@@ -101,6 +101,6 @@ contract Inventory is IInventory, Ownable
         uint160 sqrtPriceX96 = TickMath.getSqrtPriceAtTick(int24(tickCumulativesDelta / 300));
 
         // return in USDT (tokenB) precision
-        return FullMath.mulDiv(uint256(sqrtPriceX96) * uint256(sqrtPriceX96), 10**token_.decimals(), 1 << 192);
+        return FullMath.mulDiv(uint256(sqrtPriceX96) * uint256(sqrtPriceX96), 10**token_.decimals, 1 << 192);
     }
 }
