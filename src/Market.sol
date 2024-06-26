@@ -22,11 +22,9 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     using SafeERC20 for IERC20Metadata;
     using Offers    for Offers.Storage;
     using Deals     for Deals.Storage;
-    using Methods   for Methods.Storage;
 
     Offers.Storage  private offers;
     Deals.Storage   private deals;
-    Methods.Storage private methods;
 
     RepToken   public repToken;
     IInventory public inventory;
@@ -41,8 +39,6 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
         inventory = IInventory(inventory_);
     }
     function _authorizeUpgrade(address) internal onlyOwner override {}
-
-    function getMethods() public view returns (Methods.Method[] memory) { return methods.list(); }
 
     /// @param isSell_ offers posted by Sellers, i.e. offers to buy tokens for fiat
     /// @param method_ may be empty string to list all offers
@@ -63,11 +59,11 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
         string terms;
     }
     function createOffer(CreateOfferParams calldata params_) external {
-        if (!methods.has(params_.method))           revert InvalidArgument("method");
         if (params_.rate <= 0)                      revert InvalidArgument("rate");
         if (params_.min <= 0 || params_.max <= 0)   revert InvalidArgument("minmax");
         if (params_.min >= params_.max)             revert InvalidArgument("lowmax");
         try inventory.getPrice(params_.token, params_.fiat) returns (uint) {} catch { revert InvalidArgument("pair"); }
+        if (inventory.method(params_.method).name.equal('')) revert InvalidArgument("method");
         // TODO convert min to USD and check offers' minimum
 
         Offers.Offer storage $offer = offers.add(Offers.Offer({
@@ -138,16 +134,6 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     }
     // ---- end of public functions
 
-    function addMethods(Methods.Method[] calldata new_) external onlyOwner {
-        for (uint i = 0; i < new_.length; i++) {
-            methods.add(new_[i]);
-        }
-    }
-    function removeMethods(string[] calldata names_) external onlyOwner {
-        for (uint i = 0; i < names_.length; i++) {
-            methods.remove(names_[i]);
-        }
-    }
     function setRepToken(address repToken_) public onlyOwner { repToken = RepToken(repToken_); }
     function setInventory(address inventory_) public onlyOwner { inventory = IInventory(inventory_); }
     function setMediator(address mediator_) public onlyOwner { mediator = mediator_; }
