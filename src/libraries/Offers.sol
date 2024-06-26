@@ -53,6 +53,7 @@ library Offers
         bytes32 token   = bytes32(bytes(offer.token));
         bytes32 fiat    = bytes32(bytes(offer.fiat));
         bytes32 method  = bytes32(bytes(offer.method));
+
         if (offer.isSell) {
             self.sell[token][fiat][''].add(offer.id);
             self.sell[token][fiat][method].add(offer.id);
@@ -69,9 +70,9 @@ library Offers
     internal view
     returns (Offer[] memory offers)
     {
-        bytes32 token = bytes32(bytes(token_));
-        bytes32 fiat = bytes32(bytes(fiat_));
-        bytes32 method = bytes32(bytes(method_));
+        bytes32 token   = bytes32(bytes(token_));
+        bytes32 fiat    = bytes32(bytes(fiat_));
+        bytes32 method  = bytes32(bytes(method_));
 
         EnumerableSet.UintSet storage offersSet = isSell_ ? self.sell[token][fiat][method] : self.buy[token][fiat][method];
 
