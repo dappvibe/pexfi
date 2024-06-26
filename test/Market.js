@@ -104,6 +104,23 @@ describe('Deployment', function()
         it ('remove a fiat', async function() {
             await expect(Inventory.removeFiats(['XXX'])).to.not.reverted;
         });
+
+
+        // this is an expensive, but required one-time operation. Mediators must know the methods to solve disputes.
+        it('add payment methods', async function() {
+            const methods = [
+                {name: 'Zelle', group: 3, country: 188},
+                {name: 'SEPA',  group: 3, country: 1},
+                {name: 'Monero', group: 1, country: 0},
+                {name: 'Cash To ATM',  group: 2, country: 0},
+            ];
+            await expect(Inventory.addMethods(methods)).to.not.reverted;
+        });
+
+        it ('remove a payment method' , async function() {
+            const receipt = await Inventory.removeMethods(['Monero']).then((tx) => tx.wait());
+            await expect(receipt).to.not.reverted;
+        });
     });
 
     describe('Market', function() {
@@ -130,20 +147,6 @@ describe('Deployment', function()
         it('set market address in rep token', async function() {
             await RepToken.grantRole(MARKET_ROLE, Market.target).then(tx => tx.wait());
             await expect(RepToken.hasRole(MARKET_ROLE, Market.target)).to.eventually.true;
-        });
-
-        // this is an expensive, but required one-time operation. Mediators must know the methods to solve disputes.
-        it('add payment methods', async function() {
-            const methods = [
-                {name: 'Zelle', group: 3, country: 188},
-                {name: 'SEPA',  group: 3, country: 1},
-                {name: 'Monero', group: 1, country: 0},
-                {name: 'Cash To ATM',  group: 2, country: 0},
-            ];
-            await expect(Inventory.addMethods(methods)).to.not.reverted;
-
-            //const receipt = await market.methodRemove(methodId).then((tx) => tx.wait());
-            //await expect(receipt).to.emit(market, 'MethodRemoved');
         });
     });
 });
@@ -172,9 +175,10 @@ describe('Browser builds UI', function ()
 
     it ('get methods', async function() {
         methods = await Inventory.getMethods();
-        await expect(methods).to.have.length(4);
+        await expect(methods).to.have.length(3);
         await expect(methods[0][0]).to.eq('Zelle');
         await expect(methods[1][0]).to.eq('SEPA');
+        await expect(methods[2][0]).to.eq('Cash To ATM');
     });
 
     it ('get prices', async function() {
