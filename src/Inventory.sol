@@ -13,6 +13,7 @@ import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IInventory} from "./interfaces/IInventory.sol";
 import {Tokens} from "./libraries/Tokens.sol";
+import "./libraries/Fiats.sol";
 
 /**
  * @title Stores available tokens and fiats and provides their rates.
@@ -21,13 +22,11 @@ import {Tokens} from "./libraries/Tokens.sol";
 contract Inventory is IInventory, Ownable
 {
     using Strings for string;
-    using EnumerableSet for EnumerableSet.Bytes32Set;
     using Tokens for Tokens.Storage;
+    using Fiats for Fiats.Storage;
 
     Tokens.Storage private tokens;
-
-    EnumerableSet.Bytes32Set private _fiats;
-    mapping(bytes32 => IChainlink) private _fiatToUSD;
+    Fiats.Storage  private fiats;
 
     IUniswapV3Factory private uniswap;
 
@@ -59,13 +58,13 @@ contract Inventory is IInventory, Ownable
 
         // convert to other currency
         if (!fiat_.equal("USD")) {
-            (,int $fiatToUSD,,,) = _fiatToUSD[bytes32(bytes(fiat_))].latestRoundData();
+            (,int $fiatToUSD,,,) = fiats.get(fiat_).toUSD.latestRoundData();
             price = price * 10**8 / uint($fiatToUSD); // $fiat.decimals() is always 8
         }
     }
 
     function getTokens() external view returns (Tokens.Token[] memory) { return tokens.list(); }
-    function fiats() external view returns (bytes32[] memory) { return _fiats.values(); }
+    function getFiats() external view returns (Fiats.Fiat[] memory) { return fiats.list(); }
     // ------------------------------------------------------------------------------------
 
     function addTokens(address[] calldata tokens_) external onlyOwner {
@@ -78,24 +77,14 @@ contract Inventory is IInventory, Ownable
             tokens.remove(token_[i]);
         }
     }
-
-    function addFiats(string[] calldata fiat_, address[] calldata priceFeed_) external onlyOwner {
-        require(fiat_.length == priceFeed_.length, "Market: invalid input length");
-
-        for (uint8 i = 0; i < fiat_.length; i++) {
-            bytes32 $fiat = bytes32(bytes(fiat_[i]));
-            _fiats.add($fiat);
-            // do not check the Set return value to let update feed address
-            _fiatToUSD[$fiat] = IChainlink(priceFeed_[i]);
-            emit FiatAdded(fiat_[i], priceFeed_[i]);
+    function addFiats(Fiats.Fiat[] calldata fiats_) external onlyOwner {
+        for (uint8 i = 0; i < fiats_.length; i++) {
+            fiats.add(fiats_[i]);
         }
     }
     function removeFiats(string[] calldata fiat_) external onlyOwner {
         for (uint8 i = 0; i < fiat_.length; i++) {
-            bytes32 $fiat = bytes32(bytes(fiat_[i]));
-            _fiats.remove($fiat);
-            delete _fiatToUSD[$fiat];
-            emit FiatRemoved(fiat_[i]);
+            fiats.remove(fiat_[i]);
         }
     }
 
