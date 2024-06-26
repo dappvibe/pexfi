@@ -52,7 +52,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
         return offers.list(isSell_, token_, fiat_, method_);
     }
 
-    struct OfferCreateParams {
+    struct CreateOfferParams {
         bool isSell;
         string token;
         string fiat;
@@ -62,7 +62,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
         uint32 max;
         string terms;
     }
-    function offerCreate(OfferCreateParams calldata params_) external {
+    function createOffer(CreateOfferParams calldata params_) external {
         if (!methods.has(params_.method))           revert InvalidArgument("method");
         if (params_.rate <= 0)                      revert InvalidArgument("rate");
         if (params_.min <= 0 || params_.max <= 0)   revert InvalidArgument("minmax");
