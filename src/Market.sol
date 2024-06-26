@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-
+import "./libraries/Errors.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -50,9 +50,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     /// @param method_ may be empty string to list all offers
     function getOffers(bool isSell_, string calldata token_, string calldata fiat_, string calldata method_)
     external view
-    //returns (Offer[] memory $offers)
-    returns (Offers.Offer[] memory)
-    {
+    returns (Offers.Offer[] memory) {
         return offers.list(isSell_, token_, fiat_, method_);
     }
 
@@ -68,13 +66,12 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
         string terms;
     }
     function offerCreate(OfferCreateParams calldata params_) external {
-        try inventory.getPrice(params_.token, params_.fiat) returns (uint) {} catch { revert("invalid pair"); }
-        require(methods.names.contains(bytes32(bytes(params_.method))), "method not exist");
-        require (params_.rate > 0, "empty rate");
-        require (params_.min > 0, "min");
-        require (params_.max > 0, "max");
-        require (params_.min <= params_.max, "minmax");
-        require (params_.acceptanceTime >= 900, "time");
+        if (!methods.has(params_.method)) revert InvalidArgument("method");
+        if (params_.rate <= 0) revert InvalidArgument("rate");
+        if (params_.min <= 0 || params_.max <= 0) revert InvalidArgument("minmax");
+        if (params_.min >= params_.max) revert InvalidArgument("lowmax");
+        if (params_.acceptanceTime < 900) revert InvalidArgument("quick");
+        try inventory.getPrice(params_.token, params_.fiat) returns (uint) {} catch { revert InvalidArgument("pair"); }
         // TODO convert min to USD and check offers' minimum
 
         Offers.Offer storage $offer = offers.add(Offers.Offer({
@@ -95,11 +92,9 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
         emit OfferCreated(msg.sender, params_.token, params_.fiat, $offer);
     }
 
-    function createDeal(
-        uint offerId_,
-        uint fiatAmount_, // 6 decimals
-        string memory paymentInstructions_ // FIXME this is not the case if buying
-    )
+    /// @param fiatAmount_ must have 6 decimals
+    // FIXME instructions is not the case if buying
+    function createDeal(uint offerId_, uint fiatAmount_, string memory paymentInstructions_)
     external
     {
         Offers.Offer storage $offer = offers.all[offerId_];
@@ -148,10 +143,6 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
 
         return true;
     }
-
-    function feedback(address deal_, bool upvote_, string calldata message_) external {
-
-    }
     // ---- end of public functions
 
     function addMethods(Methods.Method[] calldata new_) external onlyOwner {
@@ -164,7 +155,6 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
             methods.remove(names_[i]);
         }
     }
-
     function setRepToken(address repToken_) public onlyOwner { repToken = RepToken(repToken_); }
     function setInventory(address inventory_) public onlyOwner { inventory = IInventory(inventory_); }
     function setMediator(address mediator_) public onlyOwner { mediator = mediator_; }
