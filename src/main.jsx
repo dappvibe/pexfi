@@ -12,11 +12,11 @@ const router = createBrowserRouter([
     {
         path: "/",
         element: <Root />,
-        loader: loader,
         children: [
             {
                 path: "/:token",
                 element: <Offers />,
+                loader: loader
             },
             {
                 path: '/new',
