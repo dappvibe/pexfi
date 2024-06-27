@@ -20,17 +20,18 @@ const topmenu = [
 ];
 
 export default function Root() {
-    const {tokens, fiats, methods} = useLoaderData();
     return (
         <>
             <Layout>
                 <Header style={{display: 'flex'}}>
-                    <Menu mode={"horizontal"} items={topmenu} theme={"dark"}/>
-                    <Link to={"/"}>Trade</Link>
-                    <Link to={"/new"}>New</Link>
-                    {tokens.map((token) => (
-                        <li key={token[1]}><Link to={`/${token[1]}`}>{token[1]}</Link></li>
-                    ))}
+                    <Menu mode={"horizontal"} theme={"dark"}>
+                        <Menu.Item key={"trade"}>
+                            <Link to={"/"}>Trade</Link>
+                        </Menu.Item>
+                        <Menu.Item key={"offer-create"}>
+                            <Link to={"/new"}>Post Offer</Link>
+                        </Menu.Item>
+                    </Menu>
                 </Header>
                 <Content>
                     <Outlet/>

@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Inventory, Market } from './../../ethers.js'
 import {Layout, Menu, Table, theme} from 'antd';
+import {Link, useLoaderData} from "react-router-dom";
 const { Content } = Layout;
 
 const menuTokens = [];
@@ -70,6 +71,7 @@ const columns = [
 ];
 
 function Offers() {
+    const {tokens, fiats, methods} = useLoaderData();
     const {
         token: { colorBgContainer, borderRadiusLG },
     } = theme.useToken();
@@ -119,11 +121,17 @@ function Offers() {
             minWidth: 0,
         }}
     />*/
+
           <Content
               style={{
                   padding: '0 48px',
               }}
           >
+              <ul>
+              {tokens.map((token) => (
+                  <li key={token[1]}><Link to={`/${token[1]}`}>{token[1]}</Link></li>
+              ))}
+              </ul>
               <div
                   style={{
                       background: colorBgContainer,
