@@ -1,45 +1,32 @@
-import {useLoaderData} from "react-router-dom";
-import {Table} from "antd";
+import {Link, useLoaderData} from "react-router-dom";
+import {Avatar, Button, List } from "antd";
 import React from "react";
 
 export default function Offers() {
     const { tokens, fiats, methods, offers } = useLoaderData();
 
-    const tableRows = [];
-    offers.forEach((offer) => {
-        tableRows.push({
-            key: offer.id,
-            owner: offer.owner,
-            price: offer.price + ' ' + fiats[offer.fiat].symbol,
-            limits: offer.min + ' - ' + offer.max,
-            button: '<button>Trade</button>'
-        });
-    });
-
-    const columns = [
-        {
-            title: 'User',
-            dataIndex: 'owner',
-            key: 'owner',
-        },
-        {
-            title: 'Price',
-            dataIndex: 'price',
-            key: 'price',
-        },
-        {
-            title: 'Limits',
-            dataIndex: 'limits',
-            key: 'limits',
-        },
-        {
-            title: '',
-            dataIndex: 'button',
-            key: 'button',
-        },
-    ];
-
     return (
-        <Table dataSource={tableRows} columns={columns} />
+        <List
+            className={"offers-list"}
+            itemLayout={"horizontal"}
+            bordered={true}
+            dataSource={offers}
+            renderItem={offer => (
+                <List.Item
+                    actions={[<Button>{offer.isSell ? 'Sell' : 'Buy'}</Button>]}
+                >
+                    <List.Item.Meta
+                        avatar={<Avatar
+                            src={'https://effigy.im/a/'+offer.owner+'.svg'}
+                            draggable={false}
+                        />}
+                        title={offer.method}
+                        description={offer.min + ' - ' + offer.max + ' ' + tokens[offer.token].symbol}
+                    />
+                    <div>{offer.price + ' ' + fiats[offer.fiat].symbol}</div>
+                </List.Item>
+            )}
+        >
+        </List>
     );
 }
