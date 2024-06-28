@@ -9,27 +9,33 @@ export default function Offers() {
     offers.forEach((offer) => {
         tableRows.push({
             key: offer.id,
-            price: offer.price,
-            min: offer.min,
-            max: offer.max
+            owner: offer.owner,
+            price: offer.price + ' ' + fiats[offer.fiat].symbol,
+            limits: offer.min + ' - ' + offer.max,
+            button: '<button>Trade</button>'
         });
     });
 
     const columns = [
+        {
+            title: 'User',
+            dataIndex: 'owner',
+            key: 'owner',
+        },
         {
             title: 'Price',
             dataIndex: 'price',
             key: 'price',
         },
         {
-            title: 'Min',
-            dataIndex: 'min',
-            key: 'min',
+            title: 'Limits',
+            dataIndex: 'limits',
+            key: 'limits',
         },
         {
-            title: 'Max',
-            dataIndex: 'max',
-            key: 'max',
+            title: '',
+            dataIndex: 'button',
+            key: 'button',
         },
     ];
 
