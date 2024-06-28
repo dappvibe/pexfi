@@ -27,6 +27,7 @@ library Fiats {
         return self.values[bytes32(bytes(symbol))];
     }
 
+    // FIXME such struct building loops are memory consuming and long to execute
     function list(Storage storage self) internal view returns (Fiat[] memory fiats) {
         fiats = new Fiat[](self.keys.length());
         for (uint i = 0; i < fiats.length; i++) {
