@@ -53,7 +53,9 @@ const InventoryModule = buildModule("Inventory", (m) => {
     methods.push({name: 'SEPA', group: 3});
 
     const Inventory = m.contract('Inventory', [uniswap]);
-    m.call(Inventory, 'addTokens', [tokens, 500]);
+    for (let key in tokens) {
+        m.call(Inventory, 'addTokens', [[tokens[key]], 500], {id: `addToken${key}`});
+    }
     m.call(Inventory, 'addFiats', [fiats]);
     m.call(Inventory, 'addMethods', [methods]);
 
