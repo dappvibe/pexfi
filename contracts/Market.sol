@@ -85,6 +85,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
 
     /// @param fiatAmount_ must have 6 decimals
     // FIXME instructions is not the case if buying
+    // TODO cryptoAmount parameter for people who REALLY want to count in crypto. One of amounts must be 0
     function createDeal(uint offerId_, uint fiatAmount_, string memory paymentInstructions_)
     external
     {
