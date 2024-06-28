@@ -37,6 +37,7 @@ const PriceFeedsModule = buildModule("PriceFeeds", (m) => {
 
     const fiats = [];
     currencies.forEach(currency => {
+        //if (currency.chainlink) return; // in production must pass chainlink address
         fiats.push([currency.code, m.contract(`PriceFeed`, [currency.code], {id: currency.code})]);
     });
     // TODO find API to sync prices and upload to contracts
