@@ -57,6 +57,8 @@ const InventoryModule = buildModule("Inventory", (m) => {
         m.call(Inventory, 'addTokens', [[tokens[key]], 500], {id: `addToken${key}`});
     }
     m.call(Inventory, 'addFiats', [fiats]);
+    // add USD so that it renders in list of fiats in the UI
+    m.call(Inventory, 'addFiats', [[{symbol: 'USD', toUSD: hre.ethers.ZeroAddress}]]);
     m.call(Inventory, 'addMethods', [methods]);
 
     return { Inventory };
