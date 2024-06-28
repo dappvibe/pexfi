@@ -33,11 +33,12 @@ const RepModule = buildModule("Rep", (m) => {
 
 const PriceFeedsModule = buildModule("PriceFeeds", (m) => {
     // TODO provide chainlink price feeds
+    const currencies = require('../currencies.json');
+
     const fiats = [];
-    ['THB', 'RUB']
-        .forEach((fiat, i) => {
-            fiats.push([fiat, m.contract(`PriceFeed`, [fiat], {id: fiat})]);
-        });
+    currencies.forEach(currency => {
+        fiats.push([currency.code, m.contract(`PriceFeed`, [currency.code], {id: currency.code})]);
+    });
     // TODO find API to sync prices and upload to contracts
 
     return { fiats };
@@ -58,7 +59,6 @@ const InventoryModule = buildModule("Inventory", (m) => {
     }
     m.call(Inventory, 'addFiats', [fiats]);
     // add USD so that it renders in list of fiats in the UI
-    m.call(Inventory, 'addFiats', [[{symbol: 'USD', toUSD: hre.ethers.ZeroAddress}]], {id: 'addFiatUSD'});
     m.call(Inventory, 'addMethods', [methods]);
 
     return { Inventory };
