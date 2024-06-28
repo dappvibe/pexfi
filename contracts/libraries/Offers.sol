@@ -54,10 +54,10 @@ library Offers
         bytes32 method  = bytes32(bytes(offer.method));
 
         if (offer.isSell) {
-            self.sell[token][fiat][''].add(offer.id);
+            self.sell[token][fiat]['ANY'].add(offer.id);
             self.sell[token][fiat][method].add(offer.id);
         } else {
-            self.buy[token][fiat][''].add(offer.id);
+            self.buy[token][fiat]['ANY'].add(offer.id);
             self.buy[token][fiat][method].add(offer.id);
         }
 
