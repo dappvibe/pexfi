@@ -1,29 +1,38 @@
 import {Inventory, Market} from './contracts.js'
 
 export async function inventory() {
-    let tokens = await Inventory.getTokens();
-    tokens = tokens.map(function(token) {
-        return {
-            address: token[0],
-            symbol: token[1],
-            name: token[2],
-            decimals: Number(token[3]),
-        }
+    let tokens = await Inventory.getTokens().then((res) => {
+        let out = {};
+        res.map(token => {
+            out[token[1]] =  {
+                address: token[0],
+                symbol: token[1],
+                name: token[2],
+                decimals: Number(token[3]),
+            }
+        });
+        return out;
     });
 
-    let fiats = await Inventory.getFiats();
-    fiats = fiats.map(function(fiat) {
-        return {
-            symbol: fiat[0],
-        }
+    let fiats = await Inventory.getFiats().then((res) => {
+        let out = {};
+        res.map(fiat => {
+            out[fiat[0]] = {
+                symbol: fiat[0],
+            }
+        });
+        return out;
     });
 
-    let methods = await Inventory.getMethods();
-    methods = methods.map(function(method) {
-        return {
-            name: method[0],
-            group: Number(method[1]),
-        }
+    let methods = await Inventory.getMethods().then(res => {
+        let out = {};
+        res.map(method => {
+            out[method[0]] = {
+                name: method[0],
+                group: Number(method[1]),
+            }
+        });
+        return out;
     });
 
     return {
@@ -37,9 +46,9 @@ export async function offersLoader(request) {
     const { tokens, fiats, methods } = await inventory();
 
     const params = request.params;
-    const token = tokens[params['token']] || tokens[0];
-    const fiat = fiats[params['fiat']] || fiats[0];
-    const method = params['method'] || '';
+    const token = tokens[params['token']] || tokens['WBTC'];
+    const fiat = fiats[params['fiat']] || fiats['USD'];
+    const method = params['method'] || 'ANY';
 
     let side = params['side'] !== 'buy';
 
