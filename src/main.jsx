@@ -3,24 +3,19 @@ import ReactDOM from 'react-dom/client'
 import {createBrowserRouter, Link, Outlet, RouterProvider} from "react-router-dom";
 
 import './main.css'
-import {Layout, Menu} from "antd";
-import Offers from "./pages/offers/list.jsx";
-import OfferCreate from "./pages/offers/create.jsx";
-import Root, {loader} from "./pages/root.jsx";
+import Offers from "./screens/Offers.jsx";
+import App from "./App.jsx";
+import {offersLoader} from "./js/loaders.js";
 
 const router = createBrowserRouter([
     {
         path: "/",
-        element: <Root />,
+        element: <App />,
         children: [
             {
-                path: "/:token",
+                path: "/trade/:side/:token?/:fiat?/:method?",
                 element: <Offers />,
-                loader: loader
-            },
-            {
-                path: '/new',
-                element: <OfferCreate />
+                loader: offersLoader
             }
         ]
     },
