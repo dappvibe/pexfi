@@ -42,8 +42,16 @@ export async function inventory() {
     };
 }
 
+let inventoryCache = null;
+
 export async function offersLoader(request) {
-    const { tokens, fiats, methods } = await inventory();
+    let tokens, fiats, methods;
+    if (!inventoryCache) {
+        ({ tokens, fiats, methods } = await inventory());
+        inventoryCache = { tokens, fiats, methods };
+    } else {
+        ({ tokens, fiats, methods } = inventoryCache);
+    }
 
     const params = request.params;
     const token = tokens[params['token']] || tokens['WBTC'];
@@ -54,8 +62,9 @@ export async function offersLoader(request) {
 
     let offers = await Market.getOffers(side, token.symbol, fiat.symbol, method);
     let price = await Inventory.getPrice(token.symbol, fiat.symbol);
-    price = price / BigInt(Math.pow(10, token.decimals));
+    price = Number(price / 10000n) / 100;
     offers = offers.map(offer => hydrateOffer(offer, price));
+    offers = offers.sort((a, b) => b.price - a.price);
     return {
         tokens: tokens,
         fiats: fiats,
@@ -73,7 +82,7 @@ function hydrateOffer(offer, price) {
         token: offer[3],
         fiat: offer[4],
         method: offer[5],
-        price: price,
+        price: (price * rate).toFixed(2),
         rate: rate,
         min: Number(offer[7]),
         max: Number(offer[8]),
