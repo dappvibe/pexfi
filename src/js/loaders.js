@@ -4,46 +4,48 @@ import {defer} from "react-router-dom";
 let cache = null;
 export function inventory() {
     if (!cache) {
-        return Promise.all([
-            Inventory.getTokens().then((res) => {
-                let out = {};
-                res.map(token => {
-                    out[token[1]] =  {
-                        address: token[0],
-                        symbol: token[1],
-                        name: token[2],
-                        decimals: Number(token[3]),
-                    }
-                });
-                return out;
-            }),
+        return defer({
+            inventory: Promise.all([
+                Inventory.getTokens().then((res) => {
+                    let out = {};
+                    res.map(token => {
+                        out[token[1]] = {
+                            address: token[0],
+                            symbol: token[1],
+                            name: token[2],
+                            decimals: Number(token[3]),
+                        }
+                    });
+                    return out;
+                }),
 
-            Inventory.getFiats().then((res) => {
-                let out = {};
-                res.map(fiat => {
-                    out[fiat[0]] = {
-                        symbol: fiat[0],
-                    }
-                });
-                return out;
-            }),
+                Inventory.getFiats().then((res) => {
+                    let out = {};
+                    res.map(fiat => {
+                        out[fiat[0]] = {
+                            symbol: fiat[0],
+                        }
+                    });
+                    return out;
+                }),
 
-            Inventory.getMethods().then(res => {
-                let out = {};
-                res.map(method => {
-                    out[method[0]] = {
-                        name: method[0],
-                        group: Number(method[1]),
-                    }
-                });
-                return out;
+                Inventory.getMethods().then(res => {
+                    let out = {};
+                    res.map(method => {
+                        out[method[0]] = {
+                            name: method[0],
+                            group: Number(method[1]),
+                        }
+                    });
+                    return out;
+                }),
+            ]).then(([tokens, fiats, methods]) => {
+                return cache = [tokens, fiats, methods];
             })
-        ]).then(([tokens, fiats, methods]) => {
-            cache = { tokens, fiats, methods };
-            return cache;
         });
-    } else {
-        return Promise.resolve(cache);
+    }
+    else {
+        return defer({inventory: cache});
     }
 }
 
