@@ -13,7 +13,7 @@ const router = createBrowserRouter([
         element: <App />,
         children: [
             {
-                path: "/trade/:side/:token?/:fiat?/:method?",
+                path: "/trade/:side?/:token?/:fiat?/:method?",
                 element: <Offers />,
                 loader: offersLoader
             }
