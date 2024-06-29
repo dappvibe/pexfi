@@ -54,20 +54,23 @@ export async function offersLoader(request) {
     const token = tokens[params['token']] || tokens['WBTC'];
     const fiat = fiats[params['fiat']] || fiats['USD'];
     const method = params['method'] || 'ANY';
+    const side = params['side'] !== 'buy';
 
-    let side = params['side'] !== 'buy';
-
-    let offers = await Market.getOffers(side, token.symbol, fiat.symbol, method);
-    let price = await Inventory.getPrice(token.symbol, fiat.symbol);
-    price = Number(price / 10000n) / 100;
-    offers = offers.map(offer => hydrateOffer(offer, price));
-    offers = offers.sort((a, b) => b.price - a.price);
-    return {
-        tokens: tokens,
-        fiats: fiats,
-        methods: methods,
-        offers: offers,
-    };
+    return Promise.all([
+        Market.getOffers(side, token.symbol, fiat.symbol, method),
+        Inventory.getPrice(token.symbol, fiat.symbol)
+    ]).then(([offers, price]) => {
+        price = Number(price / 10000n) / 100;
+        offers = offers.map(offer => hydrateOffer(offer, price));
+        offers = offers.sort((a, b) => b.price - a.price);
+        return {
+            offers: offers,
+            price: price,
+            tokens: tokens,
+            fiats: fiats,
+            methods: methods,
+        };
+    });
 }
 
 function hydrateOffer(offer, price) {
