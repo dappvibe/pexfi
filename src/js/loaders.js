@@ -82,7 +82,7 @@ function hydrateOffer(offer, price) {
         token: offer[3],
         fiat: offer[4],
         method: offer[5],
-        price: (price * rate).toFixed(2),
+        price: (price * rate).toFixed(3),
         rate: rate,
         min: Number(offer[7]),
         max: Number(offer[8]),
