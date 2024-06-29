@@ -1,45 +1,43 @@
 import {Inventory, Market} from './contracts.js'
 
 export async function inventory() {
-    let tokens = await Inventory.getTokens().then((res) => {
-        let out = {};
-        res.map(token => {
-            out[token[1]] =  {
-                address: token[0],
-                symbol: token[1],
-                name: token[2],
-                decimals: Number(token[3]),
-            }
-        });
-        return out;
-    });
+    const [tokens, fiats, methods] = await Promise.all([
+        Inventory.getTokens().then((res) => {
+            let out = {};
+            res.map(token => {
+                out[token[1]] =  {
+                    address: token[0],
+                    symbol: token[1],
+                    name: token[2],
+                    decimals: Number(token[3]),
+                }
+            });
+            return out;
+        }),
 
-    let fiats = await Inventory.getFiats().then((res) => {
-        let out = {};
-        res.map(fiat => {
-            out[fiat[0]] = {
-                symbol: fiat[0],
-            }
-        });
-        return out;
-    });
+        Inventory.getFiats().then((res) => {
+            let out = {};
+            res.map(fiat => {
+                out[fiat[0]] = {
+                    symbol: fiat[0],
+                }
+            });
+            return out;
+        }),
 
-    let methods = await Inventory.getMethods().then(res => {
-        let out = {};
-        res.map(method => {
-            out[method[0]] = {
-                name: method[0],
-                group: Number(method[1]),
-            }
-        });
-        return out;
-    });
+        await Inventory.getMethods().then(res => {
+            let out = {};
+            res.map(method => {
+                out[method[0]] = {
+                    name: method[0],
+                    group: Number(method[1]),
+                }
+            });
+            return out;
+        })
+    ]);
 
-    return {
-        tokens: tokens,
-        fiats: fiats,
-        methods: methods,
-    };
+    return { tokens, fiats, methods };
 }
 
 let inventoryCache = null;
