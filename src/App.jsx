@@ -1,6 +1,6 @@
 import React, {createContext, Suspense, useContext, useState} from 'react'
 import ReactDOM from 'react-dom/client'
-import {Await, Link, Outlet, useLoaderData, useLocation, useNavigate, useParams} from "react-router-dom";
+import {Await, generatePath, Link, Outlet, useLoaderData, useLocation, useNavigate, useParams} from "react-router-dom";
 import {Button, Flex, Form, Input, Layout, Menu, Select, Skeleton, Dropdown, Tooltip, Space, message} from "antd";
 import { DownOutlined, UserOutlined } from '@ant-design/icons';
 import { Col, Row } from 'antd';
@@ -12,12 +12,6 @@ export default function App() {
     const { sdk, connected, connecting, provider, chainId } = useSDK();
     const [account, setAccount] = useState();
     const { inventory } = useLoaderData();
-    let {
-        side = 'sell',
-        token = 'WBTC',
-        fiat = 'USD',
-        method = 'ANY'
-    } = useParams();
 
     const connect = async () => {
         try {
@@ -45,14 +39,13 @@ export default function App() {
     };
 
     const top = [
-        // TODO keep selected params in the URL
         {
             key: 'sell',
-            label: (<Link to={"/trade/sell"}>Sell</Link>),
+            label: (<Link to={generatePath('/trade/sell/:token?/:fiat?/:method?', useParams())}>Sell</Link>),
         },
         {
             key: 'buy',
-            label: (<Link to={"/trade/buy"}>Buy</Link>),
+            label: (<Link to={generatePath('/trade/buy/:token?/:fiat?/:method?', useParams())}>Buy</Link>),
         },
     ];
 
