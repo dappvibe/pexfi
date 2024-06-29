@@ -1,4 +1,5 @@
 import {Inventory, Market} from './contracts.js'
+import {defer} from "react-router-dom";
 
 let cache = null;
 export async function inventory() {
@@ -56,20 +57,22 @@ export async function offersLoader(request) {
     const method = params['method'] || 'ANY';
     const side = params['side'] !== 'buy';
 
-    return Promise.all([
-        Market.getOffers(side, token.symbol, fiat.symbol, method),
-        Inventory.getPrice(token.symbol, fiat.symbol)
-    ]).then(([offers, price]) => {
-        price = Number(price / 10000n) / 100;
-        offers = offers.map(offer => hydrateOffer(offer, price));
-        offers = offers.sort((a, b) => b.price - a.price);
-        return {
-            offers: offers,
-            price: price,
-            tokens: tokens,
-            fiats: fiats,
-            methods: methods,
-        };
+    return defer({ data:
+        Promise.all([
+            Market.getOffers(side, token.symbol, fiat.symbol, method),
+            Inventory.getPrice(token.symbol, fiat.symbol)
+        ]).then(([offers, price]) => {
+            price = Number(price / 10000n) / 100;
+            offers = offers.map(offer => hydrateOffer(offer, price));
+            offers = offers.sort((a, b) => b.price - a.price);
+            return {
+                offers: offers,
+                price: price,
+                tokens: tokens,
+                fiats: fiats,
+                methods: methods,
+            };
+        })
     });
 }
 
