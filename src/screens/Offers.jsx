@@ -1,9 +1,14 @@
 import {Link, useLoaderData} from "react-router-dom";
-import {Avatar, Button, List } from "antd";
-import React from "react";
+import {Avatar, Button, Form, Input, List} from "antd";
+import React, {useState} from "react";
 
 export default function Offers() {
     const { tokens, fiats, methods, offers } = useLoaderData();
+    const [expandedOffer, setExpandedOffer] = useState(null);
+
+    function expandOffer(offerId) {
+        setExpandedOffer(offerId);
+    }
 
     return (
         <List
@@ -13,7 +18,10 @@ export default function Offers() {
             dataSource={offers}
             renderItem={offer => (
                 <List.Item
-                    actions={[<Button>{offer.isSell ? 'Sell' : 'Buy'}</Button>]}
+                    actions={[<div>{offer.price + ' ' + fiats[offer.fiat].symbol}</div>]}
+                    extra={[
+                        <Button onClick={() => expandOffer(offer.id)}>{offer.isSell ? 'Sell' : 'Buy'}</Button>
+                    ]}
                 >
                     <List.Item.Meta
                         avatar={<Avatar
@@ -21,9 +29,19 @@ export default function Offers() {
                             draggable={false}
                         />}
                         title={offer.method}
-                        description={offer.min + ' - ' + offer.max + ' ' + tokens[offer.token].symbol}
+                        description={offer.min + ' - ' + offer.max + ' ' + offer.fiat}
                     />
-                    <div>{offer.price + ' ' + fiats[offer.fiat].symbol}</div>
+                    {expandedOffer === offer.id && (
+                        <Form>
+                            <Form.Item name="name" label="Crypto">
+                                <Input />
+                            </Form.Item>
+                            <Form.Item name="name" label="Fiat">
+                                <Input />
+                            </Form.Item>
+                            <Button>Go</Button>
+                        </Form>
+                    )}
                 </List.Item>
             )}
         >
