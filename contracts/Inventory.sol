@@ -65,7 +65,7 @@ contract Inventory is IInventory, Ownable
     function token(string memory symbol_) external view returns (IERC20Metadata) { return tokens.get(symbol_).api; }
     function getTokens() external view returns (Tokens.Token[] memory) { return tokens.list(); }
     function fiat(string memory symbol_) external view returns (Fiats.Fiat memory) { return fiats.get(symbol_); }
-    function getFiats() external view returns (Fiats.Fiat[] memory) { return fiats.list(); }
+    function getFiats() external view returns (bytes32[] memory) { return fiats.list(); }
     function method(string memory symbol_) external view returns (Methods.Method memory) { return methods.get(symbol_); }
     function getMethods() public view returns (Methods.Method[] memory) { return methods.list(); }
 
