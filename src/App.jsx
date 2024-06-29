@@ -7,13 +7,13 @@ const {Header, Content} = Layout;
 export default function App() {
     const top = [
         {
-            key: 'buy',
-            label: (<Link to={"/trade/buy"}>Buy</Link>)
+            key: 'trade',
+            label: (<Link to={"/trade/"}>Trade</Link>),
         },
         {
-            key: 'sell',
-            label: (<Link to={"/trade/sell"}>Sell</Link>),
-        }
+            key: 'create-offer',
+            label: (<Link to={"/trade/new"}>Add Offer</Link>),
+        },
     ];
 
     return (
@@ -24,6 +24,7 @@ export default function App() {
                         mode={"horizontal"}
                         theme={"dark"}
                         items={top}
+                        defaultSelectedKeys={['trade']}
                     >
                     </Menu>
                 </Header>
