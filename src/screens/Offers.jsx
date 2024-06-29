@@ -14,7 +14,7 @@ export default function Offers() {
     return (
         <React.Suspense fallback={<Skeleton active />}>
             <Await resolve={data}>
-                {({offers, price, tokens, fiats, methods}) => (
+                {({offers, price}) => (
                 <List
                     className={"offers-list"}
                     itemLayout={"horizontal"}
@@ -33,7 +33,7 @@ export default function Offers() {
                                     draggable={false}
                                 />}
                                 title={offer.method}
-                                description={offer.price + ' ' + fiats[offer.fiat].symbol}
+                                description={offer.price + ' ' + offer.fiat}
                             />
                             {expandedOffer === offer.id && (
                                 <Form>
