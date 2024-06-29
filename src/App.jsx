@@ -1,7 +1,7 @@
 import React, { createContext, useContext } from 'react'
 import ReactDOM from 'react-dom/client'
-import {Link, Outlet, useLoaderData, useLocation, useParams} from "react-router-dom";
-import {Layout, Menu, Skeleton} from "antd";
+import {Link, Outlet, useLoaderData, useLocation, useNavigate, useParams} from "react-router-dom";
+import {Layout, Menu, Select, Skeleton} from "antd";
 const {Header, Content} = Layout;
 
 export default function App() {
@@ -13,7 +13,9 @@ export default function App() {
         method = 'ANY'
     } = useParams();
 
-    const location = useLocation();
+    const navigate = useNavigate();
+
+    // TODO sort top 10 fiats and then otherss
 
     const top = [
         {
@@ -29,7 +31,7 @@ export default function App() {
     function constructUrl(token) {
         let url = "/trade";
         if (side) url += `/${side}`;
-        if (token) url += `/${token}`;
+        url += `/${token}`;
         if (fiat) url += `/${fiat}`;
         if (method && method !== 'ANY') url += `/${method}`;
         return url;
@@ -48,6 +50,22 @@ export default function App() {
         }
     });
 
+    const fiatSelect = Object.keys(fiats).map(fiat => {
+        return {
+            value: fiat,
+            label: fiat,
+        }
+    });
+
+    function handleFiatChange(fiat) {
+        // Construct the new URL
+        let url = "/trade";
+        if (side) url += `/${side}`;
+        if (token) url += `/${token}`;
+        url += `/${fiat}`;
+        if (method && method !== 'ANY') url += `/${method}`;
+        navigate(url);
+    }
 
     return (
         <>
@@ -60,19 +78,30 @@ export default function App() {
                         defaultSelectedKeys={['sell']}
                     >
                     </Menu>
+
                 </Header>
                 <Content>
                     <Menu
                         mode={"horizontal"}
                         items={tokensMenu}
-                        defaultSelectedKeys={['USDT']}
+                        defaultSelectedKeys={[token]}
                     >
                     </Menu>
-                    <Menu
-                        mode={"horizontal"}
-                        items={fiatsMenu}
-                    >
-                    </Menu>
+                    <Select
+                        showSearch
+                        style={{
+                            width: 200,
+                        }}
+                        placeholder="Search to Select"
+                        optionFilterProp="label"
+                        filterSort={(optionA, optionB) =>
+                            (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+                        }
+                        options={fiatSelect}
+                        defaultValue={'USD'}
+                        onChange={handleFiatChange}
+                    />
+
                     {/*<Skeleton active={true}></Skeleton>*/}
                     <Outlet/>
                 </Content>
