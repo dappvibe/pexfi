@@ -268,7 +268,7 @@ describe('Browser fetches offers', function() {
     });
 
     it('get BUY WETH for EUR with any method', async function() {
-        const offers = await Market.getOffers(true, 'WETH', 'EUR', '');
+        const offers = await Market.getOffers(true, 'WETH', 'EUR', 'ANY');
         expect(offers).to.have.length(1);
     });
 });
