@@ -4,12 +4,10 @@ async function main() {
     const signers = await ethers.getSigners();
 
     const contracts = require('../deployments/chain-31337/deployed_addresses.json');
-    const contract = await ethers.getContractAt(
+    let contract = await ethers.getContractAt(
         'Market',
         contracts['Market#ERC1967Proxy']
     );
-
-    await contract.connect(signers[1]);
 
     try {
         const tokens = ['WBTC', 'WETH', 'USDT'];
@@ -19,6 +17,7 @@ async function main() {
             fiats.forEach(fiat => {
                 let min = 0;
                 for (let i = 0; i < 10; i++){
+                    contract = contract.connect(signers[Math.floor(Math.random() * signers.length)]);
                     contract.createOffer([true, token, fiat, 'Zelle', 10000 + Math.floor(Math.random() * 500), min = Math.floor(Math.random() * 1000) + 100, min + 100, '']);
                     contract.createOffer([false, token, fiat, 'Zelle', 10000 + Math.floor(Math.random() * 500), min = Math.floor(Math.random() * 1000) + 100, min + 100, '']);
                 }
