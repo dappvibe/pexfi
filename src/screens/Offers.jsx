@@ -18,7 +18,7 @@ export default function Offers() {
             dataSource={offers}
             renderItem={offer => (
                 <List.Item
-                    actions={[<div>{offer.price + ' ' + fiats[offer.fiat].symbol}</div>]}
+                    actions={[offer.min + ' - ' + offer.max + ' ' + offer.fiat]}
                     extra={[
                         <Button onClick={() => expandOffer(offer.id)}>{offer.isSell ? 'Sell' : 'Buy'}</Button>
                     ]}
@@ -29,7 +29,7 @@ export default function Offers() {
                             draggable={false}
                         />}
                         title={offer.method}
-                        description={offer.min + ' - ' + offer.max + ' ' + offer.fiat}
+                        description={offer.price + ' ' + fiats[offer.fiat].symbol}
                     />
                     {expandedOffer === offer.id && (
                         <Form>
