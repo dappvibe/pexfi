@@ -1,55 +1,54 @@
 import {Inventory, Market} from './contracts.js'
 
+let cache = null;
 export async function inventory() {
-    const [tokens, fiats, methods] = await Promise.all([
-        Inventory.getTokens().then((res) => {
-            let out = {};
-            res.map(token => {
-                out[token[1]] =  {
-                    address: token[0],
-                    symbol: token[1],
-                    name: token[2],
-                    decimals: Number(token[3]),
-                }
-            });
-            return out;
-        }),
+    // TODO save values to local storage here with expiry time
+    let tokens, fiats, methods;
+    if (!cache) {
+        [tokens, fiats, methods] = await Promise.all([
+            Inventory.getTokens().then((res) => {
+                let out = {};
+                res.map(token => {
+                    out[token[1]] =  {
+                        address: token[0],
+                        symbol: token[1],
+                        name: token[2],
+                        decimals: Number(token[3]),
+                    }
+                });
+                return out;
+            }),
 
-        Inventory.getFiats().then((res) => {
-            let out = {};
-            res.map(fiat => {
-                out[fiat[0]] = {
-                    symbol: fiat[0],
-                }
-            });
-            return out;
-        }),
+            Inventory.getFiats().then((res) => {
+                let out = {};
+                res.map(fiat => {
+                    out[fiat[0]] = {
+                        symbol: fiat[0],
+                    }
+                });
+                return out;
+            }),
 
-        await Inventory.getMethods().then(res => {
-            let out = {};
-            res.map(method => {
-                out[method[0]] = {
-                    name: method[0],
-                    group: Number(method[1]),
-                }
-            });
-            return out;
-        })
-    ]);
-
+            await Inventory.getMethods().then(res => {
+                let out = {};
+                res.map(method => {
+                    out[method[0]] = {
+                        name: method[0],
+                        group: Number(method[1]),
+                    }
+                });
+                return out;
+            })
+        ]);
+        cache = { tokens, fiats, methods };
+    } else {
+        ({ tokens, fiats, methods } = cache);
+    }
     return { tokens, fiats, methods };
 }
 
-let inventoryCache = null;
-
 export async function offersLoader(request) {
-    let tokens, fiats, methods;
-    if (!inventoryCache) {
-        ({ tokens, fiats, methods } = await inventory());
-        inventoryCache = { tokens, fiats, methods };
-    } else {
-        ({ tokens, fiats, methods } = inventoryCache);
-    }
+    let { tokens, fiats, methods } = await inventory();
 
     const params = request.params;
     const token = tokens[params['token']] || tokens['WBTC'];
