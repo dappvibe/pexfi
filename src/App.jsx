@@ -1,7 +1,7 @@
 import React, { createContext, useContext } from 'react'
 import ReactDOM from 'react-dom/client'
 import {Link, Outlet, useLoaderData, useLocation, useNavigate, useParams} from "react-router-dom";
-import {Layout, Menu, Select, Skeleton} from "antd";
+import {Form, Input, Layout, Menu, Select, Skeleton} from "antd";
 const {Header, Content} = Layout;
 
 export default function App() {
@@ -18,6 +18,7 @@ export default function App() {
     // TODO sort top 10 fiats and then otherss
 
     const top = [
+        // TODO keep selected params in the URL
         {
             key: 'sell',
             label: (<Link to={"/trade/sell"}>Sell</Link>),
@@ -43,17 +44,16 @@ export default function App() {
         }
     });
 
-    const fiatsMenu = Object.keys(fiats).map(fiat => {
-        return {
-            key: fiat,
-            label: fiat,
-        }
-    });
-
     const fiatSelect = Object.keys(fiats).map(fiat => {
         return {
             value: fiat,
             label: fiat,
+        }
+    });
+    const methodSelect = Object.keys(methods).map(methoda => {
+        return {
+            value: methoda,
+            label: methoda,
         }
     });
 
@@ -64,6 +64,16 @@ export default function App() {
         if (token) url += `/${token}`;
         url += `/${fiat}`;
         if (method && method !== 'ANY') url += `/${method}`;
+        navigate(url);
+    }
+
+    function handleMethodChange(methodb) {
+        // Construct the new URL
+        let url = "/trade";
+        url += `/${side}`;
+        url += `/${token}`;
+        url += `/${fiat}`;
+        url += `/${methodb}`;
         navigate(url);
     }
 
@@ -87,19 +97,27 @@ export default function App() {
                         defaultSelectedKeys={[token]}
                     >
                     </Menu>
+                    <Input placeholder={"Amount"}></Input>
                     <Select
                         showSearch
-                        style={{
-                            width: 200,
-                        }}
                         placeholder="Search to Select"
                         optionFilterProp="label"
                         filterSort={(optionA, optionB) =>
                             (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
                         }
                         options={fiatSelect}
-                        defaultValue={'USD'}
+                        defaultValue={fiat}
                         onChange={handleFiatChange}
+                    />
+                    <Select
+                        showSearch
+                        style={{
+                            width: 200,
+                        }}
+                        placeholder="Payment method"
+                        optionFilterProp="label"
+                        options={methodSelect}
+                        onChange={handleMethodChange}
                     />
 
                     {/*<Skeleton active={true}></Skeleton>*/}
