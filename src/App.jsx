@@ -5,13 +5,26 @@ import {Layout, Menu} from "antd";
 const {Header, Content} = Layout;
 
 export default function App() {
+    const top = [
+        {
+            key: 'buy',
+            label: (<Link to={"/trade/buy"}>Buy</Link>)
+        },
+        {
+            key: 'sell',
+            label: (<Link to={"/trade/sell"}>Sell</Link>),
+        }
+    ];
+
     return (
         <>
             <Layout>
-                <Header style={{display: 'flex'}}>
-                    <Menu mode={"horizontal"} theme={"dark"}>
-                        <Menu.Item key={"trade-sell"}><Link to={"/trade/sell"}>Sell</Link></Menu.Item>
-                        <Menu.Item key={"trade-buy"}><Link to={"/trade/buy"}>Buy</Link></Menu.Item>
+                <Header>
+                    <Menu
+                        mode={"horizontal"}
+                        theme={"dark"}
+                        items={top}
+                    >
                     </Menu>
                 </Header>
                 <Content>
