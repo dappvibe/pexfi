@@ -168,9 +168,10 @@ describe('Browser builds UI', function ()
 
     it ('get fiats', async function() {
         fiats = await Inventory.getFiats();
+        fiats = fiats.map(ethers.decodeBytes32String);
         expect(fiats).to.have.length(2);
-        expect(fiats[0][0]).to.eq('THB');
-        expect(fiats[1][0]).to.eq('EUR');
+        expect(fiats[0]).to.eq('THB');
+        expect(fiats[1]).to.eq('EUR');
     });
 
     it ('get methods', async function() {
