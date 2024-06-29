@@ -1,23 +1,23 @@
-import React, {createContext, useContext, useState} from 'react'
+import React, {createContext, Suspense, useContext, useState} from 'react'
 import ReactDOM from 'react-dom/client'
-import {Link, Outlet, useLoaderData, useLocation, useNavigate, useParams} from "react-router-dom";
+import {Await, Link, Outlet, useLoaderData, useLocation, useNavigate, useParams} from "react-router-dom";
 import {Button, Flex, Form, Input, Layout, Menu, Select, Skeleton, Dropdown, Tooltip, Space, message} from "antd";
 import { DownOutlined, UserOutlined } from '@ant-design/icons';
 import { Col, Row } from 'antd';
 import {useSDK} from "@metamask/sdk-react";
+import Inventory from "./components/Inventory.jsx";
 const {Header, Content, Sider} = Layout;
 
 export default function App() {
     const { sdk, connected, connecting, provider, chainId } = useSDK();
     const [account, setAccount] = useState();
-    const { tokens, fiats, methods } = useLoaderData();
+    const { inventory } = useLoaderData();
     let {
         side = 'sell',
         token = 'WBTC',
         fiat = 'USD',
         method = 'ANY'
     } = useParams();
-    const navigate = useNavigate();
 
     const connect = async () => {
         try {
@@ -44,8 +44,6 @@ export default function App() {
         items,
     };
 
-    // TODO sort top 10 fiats and then otherss
-
     const top = [
         // TODO keep selected params in the URL
         {
@@ -57,54 +55,6 @@ export default function App() {
             label: (<Link to={"/trade/buy"}>Buy</Link>),
         },
     ];
-
-    function constructUrl(token) {
-        let url = "/trade";
-        if (side) url += `/${side}`;
-        url += `/${token}`;
-        if (fiat) url += `/${fiat}`;
-        if (method && method !== 'ANY') url += `/${method}`;
-        return url;
-    }
-    const tokensMenu = Object.keys(tokens).map(token => {
-        return {
-            key: token,
-            label: (<Link to={constructUrl(token)}>{tokens[token].symbol}</Link>),
-        }
-    });
-
-    const fiatSelect = Object.keys(fiats).map(fiat => {
-        return {
-            value: fiat,
-            label: fiat,
-        }
-    });
-    const methodSelect = Object.keys(methods).map(methoda => {
-        return {
-            value: methoda,
-            label: methoda,
-        }
-    });
-
-    function handleFiatChange(fiat) {
-        // Construct the new URL
-        let url = "/trade";
-        if (side) url += `/${side}`;
-        if (token) url += `/${token}`;
-        url += `/${fiat}`;
-        if (method && method !== 'ANY') url += `/${method}`;
-        navigate(url);
-    }
-
-    function handleMethodChange(methodb) {
-        // Construct the new URL
-        let url = "/trade";
-        url += `/${side}`;
-        url += `/${token}`;
-        url += `/${fiat}`;
-        url += `/${methodb}`;
-        navigate(url);
-    }
 
     function shortenAddress(address) {
         if (!address) return 'Unknown';
@@ -140,35 +90,11 @@ export default function App() {
                     </Layout>
                 </Header>
                 <Content>
-                    <Menu
-                        mode={"horizontal"}
-                        items={tokensMenu}
-                        defaultSelectedKeys={[token]}
-                    />
-                    <Input placeholder={"Amount"}></Input>
-                    <Select
-                        showSearch
-                        placeholder="Search to Select"
-                        optionFilterProp="label"
-                        filterSort={(optionA, optionB) =>
-                            (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
-                        }
-                        options={fiatSelect}
-                        defaultValue={fiat}
-                        onChange={handleFiatChange}
-                    />
-                    <Select
-                        showSearch
-                        style={{
-                            width: 200,
-                        }}
-                        placeholder="Payment method"
-                        optionFilterProp="label"
-                        options={methodSelect}
-                        onChange={handleMethodChange}
-                    />
-
-                    {/*<Skeleton active={true}></Skeleton>*/}
+                    <Suspense fallback={<Skeleton paragraph={false} active />}>
+                        <Await resolve={inventory}>
+                            {(inventory) => (<Inventory data={inventory}/>)}
+                        </Await>
+                    </Suspense>
                     <Outlet/>
                 </Content>
             </Layout>
