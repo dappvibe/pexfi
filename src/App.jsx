@@ -1,10 +1,15 @@
-import React, { createContext, useContext } from 'react'
+import React, {createContext, useContext, useState} from 'react'
 import ReactDOM from 'react-dom/client'
 import {Link, Outlet, useLoaderData, useLocation, useNavigate, useParams} from "react-router-dom";
-import {Form, Input, Layout, Menu, Select, Skeleton} from "antd";
-const {Header, Content} = Layout;
+import {Button, Flex, Form, Input, Layout, Menu, Select, Skeleton, Dropdown, Tooltip, Space, message} from "antd";
+import { DownOutlined, UserOutlined } from '@ant-design/icons';
+import { Col, Row } from 'antd';
+import {useSDK} from "@metamask/sdk-react";
+const {Header, Content, Sider} = Layout;
 
 export default function App() {
+    const { sdk, connected, connecting, provider, chainId } = useSDK();
+    const [account, setAccount] = useState();
     const { tokens, fiats, methods } = useLoaderData();
     let {
         side = 'sell',
@@ -12,8 +17,32 @@ export default function App() {
         fiat = 'USD',
         method = 'ANY'
     } = useParams();
-
     const navigate = useNavigate();
+
+    const connect = async () => {
+        try {
+            const accounts = await sdk?.connect();
+            setAccount(accounts?.[0]);
+            message.info('Welcome');
+        } catch (err) {
+            console.warn("failed to connect..", err);
+        }
+    };
+    const disconnect = async () => {
+        await sdk?.terminate();
+        message.info('Bye');
+    };
+
+    const items = [
+        {
+            label: 'Disconnect',
+            key: 'disconnect',
+            onClick: disconnect,
+        }
+    ];
+    const accMenu = {
+        items,
+    };
 
     // TODO sort top 10 fiats and then otherss
 
@@ -77,26 +106,45 @@ export default function App() {
         navigate(url);
     }
 
+    function shortenAddress(address) {
+        if (!address) return 'Unknown';
+        return address.slice(0, 7) + '..' + address.slice(-5);
+    }
+
     return (
         <>
             <Layout>
                 <Header>
-                    <Menu
-                        mode={"horizontal"}
-                        theme={"dark"}
-                        items={top}
-                        defaultSelectedKeys={['sell']}
-                    >
-                    </Menu>
-
+                    <Layout>
+                        <Content>
+                            <Menu
+                                mode={"horizontal"}
+                                theme={"dark"}
+                                items={top}
+                                defaultSelectedKeys={['sell']}
+                            />
+                        </Content>
+                        <Sider align={"end"}>
+                            {!connected && (
+                                <Button onClick={connect}>Connect</Button>
+                            )}
+                            {connected && (
+                                <Dropdown menu={accMenu}>
+                                    <Button>
+                                        {shortenAddress(account)}
+                                        <DownOutlined />
+                                    </Button>
+                                </Dropdown>
+                            )}
+                        </Sider>
+                    </Layout>
                 </Header>
                 <Content>
                     <Menu
                         mode={"horizontal"}
                         items={tokensMenu}
                         defaultSelectedKeys={[token]}
-                    >
-                    </Menu>
+                    />
                     <Input placeholder={"Amount"}></Input>
                     <Select
                         showSearch
