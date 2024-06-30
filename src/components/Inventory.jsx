@@ -71,28 +71,34 @@ export default function Inventory(args)
             items={tokensMenu}
             defaultSelectedKeys={[token]}
         />
-        <Input placeholder={"Amount"}></Input>
-        <Select
-            showSearch
-            placeholder="Search to Select"
-            optionFilterProp="label"
-            filterSort={(optionA, optionB) =>
-                (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
-            }
-            options={fiatSelect}
-            defaultValue={fiat}
-            onChange={handleFiatChange}
-        />
-        <Select
-            showSearch
-            style={{
-                width: 200,
-            }}
-            placeholder="Payment method"
-            optionFilterProp="label"
-            options={methodSelect}
-            onChange={handleMethodChange}
-        />
+        <Flex gap={"middle"} style={{padding: 10}}>
+            <Input placeholder={"Amount"}
+                   style={{ maxWidth: 200 }}
+                   addonAfter={(
+                       <Select
+                           showSearch
+                           placeholder="Search to Select"
+                           optionFilterProp="label"
+                           filterSort={(optionA, optionB) =>
+                               (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+                           }
+                           options={fiatSelect}
+                           defaultValue={fiat}
+                           onChange={handleFiatChange}
+                       />
+                   )}
+            />
+            <Select
+                showSearch
+                style={{
+                    width: 200,
+                }}
+                placeholder="Payment method"
+                optionFilterProp="label"
+                options={methodSelect}
+                onChange={handleMethodChange}
+            />
+        </Flex>
         </>
     )
 }
