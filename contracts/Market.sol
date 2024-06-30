@@ -47,6 +47,9 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     returns (Offers.Offer[] memory) {
         return offers.list(isSell_, token_, fiat_, method_);
     }
+    function getOffer(uint id_) external view returns (Offers.Offer memory) {
+        return offers.all[id_];
+    }
 
     struct CreateOfferParams {
         bool isSell;
