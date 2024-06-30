@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "build": "npx hardhat compile",
+    "deploy": "npx hardhat ignition deploy --network localhost --verify",
     "test": "npx hardhat --show-stack-traces test",
     "test-sepolia": "npx hardhat --config hardhat.sepolia.js test"
   },
