@@ -80,7 +80,7 @@ module.exports = buildModule("Market", (m) =>
         m.encodeFunctionCall(market, 'initialize', [RepToken, Inventory])
     ]);
 
-    m.call(RepToken, 'grantRole', [hre.ethers.encodeBytes32String('MARKET_ROLE'), market]);
+    m.call(RepToken, 'grantRole', [hre.ethers.encodeBytes32String('MARKET_ROLE'), market]); // FIXME proxy??
 
     return { market };
 });
