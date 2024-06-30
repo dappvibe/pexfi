@@ -22,8 +22,9 @@ export default function App() {
     return (
     <>
     <Layout>
-        <Header>
+        <Header style={{paddingLeft: 0}}>
             <Layout>
+                <Flex style={{padding: '0 10px'}}><Link to={"/"}>Fiat D.app</Link></Flex>
                 <Content>
                     <Menu
                         mode={"horizontal"}
