@@ -1,5 +1,5 @@
 import {Await, Link, useAsyncValue, useLoaderData} from "react-router-dom";
-import {Avatar, Button, Form, Input, List, Skeleton} from "antd";
+import {Avatar, Button, Form, Input, List, Select, Skeleton, Space} from "antd";
 import React, {useState} from "react";
 
 export default function Offers() {
@@ -9,6 +9,21 @@ export default function Offers() {
 
     function expandOffer(offerId) {
         setExpandedOffer(offerId);
+    }
+
+    function title(offer) {
+        let formatter = new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: offer.fiat,
+            minimumFractionDigits: 3,
+            maximumFractionDigits: 3,
+        });
+
+        return [
+            formatter.format(offer.price),
+            offer.method,
+            `[${offer.min} - ${offer.max}]`,
+        ].join(' / ');
     }
 
     return (
@@ -22,9 +37,25 @@ export default function Offers() {
                     dataSource={offers}
                     renderItem={offer => (
                         <List.Item
-                            actions={[offer.min + ' - ' + offer.max + ' ' + offer.fiat]}
-                            extra={[
-                                <Button onClick={() => expandOffer(offer.id)}>{offer.isSell ? 'Sell' : 'Buy'}</Button>
+                            actions={[
+                                expandedOffer === offer.id && (
+                                    <>
+                                        <Space.Compact>
+                                            <Select defaultValue={offer.fiat}>
+                                                <Select.Option value="fiat">{offer.fiat}</Select.Option>
+                                                <Select.Option value="token">{offer.token}</Select.Option>
+                                            </Select>
+                                            <Input style={{maxWidth: 80}} placeholder={"Amount"}/>
+                                            <Button>
+                                                {offer.isSell ? 'Sell' : 'Buy'}
+                                            </Button>
+                                        </Space.Compact>
+                                    </>
+                                ) || (
+                                    <Button key={offer.id} onClick={() => expandOffer(offer.id)}>
+                                        {offer.isSell ? 'Sell' : 'Buy'}
+                                    </Button>
+                                )
                             ]}
                         >
                             <List.Item.Meta
@@ -32,22 +63,12 @@ export default function Offers() {
                                     src={'https://effigy.im/a/'+offer.owner+'.svg'}
                                     draggable={false}
                                 />}
-                                title={offer.method}
-                                description={offer.price + ' ' + offer.fiat}
+                                title={title(offer)}
+                                description={"lorem ipsum dolor sit amet"}
                             />
-                            {expandedOffer === offer.id && (
-                                <Form>
-                                    <Form.Item name="name" label="Crypto">
-                                        <Input />
-                                    </Form.Item>
-                                    <Form.Item name="name" label="Fiat">
-                                        <Input />
-                                    </Form.Item>
-                                    <Button>Go</Button>
-                                </Form>
-                            )}
                         </List.Item>
-                    )}
+                        )
+                    }
                 >
                 </List>
                 )}
