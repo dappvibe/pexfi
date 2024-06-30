@@ -222,6 +222,10 @@ describe('Users post offers', function()
         });
     });
 
+    describe('Get an offer', async function() {
+        await expect(Market.getOffer(offers[0][0])).to.eventually.have.length(9);
+    });
+
     describe('invalid input', async function() {
         function params(replace = {}) {
             return {
