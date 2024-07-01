@@ -126,6 +126,7 @@ export async function dealLoader(request) {
                 allowCancelUnacceptedAfter: Number(allowCancelUnacceptedAfter)
             };
         }).then(deal => {
+            deal.contract = dealContract;
             const token = new ethers.Contract(
                 deal.token,
                 ['function decimals() view returns (int8)'],
