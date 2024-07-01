@@ -6,7 +6,9 @@ import {createBrowserRouter, Link, Outlet, RouterProvider} from "react-router-do
 import './main.css'
 import Offers from "./screens/Offers.jsx";
 import App from "./App.jsx";
-import {inventory, offersLoader} from "./js/loaders.js";
+import {inventory, offerLoader, offersLoader} from "./js/loaders.js";
+import Offer from "./views/Offer.jsx";
+
 
 const router = createBrowserRouter([
     {
@@ -18,7 +20,12 @@ const router = createBrowserRouter([
                 path: "/trade/:side?/:token?/:fiat?/:method?",
                 element: <Offers />,
                 loader: offersLoader
-            }
+            },
+            {
+                path: "/trade/:side/:token/:fiat/:method/:offerId",
+                element: <Offer />,
+                loader: offerLoader
+            },
         ]
     },
 ]);
