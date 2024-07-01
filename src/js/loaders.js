@@ -72,7 +72,19 @@ export async function offersLoader(request) {
     });
 }
 
-function hydrateOffer(offer, price) {
+export async function offerLoader(request) {
+    const params = request.params;
+    const offerId = params['offerId'];
+    return defer({ data: Promise.all([
+        Market.getOffer(offerId),
+        Inventory.getPrice(params['token'], params['fiat'])
+    ]).then(([offer, price]) => {
+        price = Number(price / 10000n) / 100;
+        return hydrateOffer(offer, price);
+    })});
+}
+
+export function hydrateOffer(offer, price) {
     let rate = Number(offer[6]) / 10**4;
     return {
         id: Number(offer[0]),

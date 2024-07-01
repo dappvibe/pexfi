@@ -1,14 +1,38 @@
-import {Await, Link, useAsyncValue, useLoaderData} from "react-router-dom";
-import {Avatar, Button, Form, Input, List, Select, Skeleton, Space} from "antd";
+import {Await, generatePath, Link, useAsyncValue, useLoaderData} from "react-router-dom";
+import {Avatar, Button, Descriptions, Form, Input, List, Modal, Select, Skeleton, Space, Tag} from "antd";
 import React, {useState} from "react";
+import {Market} from "../js/contracts.js";
+import {hydrateOffer} from "../js/loaders.js"
 
 export default function Offers() {
-    const [expandedOffer, setExpandedOffer] = useState(null);
+    const [confirmLoading, setConfirmLoading] = useState(false);
+    const [modalOffer, setModalOffer] = useState(null);
+    const [modalOpen, setModalOpen] = useState(false);
 
     const { data } = useLoaderData();
 
-    function expandOffer(offerId) {
-        setExpandedOffer(offerId);
+    const modal = {
+        open: function (offerId, marketPrice) {
+            setModalOpen(true);
+            Market.getOffer(offerId).then(offer => {
+                console.log(offer);
+                return hydrateOffer(offer, marketPrice);
+            });
+        },
+
+        cancel: () => {
+            setModalOpen(false);
+            setModalOffer(null);
+        },
+
+        ok: () => {
+            setModalOffer('The modal will be closed after two seconds');
+            setConfirmLoading(true);
+            setTimeout(() => {
+                setFormOpen(false);
+                setConfirmLoading(false);
+            }, 2000);
+        }
     }
 
     function title(offer) {
@@ -18,12 +42,7 @@ export default function Offers() {
             minimumFractionDigits: 3,
             maximumFractionDigits: 3,
         });
-
-        return [
-            formatter.format(offer.price),
-            offer.method,
-            `[${offer.min} - ${offer.max}]`,
-        ].join(' / ');
+        return formatter.format(offer.price);
     }
 
     return (
@@ -32,46 +51,34 @@ export default function Offers() {
                 {({offers, price}) => (
                 <List
                     className={"offers-list"}
-                    itemLayout={"horizontal"}
+                    itemLayout={"vertical"}
                     bordered={true}
                     dataSource={offers}
                     renderItem={offer => (
                         <List.Item
-                            actions={[
-                                expandedOffer === offer.id && (
-                                    <>
-                                        <Space.Compact>
-                                            <Select defaultValue={offer.fiat}>
-                                                <Select.Option value="fiat">{offer.fiat}</Select.Option>
-                                                <Select.Option value="token">{offer.token}</Select.Option>
-                                            </Select>
-                                            <Input style={{maxWidth: 80}} placeholder={"Amount"}/>
-                                            <Button>
-                                                {offer.isSell ? 'Sell' : 'Buy'}
-                                            </Button>
-                                        </Space.Compact>
-                                    </>
-                                ) || (
-                                    <Button key={offer.id} onClick={() => expandOffer(offer.id)}>
-                                        {offer.isSell ? 'Sell' : 'Buy'}
-                                    </Button>
-                                )
-                            ]}
+                            /*extra={[
+                                <Button key={offer.id} onClick={() => modal.open(offer.id, price)}>
+                                    {offer.isSell ? 'Sell' : 'Buy'}
+                                </Button>
+                            ]}*/
                         >
                             <List.Item.Meta
                                 avatar={<Avatar
                                     src={'https://effigy.im/a/'+offer.owner+'.svg'}
                                     draggable={false}
                                 />}
-                                title={title(offer)}
-                                description={"lorem ipsum dolor sit amet"}
+                                title={<Link to={`/trade/sell/${offer.token}/${offer.fiat}/${offer.method}/${offer.id}`}>
+                                    <div>{title(offer)}</div>
+                                </Link>}
+                                description={<><Tag>{offer.method}</Tag>Limits: {offer.min} - {offer.max}</>}
                             />
+                            {"lorem ipsum dolor sit amet"}
                         </List.Item>
-                        )
-                    }
+                    )}
                 >
                 </List>
-                )}
-            </Await></React.Suspense>
+            )}
+            </Await>
+        </React.Suspense>
     );
 }
