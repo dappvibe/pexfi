@@ -1,6 +1,9 @@
 import {Inventory, Market} from './contracts.js'
 import {defer} from "react-router-dom";
 
+import { abi as DealAbi} from '../../contracts/artifacts/Deal.json';
+import {ethers} from "ethers";
+
 let cache = null;
 export function inventory() {
     if (!cache) {
@@ -82,6 +85,28 @@ export async function offerLoader(request) {
         price = Number(price / 10000n) / 100;
         return hydrateOffer(offer, price);
     })});
+}
+
+export async function dealLoader(request) {
+    const params = request.params;
+    const dealId = params['dealId'];
+    const deal = new ethers.Contract(dealId, DealAbi, new ethers.BrowserProvider(window.ethereum));
+    return defer({
+        contract: deal,
+        deal: Promise.all([
+            deal.offerId(),
+            deal.buyer(),
+            deal.seller(),
+            deal.mediator(),
+            deal.token(),
+            deal.tokenAmount(),
+            deal.fiatAmount(),
+            deal.state(),
+            deal.paymentInstructions(),
+            deal.acceptance(),
+            deal.allowCancelUnacceptedAfter()
+        ])
+    });
 }
 
 export function hydrateOffer(offer, price) {
