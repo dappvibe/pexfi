@@ -90,41 +90,53 @@ export async function offerLoader(request) {
 export async function dealLoader(request) {
     const params = request.params;
     const dealId = params['dealId'];
-    const deal = new ethers.Contract(
+    const dealContract = new ethers.Contract(
         dealId,
         DealAbi,
         new ethers.BrowserProvider(window.ethereum)
     );
     return defer({
-        contract: deal,
+        contract: dealContract,
         deal: Promise.all([
-            deal.offerId(),
-            deal.buyer(),
-            deal.seller(),
-            deal.mediator(),
-            deal.token(),
-            deal.tokenAmount(),
-            deal.fiatAmount(),
-            deal.state(),
-            deal.paymentInstructions(),
-            deal.acceptance(),
-            deal.allowCancelUnacceptedAfter()
-        ]).then(([offerId, buyer, seller, mediator, token, tokenAmount, fiatAmount, state, paymentInstructions, acceptance, allowCancelUnacceptedAfter]) => {
+            dealContract.offerId().then(id => {
+                return Market.getOffer(id).then(offer => {
+                    return hydrateOffer(offer, 0); // FIXME correct price
+                });
+            }),
+            dealContract.buyer(),
+            dealContract.seller(),
+            dealContract.mediator(),
+            dealContract.token(),
+            dealContract.tokenAmount(),
+            dealContract.fiatAmount(),
+            dealContract.state(),
+            dealContract.paymentInstructions(),
+            dealContract.allowCancelUnacceptedAfter()
+        ]).then(([offer, buyer, seller, mediator, token, tokenAmount, fiatAmount, state, paymentInstructions, allowCancelUnacceptedAfter]) => {
             return {
-                offerId: offerId,
+                offer: offer,
                 buyer: buyer,
                 seller: seller,
                 mediator: mediator,
                 token: token,
-                tokenAmount: tokenAmount,
-                fiatAmount: fiatAmount,
+                tokenAmount: Number(tokenAmount),
+                fiatAmount: Number(fiatAmount) / 10**6,
                 state: Number(state),
                 paymentInstructions: paymentInstructions,
-                acceptance: acceptance,
-                allowCancelUnacceptedAfter: allowCancelUnacceptedAfter
+                allowCancelUnacceptedAfter: Number(allowCancelUnacceptedAfter)
             };
+        }).then(deal => {
+            const token = new ethers.Contract(
+                deal.token,
+                ['function decimals() view returns (int8)'],
+                dealContract.runner
+            );
+            return token.decimals().then(decimals => {
+                deal.tokenAmount = deal.tokenAmount / 10**Number(decimals);
+                return deal;
+            });
         }),
-        logs: deal.queryFilter('Message')
+        logs: dealContract.queryFilter('Message'),
     });
 }
 
