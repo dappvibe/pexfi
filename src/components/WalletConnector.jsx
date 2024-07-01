@@ -1,11 +1,43 @@
 import {useSDK} from "@metamask/sdk-react";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Button, Dropdown, message} from "antd";
 import {DownOutlined} from "@ant-design/icons";
 
 export default function WalletConnector() {
     const { sdk, connected, connecting, provider, chainId } = useSDK();
     const [account, setAccount] = useState();
+    const [wallet, setWallet] = useState({ accounts: [] })
+
+    useEffect(() => {
+        const refreshAccounts = (accounts) => {
+            if (accounts.length > 0) {
+                setWallet({ accounts });
+            } else {
+                // if length 0, user is disconnected
+                setWallet({ accounts: [] })
+            }
+        }
+
+        const getProvider = async () => {
+            const accounts = await window.ethereum.request(
+                { method: 'eth_accounts' }
+            )
+            refreshAccounts(accounts)
+            window.ethereum.on('accountsChanged', refreshAccounts)
+        }
+
+        getProvider()
+        return () => {
+            window.ethereum?.removeListener('accountsChanged', refreshAccounts)
+        }
+    }, [])
+
+    const handleConnect = async () => {
+        let accounts = await window.ethereum.request({
+            method: "eth_requestAccounts",
+        })
+        setWallet({ accounts });
+    }
 
     const connect = async () => {
         try {
@@ -40,12 +72,12 @@ export default function WalletConnector() {
     return (
         <>
         {!connected && (
-            <Button onClick={connect}>Connect</Button>
+            <Button onClick={handleConnect}>Connect</Button>
         )}
         {connected && (
             <Dropdown menu={accMenu}>
                 <Button>
-                    {shortenAddress(account)}
+                    {shortenAddress(wallet.accounts[0])}
                     <DownOutlined />
                 </Button>
             </Dropdown>
