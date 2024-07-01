@@ -90,7 +90,11 @@ export async function offerLoader(request) {
 export async function dealLoader(request) {
     const params = request.params;
     const dealId = params['dealId'];
-    const deal = new ethers.Contract(dealId, DealAbi, new ethers.BrowserProvider(window.ethereum));
+    const deal = new ethers.Contract(
+        dealId,
+        DealAbi,
+        new ethers.BrowserProvider(window.ethereum)
+    );
     return defer({
         contract: deal,
         deal: Promise.all([
@@ -105,7 +109,8 @@ export async function dealLoader(request) {
             deal.paymentInstructions(),
             deal.acceptance(),
             deal.allowCancelUnacceptedAfter()
-        ])
+        ]),
+        logs: deal.queryFilter('Message')
     });
 }
 
