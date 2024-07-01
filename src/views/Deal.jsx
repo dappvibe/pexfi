@@ -1,7 +1,8 @@
 import {Await, useLoaderData} from "react-router-dom";
-import {Button, Col, Descriptions, Form, Input, List, Row, Skeleton, Steps} from "antd";
+import {Button, Col, Descriptions, Form, Input, List, message, Row, Skeleton, Steps} from "antd";
 import React, {useEffect, useState} from "react";
 import {ethers} from "ethers";
+import {useSDK} from "@metamask/sdk-react";
 
 function Progress(args) {
     const { deal } = args;
@@ -44,6 +45,11 @@ function Progress(args) {
         steps[3] = {status: 'finish', title: 'Released'};
     }
 
+    // TODO better that this
+    if (deal.state === 5) {
+        steps = [{status: 'finish', 'title': 'Cancelled'}];
+    }
+
     return (
         <Steps items={steps} />
     );
@@ -51,8 +57,6 @@ function Progress(args) {
 
 function Info(args) {
     const deal = args.deal;
-
-    console.log(deal)
 
     let key = 1;
     const items = [
@@ -71,7 +75,89 @@ function Info(args) {
     );
 }
 
+function Controls(args) {
+    const { sdk, connected, connecting, provider, chainId } = useSDK();
+    const [account, setAccount] = useState('');
+    const [paidLoading, setPaidLoading] = useState(false);
+    const [cancelLoading, setCancelLoading] = useState(false);
+    const [disputeLoading, setDisputeLoading] = useState(false);
+    const deal = args.deal;
+
+    useEffect(() => {
+        sdk.connect().then((accounts) => {
+            setAccount(accounts[0]);
+        })
+
+    }, []);
+
+    function paid() {
+        setPaidLoading(true);
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        provider.getSigner().then((signer) => {
+            deal.contract.connect(signer).paid().then((tx) => {
+                tx.wait().then((receipt) => {
+                    setPaidLoading(false);
+                    message.info('Paid');
+                });
+            }).catch(e => {
+                setPaidLoading(false);
+                console.error(deal.contract.interface.parseError(e.data));
+            });
+        });
+    }
+
+    function cancel() {
+        setCancelLoading(true);
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        provider.getSigner().then((signer) => {
+            deal.contract.connect(signer).cancel().then((tx) => {
+                tx.wait().then((receipt) => {
+                    setCancelLoading(false);
+                    message.info('Cancelled')
+                });
+            }).catch(e => {
+                setCancelLoading(false);
+                console.error(deal.contract.interface.parseError(e.data));
+            });
+        });
+    }
+
+    function dispute() {
+        setDisputeLoading(true);
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        provider.getSigner().then((signer) => {
+            deal.contract.connect(signer).dispute().then((tx) => {
+                tx.wait().then((receipt) => {
+                    setDisputeLoading(false);
+                    message.info('Disputeled')
+                });
+            }).catch(e => {
+                setDisputeLoading(false);
+                console.error(deal.contract.interface.parseError(e.data));
+            });
+        });
+    }
+
+    // for buyer
+    if (account.toLowerCase() === deal.buyer.toLowerCase()) {
+        return (<>
+        {deal.state === 3 && <Button type={"primary"} loading={paidLoading} onClick={paid}>Paid</Button>}
+        {deal.state <= 4  && <Button danger loading={cancelLoading} onClick={cancel}>Cancel</Button> }
+        {deal.state === 4  && <Button danger loading={disputeLoading} onClick={dispute}>Dispute</Button> }
+        </>);
+    }
+
+    // for seller
+    if (account.toLowerCase() === deal.seller.toLowerCase()) {
+        return (<>
+            {deal.state === 0  && <Button danger loading={cancelLoading} onClick={cancel}>Cancel</Button> }
+            {deal.state === 4  && <Button danger loading={disputeLoading} onClick={dispute}>Dispute</Button> }
+        </>);
+    }
+}
+
 export default function Deal() {
+    const { sdk, connected, connecting, provider, chainId } = useSDK();
     let { contract, deal, logs } = useLoaderData();
     const [messages, setMessages] = useState([]);
     const [form] = Form.useForm();
@@ -116,6 +202,7 @@ export default function Deal() {
                 <Await resolve={deal.offer}>
                     <Info deal={deal} />
                 </Await>
+                {connected && <Controls deal={deal}/>}
             </Col>
             <Col span={8}>
             <List size="small" bordered dataSource={messages} renderItem={(msg) => (
