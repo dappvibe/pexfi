@@ -1,5 +1,5 @@
 import {Await, useLoaderData} from "react-router-dom";
-import {Button, Col, Form, Input, List, Row, Skeleton, Steps} from "antd";
+import {Button, Col, Descriptions, Form, Input, List, Row, Skeleton, Steps} from "antd";
 import React, {useEffect, useState} from "react";
 import {ethers} from "ethers";
 
@@ -49,6 +49,28 @@ function Progress(args) {
     );
 }
 
+function Info(args) {
+    const deal = args.deal;
+
+    console.log(deal)
+
+    let key = 1;
+    const items = [
+        {key: key++, label: 'Seller', children: deal.seller},
+        {key: key++, label: 'Buyer', children: deal.buyer},
+        {key: key++, label: 'Crypto', children: deal.offer.token + ' ' + deal.tokenAmount},
+        {key: key++, label: 'Fiat', children: deal.offer.fiat + ' ' + deal.fiatAmount.toFixed(2)},
+        {key: key++, label: 'Price', children: (deal.fiatAmount / deal.tokenAmount).toFixed(3)},
+        {key: key++, label: 'Method', children: deal.offer.method},
+        {key: key++, label: 'Terms', children: deal.offer.terms || <i>No terms</i>},
+        {key: key++, label: 'Payment instructions', children: deal.paymentInstructions}
+    ];
+
+    return (
+        <Descriptions items={items} />
+    );
+}
+
 export default function Deal() {
     let { contract, deal, logs } = useLoaderData();
     const [messages, setMessages] = useState([]);
@@ -91,6 +113,9 @@ export default function Deal() {
         <Row>
             <Col span={16}>
                 <Progress deal={deal}/>
+                <Await resolve={deal.offer}>
+                    <Info deal={deal} />
+                </Await>
             </Col>
             <Col span={8}>
             <List size="small" bordered dataSource={messages} renderItem={(msg) => (
