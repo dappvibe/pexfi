@@ -109,7 +109,21 @@ export async function dealLoader(request) {
             deal.paymentInstructions(),
             deal.acceptance(),
             deal.allowCancelUnacceptedAfter()
-        ]),
+        ]).then(([offerId, buyer, seller, mediator, token, tokenAmount, fiatAmount, state, paymentInstructions, acceptance, allowCancelUnacceptedAfter]) => {
+            return {
+                offerId: offerId,
+                buyer: buyer,
+                seller: seller,
+                mediator: mediator,
+                token: token,
+                tokenAmount: tokenAmount,
+                fiatAmount: fiatAmount,
+                state: Number(state),
+                paymentInstructions: paymentInstructions,
+                acceptance: acceptance,
+                allowCancelUnacceptedAfter: allowCancelUnacceptedAfter
+            };
+        }),
         logs: deal.queryFilter('Message')
     });
 }
