@@ -11,7 +11,7 @@ async function main() {
 
     try {
         const tokens = ['WBTC', 'WETH', 'USDT'];
-        const fiats = ['USD', 'EUR', 'THB', 'RUB', 'CNY', 'GBP'];
+        const fiats = ['USD', 'EUR', 'THB', 'RUB', 'CNY', 'GBP', 'PHP', 'JPY', 'KRW', 'INR'];
 
         tokens.forEach(token => {
             fiats.forEach(fiat => {
