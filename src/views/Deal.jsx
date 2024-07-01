@@ -3,6 +3,7 @@ import {Button, Col, Descriptions, Form, Input, List, message, Row, Skeleton, St
 import React, {useEffect, useState} from "react";
 import {ethers} from "ethers";
 import {useSDK} from "@metamask/sdk-react";
+import {Market} from "../js/contracts.js";
 
 function Progress(args) {
     const { deal } = args;
@@ -81,6 +82,7 @@ function Controls(args) {
     const [paidLoading, setPaidLoading] = useState(false);
     const [cancelLoading, setCancelLoading] = useState(false);
     const [disputeLoading, setDisputeLoading] = useState(false);
+    const [acceptLoading, setAcceptLoading] = useState(false);
     const deal = args.deal;
 
     useEffect(() => {
@@ -138,6 +140,37 @@ function Controls(args) {
         });
     }
 
+    // TODO handle balances (approval must be done on offer creation)
+    function accept() {
+        setAcceptLoading(true);
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        provider.getSigner().then((signer) => {
+            const token = new ethers.Contract(
+                deal.token,
+                ['function allowance(address, address) view returns (uint256)',
+                    'function approve(address, uint256) returns (bool)'],
+                signer
+            );
+            token.allowance(signer.address, Market.target).then(allowance => {
+                if (Number(allowance) < deal.tokenAmount) {
+                    return token.approve(Market.target, ethers.MaxUint256);
+                } else {
+                    return this;
+                }
+            }).then(() => {
+                deal.contract.connect(signer).accept().then((tx) => {
+                    tx.wait().then((receipt) => {
+                        setAcceptLoading(false);
+                        message.info('Accepted')
+                    });
+                }).catch(e => {
+                    setAcceptLoading(false);
+                    console.error(deal.contract.interface.parseError(e.data));
+                });
+            });
+        });
+    }
+
     // for buyer
     if (account.toLowerCase() === deal.buyer.toLowerCase()) {
         return (<>
@@ -150,8 +183,9 @@ function Controls(args) {
     // for seller
     if (account.toLowerCase() === deal.seller.toLowerCase()) {
         return (<>
-            {deal.state === 0  && <Button danger loading={cancelLoading} onClick={cancel}>Cancel</Button> }
-            {deal.state === 4  && <Button danger loading={disputeLoading} onClick={dispute}>Dispute</Button> }
+        {deal.state === 0 && account.toLowerCase() === deal.offer.owner.toLowerCase() && <Button type={"primary"} loading={acceptLoading} onClick={accept}>Accept</Button>}
+        {deal.state === 0  && <Button danger loading={cancelLoading} onClick={cancel}>Cancel</Button> }
+        {deal.state === 4  && <Button danger loading={disputeLoading} onClick={dispute}>Dispute</Button> }
         </>);
     }
 }
