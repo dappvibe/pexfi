@@ -1,8 +1,10 @@
-import React, {createContext, Suspense, useContext, useState} from 'react'
-import {Await, generatePath, Link, Outlet, useLoaderData, useLocation, useNavigate, useParams} from "react-router-dom";
-import {Button, Flex, Form, Input, Layout, Menu, Select, Skeleton, Dropdown, Tooltip, Space, message} from "antd";
+import React, {Suspense} from 'react'
+import {Await, generatePath, Link, Outlet, useLoaderData, useParams} from "react-router-dom";
+import {Flex, Layout, Menu, Skeleton} from "antd";
 import Inventory from "./components/Inventory.jsx";
-import WalletConnector from "./components/WalletConnector.jsx";
+import WalletMenu from "./components/WalletMenu.jsx";
+import {useWalletProvider} from "./hooks/useWalletProvider";
+
 const {Header, Content, Sider} = Layout;
 
 export default function App() {
@@ -34,7 +36,7 @@ export default function App() {
                     />
                 </Content>
                 <Sider align={"end"}>
-                    <WalletConnector />
+                    <WalletMenu />
                 </Sider>
             </Layout>
         </Header>
