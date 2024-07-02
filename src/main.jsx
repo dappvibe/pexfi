@@ -4,7 +4,7 @@ import { MetaMaskProvider } from "@metamask/sdk-react";
 import {createBrowserRouter, Link, Outlet, RouterProvider} from "react-router-dom";
 
 import './main.css'
-import Offers from "./screens/Offers.jsx";
+import Offers from "./views/Offers.jsx";
 import App from "./App.jsx";
 import {dealLoader, inventory, offerLoader, offersLoader} from "./js/loaders.js";
 import Offer from "./views/Offer.jsx";
