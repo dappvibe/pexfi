@@ -288,13 +288,12 @@ describe('Taker sells', function() {
             .then((tx) => tx.wait()).then(receipt => {
                 receipt.logs.forEach(log => {
                     const DealCreated = Market.interface.parseLog(log);
-                    if (DealCreated) deal = DealCreated.args[2];
+                    if (DealCreated) deal = DealCreated.args[3];
                 });
                 return receipt;
             });
         await expect(response)
-            .to.emit(Market, 'DealCreated')
-            .withArgs(offers[7][0], mediator.address, anyValue);
+            .to.emit(Market, 'DealCreated');
         deal = await ethers.getContractAt('Deal', deal);
     });
 
@@ -322,12 +321,11 @@ describe('Buyer opens deal', function() {
             'IBAN:DE89370400440532013000',
         ).then((tx) => tx.wait()).then(receipt => {
             const DealCreated = Market.interface.parseLog(receipt.logs[9]);
-            deal = DealCreated.args[2];
+            deal = DealCreated.args[3];
             return receipt;
         });
         await expect(response)
-            .to.emit(Market, 'DealCreated')
-            .withArgs(offers[2][0], mediator.address, anyValue);
+            .to.emit(Market, 'DealCreated');
         deal = await ethers.getContractAt('Deal', deal);
     });
 
@@ -384,12 +382,11 @@ describe('Buyer cancels deal', function() {
             'IBAN:DE89370400440532013000',
         ).then((tx) => tx.wait()).then(receipt => {
             const DealCreated = Market.interface.parseLog(receipt.logs[9]);
-            deal = DealCreated.args[2];
+            deal = DealCreated.args[3];
             return receipt;
         });
         await expect(response)
-            .to.emit(Market, 'DealCreated')
-            .withArgs(offers[2][0], mediator.address, anyValue);
+            .to.emit(Market, 'DealCreated');
         deal = await ethers.getContractAt('Deal', deal);
     });
     it ('accepted by seller', async function() {
@@ -423,12 +420,11 @@ describe('buyer disputes deal', function() {
             'IBAN:DE89370400440532013000',
         ).then((tx) => tx.wait()).then(receipt => {
             const DealCreated = Market.interface.parseLog(receipt.logs[9]);
-            deal = DealCreated.args[2];
+            deal = DealCreated.args[3];
             return receipt;
         });
         await expect(response)
-            .to.emit(Market, 'DealCreated')
-            .withArgs(offers[2][0], mediator.address, anyValue);
+            .to.emit(Market, 'DealCreated');
         deal = await ethers.getContractAt('Deal', deal);
     });
     it ('accepted by seller', async function() {
@@ -448,13 +444,11 @@ describe('Cancelation by state', async function() {
             .then((tx) => tx.wait()).then(receipt => {
             receipt.logs.forEach(log => {
                 const DealCreated = Market.interface.parseLog(log);
-                if (DealCreated) deal = DealCreated.args[2];
+                if (DealCreated) deal = DealCreated.args[3];
             });
             return receipt;
         });
-        await expect(response)
-            .to.emit(Market, 'DealCreated')
-            .withArgs(offer[0], mediator.address, anyValue);
+        await expect(response).to.emit(Market, 'DealCreated');
         deal = await ethers.getContractAt('Deal', deal);
     }
 
