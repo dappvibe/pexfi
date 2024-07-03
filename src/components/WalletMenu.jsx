@@ -19,6 +19,7 @@ export default function WalletConnector()
     const menu = {
         items: [
             {label: <Link to={'/me'}>Profile</Link>, key: 'profile'},
+            {label: <Link to={'/trade/offers/'+selectedAccount}>My Offers</Link>, key: 'my-offers'},
             {type: 'divider'},
             {label: 'Disconnect', key: 'disconnect', onClick: disconnectWallet}
         ]

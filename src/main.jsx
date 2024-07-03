@@ -6,7 +6,7 @@ import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import './main.css'
 import Offers from "./views/Offers.jsx";
 import App from "./App.jsx";
-import {dealLoader, inventory, offerLoader, offersLoader} from "./js/loaders.js";
+import {dealLoader, inventory, offerLoader, offersLoader, userOffersLoader} from "./js/loaders.js";
 import Offer from "./views/Offer.jsx";
 import Deal from "./views/Deal.jsx";
 import {WalletProvider} from "./hooks/WalletProvider";
@@ -37,6 +37,11 @@ const router = createBrowserRouter([
                 path: "/new",
                 element: <NewOffer />,
                 loader: inventory
+            },
+            {
+                path: "/trade/offers/:address",
+                element: <Offers />,
+                loader: userOffersLoader
             }
         ]
     },
