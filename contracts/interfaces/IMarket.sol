@@ -8,7 +8,7 @@ import "../libraries/Methods.sol";
 interface IMarket
 {
     event OfferCreated(address indexed owner, string indexed crypto, string indexed fiat, Offers.Offer offer);
-    event DealCreated(uint indexed offerId, address indexed mediator, Deal deal);
+    event DealCreated(address indexed offerOwner, address indexed taker, uint indexed offerId, Deal deal);
 
     /**
     * @dev Payment methods management

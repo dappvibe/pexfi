@@ -111,7 +111,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
         );
         deals.add(address($deal), offerId_);
 
-        emit DealCreated(offerId_, mediator, $deal);
+        emit DealCreated($offer.owner, msg.sender, offerId_, $deal);
 
         if (!$offer.isSell) {
             IERC20Metadata $token = IERC20Metadata(inventory.token($offer.token));
