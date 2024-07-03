@@ -4,6 +4,7 @@ import React, {useEffect, useState} from "react";
 import {ethers} from "ethers";
 import {useSDK} from "@metamask/sdk-react";
 import {Market} from "../js/contracts.js";
+import {useWalletProvider} from "../hooks/useWalletProvider";
 
 function Progress(args) {
     const { deal } = args;
@@ -77,8 +78,7 @@ function Info(args) {
 }
 
 function Controls(args) {
-    const { sdk, connected, connecting, provider, chainId } = useSDK();
-    const [account, setAccount] = useState('');
+    const { selectedWallet: wallet, selectedAccount: account } = useWalletProvider();
     const [paidLoading, setPaidLoading] = useState(false);
     const [cancelLoading, setCancelLoading] = useState(false);
     const [disputeLoading, setDisputeLoading] = useState(false);
@@ -86,87 +86,75 @@ function Controls(args) {
     const deal = args.deal;
 
     useEffect(() => {
-        sdk.connect().then((accounts) => {
-            setAccount(accounts[0]);
-        })
-
-    }, []);
+        const provider = new ethers.BrowserProvider(wallet.provider);
+        provider.getSigner().then((signer) => deal.contract = deal.contract.connect(signer));
+    }, [deal, wallet]);
 
     function paid() {
         setPaidLoading(true);
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        provider.getSigner().then((signer) => {
-            deal.contract.connect(signer).paid().then((tx) => {
-                tx.wait().then((receipt) => {
-                    setPaidLoading(false);
-                    message.info('Paid');
-                });
-            }).catch(e => {
+        deal.contract.paid().then((tx) => {
+            tx.wait().then((receipt) => {
                 setPaidLoading(false);
-                console.error(deal.contract.interface.parseError(e.data));
+                message.info('Paid');
             });
+        })
+        .catch(e => {
+            setPaidLoading(false);
+            console.error(deal.contract.interface.parseError(e.data));
         });
     }
 
     function cancel() {
         setCancelLoading(true);
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        provider.getSigner().then((signer) => {
-            deal.contract.connect(signer).cancel().then((tx) => {
-                tx.wait().then((receipt) => {
-                    setCancelLoading(false);
-                    message.info('Cancelled')
-                });
-            }).catch(e => {
+        deal.contract.cancel().then((tx) => {
+            tx.wait().then((receipt) => {
                 setCancelLoading(false);
-                console.error(deal.contract.interface.parseError(e.data));
+                message.info('Cancelled')
             });
+        }).catch(e => {
+            setCancelLoading(false);
+            console.error(deal.contract.interface.parseError(e.data));
         });
     }
 
     function dispute() {
         setDisputeLoading(true);
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        provider.getSigner().then((signer) => {
-            deal.contract.connect(signer).dispute().then((tx) => {
-                tx.wait().then((receipt) => {
-                    setDisputeLoading(false);
-                    message.info('Disputeled')
-                });
-            }).catch(e => {
+        deal.contract.dispute().then((tx) => {
+            tx.wait().then((receipt) => {
                 setDisputeLoading(false);
-                console.error(deal.contract.interface.parseError(e.data));
+                message.info('Disputeled')
             });
+        }).catch(e => {
+            setDisputeLoading(false);
+            console.error(deal.contract.interface.parseError(e.data));
         });
     }
 
     // TODO handle balances (approval must be done on offer creation)
     function accept() {
         setAcceptLoading(true);
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        provider.getSigner().then((signer) => {
-            const token = new ethers.Contract(
-                deal.token,
-                ['function allowance(address, address) view returns (uint256)',
-                    'function approve(address, uint256) returns (bool)'],
-                signer
-            );
-            token.allowance(signer.address, Market.target).then(allowance => {
-                if (Number(allowance) < deal.tokenAmount) {
-                    return token.approve(Market.target, ethers.MaxUint256);
-                } else {
-                    return this;
-                }
-            }).then(() => {
-                deal.contract.connect(signer).accept().then((tx) => {
-                    tx.wait().then((receipt) => {
-                        setAcceptLoading(false);
-                        message.info('Accepted')
-                    });
-                }).catch(e => {
+        const token = new ethers.Contract(
+            deal.token,
+            ['function allowance(address, address) view returns (uint256)',
+                'function approve(address, uint256) returns (bool)'],
+            deal.contract.runner
+        );
+        token.allowance(account, Market.target).then(allowance => {
+            if (Number(allowance) < deal.tokenAmount) {
+                return token.approve(Market.target, ethers.MaxUint256);
+            } else {
+                return this;
+            }
+        }).then(() => {
+            deal.contract.accept().then((tx) => {
+                tx.wait().then((receipt) => {
                     setAcceptLoading(false);
-                    console.error(deal.contract.interface.parseError(e.data));
+                    message.info('Accepted')
                 });
+            }).catch(e => {
+                setAcceptLoading(false);
+                console.error(deal.contract.interface.parseError(e.data));
+                message.error(e.info.error.data.message);
             });
         });
     }
@@ -191,8 +179,8 @@ function Controls(args) {
 }
 
 export default function Deal() {
-    const { sdk, connected, connecting, provider, chainId } = useSDK();
     let { contract, deal, logs } = useLoaderData();
+    const { selectedWallet: wallet, selectedAccount: account } = useWalletProvider();
     const [messages, setMessages] = useState([]);
     const [form] = Form.useForm();
     const [ lockSubmit, setLockSubmit ] = useState(false);
@@ -212,17 +200,19 @@ export default function Deal() {
         }
     }, []);
 
-    async function sendMessage(values) {
+    useEffect(() => {
+        if (wallet) {
+            const provider = new ethers.BrowserProvider(wallet.provider);
+            provider.getSigner().then((signer) => deal.contract = deal.contract?.connect(signer));
+        }
+    }, [deal, wallet]);
+
+    function sendMessage(values) {
         setLockSubmit(true);
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        provider.getSigner().then((signer) => {
-            contract.connect(signer).message(values.message).then((tx) => {
-                form.resetFields();
-                setLockSubmit(false);
-                tx.wait().then((receipt) => {
-                    receipt.logs.forEach(msg.push);
-                });
-            });
+        deal.contract.message(values.message).then((tx) => {
+            form.resetFields();
+            setLockSubmit(false);
+            tx.wait().then((receipt) => receipt.logs.forEach(msg.push));
         });
     }
 
@@ -236,7 +226,7 @@ export default function Deal() {
                 <Await resolve={deal.offer}>
                     <Info deal={deal} />
                 </Await>
-                {connected && <Controls deal={deal}/>}
+                {account && <Controls deal={deal}/>}
             </Col>
             <Col span={8}>
             <List size="small" bordered dataSource={messages} renderItem={(msg) => (
