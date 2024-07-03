@@ -78,7 +78,6 @@ export async function userOffersLoader(request) {
             const list = logs.map(log => {
                 return hydrateOffer(log.args[3], 0); // FIXME correct price
             });
-            console.log(list)
             return {
                 offers: list,
                 price: 0
