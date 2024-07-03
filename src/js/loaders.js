@@ -3,6 +3,7 @@ import {defer} from "react-router-dom";
 
 import { abi as DealAbi} from '../../contracts/artifacts/Deal.json';
 import {ethers} from "ethers";
+import {useWalletProvider} from "../hooks/useWalletProvider";
 
 let cache = null;
 export function inventory() {
@@ -66,6 +67,26 @@ export async function offersLoader(request) {
                 price: price,
             };
         })
+    });
+}
+
+export async function userOffersLoader(request) {
+    const params = request.params;
+
+    const filter = Market.filters.OfferCreated(params.address);
+    return defer({ data:
+         Market.queryFilter(filter).then(logs => {
+            const list = logs.map(log => {
+                return hydrateOffer(log.args[3], 0); // FIXME correct price
+            });
+            console.log(list)
+            return {
+                offers: list,
+                price: 0
+            };
+        }).catch((e) => {
+            console.error(e);
+        }),
     });
 }
 

@@ -1,6 +1,6 @@
 import {Await, Link, useLoaderData} from "react-router-dom";
 import {Avatar, List, Skeleton, Tag} from "antd";
-import React, {useState} from "react";
+import React from "react";
 
 export default function Offers() {
     const { data } = useLoaderData();
