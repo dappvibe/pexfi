@@ -53,6 +53,8 @@ contract RepToken is IRepToken, UUPSUpgradeable, AccessControlUpgradeable, ERC72
 
     function register() external returns(uint tokenId)
     {
+        require(ownerToTokenId[msg.sender] == 0, "already");
+
         tokenId = _nextTokenId;
         _mint(msg.sender, tokenId);
         _resetStats(tokenId);
