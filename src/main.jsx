@@ -12,6 +12,7 @@ import Deal from "./views/Deal.jsx";
 import {WalletProvider} from "./hooks/WalletProvider";
 import NewOffer from "./views/NewOffer.jsx";
 import Deals from "./views/Deals.jsx";
+import Profile from "./views/Profile.jsx";
 
 const router = createBrowserRouter([
     {
@@ -19,6 +20,10 @@ const router = createBrowserRouter([
         element: <App />,
         loader: inventory,
         children: [
+            {
+                path: "/me",
+                element: <Profile />
+            },
             {
                 path: "/trade/deal/:dealId",
                 element: <Deal />,
