@@ -5,10 +5,12 @@ import {Market} from "../js/contracts.js";
 import {useContract} from "../hooks/useContract.jsx";
 
 export default function Offer() {
-    const { data } = useLoaderData();
+    const { offer } = useLoaderData();
     const [ lockButton, setLockButton ] = useState(false);
     const navigate = useNavigate();
     const { market } = useContract();
+    const [form] = Form.useForm();
+    const fiatAmount = Form.useWatch('fiatAmount', form);
 
     async function createDeal(offer, values) {
         setLockButton(true);
@@ -28,7 +30,7 @@ export default function Offer() {
 
     return (
         <React.Suspense fallback={<Skeleton active />}>
-            <Await resolve={data}>
+            <Await resolve={offer}>
                 {(offer) => (
                 <>
                 <Breadcrumb items={[
