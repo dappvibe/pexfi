@@ -83,6 +83,7 @@ function Controls(args) {
     const [disputeLoading, setDisputeLoading] = useState(false);
     const [acceptLoading, setAcceptLoading] = useState(false);
     const [releaseLoading, setReleaseLoading] = useState(false);
+    const [dealState, setDealState] = useState(args.deal.state);
     const deal = args.deal;
 
     useEffect(() => {
@@ -94,7 +95,7 @@ function Controls(args) {
         setReleaseLoading(true);
         deal.contract.release().then((tx) => {
             tx.wait().then((receipt) => {
-                setReleaseLoading(false);
+                setDealState(7);
                 message.success('Complete');
             });
         })
@@ -108,7 +109,7 @@ function Controls(args) {
         setPaidLoading(true);
         deal.contract.paid().then((tx) => {
             tx.wait().then((receipt) => {
-                setPaidLoading(false);
+                setDealState(3)
                 message.info('Paid');
             });
         })
@@ -122,7 +123,7 @@ function Controls(args) {
         setCancelLoading(true);
         deal.contract.cancel().then((tx) => {
             tx.wait().then((receipt) => {
-                setCancelLoading(false);
+                setDealState(5);
                 message.info('Cancelled')
             });
         }).catch(e => {
@@ -135,7 +136,7 @@ function Controls(args) {
         setDisputeLoading(true);
         deal.contract.dispute().then((tx) => {
             tx.wait().then((receipt) => {
-                setDisputeLoading(false);
+                setDealState(4);
                 message.info('Disputeled')
             });
         }).catch(e => {
@@ -162,7 +163,7 @@ function Controls(args) {
         }).then(() => {
             deal.contract.accept().then((tx) => {
                 tx.wait().then((receipt) => {
-                    setAcceptLoading(false);
+                    setDealState(2);
                     message.info('Accepted')
                 });
             }).catch(e => {
@@ -176,19 +177,19 @@ function Controls(args) {
     // for buyer
     if (account.toLowerCase() === deal.buyer.toLowerCase()) {
         return (<>
-        {deal.state === 2 && <Button type={"primary"} loading={paidLoading} onClick={paid}>Paid</Button>}
-        {deal.state <= 4  && <Button danger loading={cancelLoading} onClick={cancel}>Cancel</Button> }
-        {deal.state === 4  && <Button danger loading={disputeLoading} onClick={dispute}>Dispute</Button> }
+        {dealState === 2 && <Button type={"primary"} loading={paidLoading} onClick={paid}>Paid</Button>}
+        {dealState <= 4  && <Button danger loading={cancelLoading} onClick={cancel}>Cancel</Button> }
+        {dealState === 4  && <Button danger loading={disputeLoading} onClick={dispute}>Dispute</Button> }
         </>);
     }
 
     // for seller
     if (account.toLowerCase() === deal.seller.toLowerCase()) {
         return (<>
-        {deal.state === 0 && account.toLowerCase() === deal.offer.owner.toLowerCase() && <Button type={"primary"} loading={acceptLoading} onClick={accept}>Accept</Button>}
-        {deal.state >= 2 && deal.state <= 5 && <Button type={"primary"} loading={releaseLoading} onClick={release}>Release</Button> }
-        {deal.state === 0  && <Button danger loading={cancelLoading} onClick={cancel}>Cancel</Button> }
-        {deal.state === 4  && <Button danger loading={disputeLoading} onClick={dispute}>Dispute</Button> }
+        {dealState === 0 && account.toLowerCase() === deal.offer.owner.toLowerCase() && <Button type={"primary"} loading={acceptLoading} onClick={accept}>Accept</Button>}
+        {dealState >= 2 && dealState <= 5 && <Button type={"primary"} loading={releaseLoading} onClick={release}>Release</Button> }
+        {dealState === 0  && <Button danger loading={cancelLoading} onClick={cancel}>Cancel</Button> }
+        {dealState === 4  && <Button danger loading={disputeLoading} onClick={dispute}>Dispute</Button> }
         </>);
     }
 }
@@ -215,7 +216,6 @@ function MessageBox(args) {
 
     function send(values) {
         setLockSubmit(true);
-        console.log(deal);
         deal.contract.message(values.message).then((tx) => {
             form.resetFields();
             setLockSubmit(false);
