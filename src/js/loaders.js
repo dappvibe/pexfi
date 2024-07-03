@@ -23,13 +23,7 @@ export function inventory() {
                 }),
 
                 Inventory.getFiats().then((res) => {
-                    let out = {};
-                    res.map(fiat => {
-                        out[fiat[0]] = {
-                            symbol: fiat[0],
-                        }
-                    });
-                    return out;
+                    return res.map(ethers.decodeBytes32String);
                 }),
 
                 Inventory.getMethods().then(res => {
