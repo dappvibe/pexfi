@@ -24,7 +24,6 @@ export default function Offer() {
     }
 
     async function createDeal(offer, values) {
-        console.log(offer, values);
         setLockButton(true);
         const provider = new ethers.BrowserProvider(window.ethereum);
         const market = await Market.connect(await provider.getSigner());
@@ -39,7 +38,6 @@ export default function Offer() {
                     }
                 });
             });
-            console.log(tx);
         });
     }
 
