@@ -3,7 +3,6 @@ import {defer} from "react-router-dom";
 
 import { abi as DealAbi} from '../../contracts/artifacts/Deal.json';
 import {ethers} from "ethers";
-import {useWalletProvider} from "../hooks/useWalletProvider";
 
 let cache = null;
 export function inventory() {
@@ -109,7 +108,7 @@ export async function userDealsLoader(request)
 export async function offerLoader(request) {
     const params = request.params;
     const offerId = params['offerId'];
-    return defer({ data: Promise.all([
+    return defer({ offer: Promise.all([
         Market.getOffer(offerId),
         Inventory.getPrice(params['token'], params['fiat'])
     ]).then(([offer, price]) => {
