@@ -94,6 +94,8 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     {
         Offers.Offer storage $offer = offers.all[offerId_];
 
+        require(msg.sender != $offer.owner, "self deal");
+
         uint $tokenAmount = inventory.convert(fiatAmount_, $offer.fiat, $offer.token, $offer.rate);
 
         Deal $deal = new Deal(
