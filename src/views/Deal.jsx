@@ -43,8 +43,8 @@ function Progress(args) {
         steps[2] = {status: 'finish', title: 'Paid'};
         steps[3] = {...steps[3], status: 'process'};
     }
-    if (deal.state >= 8) {
-        steps[3] = {status: 'finish', title: 'Released'};
+    if (deal.state >= 7) {
+        steps[3] = {status: 'finish', title: 'Completed'};
     }
 
     // TODO better that this
@@ -162,7 +162,7 @@ function Controls(args) {
     // for buyer
     if (account.toLowerCase() === deal.buyer.toLowerCase()) {
         return (<>
-        {deal.state === 3 && <Button type={"primary"} loading={paidLoading} onClick={paid}>Paid</Button>}
+        {deal.state === 2 && <Button type={"primary"} loading={paidLoading} onClick={paid}>Paid</Button>}
         {deal.state <= 4  && <Button danger loading={cancelLoading} onClick={cancel}>Cancel</Button> }
         {deal.state === 4  && <Button danger loading={disputeLoading} onClick={dispute}>Dispute</Button> }
         </>);
@@ -172,6 +172,7 @@ function Controls(args) {
     if (account.toLowerCase() === deal.seller.toLowerCase()) {
         return (<>
         {deal.state === 0 && account.toLowerCase() === deal.offer.owner.toLowerCase() && <Button type={"primary"} loading={acceptLoading} onClick={accept}>Accept</Button>}
+        {deal.state >= 2 && deal.state <= 5 && <Button type={"primary"} loading={releaseLoading} onClick={release}>Release</Button> }
         {deal.state === 0  && <Button danger loading={cancelLoading} onClick={cancel}>Cancel</Button> }
         {deal.state === 4  && <Button danger loading={disputeLoading} onClick={dispute}>Dispute</Button> }
         </>);
