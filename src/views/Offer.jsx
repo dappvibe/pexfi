@@ -1,32 +1,17 @@
 import {Await, Link, useLoaderData, useNavigate} from "react-router-dom";
 import {Breadcrumb, Button, Descriptions, Form, Input, message, Skeleton} from "antd";
 import React, {useState} from "react";
-
 import {Market} from "../js/contracts.js";
-import {useSDK} from "@metamask/sdk-react";
-import {ethers} from "ethers";
+import {useContract} from "../hooks/useContract.jsx";
 
 export default function Offer() {
     const { data } = useLoaderData();
-    const { sdk, connected, connecting, provider, chainId } = useSDK();
     const [ lockButton, setLockButton ] = useState(false);
     const navigate = useNavigate();
-
-    function title(offer) {
-        let formatter = new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: offer.fiat,
-            minimumFractionDigits: 3,
-            maximumFractionDigits: 3,
-        });
-
-        return formatter.format(offer.price);
-    }
+    const { market } = useContract();
 
     async function createDeal(offer, values) {
         setLockButton(true);
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const market = await Market.connect(await provider.getSigner());
         market.createDeal(offer.id, values['fiatAmount'], values['paymentInstructions'] ?? '').then((tx) => {
             message.info('Deal submitted. You will be redirected shortly.');
             tx.wait().then((receipt) => {
