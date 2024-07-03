@@ -1,39 +1,9 @@
-import {Await, generatePath, Link, useAsyncValue, useLoaderData} from "react-router-dom";
-import {Avatar, Button, Descriptions, Form, Input, List, Modal, Select, Skeleton, Space, Tag} from "antd";
+import {Await, Link, useLoaderData} from "react-router-dom";
+import {Avatar, List, Skeleton, Tag} from "antd";
 import React, {useState} from "react";
-import {Market} from "../js/contracts.js";
-import {hydrateOffer} from "../js/loaders.js"
 
 export default function Offers() {
-    const [confirmLoading, setConfirmLoading] = useState(false);
-    const [modalOffer, setModalOffer] = useState(null);
-    const [modalOpen, setModalOpen] = useState(false);
-
     const { data } = useLoaderData();
-
-    const modal = {
-        open: function (offerId, marketPrice) {
-            setModalOpen(true);
-            Market.getOffer(offerId).then(offer => {
-                console.log(offer);
-                return hydrateOffer(offer, marketPrice);
-            });
-        },
-
-        cancel: () => {
-            setModalOpen(false);
-            setModalOffer(null);
-        },
-
-        ok: () => {
-            setModalOffer('The modal will be closed after two seconds');
-            setConfirmLoading(true);
-            setTimeout(() => {
-                setFormOpen(false);
-                setConfirmLoading(false);
-            }, 2000);
-        }
-    }
 
     function title(offer) {
         let formatter = new Intl.NumberFormat('en-US', {
