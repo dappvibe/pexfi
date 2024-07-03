@@ -2,7 +2,6 @@ import {Await, useLoaderData} from "react-router-dom";
 import {Button, Col, Descriptions, Form, Input, List, message, Row, Skeleton, Steps} from "antd";
 import React, {useEffect, useState} from "react";
 import {ethers} from "ethers";
-import {useSDK} from "@metamask/sdk-react";
 import {Market} from "../js/contracts.js";
 import {useWalletProvider} from "../hooks/useWalletProvider";
 
@@ -83,12 +82,27 @@ function Controls(args) {
     const [cancelLoading, setCancelLoading] = useState(false);
     const [disputeLoading, setDisputeLoading] = useState(false);
     const [acceptLoading, setAcceptLoading] = useState(false);
+    const [releaseLoading, setReleaseLoading] = useState(false);
     const deal = args.deal;
 
     useEffect(() => {
         const provider = new ethers.BrowserProvider(wallet.provider);
         provider.getSigner().then((signer) => deal.contract = deal.contract.connect(signer));
     }, [deal, wallet]);
+
+    function release() {
+        setReleaseLoading(true);
+        deal.contract.release().then((tx) => {
+            tx.wait().then((receipt) => {
+                setReleaseLoading(false);
+                message.success('Complete');
+            });
+        })
+        .catch(e => {
+            setReleaseLoading(false);
+            console.error(deal.contract.interface.parseError(e.data));
+        });
+    }
 
     function paid() {
         setPaidLoading(true);
@@ -179,27 +193,61 @@ function Controls(args) {
     }
 }
 
-export default function Deal() {
-    let { contract, deal, logs } = useLoaderData();
+function MessageBox(args) {
+    const deal = args.deal;
     const { selectedWallet: wallet, selectedAccount: account } = useWalletProvider();
-    const [messages, setMessages] = useState([]);
     const [form] = Form.useForm();
     const [ lockSubmit, setLockSubmit ] = useState(false);
+    const [messages, setMessages] = useState([]);
 
-    const msg = {
-        push: (log) => {
-            setMessages((messages) => [...messages, log.args]);
-        }
-    };
+    function push(log) {
+        setMessages((messages) => [...messages, log.args]);
+    }
 
     // strict mode causes useEffect to run twice in development
     let didInit = false;
     useEffect(() => {
         if (!didInit) {
             didInit = true;
-            logs.then((logs) => logs.forEach(msg.push));
+            deal.contract.queryFilter('Message').then((logs) => logs.forEach(push));
         }
     }, []);
+
+    function send(values) {
+        setLockSubmit(true);
+        console.log(deal);
+        deal.contract.message(values.message).then((tx) => {
+            form.resetFields();
+            setLockSubmit(false);
+            tx.wait().then((receipt) => receipt.logs.forEach(push));
+        });
+    }
+
+    return (
+        <>
+        <List size="small" bordered dataSource={messages} renderItem={(msg) => (
+            <List.Item>
+                {msg[0] === deal.seller ? 'Seller' : msg[0] === deal.buyer ? 'Buyer' : 'Mediator'}
+                {': '}
+                {msg[1]}
+            </List.Item>
+        )}>
+        </List>
+        <Form form={form} onFinish={send}>
+            <Form.Item name="message">
+                <Input.TextArea placeholder={"Message"} rules={[{required: true, message: "Required"}]} />
+            </Form.Item>
+            <Form.Item>
+                <Button type={"primary"} htmlType={"submit"} loading={lockSubmit}>Send</Button>
+            </Form.Item>
+        </Form>
+        </>
+    );
+}
+
+export default function Deal() {
+    let { contract, deal, logs } = useLoaderData();
+    const { selectedWallet: wallet, selectedAccount: account } = useWalletProvider();
 
     useEffect(() => {
         if (wallet) {
@@ -207,15 +255,6 @@ export default function Deal() {
             provider.getSigner().then((signer) => deal.contract = deal.contract?.connect(signer));
         }
     }, [deal, wallet]);
-
-    function sendMessage(values) {
-        setLockSubmit(true);
-        deal.contract.message(values.message).then((tx) => {
-            form.resetFields();
-            setLockSubmit(false);
-            tx.wait().then((receipt) => receipt.logs.forEach(msg.push));
-        });
-    }
 
     return (
     <React.Suspense fallback={<Skeleton active />}>
@@ -230,22 +269,7 @@ export default function Deal() {
                 {account && <Controls deal={deal}/>}
             </Col>
             <Col span={8}>
-            <List size="small" bordered dataSource={messages} renderItem={(msg) => (
-                <List.Item>
-                    {msg[0] === deal.seller ? 'Seller' : msg[0] === deal.buyer ? 'Buyer' : 'Mediator'}
-                    {': '}
-                    {msg[1]}
-                </List.Item>
-            )}>
-            </List>
-            <Form form={form} onFinish={sendMessage}>
-                <Form.Item name="message">
-                    <Input.TextArea placeholder={"Message"} rules={[{required: true, message: "Required"}]} />
-                </Form.Item>
-                <Form.Item>
-                    <Button type={"primary"} htmlType={"submit"} loading={lockSubmit}>Send</Button>
-                </Form.Item>
-            </Form>
+                <MessageBox deal={deal} />
             </Col>
         </Row>
         )}
