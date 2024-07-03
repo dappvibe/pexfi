@@ -10,6 +10,7 @@ import {dealLoader, inventory, offerLoader, offersLoader} from "./js/loaders.js"
 import Offer from "./views/Offer.jsx";
 import Deal from "./views/Deal.jsx";
 import {WalletProvider} from "./hooks/WalletProvider";
+import NewOffer from "./views/NewOffer.jsx";
 
 const router = createBrowserRouter([
     {
@@ -32,6 +33,11 @@ const router = createBrowserRouter([
                 element: <Offer />,
                 loader: offerLoader
             },
+            {
+                path: "/new",
+                element: <NewOffer />,
+                loader: inventory
+            }
         ]
     },
 ]);
