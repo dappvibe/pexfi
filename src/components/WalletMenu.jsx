@@ -20,6 +20,7 @@ export default function WalletConnector()
         items: [
             {label: <Link to={'/me'}>Profile</Link>, key: 'profile'},
             {label: <Link to={'/trade/offers/'+selectedAccount}>My Offers</Link>, key: 'my-offers'},
+            {label: <Link to={'/trade/deals/'+selectedAccount}>My Deals</Link>, key: 'my-deals'},
             {type: 'divider'},
             {label: 'Disconnect', key: 'disconnect', onClick: disconnectWallet}
         ]

@@ -6,11 +6,12 @@ import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import './main.css'
 import Offers from "./views/Offers.jsx";
 import App from "./App.jsx";
-import {dealLoader, inventory, offerLoader, offersLoader, userOffersLoader} from "./js/loaders.js";
+import {dealLoader, inventory, offerLoader, offersLoader, userDealsLoader, userOffersLoader} from "./js/loaders.js";
 import Offer from "./views/Offer.jsx";
 import Deal from "./views/Deal.jsx";
 import {WalletProvider} from "./hooks/WalletProvider";
 import NewOffer from "./views/NewOffer.jsx";
+import Deals from "./views/Deals.jsx";
 
 const router = createBrowserRouter([
     {
@@ -42,6 +43,11 @@ const router = createBrowserRouter([
                 path: "/trade/offers/:address",
                 element: <Offers />,
                 loader: userOffersLoader
+            },
+            {
+                path: "/trade/deals/:address",
+                element: <Deals />,
+                loader: userDealsLoader
             }
         ]
     },
