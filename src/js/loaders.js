@@ -69,6 +69,7 @@ export async function offersLoader(request) {
     });
 }
 
+// TODO if returned 0 throw 404
 export async function offerLoader(request) {
     const params = request.params;
     const offerId = params['offerId'];
