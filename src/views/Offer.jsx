@@ -19,7 +19,7 @@ export default function Offer() {
                     const DealCreated = Market.interface.parseLog(log);
                     if (DealCreated) {
                         setLockButton(false);
-                        navigate('/trade/deal/'+DealCreated.args[2]);
+                        navigate('/trade/deal/'+DealCreated.args[3]);
                     }
                 });
             });
