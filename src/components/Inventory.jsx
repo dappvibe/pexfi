@@ -30,7 +30,7 @@ export default function Inventory(args)
         if (method && method !== 'ANY') url += `/${method}`;
         return url;
     }
-    const fiatSelect = Object.keys(fiats).map(fiat => {
+    const fiatSelect = fiats.map(fiat => {
         return {
             value: fiat,
             label: fiat,
