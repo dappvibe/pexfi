@@ -4,6 +4,7 @@ import React, {useEffect, useState} from "react";
 import {ethers} from "ethers";
 import {Market} from "../js/contracts.js";
 import {useWalletProvider} from "../hooks/useWalletProvider";
+import LoadingButton from "../components/LoadingButton.jsx";
 
 function Progress(args) {
     const { deal } = args;
@@ -78,11 +79,6 @@ function Info(args) {
 
 function Controls(args) {
     const { selectedWallet: wallet, selectedAccount: account } = useWalletProvider();
-    const [paidLoading, setPaidLoading] = useState(false);
-    const [cancelLoading, setCancelLoading] = useState(false);
-    const [disputeLoading, setDisputeLoading] = useState(false);
-    const [acceptLoading, setAcceptLoading] = useState(false);
-    const [releaseLoading, setReleaseLoading] = useState(false);
     const [dealState, setDealState] = useState(args.deal.state);
     const deal = args.deal;
 
@@ -92,69 +88,60 @@ function Controls(args) {
     }, [deal, wallet]);
 
     function release() {
-        setReleaseLoading(true);
-        deal.contract.release().then((tx) => {
+        return deal.contract.release().then((tx) => {
             tx.wait().then((receipt) => {
                 setDealState(7);
                 message.success('Complete');
             });
         })
         .catch(e => {
-            setReleaseLoading(false);
             console.error(deal.contract.interface.parseError(e.data));
         });
     }
 
     function paid() {
-        setPaidLoading(true);
-        deal.contract.paid().then((tx) => {
+        return deal.contract.paid().then((tx) => {
             tx.wait().then((receipt) => {
                 setDealState(3)
                 message.info('Paid');
             });
         })
         .catch(e => {
-            setPaidLoading(false);
             console.error(deal.contract.interface.parseError(e.data));
         });
     }
 
     function cancel() {
-        setCancelLoading(true);
-        deal.contract.cancel().then((tx) => {
+        return deal.contract.cancel().then((tx) => {
             tx.wait().then((receipt) => {
                 setDealState(5);
                 message.info('Cancelled')
             });
         }).catch(e => {
-            setCancelLoading(false);
             console.error(deal.contract.interface.parseError(e.data));
         });
     }
 
     function dispute() {
-        setDisputeLoading(true);
-        deal.contract.dispute().then((tx) => {
+        return deal.contract.dispute().then((tx) => {
             tx.wait().then((receipt) => {
                 setDealState(4);
                 message.info('Disputeled')
             });
         }).catch(e => {
-            setDisputeLoading(false);
             console.error(deal.contract.interface.parseError(e.data));
         });
     }
 
     // TODO handle balances (approval must be done on offer creation)
     function accept() {
-        setAcceptLoading(true);
         const token = new ethers.Contract(
             deal.token,
             ['function allowance(address, address) view returns (uint256)',
                 'function approve(address, uint256) returns (bool)'],
             deal.contract.runner
         );
-        token.allowance(account, Market.target).then(allowance => {
+        return token.allowance(account, Market.target).then(allowance => {
             if (Number(allowance) < deal.tokenAmount) {
                 return token.approve(Market.target, ethers.MaxUint256);
             } else {
@@ -167,7 +154,6 @@ function Controls(args) {
                     message.info('Accepted')
                 });
             }).catch(e => {
-                setAcceptLoading(false);
                 console.error(deal.contract.interface.parseError(e.data));
                 message.error(e.info.error.data.message);
             });
@@ -177,26 +163,26 @@ function Controls(args) {
     // for buyer
     if (account.toLowerCase() === deal.buyer.toLowerCase()) {
         return (<>
-        {dealState === 2 && <Button type={"primary"} loading={paidLoading} onClick={paid}>Paid</Button>}
-        {dealState <= 4  && <Button danger loading={cancelLoading} onClick={cancel}>Cancel</Button> }
-        {dealState === 4  && <Button danger loading={disputeLoading} onClick={dispute}>Dispute</Button> }
+        {dealState === 2 && <LoadingButton type={"primary"} onClick={paid}>Paid</LoadingButton>}
+        {dealState <= 4  && <LoadingButton danger onClick={cancel}>Cancel</LoadingButton> }
+        {dealState === 4  && <LoadingButton danger onClick={dispute}>Dispute</LoadingButton> }
         </>);
     }
 
     // for seller
     if (account.toLowerCase() === deal.seller.toLowerCase()) {
         return (<>
-        {dealState === 0 && account.toLowerCase() === deal.offer.owner.toLowerCase() && <Button type={"primary"} loading={acceptLoading} onClick={accept}>Accept</Button>}
-        {dealState >= 2 && dealState <= 5 && <Button type={"primary"} loading={releaseLoading} onClick={release}>Release</Button> }
-        {dealState === 0  && <Button danger loading={cancelLoading} onClick={cancel}>Cancel</Button> }
-        {dealState === 4  && <Button danger loading={disputeLoading} onClick={dispute}>Dispute</Button> }
+        {dealState === 0 && account.toLowerCase() === deal.offer.owner.toLowerCase()
+            && <LoadingButton type={"primary"} onClick={accept}>Accept</LoadingButton>}
+        {dealState >= 2 && dealState <= 5 && <LoadingButton type={"primary"} onClick={release}>Release</LoadingButton> }
+        {dealState === 0  && <LoadingButton danger onClick={cancel}>Cancel</LoadingButton> }
+        {dealState === 4  && <LoadingButton danger onClick={dispute}>Dispute</LoadingButton> }
         </>);
     }
 }
 
 function MessageBox(args) {
     const deal = args.deal;
-    const { selectedWallet: wallet, selectedAccount: account } = useWalletProvider();
     const [form] = Form.useForm();
     const [ lockSubmit, setLockSubmit ] = useState(false);
     const [messages, setMessages] = useState([]);
