@@ -1,6 +1,5 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import {MetaMaskProvider} from "@metamask/sdk-react";
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
 
 import './main.css'
@@ -61,18 +60,7 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
       <WalletProvider>
-          <MetaMaskProvider
-              debug={false}
-              sdkOptions={{
-                  dappMetadata: {
-                      name: "Market",
-                      url: window.location.href,
-                  },
-                  // Other options.
-              }}
-          >
-              <RouterProvider router={router} />
-          </MetaMaskProvider>
+          <RouterProvider router={router} />
       </WalletProvider>
   </React.StrictMode>,
 )
