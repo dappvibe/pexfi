@@ -4,7 +4,7 @@ import {createBrowserRouter, createRoutesFromElements, Navigate, Route, RouterPr
 
 import './main.css'
 import {WalletProvider} from "./hooks/WalletProvider";
-import {offersLoader} from "./pages/Offers/offersLoader.js";
+import {offersLoader} from "@/Trade/Offers/offersLoader.js";
 import Layout from "./Layout";
 import Home from "./Home/index.jsx";
 import Profile from "./views/Profile.jsx";
@@ -15,8 +15,7 @@ import Deals from "./views/Deals.jsx";
 import OfferNew from "./Trade/Offer/OfferNew.jsx";
 import inventory from "@/loaders/inventory.js";
 import TradeLayout from "@/Trade/TradeLayout.jsx";
-import Offers from "@/pages/Offers/index.jsx";
-//import Offers from "@/Trade/Offers/Offers.jsx";
+import Offers from "@/Trade/Offers/Offers.jsx";
 
 const router = createBrowserRouter( createRoutesFromElements(
     <Route element={<Layout />}>
