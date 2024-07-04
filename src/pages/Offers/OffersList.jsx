@@ -28,7 +28,7 @@ export default function OffersList({offers, price})
     }, [filterAmount, offers]);
 
     function title() {
-        let title = side === 'sell' ? 'Buy' : 'Sell';
+        let title = side === 'sell' ? 'Sell' : 'Buy';
         title += ' ' + token;
         title += ' for ' + fiat;
         if (method) title += ' using ' + method;
