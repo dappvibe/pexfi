@@ -11,8 +11,6 @@ export default function Offers() {
     return (
         <>
         <InventoryProvider>
-            <NavTokens />
-
             <React.Suspense fallback={<Skeleton active />}>
                 <Await resolve={offers}>
                 {({offers, price}) => (
