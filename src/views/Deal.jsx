@@ -78,7 +78,7 @@ function Info(args) {
 }
 
 function Controls(args) {
-    const { selectedWallet: wallet, selectedAccount: account } = useWalletProvider();
+    const { wallet, account } = useWalletProvider();
     const [dealState, setDealState] = useState(args.deal.state);
     const deal = args.deal;
 
@@ -233,7 +233,7 @@ function MessageBox(args) {
 
 export default function Deal() {
     let { contract, deal, logs } = useLoaderData();
-    const { selectedWallet: wallet, selectedAccount: account } = useWalletProvider();
+    const { wallet, account } = useWalletProvider();
 
     useEffect(() => {
         if (wallet) {
