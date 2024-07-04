@@ -5,6 +5,7 @@ import PropTypes from "prop-types";
 import Username from "../../components/Username.jsx";
 import {useInventory} from "../../hooks/useInventory.jsx";
 import {useWalletProvider} from "../../hooks/useWalletProvider";
+import {formatMoney} from "../../utils/index";
 
 export default function OffersList({offers, price})
 {
@@ -76,14 +77,6 @@ export default function OffersList({offers, price})
         );
     }
 
-    // TODO move to utils
-    let formatter = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: fiat,
-        minimumFractionDigits: 3,
-        maximumFractionDigits: 3,
-    });
-
     const columns = [
         {
             title: '',
@@ -115,7 +108,7 @@ export default function OffersList({offers, price})
             dataIndex: 'price',
             sorter: (a, b) => a.price - b.price,
             defaultSortOrder: 'descend',
-            render: (text) => <b>{formatter.format(text)}</b>,
+            render: (text) => <b>{formatMoney(fiat, text)}</b>,
         },
         {
             title: 'Limits',
@@ -151,9 +144,8 @@ export default function OffersList({offers, price})
         <>
         <Divider orientation={"left"}>
             <b>{title()}</b>
-            <span style={{marginLeft: 20}}>Market: {formatter.format(price)}</span>
+            <span style={{marginLeft: 20}}>Market: {formatMoney(fiat, price)}</span>
         </Divider>
-        {/*<Flex gap={"middle"} style={{padding: 10}}>{filters()}</Flex>*/}
         <Table columns={columns} dataSource={rows} pagination={false}
                rowKey={offer => offer.id}
                title={filters}
