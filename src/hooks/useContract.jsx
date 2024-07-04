@@ -5,26 +5,19 @@ import { abi as MarketAbi} from '../../contracts/artifacts/Market_ERC1967Proxy.j
 import { abi as RepTokenAbi} from '../../contracts/artifacts/RepToken.json';
 import {useEffect, useState} from "react";
 import {useWalletProvider} from "./useWalletProvider";
+
+export const provider = new ethers.JsonRpcProvider('http://localhost:8545');
+export const InventoryContract = new ethers.Contract( contracts['Inventory#Inventory'], InventoryAbi, provider );
+export const MarketContract = new ethers.Contract( contracts['Market#ERC1967Proxy'], MarketAbi, provider );
+export const RepTokenContract = new ethers.Contract( contracts['Rep#RepToken'], RepTokenAbi, provider );
+
 export function useContract()
 {
     const { wallet, account } = useWalletProvider();
 
-    const provider = new ethers.JsonRpcProvider('http://localhost:8545');
-    const [inventory, setInventory] = useState(new ethers.Contract(
-        contracts['Inventory#Inventory'],
-        InventoryAbi,
-        provider
-    ));
-    const [market, setMarket] = useState(new ethers.Contract(
-        contracts['Market#ERC1967Proxy'],
-        MarketAbi,
-        provider
-    ));
-    const [repToken, setRepToken] = useState(new ethers.Contract(
-        contracts['Rep#RepToken'],
-        RepTokenAbi,
-        provider
-    ));
+    const [inventory, setInventory] = useState(InventoryContract);
+    const [market, setMarket] = useState(MarketContract);
+    const [repToken, setRepToken] = useState(RepTokenContract);
 
     useEffect(() => {
         if (account) {
