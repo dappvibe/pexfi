@@ -1,7 +1,7 @@
 import {Avatar, Button, Card, Menu, Modal, Space} from "antd";
 import {useState} from "react";
 import {useWalletProvider} from "../hooks/useWalletProvider";
-import {formatAddress} from "../utils";
+import {formatAddress} from "../utils.js";
 import {Link} from "react-router-dom";
 
 export default function WalletMenu()

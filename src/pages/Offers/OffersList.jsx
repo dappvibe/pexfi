@@ -1,11 +1,11 @@
 import {Avatar, Button, Divider, Input, Select, Space, Table, Tag} from "antd";
 import {generatePath, Link, useNavigate, useParams} from "react-router-dom";
-import React, {useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import PropTypes from "prop-types";
-import Username from "../../components/Username.jsx";
-import {useInventory} from "../../hooks/useInventory.jsx";
-import {useWalletProvider} from "../../hooks/useWalletProvider";
-import {formatMoney} from "../../utils/index";
+import Username from "@/components/Username.jsx";
+import {useInventory} from "@/hooks/useInventory.jsx";
+import {useWalletProvider} from "@/hooks/useWalletProvider";
+import {formatMoney} from "@/utils.js";
 
 export default function OffersList({offers, price})
 {
