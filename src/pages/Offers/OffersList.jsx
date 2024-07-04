@@ -9,7 +9,7 @@ import {formatMoney} from "../../utils/index";
 
 export default function OffersList({offers, price})
 {
-    const { selectedAccount: account } = useWalletProvider();
+    const { account } = useWalletProvider();
     const { inventory} = useInventory();
     const navigate = useNavigate();
     let {

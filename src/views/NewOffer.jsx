@@ -11,7 +11,7 @@ export default function NewOffer()
 {
     const navigate = useNavigate();
     const { inventory } = useLoaderData();
-    const { selectedWallet: wallet } = useWalletProvider();
+    const { wallet } = useWalletProvider();
     const [lockSubmit, setLockSubmit] = React.useState(false);
 
     const [form] = Form.useForm();

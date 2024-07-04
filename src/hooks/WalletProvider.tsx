@@ -5,8 +5,8 @@ type SelectedAccountByWallet = Record<string, string | null>
 
 interface WalletProviderContext {
     wallets: Record<string, EIP6963ProviderDetail>         // Record of wallets by UUID
-    selectedWallet: EIP6963ProviderDetail | null           // Currently selected wallet
-    selectedAccount: string | null                         // Account address of selected wallet
+    wallet: EIP6963ProviderDetail | null           // Currently selected wallet
+    account: string | null                         // Account address of selected wallet
     errorMessage: string | null                            // Error message
     connectWallet: (walletUuid: string) => Promise<void>   // Function to trigger wallet connection
     disconnectWallet: () => void                           // Function to trigger wallet disconnection
@@ -111,8 +111,8 @@ export const WalletProvider: React.FC<PropsWithChildren> = ({ children }) => {
 
     const contextValue: WalletProviderContext = {
         wallets,
-        selectedWallet: selectedWalletRdns === null ? null : wallets[selectedWalletRdns],
-        selectedAccount: selectedWalletRdns === null ? null : selectedAccountByWalletRdns[selectedWalletRdns],
+        wallet: selectedWalletRdns === null ? null : wallets[selectedWalletRdns],
+        account: selectedWalletRdns === null ? null : selectedAccountByWalletRdns[selectedWalletRdns],
         errorMessage,
         connectWallet,
         disconnectWallet,

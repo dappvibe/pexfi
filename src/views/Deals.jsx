@@ -19,11 +19,11 @@ function StateTag(args) {
 
 function DealItem() {
     const deal = useAsyncValue();
-    const { selectedAccount } = useWalletProvider();
+    const { account } = useWalletProvider();
 
     function title(deal) {
         const href = '/trade/deal/' + deal.contract.target;
-        let title = deal.seller === selectedAccount ? "Sell " : "Buy ";
+        let title = deal.seller === account ? "Sell " : "Buy ";
         title += deal.tokenAmount + ' ' + deal.offer.token + " for " + deal.tokenAmount + ' ' + deal.offer.fiat + " with " + deal.offer.method;
         return <Link to={href}>{title}</Link>;
     }

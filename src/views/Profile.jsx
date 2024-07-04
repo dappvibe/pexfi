@@ -6,7 +6,7 @@ import {Descriptions} from "antd";
 
 export default function Profile()
 {
-    const { selectedWallet, selectedAccount } = useWalletProvider();
+    const { account } = useWalletProvider();
     const { repToken } = useContract();
     const [tokenId, setTokenId] = useState(null);
     const [stats, setStats] = useState(null);
@@ -30,8 +30,8 @@ export default function Profile()
     }
 
     useEffect(() => {
-        if (selectedAccount) {
-            repToken.ownerToTokenId(selectedAccount).then((tokenId) => {
+        if (account) {
+            repToken.ownerToTokenId(account).then((tokenId) => {
                 if (!tokenId) return;
                 setTokenId(tokenId);
                 refreshStats(tokenId);
@@ -41,7 +41,7 @@ export default function Profile()
             setTokenId(null);
             setStats(null);
         }
-    }, [selectedAccount]);
+    }, [account]);
 
     function create() {
         return repToken.register().then((tx) => {
