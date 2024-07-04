@@ -1,4 +1,4 @@
-import {Avatar, Button, Divider, Flex, Input, List, Select, Space, Table, Tag} from "antd";
+import {Avatar, Button, Divider, Input, Select, Space, Table, Tag} from "antd";
 import {generatePath, Link, useNavigate, useParams} from "react-router-dom";
 import React, {useEffect, useState} from "react";
 import PropTypes from "prop-types";
@@ -16,7 +16,7 @@ export default function OffersList({offers, price})
         side = 'sell',
         token = 'WBTC',
         fiat = 'USD',
-        method = 'ANY'
+        method = null
     } = useParams();
 
     const [rows, setRows] = useState(offers);
@@ -31,30 +31,15 @@ export default function OffersList({offers, price})
         let title = side === 'sell' ? 'Buy' : 'Sell';
         title += ' ' + token;
         title += ' for ' + fiat;
-        if (method && method !== 'ANY') title += ' using ' + method;
+        if (method) title += ' using ' + method;
         return title;
     }
 
     const filters = () => {
-        const fiats = inventory.fiats.map(fiat => {
-            return {
-                value: fiat,
-            }
-        });
-        const methods = [
-            {value: 'ANY', label: '-- Any --'},
-            ...Object.keys(inventory.methods).map(method => {
-                return {
-                    value: method,
-                }
-            })
-        ];
-        const navigateFiat = (fiat) => {
-            navigate(generatePath("/trade/:side/:token/:fiat/:method?", { side, token, fiat, method }));
-        }
-        const navigateMethod = (method) => {
-            navigate(generatePath("/trade/:side/:token/:fiat/:method?", { side, token, fiat, method }));
-        }
+        const fiats = inventory.fiats.map(fiat => ({ value: fiat }));
+        const methods = Object.keys(inventory.methods).map(method => ({ value: method }));
+        const navigateFiat = (fiat) => navigate(generatePath("/trade/:side/:token/:fiat/:method?", { side, token, fiat, method }));
+        const navigateMethod = (method) => navigate(generatePath("/trade/:side/:token/:fiat/:method?", {side, token, fiat, method}));
         return (
             <Space>
                 <Input placeholder={"Amount"}
@@ -75,6 +60,7 @@ export default function OffersList({offers, price})
                        )}
                 />
                 <Select
+                    allowClear
                     showSearch
                     defaultValue={method}
                     style={{ width: 200 }}
