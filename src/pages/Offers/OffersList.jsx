@@ -1,6 +1,6 @@
 import {Avatar, Button, Divider, Flex, Input, List, Select, Space, Table, Tag} from "antd";
 import {generatePath, Link, useNavigate, useParams} from "react-router-dom";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import PropTypes from "prop-types";
 import Username from "../../components/Username.jsx";
 import {useInventory} from "../../hooks/useInventory.jsx";
@@ -9,11 +9,23 @@ import {formatMoney} from "../../utils/index";
 
 export default function OffersList({offers, price})
 {
-    let { side, token, fiat, method } = useParams();
     const { selectedAccount: account } = useWalletProvider();
     const { inventory} = useInventory();
     const navigate = useNavigate();
+    let {
+        side = 'sell',
+        token = 'WBTC',
+        fiat = 'USD',
+        method = 'ANY'
+    } = useParams();
+
     const [rows, setRows] = useState(offers);
+    const [filterAmount, setFilterAmount] = useState('');
+
+    useEffect(() => {
+        if (filterAmount === '') setRows(offers);
+        else setRows(offers.filter(offer => offer.min <= filterAmount && offer.max >= filterAmount));
+    }, [filterAmount, offers]);
 
     function title() {
         let title = side === 'sell' ? 'Buy' : 'Sell';
@@ -43,15 +55,12 @@ export default function OffersList({offers, price})
         const navigateMethod = (method) => {
             navigate(generatePath("/trade/:side/:token/:fiat/:method?", { side, token, fiat, method }));
         }
-        const filterAmount = (e) => {
-            if (e.target.value === '') setRows(offers);
-            else setRows(offers.filter(offer => offer.min <= e.target.value && offer.max >= e.target.value));
-        }
         return (
             <Space>
                 <Input placeholder={"Amount"}
                        style={{ maxWidth: 200 }}
-                       onChange={filterAmount}
+                       allowClear
+                       onChange={(e) => setFilterAmount(e.target.value)}
                        addonAfter={(
                            <Select
                                showSearch
