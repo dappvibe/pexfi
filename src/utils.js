@@ -1,13 +1,13 @@
-export const formatChainAsNum = (chainIdHex: string) => {
+export const formatChainAsNum = (chainIdHex) => {
     return parseInt(chainIdHex)
 }
 
-export const formatAddress = (addr: string) => {
+export const formatAddress = (addr) => {
     const upperAfterLastTwo = addr.slice(0,2) + addr.slice(2)
     return `${upperAfterLastTwo.substring(0, 7)}...${upperAfterLastTwo.substring(38)}`
 }
 
-export const formatMoney = (currency: string, amount: any) => {
+export const formatMoney = (currency, amount) => {
     return (new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: currency,
