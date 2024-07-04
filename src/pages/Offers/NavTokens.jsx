@@ -3,7 +3,7 @@ import {Menu, Skeleton} from "antd";
 import {generatePath, Link, useParams} from "react-router-dom";
 import React from "react";
 
-export default function Navbar() {
+export default function NavTokens() {
     const { inventory } = useInventory();
     let {
         side = 'sell',
