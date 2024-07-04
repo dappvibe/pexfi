@@ -1,21 +1,14 @@
-import {useInventory} from "../../hooks/useInventory.jsx";
-import {Menu, Skeleton} from "antd";
+import PropTypes from "prop-types";
+import {Menu} from "antd";
 import {generatePath, Link, useParams} from "react-router-dom";
-import React from "react";
 
-export default function NavTokens() {
-    const { inventory } = useInventory();
+export default function TokenNav({tokens}) {
     let {
         side = 'sell',
         token = 'WBTC',
         fiat = 'USD',
         method = null
     } = useParams();
-
-    // wait for inventory to load
-    if (!inventory) return (<Skeleton active paragraph={false} />)
-
-    const { tokens } = inventory;
 
     const tokensMenu = Object.keys(tokens).map(token => {
         return {
@@ -30,7 +23,11 @@ export default function NavTokens() {
     <Menu
         mode={"horizontal"}
         items={tokensMenu}
-        defaultSelectedKeys={[token]}
+        selectedKeys={[token]}
     />
     );
 }
+
+TokenNav.propTypes = {
+    tokens: PropTypes.object.isRequired,
+};
