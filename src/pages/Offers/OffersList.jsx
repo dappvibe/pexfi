@@ -114,11 +114,6 @@ export default function OffersList({offers, price})
         },
         //Table.EXPAND_COLUMN,
         {
-            title: 'Terms', // TODO show terms tags and text below
-            responsive: ['md'],
-            render: (text, offer) => <Tag>{offer.method}</Tag>,
-        },
-        {
             title: 'User',
             dataIndex: 'owner',
             width: 180,
@@ -132,6 +127,11 @@ export default function OffersList({offers, price})
                     <Username address={offer.owner} />
                 </Space>
             )
+        },
+        {
+            title: 'Terms', // TODO show terms tags and text below
+            responsive: ['md'],
+            render: (text, offer) => <Tag>{offer.method}</Tag>,
         },
     ];
 
