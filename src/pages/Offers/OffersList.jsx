@@ -77,7 +77,7 @@ export default function OffersList({offers, price})
             title: '',
             width: 0,
             render: (_, offer) => {
-                if (offer.owner.toLowerCase() === account.toLowerCase()) {
+                if (account && offer.owner.toLowerCase() === account.toLowerCase()) {
                     return (
                         <Space>
                             <Button type="primary">
