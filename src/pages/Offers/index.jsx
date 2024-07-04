@@ -2,7 +2,7 @@ import {Await, useLoaderData} from "react-router-dom";
 import {InventoryProvider} from "../../hooks/InventoryProvider.jsx";
 import React from "react";
 import {Skeleton} from "antd";
-import Navbar from "./Navbar.jsx";
+import NavTokens from "./NavTokens.jsx";
 import OffersList from "./OffersList.jsx";
 
 export default function Offers() {
@@ -11,7 +11,7 @@ export default function Offers() {
     return (
         <>
         <InventoryProvider>
-            <Navbar />
+            <NavTokens />
 
             <React.Suspense fallback={<Skeleton active />}>
                 <Await resolve={offers}>
