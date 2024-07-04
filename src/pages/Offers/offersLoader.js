@@ -7,7 +7,7 @@ export async function offersLoader(request) {
     const token = params['token'] || 'WBTC';
     const fiat = params['fiat'] || 'USD';
     const method = params['method'] || 'ANY';
-    const side = params['side'] !== 'buy';
+    const side = params['side'] !== 'sell';
 
     return defer({ offers:
         Promise.all([
