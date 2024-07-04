@@ -7,7 +7,7 @@ import {useEffect, useState} from "react";
 import {useWalletProvider} from "./useWalletProvider";
 export function useContract()
 {
-    const { selectedWallet } = useWalletProvider();
+    const { wallet, account } = useWalletProvider();
 
     const provider = new ethers.JsonRpcProvider('http://localhost:8545');
     const [inventory, setInventory] = useState(new ethers.Contract(
@@ -27,15 +27,15 @@ export function useContract()
     ));
 
     useEffect(() => {
-        if (selectedWallet) {
-            const provider = new ethers.BrowserProvider(selectedWallet.provider);
+        if (account) {
+            const provider = new ethers.BrowserProvider(wallet.provider);
             provider.getSigner().then((signer) => {
                 setInventory(inventory.connect(signer));
                 setMarket(market.connect(signer));
                 setRepToken(repToken.connect(signer));
             });
         }
-    }, [selectedWallet]);
+    }, [account]);
 
     return {
         inventory,
