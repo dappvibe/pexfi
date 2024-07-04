@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import ExplorerLink from "./ExplorerLink.jsx";
-import {formatAddress} from "../utils/index";
+import {formatAddress} from "../utils.js";
 
 export default function Username({address})
 {
