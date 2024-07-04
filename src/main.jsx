@@ -3,21 +3,21 @@ import ReactDOM from 'react-dom/client'
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
 
 import './main.css'
-import Offers from "./views/Offers.jsx";
+import Offers from "./pages/Offers";
 import App from "./App.jsx";
-import {dealLoader, inventory, offerLoader, offersLoader, userDealsLoader, userOffersLoader} from "./js/loaders.js";
+import {dealLoader, offerLoader, userDealsLoader, userOffersLoader} from "./js/loaders.js";
 import Offer from "./views/Offer.jsx";
 import Deal from "./views/Deal.jsx";
 import {WalletProvider} from "./hooks/WalletProvider";
 import NewOffer from "./views/NewOffer.jsx";
 import Deals from "./views/Deals.jsx";
 import Profile from "./views/Profile.jsx";
+import {offersLoader} from "./pages/Offers/offersLoader.js";
 
 const router = createBrowserRouter([
     {
         path: "/",
         element: <App />,
-        loader: inventory,
         children: [
             {
                 path: "/me",
@@ -41,7 +41,7 @@ const router = createBrowserRouter([
             {
                 path: "/new",
                 element: <NewOffer />,
-                loader: inventory
+                //loader: inventory
             },
             {
                 path: "/trade/offers/:address",

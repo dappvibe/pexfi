@@ -1,14 +1,12 @@
-import React, {Suspense} from 'react'
-import {Await, generatePath, Link, Outlet, useLoaderData, useParams} from "react-router-dom";
-import {Button, Col, Flex, Layout, Menu, Row, Skeleton} from "antd";
-import Inventory from "./components/Inventory.jsx";
+import React from 'react'
+import {generatePath, Link, Outlet, useParams} from "react-router-dom";
+import {Button, Col, Layout, Menu, Row} from "antd";
 import WalletMenu from "./components/WalletMenu.jsx";
 import {useWalletProvider} from "./hooks/useWalletProvider";
 
 const {Header, Content, Sider} = Layout;
 
 export default function App() {
-    const { inventory } = useLoaderData();
     const { selectedAccount } = useWalletProvider();
 
     const top = [
@@ -44,11 +42,6 @@ export default function App() {
             </Row>
         </Header>
         <Content>
-            <Suspense fallback={<Skeleton paragraph={false} active />}>
-                <Await resolve={inventory}>
-                    {(inventory) => (<Inventory data={inventory}/>)}
-                </Await>
-            </Suspense>
             <Outlet/>
         </Content>
     </Layout>
