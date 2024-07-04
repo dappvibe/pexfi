@@ -9,7 +9,7 @@ export default function NavTokens() {
         side = 'sell',
         token = 'WBTC',
         fiat = 'USD',
-        method = 'ANY'
+        method = null
     } = useParams();
 
     // wait for inventory to load
