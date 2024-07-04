@@ -9,7 +9,7 @@ export default function WalletConnector()
 {
     const {
         wallets,
-        selectedAccount,
+        account,
         connectWallet,
         disconnectWallet,
     } = useWalletProvider();
@@ -19,18 +19,18 @@ export default function WalletConnector()
     const menu = {
         items: [
             {label: <Link to={'/me'}>Profile</Link>, key: 'profile'},
-            {label: <Link to={'/trade/offers/'+selectedAccount}>My Offers</Link>, key: 'my-offers'},
-            {label: <Link to={'/trade/deals/'+selectedAccount}>My Deals</Link>, key: 'my-deals'},
+            {label: <Link to={'/trade/offers/'+account}>My Offers</Link>, key: 'my-offers'},
+            {label: <Link to={'/trade/deals/'+account}>My Deals</Link>, key: 'my-deals'},
             {type: 'divider'},
             {label: 'Disconnect', key: 'disconnect', onClick: disconnectWallet}
         ]
     };
 
     return (<>
-    {selectedAccount ?
+    {account ?
         <Dropdown menu={menu}>
             <Button>
-                {formatAddress(selectedAccount)}
+                {formatAddress(account)}
                 <DownOutlined />
             </Button>
         </Dropdown>
