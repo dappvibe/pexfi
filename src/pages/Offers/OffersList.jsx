@@ -1,6 +1,6 @@
 import {Avatar, Button, Divider, Flex, Input, List, Select, Space, Table, Tag} from "antd";
 import {generatePath, Link, useNavigate, useParams} from "react-router-dom";
-import React from "react";
+import React, {useState} from "react";
 import PropTypes from "prop-types";
 import Username from "../../components/Username.jsx";
 import {useInventory} from "../../hooks/useInventory.jsx";
@@ -12,12 +12,13 @@ export default function OffersList({offers, price})
     const { selectedAccount: account } = useWalletProvider();
     const { inventory} = useInventory();
     const navigate = useNavigate();
+    const [rows, setRows] = useState(offers);
 
     function title() {
         let title = side === 'sell' ? 'Buy' : 'Sell';
         title += ' ' + token;
         title += ' for ' + fiat;
-        if (method) title += ' using ' + method;
+        if (method && method !== 'ANY') title += ' using ' + method;
         return title;
     }
 
@@ -41,10 +42,15 @@ export default function OffersList({offers, price})
         const navigateMethod = (method) => {
             navigate(generatePath("/trade/:side/:token/:fiat/:method?", { side, token, fiat, method }));
         }
+        const filterAmount = (e) => {
+            if (e.target.value === '') setRows(offers);
+            else setRows(offers.filter(offer => offer.min <= e.target.value && offer.max >= e.target.value));
+        }
         return (
             <Space>
                 <Input placeholder={"Amount"}
                        style={{ maxWidth: 200 }}
+                       onChange={filterAmount}
                        addonAfter={(
                            <Select
                                showSearch
@@ -70,6 +76,7 @@ export default function OffersList({offers, price})
         );
     }
 
+    // TODO move to utils
     let formatter = new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: fiat,
@@ -147,7 +154,7 @@ export default function OffersList({offers, price})
             <span style={{marginLeft: 20}}>Market: {formatter.format(price)}</span>
         </Divider>
         {/*<Flex gap={"middle"} style={{padding: 10}}>{filters()}</Flex>*/}
-        <Table columns={columns} dataSource={offers} pagination={false}
+        <Table columns={columns} dataSource={rows} pagination={false}
                rowKey={offer => offer.id}
                title={filters}
                /*expandable={{
