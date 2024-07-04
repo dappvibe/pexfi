@@ -1,61 +1,39 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import {createBrowserRouter, RouterProvider} from "react-router-dom";
+import {createBrowserRouter, createRoutesFromElements, Navigate, Route, RouterProvider} from "react-router-dom";
 
 import './main.css'
-import Offers from "./pages/Offers";
-import App from "./App.jsx";
+import {WalletProvider} from "./hooks/WalletProvider";
+import {offersLoader} from "./pages/Offers/offersLoader.js";
+import Layout from "./Layout";
+import Home from "./Home/index.jsx";
+import Profile from "./views/Profile.jsx";
+import Deal from "./views/Deal.jsx";
 import {dealLoader, offerLoader, userDealsLoader, userOffersLoader} from "./js/loaders.js";
 import Offer from "./views/Offer.jsx";
-import Deal from "./views/Deal.jsx";
-import {WalletProvider} from "./hooks/WalletProvider";
-import NewOffer from "./views/NewOffer.jsx";
 import Deals from "./views/Deals.jsx";
-import Profile from "./views/Profile.jsx";
-import {offersLoader} from "./pages/Offers/offersLoader.js";
+import OfferNew from "./Trade/Offer/OfferNew.jsx";
+import inventory from "@/loaders/inventory.js";
+import TradeLayout from "@/Trade/TradeLayout.jsx";
+import Offers from "@/pages/Offers/index.jsx";
+//import Offers from "@/Trade/Offers/Offers.jsx";
 
-const router = createBrowserRouter([
-    {
-        path: "/",
-        element: <App />,
-        children: [
-            {
-                path: "/me",
-                element: <Profile />
-            },
-            {
-                path: "/trade/deal/:dealId",
-                element: <Deal />,
-                loader: dealLoader
-            },
-            {
-                path: "/trade/:side?/:token?/:fiat?/:method?",
-                element: <Offers />,
-                loader: offersLoader
-            },
-            {
-                path: "/trade/:side/:token/:fiat/:method/:offerId",
-                element: <Offer />,
-                loader: offerLoader
-            },
-            {
-                path: "/new",
-                element: <NewOffer />,
-                //loader: inventory
-            },
-            {
-                path: "/trade/offers/:address",
-                element: <Offers />,
-                loader: userOffersLoader
-            },
-            {
-                path: "/trade/deals/:address",
-                element: <Deals />,
-                loader: userDealsLoader
-            }
-        ]
-    },
-]);
+const router = createBrowserRouter( createRoutesFromElements(
+    <Route element={<Layout />}>
+        <Route index element={<Home/>} />
+        <Route path={"/trade"} element={<TradeLayout/>} loader={inventory}>
+            <Route index element={<Navigate to={"/trade/sell"} />} />
+            <Route path=":side/:token?/:fiat?/:method?" element={<Offers />} loader={offersLoader}/>
+            <Route path={"offer/:offerId"} element={<Offer/>} loader={offerLoader} />
+            <Route path={"offer/new" } element={<OfferNew/>} />
+            <Route path={"deal/:dealId"} element={<Deal/>} loader={dealLoader} />
+        </Route>
+        <Route path={"/me"} element={<Profile />}>
+            <Route path={"offers/:address"} element={<Offers />} loader={userOffersLoader}/>
+            <Route path={"deals/:address"} element={<Deals/>} loader={userDealsLoader}/>
+        </Route>
+    </Route>
+));
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
