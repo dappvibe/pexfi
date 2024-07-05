@@ -6,6 +6,10 @@ export class Deal {
         this.contract = DealContract.attach(address);
     }
 
+    clone(overrides = {}) {
+        return Object.assign(new Deal(this.contract.target), {...this, ...overrides});
+    }
+
     fetch() {
         return Promise.all([
             this.contract.buyer(),
