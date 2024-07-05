@@ -8,8 +8,8 @@ import {offersLoader} from "@/Trade/Offers/offersLoader.js";
 import Layout from "./Layout";
 import Home from "./Home/index.jsx";
 import Profile from "./views/Profile.jsx";
-import Deal from "./views/Deal.jsx";
-import {dealLoader, userDealsLoader, userOffersLoader} from "./js/loaders.js";
+import Deal from "@/Trade/Deal/Deal.jsx";
+import {userDealsLoader, userOffersLoader} from "./js/loaders.js";
 import Offer from "@/Trade/Offer/Offer.jsx";
 import Deals from "./views/Deals.jsx";
 import OfferNew from "./Trade/Offer/OfferNew.jsx";
@@ -17,6 +17,7 @@ import inventory from "@/loaders/inventory.js";
 import TradeLayout from "@/Trade/TradeLayout.jsx";
 import Offers from "@/Trade/Offers/Offers.jsx";
 import {offerLoader} from "@/Trade/Offer/offerLoader.js";
+import {dealLoader} from "@/Trade/Deal/dealLoader.js";
 
 const router = createBrowserRouter( createRoutesFromElements(
     <Route element={<Layout />}>
