@@ -41,7 +41,6 @@ export default function Offer() {
         const t = await signed(token.current)
         return t.approve(MarketContract.target, ethers.MaxUint256).then((tx) => {
             tx.wait().then(() => {
-                setLockButton(false);
                 token.current.allowance(account, MarketContract.target).then(setAllowance);
             });
         });
