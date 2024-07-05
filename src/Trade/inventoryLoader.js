@@ -2,7 +2,7 @@ import {ethers} from "ethers";
 import {InventoryContract as contract} from "@/hooks/useContract.jsx";
 import {defer} from "react-router-dom";
 
-export default async function inventory() {
+export default async function inventoryLoader() {
     const cached = (key, promise) => {
         const now = new Date();
         const cache = localStorage.getItem(key);
