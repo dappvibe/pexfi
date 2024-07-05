@@ -13,7 +13,7 @@ import {userDealsLoader, userOffersLoader} from "./js/loaders.js";
 import Offer from "@/Trade/Offer/Offer.jsx";
 import Deals from "./views/Deals.jsx";
 import OfferNew from "./Trade/Offer/OfferNew.jsx";
-import inventory from "@/loaders/inventory.js";
+import inventoryLoader from "@/Trade/inventoryLoader.js";
 import TradeLayout from "@/Trade/TradeLayout.jsx";
 import Offers from "@/Trade/Offers/Offers.jsx";
 import {offerLoader} from "@/Trade/Offer/offerLoader.js";
@@ -22,7 +22,7 @@ import {dealLoader} from "@/Trade/Deal/dealLoader.js";
 const router = createBrowserRouter( createRoutesFromElements(
     <Route element={<Layout />}>
         <Route index element={<Home/>} />
-        <Route path={"/trade"} element={<TradeLayout/>} loader={inventory}>
+        <Route path={"/trade"} element={<TradeLayout/>} loader={inventoryLoader}>
             <Route index element={<Navigate to={"/trade/sell"} />} />
             <Route path=":side/:token?/:fiat?/:method?" element={<Offers />} loader={offersLoader}/>
             <Route path={"offer/:offerId"} element={<Offer/>} loader={offerLoader} />
