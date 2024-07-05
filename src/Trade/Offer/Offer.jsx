@@ -1,8 +1,7 @@
 import {Await, Link, useLoaderData, useNavigate} from "react-router-dom";
 import {Breadcrumb, Button, Descriptions, Form, Input, message, Skeleton} from "antd";
 import React, {useState} from "react";
-import {Market} from "../js/contracts.js";
-import {useContract} from "../hooks/useContract.jsx";
+import {useContract} from "@/hooks/useContract.jsx";
 
 export default function Offer() {
     const { offer } = useLoaderData();
@@ -18,7 +17,7 @@ export default function Offer() {
             message.info('Deal submitted. You will be redirected shortly.');
             tx.wait().then((receipt) => {
                 receipt.logs.forEach(log => {
-                    const DealCreated = Market.interface.parseLog(log);
+                    const DealCreated = market.interface.parseLog(log);
                     if (DealCreated) {
                         setLockButton(false);
                         navigate('/trade/deal/'+DealCreated.args[3]);
