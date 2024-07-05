@@ -2,7 +2,6 @@ import {Button, Form, Input, message, Radio, Select, Skeleton, Space} from "antd
 import {Await, useLoaderData, useNavigate} from "react-router-dom";
 import React from "react";
 import {useWalletProvider} from "@/hooks/useWalletProvider";
-import {Market} from "@/js/contracts.js";
 import {ethers} from "ethers";
 
 const { TextArea } = Input;
