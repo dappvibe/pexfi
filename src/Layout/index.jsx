@@ -8,7 +8,7 @@ export default function Layout()
 {
     return (
     <AntLayout>
-        <Header style={{paddingLeft: 0, paddingRight: 20}}>
+        <Header style={{padding: 0}}>
             <Topnav />
         </Header>
         <Content>

@@ -1,4 +1,4 @@
-import {Button, Col, Menu, Row} from "antd";
+import {Button, Col, Flex, Menu, Row, Space} from "antd";
 import {generatePath, Link, useParams} from "react-router-dom";
 import WalletMenu from "../components/WalletMenu.jsx";
 import {useWalletProvider} from "../hooks/useWalletProvider";
@@ -20,21 +20,22 @@ export default function Topnav()
     ];
 
     return (
-        <Row>
-            <Col flex={"100px"}><Link to={"/"}>Fiat D.app</Link></Col>
-            <Col flex={"auto"}>
+        <Flex justify={'space-between'}>
+            <Flex>
+                <Link style={{width: 80}} to={"/"}>Fiat D.app</Link>
                 <Menu mode={"horizontal"}
                       theme={"dark"}
                       items={top}
-                      selectedKeys={[params.side]}
+                      defaultSelectedKeys={[params.side]}
+                      style={{minWidth: 200}}
                 />
-            </Col>
-            <Col flex={"auto"}>
-                {account && <Button><Link to={'/trade/offer/new'}>Create Offer</Link></Button>}
-            </Col>
-            <Col flex={"100px"}>
+            </Flex>
+            <Flex>
+                {account &&
+                    <Space><Button><Link to={'/trade/offer/new'}>Create Offer</Link></Button></Space>
+                }
                 <WalletMenu />
-            </Col>
-        </Row>
+            </Flex>
+        </Flex>
     );
 }

@@ -34,15 +34,17 @@ export default function WalletMenu()
         ];
 
         return (
-            <Menu items={top} theme={"dark"} mode={"horizontal"} />
+            <Menu items={top} theme={"dark"} mode={"horizontal"} style={{minWidth: 200, flex: 'auto'}} />
         );
     }
     else {
         return (
         <>
+            <Space style={{paddingRight: 20}}>
             <Button onClick={() => setModalOpen(true)}>
                 Connect Wallet
             </Button>
+            </Space>
             {modalOpen && (
                 <Modal open={modalOpen}
                        onCancel={() => setModalOpen(false)}
