@@ -1,17 +1,18 @@
-import {Inventory, Market} from './contracts.js'
 import {defer} from "react-router-dom";
 
 import { abi as DealAbi} from '../../contracts/artifacts/Deal.json';
 import {ethers} from "ethers";
+import Offer from "@/model/Offer.js";
+import {MarketContract} from "@/hooks/useContract.jsx";
 
 export async function userOffersLoader(request) {
     const params = request.params;
 
-    const filter = Market.filters.OfferCreated(params.address);
+    const filter = MarketContract.filters.OfferCreated(params.address);
     return defer({ data:
-         Market.queryFilter(filter).then(logs => {
+         MarketContract.queryFilter(filter).then(logs => {
             const list = logs.map(log => {
-                return hydrateOffer(log.args[3], 0); // FIXME correct price
+                return Offer.hydrateOffer(log.args[3], 0); // FIXME correct price
             });
             return {
                 offers: list,
@@ -28,27 +29,14 @@ export async function userDealsLoader(request)
     // resolves with more promises
     return defer({
         deals: Promise.all([
-            Market.queryFilter(Market.filters.DealCreated(request.params.address)), // as owner (maker)
-            Market.queryFilter(Market.filters.DealCreated(null, request.params.address)), // as taker
+            MarketContract.queryFilter(MarketContract.filters.DealCreated(request.params.address)), // as owner (maker)
+            MarketContract.queryFilter(MarketContract.filters.DealCreated(null, request.params.address)), // as taker
         ]).then(([asOwner, asTaker]) => {
             return asOwner.concat(asTaker).map(log => {
                 return loadDeal(log.args[3]);
             })
         })
     });
-}
-
-// TODO if returned 0 throw 404
-export async function offerLoader(request) {
-    const params = request.params;
-    const offerId = params['offerId'];
-    return defer({ offer: Promise.all([
-        Market.getOffer(offerId),
-        Inventory.getPrice(params['token'], params['fiat'])
-    ]).then(([offer, price]) => {
-        price = Number(price / 10000n) / 100;
-        return hydrateOffer(offer, price);
-    })});
 }
 
 function loadDeal(address) {
@@ -60,8 +48,8 @@ function loadDeal(address) {
     )
     return Promise.all([
         dealContract.offerId().then(id => {
-            return Market.getOffer(id).then(offer => {
-                return hydrateOffer(offer, 0); // FIXME correct price
+            return MarketContract.getOffer(id).then(offer => {
+                return Offer.hydrateOffer(offer, 0); // FIXME correct price
             });
         }),
         dealContract.buyer(),

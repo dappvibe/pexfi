@@ -2,7 +2,6 @@ import {Await, useLoaderData} from "react-router-dom";
 import {Button, Col, Descriptions, Form, Input, List, message, Row, Skeleton, Steps} from "antd";
 import React, {useEffect, useState} from "react";
 import {ethers} from "ethers";
-import {Market} from "../js/contracts.js";
 import {useWalletProvider} from "../hooks/useWalletProvider";
 import LoadingButton from "../components/LoadingButton.jsx";
 
