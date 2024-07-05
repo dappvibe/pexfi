@@ -9,13 +9,14 @@ import Layout from "./Layout";
 import Home from "./Home/index.jsx";
 import Profile from "./views/Profile.jsx";
 import Deal from "./views/Deal.jsx";
-import {dealLoader, offerLoader, userDealsLoader, userOffersLoader} from "./js/loaders.js";
-import Offer from "./views/Offer.jsx";
+import {dealLoader, userDealsLoader, userOffersLoader} from "./js/loaders.js";
+import Offer from "@/Trade/Offer/Offer.jsx";
 import Deals from "./views/Deals.jsx";
 import OfferNew from "./Trade/Offer/OfferNew.jsx";
 import inventory from "@/loaders/inventory.js";
 import TradeLayout from "@/Trade/TradeLayout.jsx";
 import Offers from "@/Trade/Offers/Offers.jsx";
+import {offerLoader} from "@/Trade/Offer/offerLoader.js";
 
 const router = createBrowserRouter( createRoutesFromElements(
     <Route element={<Layout />}>
