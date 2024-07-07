@@ -12,6 +12,7 @@ export class Deal {
 
     fetch() {
         return Promise.all([
+            this.contract.offerId(),
             this.contract.buyer(),
             this.contract.seller(),
             this.contract.mediator(),
@@ -22,7 +23,8 @@ export class Deal {
             this.contract.paymentInstructions(),
             this.contract.allowCancelUnacceptedAfter(),
         ])
-        .then(([buyer, seller, mediator, token, tokenAmount, fiatAmount, state, paymentInstructions, allowCancelUnacceptedAfter]) => {
+        .then(([offerId, buyer, seller, mediator, token, tokenAmount, fiatAmount, state, paymentInstructions, allowCancelUnacceptedAfter]) => {
+            this.offerId = offerId;
             this.buyer = buyer;
             this.seller = seller;
             this.mediator = mediator;
