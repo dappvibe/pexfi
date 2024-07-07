@@ -33,7 +33,7 @@ export class Deal {
             this.fiatAmount = Number(fiatAmount) / 10**6; // FIXME test with large input
             this.state = Number(state); // FIXME constants
             this.paymentInstructions = paymentInstructions;
-            this.allowCancelUnacceptedAfter = Number(allowCancelUnacceptedAfter); // FIXME date
+            this.allowCancelUnacceptedAfter = new Date(Number(allowCancelUnacceptedAfter) * 1000);
             return this;
         })
         .then(() => {
