@@ -7,7 +7,7 @@ import {Descriptions} from "antd";
 export default function Profile()
 {
     const { account } = useWalletProvider();
-    const { repToken } = useContract();
+    const { repToken, signed } = useContract();
     const [tokenId, setTokenId] = useState(null);
     const [stats, setStats] = useState(null);
 
@@ -43,8 +43,9 @@ export default function Profile()
         }
     }, [account]);
 
-    function create() {
-        return repToken.register().then((tx) => {
+    async function create() {
+        const rep = await signed(repToken);
+        return rep.register().then((tx) => {
             tx.wait().then((receipt) => {
                 const logs = repToken.interface.parseLog(receipt.logs[0]);
                 setTokenId(logs[2])
@@ -65,7 +66,7 @@ export default function Profile()
             ) : (
             <>
             You do not have a token yet.
-            <LoadingButton onClick={create}>Create one</LoadingButton>
+            <LoadingButton type={"primary"} onClick={create}>Create one</LoadingButton>
             </>
         )}
         </>

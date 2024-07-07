@@ -7,7 +7,7 @@ import {WalletProvider} from "./hooks/WalletProvider";
 import {offersLoader} from "@/Trade/Offers/offersLoader.js";
 import Layout from "./Layout";
 import Home from "./Home/index.jsx";
-import Profile from "./views/Profile.jsx";
+import Profile from "@/Me/Profile.jsx";
 import Deal from "@/Trade/Deal/Deal.jsx";
 import Offer from "@/Trade/Offer/Offer.jsx";
 import UserDeals from "@/Me/UserDeals.jsx";
