@@ -373,6 +373,18 @@ describe('Seller releases tokens', function() {
     });
 });
 
+// this must be tested on a completed deal because of state rquirement
+describe('Feedback', function() {
+    it('seller rates buyer', async function() {
+        deal = await deal.connect(seller);
+        await expect(deal.feedback(true, 'good')).to.emit(deal, 'FeedbackGiven');
+    });
+    it('buyer rates seller', async function() {
+        deal = await deal.connect(buyer);
+        await expect(deal.feedback(false, 'bad')).to.emit(deal, 'FeedbackGiven');
+    });
+});
+
 describe('Buyer cancels deal', function() {
     it ('open another deal', async function() {
         Market = await Market.connect(buyer);
@@ -489,16 +501,5 @@ describe('Messaging', function() {
     it('buyer sends message', async function() {
         deal = await deal.connect(buyer);
         await expect(deal.message('Hello seller!')).to.emit(deal, 'Message');
-    });
-});
-
-describe('Feedback', function() {
-    it('seller rates buyer', async function() {
-        deal = await deal.connect(seller);
-        await expect(deal.feedback(true, 'good')).to.emit(deal, 'FeedbackGiven');
-    });
-    it('buyer rates seller', async function() {
-        deal = await deal.connect(buyer);
-        await expect(deal.feedback(false, 'bad')).to.emit(deal, 'FeedbackGiven');
     });
 });
