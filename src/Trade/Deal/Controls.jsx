@@ -1,7 +1,7 @@
 import React, {useContext} from "react";
 import {DealContext} from "@/Trade/Deal/Deal.jsx";
 import {useWalletProvider} from "@/hooks/useWalletProvider";
-import {message, Space} from "antd";
+import {message, Space, Statistic} from "antd";
 import {ethers} from "ethers";
 import LoadingButton from "@/components/LoadingButton.jsx";
 import {useContract} from "@/hooks/useContract.jsx";
@@ -65,6 +65,12 @@ export default function Controls() {
             setDeal(deal.clone({state: 2}));
             message.success('Accepted');
         });
+    }
+
+    if (deal.isParticipant(account)) {
+        if (deal.offer.owner.toLowerCase() !== account.toLowerCase() && deal.state === 0) {
+            return <Space>Waiting for acceptance: <Statistic.Countdown value={deal.allowCancelUnacceptedAfter} /></Space>
+        }
     }
 
     // for buyer
