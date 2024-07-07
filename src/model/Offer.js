@@ -1,5 +1,16 @@
+import {InventoryContract, MarketContract} from "@/hooks/useContract.jsx";
+
 export default class Offer
 {
+    static fetch (id) {
+        return MarketContract.getOffer(id)
+            .then((offer) => Offer.hydrate(offer))
+            .then((offer) => {
+                return InventoryContract.getPrice(offer.token, offer.fiat)
+                    .then((price) => offer.setPairPrice(price))
+            })
+    }
+
     /**
      * @param response Response from the contract
      */
