@@ -1,7 +1,8 @@
 const {expect} = require("chai");
-const {ethers, upgrades} = require("hardhat");
+const {ethers, upgrades, ignition} = require("hardhat");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
-const {deployMockERC20} = require("./mocks");
+const {deployMockERC20} = require("./mocks")
+const DealFactoryModule = require("../ignition/modules/DealFactory");
 
 function address(number) {
     let hexString = number.toString(16);
@@ -16,7 +17,7 @@ const DEFAULT_ADMIN_ROLE = '0x00000000000000000000000000000000000000000000000000
 const MARKET_ROLE = ethers.encodeBytes32String('MARKET_ROLE');
 
 let MockUniswap, MockBTC, MockETH, MockUSDT, MockDummy,
-    PriceFeeds = {}, RepToken, Inventory, Market,
+    PriceFeeds = {}, RepToken, Inventory, Market, DealFactory,
     deployer, seller, buyer, mediator,
     offers = [], deal;
 
@@ -171,6 +172,16 @@ describe('Deployment', function()
             await expect(RepToken.hasRole(MARKET_ROLE, Market.target)).to.eventually.true;
         });
     });
+
+    describe('DealFactory', function() {
+        it ('is deployed', async function() {
+            const res = await ignition.deploy(DealFactoryModule);
+            DealFactory = res.DealFactory;
+            expect(DealFactory.target).to.be.properAddress;
+            expect(await DealFactory.initialize(Market.target)).to.not.reverted;
+            expect(await Market.setDealFactory(DealFactory.target)).to.not.reverted;
+        });
+    });
 });
 
 /**
@@ -215,6 +226,7 @@ describe('Browser builds UI', function ()
 describe('Users post offers', function()
 {
     it ('seller provides allowance', async function() {
+
         await MockBTC.connect(seller).approve(Market.target, ethers.MaxUint256);
         await MockETH.connect(seller).approve(Market.target, ethers.MaxUint256);
     });

@@ -4,14 +4,16 @@ pragma solidity ^0.8.0;
 import "../Deal.sol";
 import "../libraries/Offers.sol";
 import "../libraries/Methods.sol";
+import "../interfaces/IRepToken.sol";
 
 interface IMarket
 {
     event OfferCreated(address indexed owner, string indexed crypto, string indexed fiat, Offers.Offer offer);
-    event DealCreated(address indexed offerOwner, address indexed taker, uint indexed offerId, Deal deal);
+    event DealCreated(address indexed offerOwner, address indexed taker, uint indexed offerId, address deal);
 
     /**
     * @dev Payment methods management
     */
     function fundDeal() external returns (bool);
+    function repToken() external view returns (IRepToken);
 }
