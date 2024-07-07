@@ -379,9 +379,17 @@ describe('Feedback', function() {
         deal = await deal.connect(seller);
         await expect(deal.feedback(true, 'good')).to.emit(deal, 'FeedbackGiven');
     });
+    it('cannot post twice', async function() {
+        deal = await deal.connect(seller);
+        await expect(deal.feedback(true, 'good')).to.reverted;
+    });
     it('buyer rates seller', async function() {
         deal = await deal.connect(buyer);
         await expect(deal.feedback(false, 'bad')).to.emit(deal, 'FeedbackGiven');
+    });
+    it('cannot post twice', async function() {
+        deal = await deal.connect(buyer);
+        await expect(deal.feedback(true, 'good')).to.reverted;
     });
 });
 
