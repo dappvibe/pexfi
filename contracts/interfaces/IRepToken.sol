@@ -3,8 +3,9 @@ pragma solidity ^0.8.0;
 
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
-interface IRepToken is IERC721, IERC721Metadata
+interface IRepToken is IAccessControl, IERC721Metadata
 {
     function ownerToTokenId(address owner) external returns(uint);
     function register() external returns(uint tokenId);
