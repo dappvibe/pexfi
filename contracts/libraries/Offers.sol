@@ -15,7 +15,7 @@ library Offers
         string token;
         string fiat;
         string method;
-        uint16  rate;
+        uint32  rate;
         uint32  min;
         uint32  max;
 
