@@ -133,13 +133,12 @@ contract Deal is IDeal, AccessControl
         }
     }
 
-    function cancel() external onlyRole(MEMBER) {
-        if (state < State.Accepted
-        || (hasRole(BUYER, msg.sender) && state < State.Canceled)
-        || (hasRole(SELLER, msg.sender) && (
-                (state < State.Paid && block.timestamp > allowCancelUnpaidAfter) ||
-                (state < State.Accepted && block.timestamp > allowCancelUnacceptedAfter)
-            ))
+    function cancel() external onlyRole(MEMBER) stateBetween(State.Initiated, State.Resolved) {
+        require(state >= State.Accepted || block.timestamp > allowCancelUnacceptedAfter, "too early");
+
+        if ((state < State.Accepted)
+        ||  (hasRole(BUYER, msg.sender) && state < State.Canceled)
+        || (hasRole(SELLER, msg.sender) && ((state < State.Paid && block.timestamp > allowCancelUnpaidAfter)))
         )
         {
             if (state == State.Funded) {
