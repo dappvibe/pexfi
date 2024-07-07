@@ -48,7 +48,7 @@ contract Inventory is IInventory, Ownable
         return FullMath.mulDiv($amount, 10**4, denominator);
     }
 
-    /// @return price with 4 decimals
+    /// @return price with 6 decimals
     function getPrice(string memory token_, string memory fiat_) public view returns (uint256 price) {
         if (!token_.equal('USDT')) {
             price = _uniswapRateForUSDT(tokens.get(token_));
