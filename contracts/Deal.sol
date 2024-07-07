@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {IDeal} from "./interfaces/IDeal.sol";
-import {Market} from "./Market.sol";
 import {IMarket} from "./interfaces/IMarket.sol";
 import {IRepToken} from "./interfaces/IRepToken.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
@@ -40,7 +39,7 @@ contract Deal is IDeal, AccessControl
     uint    public allowCancelUnacceptedAfter;
     uint    public allowCancelUnpaidAfter;
     State   public state = State.Initiated;
-    Market private market;
+    IMarket private market;
     IRepToken private repToken;
 
     struct Feedback {
@@ -57,26 +56,27 @@ contract Deal is IDeal, AccessControl
     }
 
     constructor(
-        IRepToken repToken_,
+        address market_,
+        address repToken_,
         uint offerId_,
         bool isSell,
         address maker_,
         address taker_,
         address mediator_,
-        IERC20Metadata token_,
+        address token_,
         uint tokenAmount_,
         uint fiatAmount_,
         uint fee_,
         string memory paymentInstructions_
     )
     {
-        market = Market(msg.sender);
-        repToken = repToken_;
+        market = IMarket(market_);
+        repToken = IRepToken(repToken_);
         offerId = offerId_;
         buyer = isSell ? taker_ : maker_;
         seller = isSell ? maker_ : taker_;
         mediator = mediator_;
-        token = token_;
+        token = IERC20Metadata(token_);
         tokenAmount = tokenAmount_;
         fiatAmount = fiatAmount_;
         fee = fee_;

@@ -15,6 +15,8 @@ import {IInventory} from "./interfaces/IInventory.sol";
 import {Offers} from "./libraries/Offers.sol";
 import {Deals} from "./libraries/Deals.sol";
 import {Methods} from "./libraries/Methods.sol";
+import "./interfaces/IDealFactory.sol";
+import {IRepToken} from "./interfaces/IRepToken.sol";
 
 contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
 {
@@ -26,7 +28,8 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     Offers.Storage  private offers;
     Deals.Storage   private deals;
 
-    RepToken   public repToken;
+    IDealFactory public dealFactory;
+    IRepToken   public repToken;
     IInventory public inventory;
 
     address public mediator;
@@ -98,29 +101,29 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
 
         uint $tokenAmount = inventory.convert(fiatAmount_, $offer.fiat, $offer.token, $offer.rate);
 
-        Deal $deal = new Deal(
-            repToken,
+        address $deal = dealFactory.create(
+            address(repToken),
             offerId_,
             $offer.isSell,
             $offer.owner,
             msg.sender,
             mediator,
-            inventory.token($offer.token),
+            address(inventory.token($offer.token)),
             $tokenAmount,
             fiatAmount_,
             FEE,
             paymentInstructions_
         );
-        deals.add(address($deal), offerId_);
+        deals.add($deal, offerId_);
 
         emit DealCreated($offer.owner, msg.sender, offerId_, $deal);
 
         if (!$offer.isSell) {
             IERC20Metadata $token = IERC20Metadata(inventory.token($offer.token));
-            $token.safeTransferFrom(msg.sender, address($deal), $tokenAmount);
+            $token.safeTransferFrom(msg.sender, $deal, $tokenAmount);
         }
 
-        repToken.grantRole('DEAL_ROLE', address($deal));
+        repToken.grantRole('DEAL_ROLE', $deal);
     }
 
     /// @dev users provide allowance once to the market
@@ -142,5 +145,6 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
 
     function setRepToken(address repToken_) public onlyOwner { repToken = RepToken(repToken_); }
     function setInventory(address inventory_) public onlyOwner { inventory = IInventory(inventory_); }
+    function setDealFactory(address dealFactory_) public onlyOwner { dealFactory = IDealFactory(dealFactory_); }
     function setMediator(address mediator_) public onlyOwner { mediator = mediator_; }
 }
