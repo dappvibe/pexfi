@@ -12,7 +12,7 @@ import Deal from "@/Trade/Deal/Deal.jsx";
 import {userDealsLoader, userOffersLoader} from "./js/loaders.js";
 import Offer from "@/Trade/Offer/Offer.jsx";
 import Deals from "./views/Deals.jsx";
-import OfferNew from "./Trade/Offer/OfferNew.jsx";
+import OfferNew from "@/Trade/Offer/New/OfferNew.jsx";
 import inventoryLoader from "@/Trade/inventoryLoader.js";
 import TradeLayout from "@/Trade/TradeLayout.jsx";
 import Offers from "@/Trade/Offers/Offers.jsx";
