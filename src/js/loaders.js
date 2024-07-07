@@ -5,25 +5,6 @@ import {ethers} from "ethers";
 import Offer from "@/model/Offer.js";
 import {MarketContract} from "@/hooks/useContract.jsx";
 
-export async function userOffersLoader(request) {
-    const params = request.params;
-
-    const filter = MarketContract.filters.OfferCreated(params.address);
-    return defer({ data:
-         MarketContract.queryFilter(filter).then(logs => {
-            const list = logs.map(log => {
-                return Offer.hydrateOffer(log.args[3], 0); // FIXME correct price
-            });
-            return {
-                offers: list,
-                price: 0
-            };
-        }).catch((e) => {
-            console.error(e);
-        }),
-    });
-}
-
 export async function userDealsLoader(request)
 {
     // resolves with more promises

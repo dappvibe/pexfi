@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import {createBrowserRouter, createRoutesFromElements, Navigate, Route, RouterProvider} from "react-router-dom";
+import {createBrowserRouter, createRoutesFromElements, Navigate, Outlet, Route, RouterProvider} from "react-router-dom";
 
 import './main.css'
 import {WalletProvider} from "./hooks/WalletProvider";
@@ -9,7 +9,7 @@ import Layout from "./Layout";
 import Home from "./Home/index.jsx";
 import Profile from "./views/Profile.jsx";
 import Deal from "@/Trade/Deal/Deal.jsx";
-import {userDealsLoader, userOffersLoader} from "./js/loaders.js";
+import {userDealsLoader} from "./js/loaders.js";
 import Offer from "@/Trade/Offer/Offer.jsx";
 import Deals from "./views/Deals.jsx";
 import OfferNew from "@/Trade/Offer/New/OfferNew.jsx";
@@ -18,6 +18,7 @@ import TradeLayout from "@/Trade/TradeLayout.jsx";
 import Offers from "@/Trade/Offers/Offers.jsx";
 import {offerLoader} from "@/Trade/Offer/offerLoader.js";
 import {dealLoader} from "@/Trade/Deal/dealLoader.js";
+import UserOffers from "@/Me/Offers/UserOffers.jsx";
 
 const router = createBrowserRouter( createRoutesFromElements(
     <Route element={<Layout />}>
@@ -29,9 +30,10 @@ const router = createBrowserRouter( createRoutesFromElements(
             <Route path={"offer/new" } element={<OfferNew/>} />
             <Route path={"deal/:dealId"} element={<Deal/>} loader={dealLoader} />
         </Route>
-        <Route path={"/me"} element={<Profile />}>
-            <Route path={"offers/:address"} element={<Offers />} loader={userOffersLoader}/>
-            <Route path={"deals/:address"} element={<Deals/>} loader={userDealsLoader}/>
+        <Route path={"/me"} element={<TradeLayout/>} loader={inventoryLoader}>
+            <Route index element={<Profile />} />
+            <Route path={"offers"} element={<UserOffers />}/>
+            <Route path={"deals"} element={<Deals/>} loader={userDealsLoader}/>
         </Route>
     </Route>
 ));

@@ -25,8 +25,8 @@ export default function WalletMenu()
                 </Space>,
                 children: [
                     {label: <Link to={'/me'}>Profile</Link>, key: 'profile'},
-                    {label: <Link to={'/trade/offers/'+account}>My Offers</Link>, key: 'my-offers'},
-                    {label: <Link to={'/trade/deals/'+account}>My Deals</Link>, key: 'my-deals'},
+                    {label: <Link to={'/me/offers'}>My Offers</Link>, key: 'my-offers'},
+                    {label: <Link to={'/me/deals'}>My Deals</Link>, key: 'my-deals'},
                     {type: 'divider'},
                     {label: 'Disconnect', key: 'disconnect', onClick: disconnectWallet}
                 ]
