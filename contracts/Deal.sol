@@ -162,7 +162,8 @@ contract Deal is IDeal, AccessControl
     external
     stateBetween(State.Resolved, State.Completed)
     {
-        if (hasRole(SELLER, msg.sender) && !feedbackForBuyer.given) {
+        if (hasRole(SELLER, msg.sender)) {
+            require(!feedbackForBuyer.given, "already");
             feedbackForBuyer.given = true;
             feedbackForBuyer.upvote = upvote;
             feedbackForBuyer.message = message_;
@@ -172,7 +173,8 @@ contract Deal is IDeal, AccessControl
             }
             emit FeedbackGiven(buyer, upvote, message_);
         }
-        else if (hasRole(BUYER, msg.sender) && !feedbackForSeller.given) {
+        else if (hasRole(BUYER, msg.sender)) {
+            require(!feedbackForSeller.given, "already");
             feedbackForSeller.given = true;
             feedbackForSeller.upvote = upvote;
             feedbackForSeller.message = message_;
