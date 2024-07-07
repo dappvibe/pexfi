@@ -3,9 +3,11 @@ import React, {useEffect, useState} from "react";
 import {Input, Select, Skeleton, Space} from "antd";
 import OffersTable from "@/Trade/Offers/OffersTable.jsx";
 
-export default function Offers() {
+export default function Offers({offers}) {
     const {fiats, methods} = useOutletContext();
-    const { offers } = useLoaderData();
+    if (offers === undefined) {
+        const { offers } = useLoaderData();
+    }
     const navigate = useNavigate();
     let {
         side = 'sell',
