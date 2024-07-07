@@ -89,6 +89,14 @@ describe('Deployment', function()
         it ('deployer is default admin', async function() {
             return expect(RepToken.hasRole(DEFAULT_ADMIN_ROLE, deployer.address)).to.eventually.true;
         });
+        it ('Mint tokens for users in this test', async function() {
+            let signed = await RepToken.connect(buyer);
+            await signed.register();
+            await expect(signed.ownerToTokenId(buyer)).to.eventually.eq(1);
+            signed = await RepToken.connect(seller);
+            await signed.register();
+            return expect(signed.ownerToTokenId(seller)).to.eventually.eq(2);
+        })
     });
 
     describe('Inventory', function() {
@@ -467,6 +475,12 @@ describe('Cancelation by state', async function() {
         await ethers.provider.send('evm_increaseTime', [1000]);
         deal = await deal.connect(buyer);
         await expect(deal.cancel()).to.emit(deal, 'DealState');
+    });
+    it ('offer owner get expired deal recorded if not accepted in time', async function() {
+        let stats = await RepToken.stats(1);
+        await expect(stats[5]).to.eq(1);
+        stats = await RepToken.stats(2);
+        await expect(stats[5]).to.eq(1);
     });
 
     it ('seller cannot cancel after acceptance', async function() {

@@ -145,6 +145,15 @@ contract Deal is IDeal, AccessControl
             if (state == State.Funded) {
                 token.transfer(seller, tokenAmount);
             }
+
+            // canceled after acceptance window
+            if (state == State.Initiated && !hasRole(OFFER_OWNER, msg.sender)) {
+                uint $tokenId = repToken.ownerToTokenId(msg.sender);
+                if ($tokenId != 0) {
+                    repToken.statsDealExpired($tokenId);
+                }
+            }
+
             _state(State.Canceled);
         }
         else revert ActionNotAllowedInThisState(state);
