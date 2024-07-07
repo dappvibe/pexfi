@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import {createBrowserRouter, createRoutesFromElements, Navigate, Outlet, Route, RouterProvider} from "react-router-dom";
+import {createBrowserRouter, createRoutesFromElements, Navigate, Route, RouterProvider} from "react-router-dom";
 
 import './main.css'
 import {WalletProvider} from "./hooks/WalletProvider";
@@ -9,9 +9,8 @@ import Layout from "./Layout";
 import Home from "./Home/index.jsx";
 import Profile from "./views/Profile.jsx";
 import Deal from "@/Trade/Deal/Deal.jsx";
-import {userDealsLoader} from "./js/loaders.js";
 import Offer from "@/Trade/Offer/Offer.jsx";
-import Deals from "./views/Deals.jsx";
+import UserDeals from "@/Me/UserDeals.jsx";
 import OfferNew from "@/Trade/Offer/New/OfferNew.jsx";
 import inventoryLoader from "@/Trade/inventoryLoader.js";
 import TradeLayout from "@/Trade/TradeLayout.jsx";
@@ -33,7 +32,7 @@ const router = createBrowserRouter( createRoutesFromElements(
         <Route path={"/me"} element={<TradeLayout/>} loader={inventoryLoader}>
             <Route index element={<Profile />} />
             <Route path={"offers"} element={<UserOffers />}/>
-            <Route path={"deals"} element={<Deals/>} loader={userDealsLoader}/>
+            <Route path={"deals"} element={<UserDeals/>} />
         </Route>
     </Route>
 ));
