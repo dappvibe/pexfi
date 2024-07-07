@@ -5,6 +5,7 @@ import {message, Space} from "antd";
 import {ethers} from "ethers";
 import LoadingButton from "@/components/LoadingButton.jsx";
 import {useContract} from "@/hooks/useContract.jsx";
+import Feedback from "@/Trade/Deal/Feedback.jsx";
 
 export default function Controls() {
     const {deal, setDeal} = useContext(DealContext);
@@ -68,23 +69,32 @@ export default function Controls() {
 
     // for buyer
     if (account.toLowerCase() === deal.buyer.toLowerCase()) {
-        return (<Space>
+        return (
+        <>
+            <Space>
             {deal.state === 0 && account.toLowerCase() === deal.offer.owner.toLowerCase()
                 && <LoadingButton type={"primary"} onClick={accept}>Accept</LoadingButton>}
             {deal.state === 2 && <LoadingButton type={"primary"} onClick={paid}>Paid</LoadingButton>}
             {deal.state <= 4  && <LoadingButton danger onClick={cancel}>Cancel</LoadingButton> }
             {deal.state === 4  && <LoadingButton danger onClick={dispute}>Dispute</LoadingButton> }
-        </Space>);
+        </Space>
+        {deal.state >= 6 && <Feedback />}
+        </>);
     }
 
     // for seller
     if (account.toLowerCase() === deal.seller.toLowerCase()) {
-        return (<Space>
+        return (
+        <>
+            <Space>
             {deal.state === 0 && account.toLowerCase() === deal.offer.owner.toLowerCase()
                 && <LoadingButton type={"primary"} onClick={accept}>Accept</LoadingButton>}
             {deal.state > 1 && deal.state < 5 && <LoadingButton type={"primary"} onClick={release}>Release</LoadingButton> }
             {deal.state === 0  && <LoadingButton danger onClick={cancel}>Cancel</LoadingButton> }
             {deal.state === 4  && <LoadingButton danger onClick={dispute}>Dispute</LoadingButton> }
-        </Space>);
+        </Space>
+        {deal.state >= 6 && <Feedback />}
+        </>
+        );
     }
 }

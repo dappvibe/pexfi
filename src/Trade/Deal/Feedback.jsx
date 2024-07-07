@@ -1,0 +1,56 @@
+import {Button, Form, Input, message, Radio, Result} from "antd";
+import {DealContext} from "@/Trade/Deal/Deal.jsx";
+import {useContext, useEffect, useState} from "react";
+import {useWalletProvider} from "@/hooks/useWalletProvider";
+import {useContract} from "@/hooks/useContract.jsx";
+
+export default function Feedback()
+{
+    const {deal} = useContext(DealContext);
+    const {account} = useWalletProvider();
+    const {signed} = useContract();
+    const [given, setGiven] = useState(false);
+
+    useEffect(() => {
+        if (!account) return;
+
+        if (deal.buyer.toLowerCase() === account.toLowerCase()) {
+            deal.contract.feedbackForSeller().then(res =>
+                setGiven(res[0]));
+        }
+        if (deal.seller.toLowerCase() === account.toLowerCase()) {
+            deal.contract.feedbackForBuyer().then(res =>
+                setGiven(res[0]));
+        }
+    }, [account]);
+
+    const [form] = Form.useForm();
+    async function submit()
+    {
+        const contract = await signed(deal.contract);
+        await contract.feedback(form.getFieldValue('good'), form.getFieldValue('comments'));
+        setGiven(true);
+    }
+
+    if (!account) return ;
+    if (given) {
+        return (<Result status={"success"} title={"Feedback submitted!"} />);
+    }
+
+    return (
+    <Form form={form} onFinish={submit}>
+        <Form.Item name={"good"} rules={[{required: true, message: "Required"}]}>
+            <Radio.Group buttonStyle={"solid"}>
+                <Radio.Button value={1}>Good</Radio.Button>
+                <Radio.Button value={0}>Bad</Radio.Button>
+            </Radio.Group>
+        </Form.Item>
+        <Form.Item name={"comments"}>
+            <Input.TextArea placeholder={'Comments'} />
+        </Form.Item>
+        <Form.Item>
+            <Button type={"primary"} htmlType="submit">Submit</Button>
+        </Form.Item>
+    </Form>
+    );
+}
