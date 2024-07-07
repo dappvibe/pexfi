@@ -30,9 +30,9 @@ export default function Profile()
         const rep = await signed(repToken);
         return rep.register().then((tx) => {
             tx.wait().then((receipt) => {
-                const logs = repToken.interface.parseLog(receipt.logs[0]);
-                setTokenId(logs[2])
-                refreshStats(logs[2]);
+                const {args} = repToken.interface.parseLog(receipt.logs[0]);
+                setTokenId(args[2])
+                refreshStats(args[2]);
             });
         });
     }
