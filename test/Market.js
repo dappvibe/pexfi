@@ -40,6 +40,20 @@ before(async function() {
     MockUniswap.setPool(MockETH.target, PoolETH.target);
 });
 
+async function openDeal(provider, offer) {
+    Market = await Market.connect(provider);
+    const response = Market.createDeal(offer[0], 1234_500000, 'IBAN:DE89370400440532013000', )
+        .then((tx) => tx.wait()).then(receipt => {
+            receipt.logs.forEach(log => {
+                const DealCreated = Market.interface.parseLog(log);
+                if (DealCreated) deal = DealCreated.args[3];
+            });
+            return receipt;
+        });
+    await expect(response).to.emit(Market, 'DealCreated');
+    return await ethers.getContractAt('Deal', deal);
+}
+
 /**
  * In tests all contracts are deployed directly without proxy to ease debugging, speedup runs and keep stacktraces clean.
  * Deployment scripts MUST deploy proxies.
@@ -314,18 +328,7 @@ describe('Taker sells', function() {
 
 describe('Buyer opens deal', function() {
     it('WETH to EUR created', async function() {
-        Market = await Market.connect(buyer);
-        const response = Market.createDeal(
-            offers[2][0],
-            1234_500000,
-            'IBAN:DE89370400440532013000',
-        ).then((tx) => tx.wait()).then(receipt => {
-            const DealCreated = Market.interface.parseLog(receipt.logs[9]);
-            deal = DealCreated.args[3];
-            return receipt;
-        });
-        await expect(response)
-            .to.emit(Market, 'DealCreated');
+        deal = await openDeal(buyer, offers[2]);
         deal = await ethers.getContractAt('Deal', deal);
     });
 
@@ -394,22 +397,8 @@ describe('Feedback', function() {
 });
 
 describe('Buyer cancels deal', function() {
-    it ('open another deal', async function() {
-        Market = await Market.connect(buyer);
-        const response = Market.createDeal(
-            offers[2][0],
-            1234_500000,
-            'IBAN:DE89370400440532013000',
-        ).then((tx) => tx.wait()).then(receipt => {
-            const DealCreated = Market.interface.parseLog(receipt.logs[9]);
-            deal = DealCreated.args[3];
-            return receipt;
-        });
-        await expect(response)
-            .to.emit(Market, 'DealCreated');
-        deal = await ethers.getContractAt('Deal', deal);
-    });
     it ('accepted by seller', async function() {
+        deal = await openDeal(buyer, offers[2]);
         deal = await deal.connect(seller);
         await expect(deal.accept()).to.emit(deal, 'DealState').emit(MockETH, 'Transfer');
     });
@@ -418,7 +407,10 @@ describe('Buyer cancels deal', function() {
         const response = deal.cancel().then((tx) => tx.wait());
         await expect(response).to.reverted;
     });
-    it('buyer can cancel any time', async function() {
+    it('buyer can cancel after acceptance', async function() {
+        deal = await openDeal(buyer, offers[2]);
+        deal = await deal.connect(seller);
+        await deal.accept();
         deal = await deal.connect(buyer);
         const response = deal.cancel().then((tx) => tx.wait());
         await expect(response).to
@@ -427,7 +419,7 @@ describe('Buyer cancels deal', function() {
     });
     it ('seller gets refund', async function() {
         await expect(MockETH.balanceOf(deal.target)).to.eventually.eq(0);
-        await expect(MockETH.balanceOf(seller.address)).to.eventually.eq(1999629382757630597321n);
+        await expect(MockETH.balanceOf(seller.address)).to.eventually.eq(1999258765515261194642n);
     });
 });
 
@@ -458,43 +450,39 @@ describe('buyer disputes deal', function() {
 });
 
 describe('Cancelation by state', async function() {
-    async function openDeal(provider, offer) {
-        Market = await Market.connect(provider);
-        const response = Market.createDeal(offer[0], 1234_500000, 'IBAN:DE89370400440532013000', )
-            .then((tx) => tx.wait()).then(receipt => {
-            receipt.logs.forEach(log => {
-                const DealCreated = Market.interface.parseLog(log);
-                if (DealCreated) deal = DealCreated.args[3];
-            });
-            return receipt;
-        });
-        await expect(response).to.emit(Market, 'DealCreated');
-        deal = await ethers.getContractAt('Deal', deal);
-    }
-
-    it ('everyone can cancel before acceptance', async function() {
-        await openDeal(seller, offers[7]);
+    it ('noone can cancel during acceptance window', async function() {
+        deal = await openDeal(seller, offers[7]);
+        deal = await deal.connect(seller);
+        await expect(deal.cancel()).to.reverted;
+        deal = await openDeal(seller, offers[7]);
+        deal = await deal.connect(buyer);
+        await expect(deal.cancel()).to.reverted;
+    });
+    it ('everyone can cancel when acceptance window expired', async function() {
+        deal = await openDeal(seller, offers[7]);
+        await ethers.provider.send('evm_increaseTime', [1000]);
         deal = await deal.connect(seller);
         await expect(deal.cancel()).to.emit(deal, 'DealState');
-        await openDeal(buyer, offers[1]);
+        deal = await openDeal(buyer, offers[1]);
+        await ethers.provider.send('evm_increaseTime', [1000]);
         deal = await deal.connect(buyer);
         await expect(deal.cancel()).to.emit(deal, 'DealState');
     });
 
     it ('seller cannot cancel after acceptance', async function() {
-        await openDeal(seller, offers[7]);
+        deal = await openDeal(seller, offers[7]);
         await deal.connect(buyer).accept();
         await expect(deal.cancel()).to.be.reverted;
     });
 
     it ('seller can cancel if not accepted in time', async function() {
-        await openDeal(seller, offers[7]);
+        deal = await openDeal(seller, offers[7]);
         await ethers.provider.send('evm_increaseTime', [901]);
         await expect(deal.connect(seller).cancel()).to.emit(deal, 'DealState');
     });
 
     it ('seller can cancel if not paid in time', async function() {
-        await openDeal(seller, offers[7]);
+        deal = await openDeal(seller, offers[7]);
         await deal.connect(buyer).accept();
         await ethers.provider.send('evm_increaseTime', [3601]);
         await expect(deal.connect(seller).cancel()).to.emit(deal, 'DealState');
