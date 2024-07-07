@@ -158,7 +158,10 @@ contract Deal is IDeal, AccessControl
         emit Message(msg.sender, message_);
     }
 
-    function feedback(bool upvote, string calldata message_) external {
+    function feedback(bool upvote, string calldata message_)
+    external
+    stateBetween(State.Resolved, State.Completed)
+    {
         if (hasRole(SELLER, msg.sender) && !feedbackForBuyer.given) {
             feedbackForBuyer.given = true;
             feedbackForBuyer.upvote = upvote;
