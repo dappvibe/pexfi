@@ -6,7 +6,8 @@ import OffersTable from "@/Trade/Offers/OffersTable.jsx";
 export default function Offers({offers}) {
     const {fiats, methods} = useOutletContext();
     if (offers === undefined) {
-        const { offers } = useLoaderData();
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        offers = useLoaderData().offers;
     }
     const navigate = useNavigate();
     let {
