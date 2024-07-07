@@ -56,7 +56,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
         string token;
         string fiat;
         string method;
-        uint16 rate; // 4 decimals
+        uint32 rate; // 4 decimals
         uint32 min; // in fiat
         uint32 max;
         string terms;
