@@ -38,7 +38,7 @@ contract Deal is IDeal, AccessControl
     string  public paymentInstructions;
     uint8   public acceptance = 1; // mediator autoaccept for now
     uint    public allowCancelUnacceptedAfter;
-    uint    public allowCancelUnpaidAfter = 999999999999999;
+    uint    public allowCancelUnpaidAfter;
     State   public state = State.Initiated;
     Market private market;
     IRepToken private repToken;
@@ -82,6 +82,7 @@ contract Deal is IDeal, AccessControl
         fee = fee_;
         paymentInstructions = paymentInstructions_;
         allowCancelUnacceptedAfter = block.timestamp + ACCEPTANCE_TIME;
+        allowCancelUnpaidAfter = block.timestamp + 2 weeks; // initial safety value, overriden by accept()
 
         _grantRole(OFFER_OWNER, maker_);
         _grantRole(MEDIATOR, mediator);
