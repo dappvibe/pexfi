@@ -27,7 +27,6 @@ export default function Controls() {
             throw e;
         }
     }
-
     function release() {
         call('release').then(() => {
             setDeal(deal.clone({state: 7}));
@@ -97,6 +96,8 @@ export default function Controls() {
                 && <LoadingButton type={"primary"} onClick={accept}>Accept</LoadingButton>}
             {deal.state > 1 && deal.state < 5 && <LoadingButton type={"primary"} onClick={release}>Release</LoadingButton> }
             {deal.state === 0  && <LoadingButton danger onClick={cancel}>Cancel</LoadingButton> }
+            {deal.state > 0 && deal.state < 3 && deal.allowCancelUnpaidAfter > new Date() && <LoadingButton danger onClick={cancel}>Cancel</LoadingButton> }
+            {deal.state > 0 && deal.state < 3 && deal.allowCancelUnpaidAfter < new Date() && <Space>Cancel in <Statistic.Countdown value={deal.allowCancelUnpaidAfter} /></Space> }
             {deal.state === 4  && <LoadingButton danger onClick={dispute}>Dispute</LoadingButton> }
         </Space>
         {deal.state >= 6 && <Feedback />}

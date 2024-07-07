@@ -22,8 +22,9 @@ export class Deal {
             this.contract.state(),
             this.contract.paymentInstructions(),
             this.contract.allowCancelUnacceptedAfter(),
+            this.contract.allowCancelUnpaidAfter(),
         ])
-        .then(([offerId, buyer, seller, mediator, token, tokenAmount, fiatAmount, state, paymentInstructions, allowCancelUnacceptedAfter]) => {
+        .then(([offerId, buyer, seller, mediator, token, tokenAmount, fiatAmount, state, paymentInstructions, allowCancelUnacceptedAfter, allowCancelUnpaidAfter]) => {
             this.offerId = offerId;
             this.buyer = buyer;
             this.seller = seller;
@@ -34,6 +35,7 @@ export class Deal {
             this.state = Number(state); // FIXME constants
             this.paymentInstructions = paymentInstructions;
             this.allowCancelUnacceptedAfter = new Date(Number(allowCancelUnacceptedAfter) * 1000);
+            this.allowCancelUnpaidAfter = new Date(Number(allowCancelUnpaidAfter) * 1000);
             return this;
         })
         .then(() => {
