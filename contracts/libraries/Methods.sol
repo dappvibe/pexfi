@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.26;
 
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {StorageSlot} from "@openzeppelin/contracts/utils/StorageSlot.sol";
+
+error InvalidMethod(string method);
 
 library Methods {
     using EnumerableSet for EnumerableSet.Bytes32Set;
@@ -32,7 +34,9 @@ library Methods {
     }
 
     function get(Storage storage self, string memory name) internal view returns (Method memory) {
-        return self.values[bytes32(bytes(name))];
+        bytes32 key = bytes32(bytes(name));
+        require(self.keys.contains(key), InvalidMethod(name));
+        return self.values[key];
     }
 
     function list(Storage storage self) internal view returns (Method[] memory) {
