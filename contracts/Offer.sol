@@ -42,10 +42,6 @@ contract Offer is Ownable
         setTerms(terms_);
     }
 
-    function newDeal() external {
-
-    }
-
     function setRate(uint16 rate_) public onlyOwner {
         require(rate_ > 0, "rate");
         rate = rate_;
