@@ -4,9 +4,13 @@ pragma solidity ^0.8.0;
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {IDeal} from "./interfaces/IDeal.sol";
-import {IMarket} from "./interfaces/IMarket.sol";
 import {IRepToken} from "./interfaces/IRepToken.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {Market} from "./Market.sol";
+import {Offer} from "./Offer.sol";
+import {RepToken} from "./RepToken.sol";
+
+uint8 constant FEE = 100; // 1%
 
 contract Deal is IDeal, AccessControl
 {
@@ -16,39 +20,29 @@ contract Deal is IDeal, AccessControl
     uint16 private ACCEPTANCE_TIME = 15 minutes;
     uint16 private PAYMENT_WINDOW  = 1 hours;
 
-    uint8 private constant ACCEPTED_MEDIATOR = 1;
-    uint8 private constant ACCEPTED_OWNER    = 2;
-    uint8 private constant ACCEPTED_ALL      = 3;
-
     bytes32 private constant MEDIATOR    = 'MEDIATOR';
     bytes32 private constant SELLER      = 'SELLER';
     bytes32 private constant BUYER       = 'BUYER';
     bytes32 private constant MEMBER      = 'MEMBER';
-    bytes32 private constant OFFER_OWNER = 'OFFER_OWNER';
 
-    uint    public offerId;
-    address public buyer;
-    address public seller;
-    address public mediator;
-    IERC20Metadata public token;
+    string  public terms;
     uint    public tokenAmount;
+    address public taker;
     uint    public fiatAmount;
-    uint    public fee;
     string  public paymentInstructions;
-    uint8   public acceptance = 1; // mediator autoaccept for now
     uint    public allowCancelUnacceptedAfter;
     uint    public allowCancelUnpaidAfter;
     State   public state = State.Initiated;
-    IMarket private market;
-    IRepToken private repToken;
+    Market private market;
+    Offer  public offer;
 
     struct Feedback {
         bool given;
         bool upvote;
         string message;
     }
-    Feedback public feedbackForSeller;
-    Feedback public feedbackForBuyer;
+    Feedback public feedbackForOwner;
+    Feedback public feedbackForTaker;
 
     modifier stateBetween(State from_, State to_) {
         if (state < from_ || state > to_) revert ActionNotAllowedInThisState(state);
@@ -57,61 +51,57 @@ contract Deal is IDeal, AccessControl
 
     constructor(
         address market_,
-        address repToken_,
-        uint offerId_,
-        bool isSell,
-        address maker_,
+        address offer_,
         address taker_,
-        address mediator_,
-        address token_,
         uint tokenAmount_,
         uint fiatAmount_,
-        uint fee_,
         string memory paymentInstructions_
     )
     {
-        market = IMarket(market_);
-        repToken = IRepToken(repToken_);
-        offerId = offerId_;
-        buyer = isSell ? taker_ : maker_;
-        seller = isSell ? maker_ : taker_;
-        mediator = mediator_;
-        token = IERC20Metadata(token_);
+        market = Market(market_);
+
+        offer = Offer(offer_);
+
+        taker = taker_;
+        if (offer.isSell()) {
+            _grantRole(BUYER, taker_);
+            _grantRole(SELLER, offer.owner());
+        } else {
+            _grantRole(SELLER, taker_);
+            _grantRole(BUYER, offer.owner());
+        }
+        _grantRole(MEMBER, offer.owner());
+        _grantRole(MEMBER, taker_);
+
         tokenAmount = tokenAmount_;
         fiatAmount = fiatAmount_;
-        fee = fee_;
         paymentInstructions = paymentInstructions_;
         allowCancelUnacceptedAfter = block.timestamp + ACCEPTANCE_TIME;
         allowCancelUnpaidAfter = block.timestamp + 2 weeks; // initial safety value, overriden by accept()
 
-        _grantRole(OFFER_OWNER, maker_);
-        _grantRole(MEDIATOR, mediator);
-        _grantRole(SELLER, seller);
-        _grantRole(BUYER, mediator);
-        _grantRole(SELLER, mediator);
-        _grantRole(BUYER, buyer);
-        _grantRole(MEMBER, mediator);
-        _grantRole(MEMBER, seller);
-        _grantRole(MEMBER, buyer);
+        // copy MUTABLE offer values to freeze them for this deal
+        terms = offer.terms();
     }
 
-    function accept() external onlyRole(MEMBER) stateBetween(State.Initiated, State.Initiated) {
-        if (hasRole(OFFER_OWNER, msg.sender)) {
-            acceptance |= ACCEPTED_OWNER;
-        } else if (hasRole(MEDIATOR, msg.sender)) {
-            acceptance |= ACCEPTED_MEDIATOR;
+    /// @dev separate method to keep constructor short
+    function assignMediator() public {
+        address mediator = market.mediator();
+        _grantRole(MEMBER, mediator);
+        _grantRole(BUYER, mediator);
+        _grantRole(SELLER, mediator);
+    }
+
+    function accept() external stateBetween(State.Initiated, State.Initiated) {
+        require(msg.sender == offer.owner(), 'offer owner');
+
+        _state(State.Accepted);
+
+        // FIXME fund by calling market contract
+        if(offer.isSell()) {
+            market.fundDeal();
+            _state(State.Funded);
         }
-
-        if (acceptance == ACCEPTED_ALL) {
-            _state(State.Accepted);
-
-            if (seller == msg.sender) {
-                market.fundDeal();
-                _state(State.Funded);
-            }
-
-            allowCancelUnpaidAfter = block.timestamp + PAYMENT_WINDOW;
-        }
+        allowCancelUnpaidAfter = block.timestamp + PAYMENT_WINDOW;
     }
 
     function paid() external onlyRole(BUYER) stateBetween(State.Accepted, State.Funded) {
@@ -119,16 +109,24 @@ contract Deal is IDeal, AccessControl
     }
 
     function release() external onlyRole(SELLER) stateBetween(State.Funded, State.Disputed) {
-        token.transfer(buyer, tokenAmount - (tokenAmount * fee / 10000));
-        token.transfer(mediator, token.balanceOf(address(this)));
+        IERC20Metadata token = market.token(offer.token());
+        if (hasRole(BUYER, taker)) {
+            token.transfer(taker, tokenAmount - (tokenAmount * FEE / 10000));
+        }
+        else if (hasRole(BUYER, offer.owner())) {
+            token.transfer(offer.owner(), tokenAmount - (tokenAmount * FEE / 10000));
+        }
+        else revert ('no buyer');
+        token.transfer(market.mediator(), token.balanceOf(address(this)));
 
         _state(State.Completed);
 
-        uint $tokenId = repToken.ownerToTokenId(buyer);
+        RepToken repToken = RepToken(market.repToken());
+        uint $tokenId = repToken.ownerToTokenId(offer.owner());
         if ($tokenId != 0) {
             repToken.statsDealCompleted($tokenId);
         }
-        $tokenId = repToken.ownerToTokenId(seller);
+        $tokenId = repToken.ownerToTokenId(taker);
         if ($tokenId != 0) {
             repToken.statsDealCompleted($tokenId);
         }
@@ -142,12 +140,19 @@ contract Deal is IDeal, AccessControl
         || (hasRole(SELLER, msg.sender) && ((state < State.Paid && block.timestamp > allowCancelUnpaidAfter)))
         )
         {
+            IERC20Metadata token = market.token(offer.token());
             if (state == State.Funded) {
-                token.transfer(seller, tokenAmount);
+                if (hasRole(SELLER, taker)) {
+                    token.transfer(taker, tokenAmount);
+                }
+                else if (hasRole(SELLER, offer.owner())) {
+                    token.transfer(offer.owner(), tokenAmount);
+                }
             }
 
             // canceled after acceptance window
-            if (state == State.Initiated && !hasRole(OFFER_OWNER, msg.sender)) {
+            if (state == State.Initiated && msg.sender != offer.owner()) {
+                RepToken repToken = RepToken(market.repToken());
                 uint $tokenId = repToken.ownerToTokenId(msg.sender);
                 if ($tokenId != 0) {
                     repToken.statsDealExpired($tokenId);
@@ -160,6 +165,7 @@ contract Deal is IDeal, AccessControl
     }
 
     function dispute() external onlyRole(MEMBER) stateBetween(State.Accepted, State.Paid) {
+        assignMediator();
         _state(State.Disputed);
     }
 
@@ -171,27 +177,28 @@ contract Deal is IDeal, AccessControl
     external
     stateBetween(State.Resolved, State.Completed)
     {
-        if (hasRole(SELLER, msg.sender)) {
-            require(!feedbackForBuyer.given, "already");
-            feedbackForBuyer.given = true;
-            feedbackForBuyer.upvote = upvote;
-            feedbackForBuyer.message = message_;
-            uint $tokenId = repToken.ownerToTokenId(buyer);
+        RepToken repToken = RepToken(market.repToken());
+        if (msg.sender == offer.owner()) {
+            require(!feedbackForTaker.given, "already");
+            feedbackForTaker.given = true;
+            feedbackForTaker.upvote = upvote;
+            feedbackForTaker.message = message_;
+            uint $tokenId = repToken.ownerToTokenId(taker);
             if ($tokenId != 0) {
                 repToken.statsVote($tokenId, upvote);
             }
-            emit FeedbackGiven(buyer, upvote, message_);
+            emit FeedbackGiven(taker, upvote, message_);
         }
-        else if (hasRole(BUYER, msg.sender)) {
-            require(!feedbackForSeller.given, "already");
-            feedbackForSeller.given = true;
-            feedbackForSeller.upvote = upvote;
-            feedbackForSeller.message = message_;
-            uint $tokenId = repToken.ownerToTokenId(seller);
+        else if (msg.sender == taker) {
+            require(!feedbackForOwner.given, "already");
+            feedbackForOwner.given = true;
+            feedbackForOwner.upvote = upvote;
+            feedbackForOwner.message = message_;
+            uint $tokenId = repToken.ownerToTokenId(offer.owner());
             if ($tokenId != 0) {
                 repToken.statsVote($tokenId, upvote);
             }
-            emit FeedbackGiven(seller, upvote, message_);
+            emit FeedbackGiven(offer.owner(), upvote, message_);
         }
     }
 
