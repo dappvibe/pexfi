@@ -8,10 +8,11 @@ import "../libraries/Offers.sol";
 import "../libraries/Methods.sol";
 import "../interfaces/IRepToken.sol";
 import "../libraries/Fiats.sol";
+import {Offer} from "../Offer.sol";
 
 interface IMarket
 {
-    event OfferCreated(address indexed owner, string indexed crypto, string indexed fiat, Offers.Offer offer);
+    event OfferCreated(address indexed owner, string indexed crypto, string indexed fiat, Offer offer);
     event DealCreated(address indexed offerOwner, address indexed taker, uint indexed offerId, address deal);
 
     /**

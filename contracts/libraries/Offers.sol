@@ -2,83 +2,55 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "../Offer.sol";
+import "hardhat/console.sol";
 
 library Offers
 {
-    using EnumerableSet for EnumerableSet.UintSet;
-
-    struct Offer {
-        uint id;
-        address owner;  // TODO Support ENS in client for nicknames
-
-        bool isSell;
-        string token;
-        string fiat;
-        string method;
-        uint16  rate;
-        uint32  min;
-        uint32  max;
-
-        /**
-        * @dev Single method per offer allows to close trades automatically in case of cryptocurrencies with deterministic pricing for each method.
-    *      Also avoids situations when advertiser changes terms after trade is initiated saying that published price is for another method.
-    *      Also it builds costs for advertisers to include a method so it serves as spam protection.
-    */
-
-        // TODO zip and store into array or somehow else allow it to be up to 256? bytes
-        // this cannot be stored out-of-chain otherwise actors may change and it will be impossible to verify
-        // alternatively, we could store the hash of the terms and terms itself outside of the chain
-        // use sign data with metamask?
-        string terms; // FIXME can it be another contract deployed by advertiser?
-        bool kycRequired ; // flag showing if seller mandate fiat sender to KYC (out of chain by their own means)
-
-        // to check on execution: https://medium.com/coinmonks/testing-time-dependent-logic-in-ethereum-smart-contracts-1b24845c7f72 ?
-        //bytes4 openHours; // 1 to 24 from as 1st byte, to as 2nd, and timezone as 3rd
-    }
+    using EnumerableSet for EnumerableSet.AddressSet;
 
     struct Storage {
         uint length;
-        mapping(uint => Offer) all;
-        mapping(bytes32 token => mapping(bytes32 fiat => mapping(bytes32 method => EnumerableSet.UintSet))) sell;
-        mapping(bytes32 token => mapping(bytes32 fiat => mapping(bytes32 method => EnumerableSet.UintSet))) buy;
+        EnumerableSet.AddressSet all;
+        mapping(string token => mapping(string fiat => mapping(string method => EnumerableSet.AddressSet))) sell;
+        mapping(string token => mapping(string fiat => mapping(string method => EnumerableSet.AddressSet))) buy;
     }
 
-    function add(Storage storage self, Offer memory offer)
+    function add(Storage storage self, Offer offer)
     internal
-    returns (Offer storage) {
-        offer.id = self.length + 1;
-        self.all[offer.id] = offer;
+    {
+        require(self.all.add(address(offer)), 'exists');
 
-        bytes32 token   = bytes32(bytes(offer.token));
-        bytes32 fiat    = bytes32(bytes(offer.fiat));
-        bytes32 method  = bytes32(bytes(offer.method));
+        /*bytes32 token   = bytes32(bytes(offer.token().symbol()));
+        bytes32 fiat    = bytes32(bytes(offer.fiat()));
+        (string memory m,) = offer.method();
+        bytes32 method  = bytes32(bytes(m));*/
 
-        if (offer.isSell) {
-            self.sell[token][fiat]['ANY'].add(offer.id);
-            self.sell[token][fiat][method].add(offer.id);
+        string memory token   = offer.token().symbol();
+        string memory fiat    = offer.fiat();
+        (string memory method,)  = offer.method();
+
+        if (offer.isSell()) {
+            self.sell[token][fiat]['ANY'].add(address(offer));
+            self.sell[token][fiat][method].add(address(offer));
         } else {
-            self.buy[token][fiat]['ANY'].add(offer.id);
-            self.buy[token][fiat][method].add(offer.id);
+            self.buy[token][fiat]['ANY'].add(address(offer));
+            self.buy[token][fiat][method].add(address(offer));
         }
-
-        self.length++;
-        return self.all[offer.id];
     }
 
     function list(Storage storage self, bool isSell_, string calldata token_, string calldata fiat_, string calldata method_)
     internal view
-    returns (Offer[] memory offers)
+    returns (address[] memory offers)
     {
-        bytes32 token   = bytes32(bytes(token_));
+        console.log(isSell_, token_, fiat_, method_);
+
+        /*bytes32 token   = bytes32(bytes(token_));
         bytes32 fiat    = bytes32(bytes(fiat_));
-        bytes32 method  = bytes32(bytes(method_));
+        bytes32 method  = bytes32(bytes(method_));*/
 
-        EnumerableSet.UintSet storage offersSet = isSell_ ? self.sell[token][fiat][method] : self.buy[token][fiat][method];
+        EnumerableSet.AddressSet storage offersSet = isSell_ ? self.sell[token_][fiat_][method_] : self.buy[token_][fiat_][method_];
 
-        uint length = offersSet.length();
-        offers = new Offer[](length);
-        for (uint i = 0; i < length; i++) {
-            offers[i] = self.all[offersSet.at(i)];
-        }
+        return offersSet.values();
     }
 }

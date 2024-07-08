@@ -1,0 +1,60 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.0;
+
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "./libraries/Fiats.sol";
+import {Methods} from "./libraries/Methods.sol";
+import {IOffer} from "./interfaces/IOffer.sol";
+
+contract Offer is Ownable
+{
+    struct Limits {
+        uint32 min;
+        uint32 max;
+    }
+
+    bool public isSell;
+    IERC20Metadata public token;
+    string public fiat;
+    Methods.Method public method;
+    uint16 public rate; // 4 decimals
+    Limits public limits;
+    string public terms;
+
+    constructor(
+        bool isSell_,
+        IERC20Metadata token_,
+        string memory fiat_,
+        Methods.Method memory method_,
+        uint16 rate_, // 4 decimals
+        Limits memory limits_,
+        string memory terms_
+    )
+    Ownable(msg.sender)
+    {
+        isSell = isSell_;
+        token = token_;
+        fiat = fiat_;
+        method = method_;
+        setRate(rate_);
+        setLimits(limits_);
+        setTerms(terms_);
+    }
+
+    function newDeal() external {
+
+    }
+
+    function setRate(uint16 rate_) public onlyOwner {
+        require(rate_ > 0, "rate");
+        rate = rate_;
+    }
+    function setLimits(Limits memory limits_) public onlyOwner {
+        require (limits_.min < limits_.max, 'limits');
+        limits = limits_;
+    }
+    function setTerms(string memory terms_) public onlyOwner {
+        terms = terms_;
+    }
+}

@@ -18,11 +18,13 @@ import {Deals} from "./libraries/Deals.sol";
 import {Methods} from "./libraries/Methods.sol";
 import {Offers} from "./libraries/Offers.sol";
 import {Fiats} from "./libraries/Fiats.sol";
+import {Offer} from "./Offer.sol";
 
 import {IMarket} from "./interfaces/IMarket.sol";
 import {IDeal} from "./interfaces/IDeal.sol";
 import {IDealFactory} from "./interfaces/IDealFactory.sol";
 import {IRepToken} from "./interfaces/IRepToken.sol";
+import "./OfferFactory.sol";
 
 
 contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
@@ -43,6 +45,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     Deals.Storage   private deals;
 
     IDealFactory    public dealFactory;
+    OfferFactory    public offerFactory;
     IRepToken       public repToken;
 
     IUniswapV3Factory private uniswap;
@@ -62,46 +65,14 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     /// @param method_ may be empty string to list all offers
     function getOffers(bool isSell_, string calldata token_, string calldata fiat_, string calldata method_)
     external view
-    returns (Offers.Offer[] memory) {
+    returns (address[] memory) {
         return offers.list(isSell_, token_, fiat_, method_);
     }
-    function getOffer(uint id_) external view returns (Offers.Offer memory) {
-        return offers.all[id_];
-    }
 
-    struct CreateOfferParams {
-        bool isSell;
-        string token;
-        string fiat;
-        string method;
-        uint16 rate; // 4 decimals
-        uint32 min; // in fiat
-        uint32 max;
-        string terms;
-    }
-    function createOffer(CreateOfferParams calldata params_) external {
-        if (params_.rate <= 0)                      revert InvalidArgument("rate");
-        if (params_.min <= 0 || params_.max <= 0)   revert InvalidArgument("minmax");
-        if (params_.min >= params_.max)             revert InvalidArgument("lowmax");
-        require(getPrice(params_.token, params_.fiat) != 0, "pair");
-        if (methods.get(params_.method).name.equal('')) revert InvalidArgument("method");
-        // TODO convert min to USD and check offers' minimum
-
-        Offers.Offer storage $offer = offers.add(Offers.Offer({
-            id: 0,
-            owner: msg.sender,
-            isSell: params_.isSell,
-            token: params_.token,
-            fiat: params_.fiat,
-            method: params_.method,
-            rate: params_.rate,
-            min: params_.min,
-            max: params_.max,
-            terms: params_.terms,
-            kycRequired: false
-        }));
-
-        emit OfferCreated(msg.sender, params_.token, params_.fiat, $offer);
+    function listOffer(Offer offer) external {
+        require(msg.sender == address(offerFactory), 'auth');
+        offers.add(offer);
+        emit OfferCreated(msg.sender, offer.token().symbol(), offer.fiat(), offer);
     }
 
     /// @param fiatAmount_ must have 6 decimals
@@ -110,7 +81,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
 
     // FIXME call factory directly and factory notify market. offer is deal factory!
     // OfferFactory notifies Market about new offer, check sender address in Market to add to listing
-    function createDeal(uint offerId_, uint fiatAmount_, string memory paymentInstructions_)
+/*    function createDeal(uint offerId_, uint fiatAmount_, string memory paymentInstructions_)
     external
     {
         Offers.Offer storage $offer = offers.all[offerId_];
@@ -141,7 +112,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
         }
 
         repToken.grantRole('DEAL_ROLE', $deal);
-    }
+    }*/
 
     /// @dev users provide allowance once to the market
     function fundDeal() external returns (bool) {
@@ -150,17 +121,18 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
         IDeal $deal = IDeal(msg.sender);
         require($deal.state() == IDeal.State.Accepted, "not accepted");
 
-        Offers.Offer memory $offer = offers.all[$deal.offerId()];
-        require ($offer.isSell, "not selling offer");
+        //Offers.Offer memory $offer = offers.all[$deal.offerId()];
+        //require ($offer.isSell, "not selling offer");
 
-        IERC20Metadata $token = IERC20Metadata(token($offer.token));
-        $token.safeTransferFrom($deal.seller(), address($deal), $deal.tokenAmount());
+        //IERC20Metadata $token = IERC20Metadata(token($offer.token));
+        //$token.safeTransferFrom($deal.seller(), address($deal), $deal.tokenAmount());
 
         return true;
     }
 
     function setRepToken(address repToken_) public onlyOwner { repToken = IRepToken(repToken_); }
     function setDealFactory(address dealFactory_) public onlyOwner { dealFactory = IDealFactory(dealFactory_); }
+    function setOfferFactory(address offerFactory_) public onlyOwner { offerFactory = OfferFactory(offerFactory_); }
     function setMediator(address mediator_) public onlyOwner { mediator = mediator_; }
 
     /// @param amount_ must have 6 decimals as a fiat amount
