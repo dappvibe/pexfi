@@ -33,7 +33,8 @@ contract OfferFactory is UUPSUpgradeable, OwnableUpgradeable
     )
     external
     {
-        // check immutable props here to reduce Offer size and save gas on deployments
+        // check props here to reduce Offer size and save gas on deployments
+        require(rate > 0, "rate");
         require (limits.min < limits.max, 'minmax');
         require(!market.method(method).name.equal(''), "method NE");
         require(market.getPrice(token, fiat) != 0, "pair");

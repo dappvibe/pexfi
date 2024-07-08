@@ -43,8 +43,8 @@ before(async function() {
 });
 
 async function openDeal(provider, offer) {
-    Market = await Market.connect(provider);
-    const response = Market.createDeal(offer[0], 1234_500000, 'IBAN:DE89370400440532013000', )
+    DealFactory = await DealFactory.connect(provider);
+    const response = DealFactory.create(offer.target, 1234_500000, 'IBAN:DE89370400440532013000', )
         .then((tx) => tx.wait()).then(receipt => {
             receipt.logs.forEach(log => {
                 const DealCreated = Market.interface.parseLog(log);
@@ -248,17 +248,18 @@ describe('Users post offers', function()
         const title = `#${i+1} ${params[0] ? 'Sell' : 'Buy'} ${params[1]} for ${params[2]}`;
         it(title, async function() {
             const provider = params[0] ? seller : buyer;
-            Market = Market.connect(provider);
+            OfferFactory = OfferFactory.connect(provider);
             const tx = await OfferFactory.create(params[0], params[1], params[2], params[3], params[4], [params[5], params[6]], params[7]);
             const receipt = await tx.wait();
             const OfferCreated = Market.interface.parseLog(receipt.logs[1]);
-            offers.push(OfferCreated.args[3]);
-            expect(OfferCreated.args[3]).to.properAddress;
+            const offer = await ethers.getContractAt('Offer', OfferCreated.args[3]);
+            offers.push(offer);
+            await expect(await offer.owner()).to.eq(await provider.getAddress());
         });
     });
 
     describe('Get an offer', async function() {
-        await expect(Market.getOffer(offers[0][0])).to.eventually.have.length(9);
+        await expect(Market.getOffer(offers[0])).to.eventually.have.length(9);
     });
 
     describe('invalid input', async function() {
@@ -309,8 +310,8 @@ describe('Taker sells', function() {
     });
 
     it('deal created', async function() {
-        Market = await Market.connect(seller);
-        const response = Market.createDeal(offers[7][0], 5002000000n, 'zelle@google.com')
+        DealFactory = await DealFactory.connect(seller);
+        const response = DealFactory.create(offers[7].target, 5002000000n, 'zelle@google.com')
             .then((tx) => tx.wait()).then(receipt => {
                 receipt.logs.forEach(log => {
                     const DealCreated = Market.interface.parseLog(log);
@@ -327,11 +328,6 @@ describe('Taker sells', function() {
         await expect(MockUSDT.balanceOf(deal.target)).to.eventually.eq(5027135678);
     })
 
-    it ('accepted by mediator', async function() {
-        deal = await deal.connect(mediator);
-        await expect(deal.accept()).to.not.emit(deal, 'DealState');
-    });
-
     it ('accepted by owner', async function() {
         deal = await deal.connect(buyer);
         await expect(deal.accept()).to.emit(deal, 'DealState').not.emit(MockUSDT, 'Transfer');
@@ -341,16 +337,10 @@ describe('Taker sells', function() {
 describe('Buyer opens deal', function() {
     it('WETH to EUR created', async function() {
         deal = await openDeal(buyer, offers[2]);
-        deal = await ethers.getContractAt('Deal', deal);
     });
 
     it ('deal token amount in wei', async function() {
         await expect(deal.tokenAmount()).to.eventually.eq(370617242369402679n);
-    });
-
-    it ('accepted by mediator', async function() {
-        deal = await deal.connect(mediator);
-        await expect(deal.accept()).to.not.emit(deal, 'DealState');
     });
 
     it ('accepted by owner', async function() {
@@ -437,19 +427,7 @@ describe('Buyer cancels deal', function() {
 
 describe('buyer disputes deal', function() {
     it ('open another deal', async function() {
-        Market = await Market.connect(buyer);
-        const response = Market.createDeal(
-            offers[2][0],
-            1234_500000,
-            'IBAN:DE89370400440532013000',
-        ).then((tx) => tx.wait()).then(receipt => {
-            const DealCreated = Market.interface.parseLog(receipt.logs[9]);
-            deal = DealCreated.args[3];
-            return receipt;
-        });
-        await expect(response)
-            .to.emit(Market, 'DealCreated');
-        deal = await ethers.getContractAt('Deal', deal);
+        deal = await openDeal(buyer, offers[2]);
     });
     it ('accepted by seller', async function() {
         deal = await deal.connect(seller);

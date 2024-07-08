@@ -9,7 +9,6 @@ library Offers
     using EnumerableSet for EnumerableSet.AddressSet;
 
     struct Storage {
-        uint length;
         EnumerableSet.AddressSet all;
         mapping(string token => mapping(string fiat => mapping(string method => EnumerableSet.AddressSet))) sell;
         mapping(string token => mapping(string fiat => mapping(string method => EnumerableSet.AddressSet))) buy;
@@ -42,4 +41,6 @@ library Offers
             : self.buy[token_][fiat_][method_];
         return offersSet.values();
     }
+
+    function has(Storage storage self, address offer) internal view returns(bool) { return self.all.contains(offer); }
 }
