@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.26;
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -45,7 +45,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     Offers.Storage  private offers;
     Deals.Storage   private deals;
 
-    DealFactory    public dealFactory;
+    DealFactory     public dealFactory;
     OfferFactory    public offerFactory;
     RepToken        public repToken;
 
@@ -69,7 +69,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
         return offers.list(isSell_, token_, fiat_, method_);
     }
 
-    function listOffer(Offer offer) external {
+    function addOffer(Offer offer) external {
         require(msg.sender == address(offerFactory), 'auth');
         offers.add(offer);
         emit OfferCreated(msg.sender, offer.token(), offer.fiat(), offer);
@@ -84,7 +84,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
         emit DealCreated(offer.owner(), deal.taker(), address(offer), address(deal));
 
         if (!offer.isSell() && deal.hasRole('SELLER', deal.taker())) {
-            IERC20Metadata $token = IERC20Metadata(token(offer.token()));
+            IERC20Metadata $token = token(offer.token()).api;
             $token.safeTransferFrom(deal.taker(), address(deal), deal.tokenAmount());
         }
 
@@ -100,7 +100,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
 
         require ($deal.offer().isSell(), "not selling offer");
 
-        IERC20Metadata $token = IERC20Metadata(token($deal.offer().token()));
+        IERC20Metadata $token = token($deal.offer().token()).api;
         $token.safeTransferFrom($deal.offer().owner(), address($deal), $deal.tokenAmount());
     }
 
@@ -137,7 +137,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
         }
     }
 
-    function token(string memory symbol_) public view returns (IERC20Metadata) { return tokens.get(symbol_).api; }
+    function token(string memory symbol_) public view returns (Tokens.Token memory) { return tokens.get(symbol_); }
     function getTokens() public view returns (Tokens.Token[] memory) { return tokens.list(); }
     function fiat(string memory symbol_) public view returns (Fiats.Fiat memory) { return fiats.get(symbol_); }
     function getFiats() public view returns (bytes32[] memory) { return fiats.list(); }
