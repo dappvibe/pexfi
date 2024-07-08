@@ -72,7 +72,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     function listOffer(Offer offer) external {
         require(msg.sender == address(offerFactory), 'auth');
         offers.add(offer);
-        emit OfferCreated(msg.sender, offer.token().symbol(), offer.fiat(), offer);
+        emit OfferCreated(msg.sender, offer.token(), offer.fiat(), offer);
     }
 
     /// @param fiatAmount_ must have 6 decimals
@@ -80,7 +80,6 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     // TODO cryptoAmount parameter for people who REALLY want to count in crypto. One of amounts must be 0
 
     // FIXME call factory directly and factory notify market. offer is deal factory!
-    // OfferFactory notifies Market about new offer, check sender address in Market to add to listing
 /*    function createDeal(uint offerId_, uint fiatAmount_, string memory paymentInstructions_)
     external
     {
@@ -137,8 +136,11 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
 
     /// @param amount_ must have 6 decimals as a fiat amount
     /// @param denominator ratio (4 decimal) to apply to resulting amount
-    /// @return $amount of tokens in precision of given token
-    function convert(uint amount_, string memory fromFiat_, string memory toToken_, uint denominator) public view returns (uint256 $amount) {
+    /// @return $amount of tokens in precision of given token // FIXME precision is not respected
+    function convert(uint amount_, string memory fromFiat_, string memory toToken_, uint denominator)
+    public view
+    returns (uint256 $amount)
+    {
         if (fromFiat_.equal("USD") && toToken_.equal("USDT")) return FullMath.mulDiv(amount_, 10**4, denominator);
 
         uint decimals = tokens.get(toToken_).decimals;
