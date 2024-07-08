@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import "./libraries/Fiats.sol";
 import {Methods} from "./libraries/Methods.sol";
 
-contract Offer is Ownable
+contract Offer
 {
+    error UnauthorizedAccount(address account);
+
     struct Limits {
         uint32 min;
         uint32 max;
     }
 
+    address public owner;
     bool public isSell;
     string public token;
     string public fiat;
@@ -30,8 +31,8 @@ contract Offer is Ownable
         Limits memory limits_,
         string memory terms_
     )
-    Ownable(owner_)
     {
+        owner = owner_;
         isSell = isSell_;
         token = token_;
         fiat = fiat_;
@@ -41,15 +42,18 @@ contract Offer is Ownable
         terms = terms_;
     }
 
-    function setRate(uint16 rate_) public onlyOwner {
+    function setRate(uint16 rate_) external {
+        require(msg.sender == owner, UnauthorizedAccount(msg.sender));
         require(rate_ > 0, "rate");
         rate = rate_;
     }
-    function setLimits(Limits memory limits_) public onlyOwner {
+    function setLimits(Limits memory limits_) public {
+        require(msg.sender == owner, UnauthorizedAccount(msg.sender));
         require (limits_.min < limits_.max, 'limits');
         limits = limits_;
     }
-    function setTerms(string memory terms_) public onlyOwner {
+    function setTerms(string memory terms_) public {
+        require(msg.sender == owner, UnauthorizedAccount(msg.sender));
         terms = terms_;
     }
 }
