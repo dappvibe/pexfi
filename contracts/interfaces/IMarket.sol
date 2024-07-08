@@ -13,15 +13,9 @@ import {Offer} from "../Offer.sol";
 interface IMarket
 {
     event OfferCreated(address indexed owner, string indexed crypto, string indexed fiat, Offer offer);
-    event DealCreated(address indexed offerOwner, address indexed taker, uint indexed offerId, address deal);
+    event DealCreated(address indexed offerOwner, address indexed taker, address indexed offer, address deal);
 
-    /**
-    * @dev Payment methods management
-    */
-    function fundDeal() external returns (bool);
-    function repToken() external view returns (IRepToken);
-
-    function token(string memory symbol_) external view returns (IERC20Metadata);
+    //function token(string memory symbol_) external view returns (IERC20Metadata);
     function fiat(string memory symbol_) external view returns (Fiats.Fiat memory);
     function method(string memory symbol_) external view returns (Methods.Method memory);
     function convert(uint amount_, string memory fromFiat_, string memory toToken_, uint denominator) external view returns (uint256);

@@ -13,7 +13,6 @@ interface IDealFactory
         address token_,
         uint tokenAmount_,
         uint fiatAmount_,
-        uint fee_,
         string memory paymentInstructions_
     ) external returns (address);
 }

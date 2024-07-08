@@ -23,7 +23,7 @@ interface IDeal
         Completed
     }
 
-    function offerId() external view returns (uint);
+/*    function offerId() external view returns (uint);
     function buyer() external view returns (address);
     function seller() external view returns (address);
     function mediator() external view returns (address);
@@ -31,5 +31,5 @@ interface IDeal
     function fiatAmount() external view returns (uint256);
     function fee() external view returns (uint256);
     function paymentInstructions() external view returns (string memory);
-    function state() external view returns (State);
+    function state() external view returns (State);*/
 }

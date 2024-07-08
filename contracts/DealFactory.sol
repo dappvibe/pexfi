@@ -5,48 +5,38 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeab
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "./interfaces/IMarket.sol";
 import {IDealFactory} from "./interfaces/IDealFactory.sol";
+import {Offer} from "./Offer.sol";
+import {Market} from "./Market.sol";
 
-contract DealFactory is IDealFactory, UUPSUpgradeable, OwnableUpgradeable
+contract DealFactory is UUPSUpgradeable, OwnableUpgradeable
 {
-    IMarket public market;
+    Market public market;
 
     function initialize(address market_) public initializer {
         __Ownable_init(msg.sender);
-        market = IMarket(market_);
+        market = Market(market_);
     }
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
-    modifier onlyMarket() {
-        require(msg.sender == address(market), "only market");
-        _;
-    }
+    function create(address offer_, uint fiatAmount_, string memory paymentInstructions_)
+    external
+    {
+        require(market.hasOffer(offer_), "no offer");
 
-    function create(
-        address repToken_,
-        uint offerId_,
-        bool isSell,
-        address maker_,
-        address taker_,
-        address mediator_,
-        address token_,
-        uint tokenAmount_,
-        uint fiatAmount_,
-        uint fee_,
-        string memory paymentInstructions_
-    ) external onlyMarket returns (address) {
-        return address(new Deal(
+        Offer $offer = Offer(offer_);
+        require(msg.sender != $offer.owner(), "self");
+
+        uint $tokenAmount = market.convert(fiatAmount_, $offer.fiat(), $offer.token(), $offer.rate());
+
+        Deal deal = new Deal(
             address(market),
-            repToken_,
-            offerId_,
-            isSell,
-            maker_,
-            taker_,
-            mediator_,
-            token_,
-            tokenAmount_,
+            offer_,
+            msg.sender,
+            $tokenAmount,
             fiatAmount_,
-            fee_,
             paymentInstructions_
-        ));
+        );
+
+        market.trackDeal(deal);
     }
 }

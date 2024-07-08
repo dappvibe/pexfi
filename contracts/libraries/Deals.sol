@@ -8,12 +8,12 @@ library Deals {
 
     struct Storage {
         EnumerableSet.AddressSet all;
-        mapping(uint => address[]) byOffer;
+        mapping(address => address[]) byOffer;
     }
 
-    function add(Storage storage self, address deal, uint offerId) internal {
+    function add(Storage storage self, address deal, address offer) internal {
         self.all.add(deal);
-        self.byOffer[offerId].push(deal);
+        self.byOffer[offer].push(deal);
     }
 
     function has(Storage storage self, address deal) internal view returns (bool) {

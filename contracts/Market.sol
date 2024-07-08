@@ -25,6 +25,8 @@ import {IDeal} from "./interfaces/IDeal.sol";
 import {IDealFactory} from "./interfaces/IDealFactory.sol";
 import {IRepToken} from "./interfaces/IRepToken.sol";
 import "./OfferFactory.sol";
+import {Deal} from "./Deal.sol";
+import {RepToken} from "./RepToken.sol";
 
 
 contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
@@ -46,12 +48,11 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
 
     IDealFactory    public dealFactory;
     OfferFactory    public offerFactory;
-    IRepToken       public repToken;
+    RepToken        public repToken;
 
     IUniswapV3Factory private uniswap;
 
     address public mediator;
-    uint8 internal constant FEE = 100; // 1%
 
     function initialize(address repToken_, address uniswap_) initializer external {
         __Ownable_init(msg.sender);
@@ -74,62 +75,37 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
         offers.add(offer);
         emit OfferCreated(msg.sender, offer.token(), offer.fiat(), offer);
     }
+    function hasOffer(address offer_) external view returns (bool) { return offers.has(offer_); }
 
-    /// @param fiatAmount_ must have 6 decimals
-    // FIXME instructions is not the case if buying
-    // TODO cryptoAmount parameter for people who REALLY want to count in crypto. One of amounts must be 0
+    function trackDeal(Deal deal) external {
+        require(msg.sender == address(dealFactory), 'auth');
+        Offer offer = deal.offer();
 
-    // FIXME call factory directly and factory notify market. offer is deal factory!
-/*    function createDeal(uint offerId_, uint fiatAmount_, string memory paymentInstructions_)
-    external
-    {
-        Offers.Offer storage $offer = offers.all[offerId_];
+        deals.add(address(deal), address(offer));
+        emit DealCreated(offer.owner(), deal.taker(), address(offer), address(deal));
 
-        require(msg.sender != $offer.owner, "self deal");
-
-        uint $tokenAmount = convert(fiatAmount_, $offer.fiat, $offer.token, $offer.rate);
-
-        address $deal = dealFactory.create(
-            address(repToken),
-            offerId_,
-            $offer.isSell,
-            $offer.owner,
-            msg.sender,
-            mediator,
-            address(token($offer.token)),
-            $tokenAmount,
-            fiatAmount_,
-            paymentInstructions_
-        );
-        deals.add($deal, offerId_);
-
-        emit DealCreated($offer.owner, msg.sender, offerId_, $deal);
-
-        if (!$offer.isSell) {
-            IERC20Metadata $token = IERC20Metadata(token($offer.token));
-            $token.safeTransferFrom(msg.sender, $deal, $tokenAmount);
+        if (!offer.isSell() && deal.hasRole('SELLER', deal.taker())) {
+            IERC20Metadata $token = IERC20Metadata(token(offer.token()));
+            $token.safeTransferFrom(deal.taker(), address(deal), deal.tokenAmount());
         }
 
-        repToken.grantRole('DEAL_ROLE', $deal);
-    }*/
-
-    /// @dev users provide allowance once to the market
-    function fundDeal() external returns (bool) {
-        require(deals.has(msg.sender), "NE");
-
-        IDeal $deal = IDeal(msg.sender);
-        require($deal.state() == IDeal.State.Accepted, "not accepted");
-
-        //Offers.Offer memory $offer = offers.all[$deal.offerId()];
-        //require ($offer.isSell, "not selling offer");
-
-        //IERC20Metadata $token = IERC20Metadata(token($offer.token));
-        //$token.safeTransferFrom($deal.seller(), address($deal), $deal.tokenAmount());
-
-        return true;
+        repToken.grantRole('DEAL_ROLE', address(deal));
     }
 
-    function setRepToken(address repToken_) public onlyOwner { repToken = IRepToken(repToken_); }
+    /// @dev users provide allowance once to the market
+    function fundDeal() external {
+        require(deals.has(msg.sender), "NE");
+
+        Deal $deal = Deal(msg.sender);
+        require($deal.state() == IDeal.State.Accepted, "not accepted");
+
+        require ($deal.offer().isSell(), "not selling offer");
+
+        IERC20Metadata $token = IERC20Metadata(token($deal.offer().token()));
+        $token.safeTransferFrom($deal.offer().owner(), address($deal), $deal.tokenAmount());
+    }
+
+    function setRepToken(address repToken_) public onlyOwner { repToken = RepToken(repToken_); }
     function setDealFactory(address dealFactory_) public onlyOwner { dealFactory = IDealFactory(dealFactory_); }
     function setOfferFactory(address offerFactory_) public onlyOwner { offerFactory = OfferFactory(offerFactory_); }
     function setMediator(address mediator_) public onlyOwner { mediator = mediator_; }
