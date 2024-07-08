@@ -76,8 +76,9 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     }
     function hasOffer(address offer_) external view returns (bool) { return offers.has(offer_); }
 
-    function trackDeal(Deal deal) external {
+    function addDeal(Deal deal) external {
         require(msg.sender == address(dealFactory), UnauthorizedAccount(msg.sender));
+
         Offer offer = deal.offer();
 
         deals.add(address(deal), address(offer));

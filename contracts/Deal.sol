@@ -49,8 +49,8 @@ contract Deal is AccessControl
     uint    public allowCancelUnacceptedAfter;
     uint    public allowCancelUnpaidAfter;
     State   public state = State.Initiated;
-    Market private market;
-    Offer  public offer;
+    Market  private market;
+    Offer   public offer;
 
     struct Feedback {
         bool given;
@@ -98,14 +98,7 @@ contract Deal is AccessControl
         terms = offer.terms();
     }
 
-    /// @dev separate method to keep constructor short
-    function assignMediator() public {
-        address mediator = market.mediator();
-        _grantRole(MEMBER, mediator);
-        _grantRole(BUYER, mediator);
-        _grantRole(SELLER, mediator);
-    }
-
+    /// @notice Offer owner agrees to the deal
     function accept() external stateBetween(State.Initiated, State.Initiated) {
         require(msg.sender == offer.owner(), UnauthorizedAccount(msg.sender));
 
@@ -181,6 +174,14 @@ contract Deal is AccessControl
     function dispute() external onlyRole(MEMBER) stateBetween(State.Accepted, State.Paid) {
         assignMediator();
         _state(State.Disputed);
+    }
+
+    /// @dev separate method to keep constructor short
+    function assignMediator() public {
+        address mediator = market.mediator();
+        _grantRole(MEMBER, mediator);
+        _grantRole(BUYER, mediator);
+        _grantRole(SELLER, mediator);
     }
 
     function message(string calldata message_) external onlyRole(MEMBER) {
