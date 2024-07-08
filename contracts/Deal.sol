@@ -3,8 +3,6 @@ pragma solidity ^0.8.0;
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
-import {IDeal} from "./interfaces/IDeal.sol";
-import {IRepToken} from "./interfaces/IRepToken.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Market} from "./Market.sol";
 import {Offer} from "./Offer.sol";
@@ -12,9 +10,26 @@ import {RepToken} from "./RepToken.sol";
 
 uint8 constant FEE = 100; // 1%
 
-contract Deal is IDeal, AccessControl
+contract Deal is AccessControl
 {
     using Strings for string;
+
+    event DealState(State state);
+    event Message(address indexed sender, string message);
+    event FeedbackGiven(address indexed to, bool upvote, string message);
+
+    error ActionNotAllowedInThisState(State state);
+
+    enum State {
+        Initiated,
+        Accepted,
+        Funded,
+        Paid,
+        Disputed,
+        Canceled,
+        Resolved,
+        Completed
+    }
 
     // protection from stalled deals. after expiry seller can request refund and buyer still gets failed tx recorded
     uint16 private ACCEPTANCE_TIME = 15 minutes;
