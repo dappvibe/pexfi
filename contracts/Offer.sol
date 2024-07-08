@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "./libraries/Fiats.sol";
 import {Methods} from "./libraries/Methods.sol";
 import {IOffer} from "./interfaces/IOffer.sol";
@@ -15,18 +14,18 @@ contract Offer is Ownable
     }
 
     bool public isSell;
-    IERC20Metadata public token;
+    string public token;
     string public fiat;
-    Methods.Method public method;
+    string public method;
     uint16 public rate; // 4 decimals
     Limits public limits;
     string public terms;
 
     constructor(
         bool isSell_,
-        IERC20Metadata token_,
+        string memory token_,
         string memory fiat_,
-        Methods.Method memory method_,
+        string memory method_,
         uint16 rate_, // 4 decimals
         Limits memory limits_,
         string memory terms_
