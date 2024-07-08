@@ -22,6 +22,7 @@ contract Offer is Ownable
     string public terms;
 
     constructor(
+        address owner_,
         bool isSell_,
         string memory token_,
         string memory fiat_,
@@ -30,7 +31,7 @@ contract Offer is Ownable
         Limits memory limits_,
         string memory terms_
     )
-    Ownable(msg.sender)
+    Ownable(owner_)
     {
         isSell = isSell_;
         token = token_;

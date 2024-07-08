@@ -42,6 +42,7 @@ contract OfferFactory is UUPSUpgradeable, OwnableUpgradeable
         require(market.convert(limits.min, fiat, 'USDT', 10000) > MIN_USDT_VOLUME, 'min too low');
 
         Offer offer = new Offer(
+            msg.sender,
             isSell,
             market.token(token).symbol(),
             fiat,
