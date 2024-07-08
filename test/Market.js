@@ -17,7 +17,7 @@ const DEFAULT_ADMIN_ROLE = '0x00000000000000000000000000000000000000000000000000
 const MARKET_ROLE = ethers.encodeBytes32String('MARKET_ROLE');
 
 let MockUniswap, MockBTC, MockETH, MockUSDT, MockDummy,
-    PriceFeeds = {}, RepToken, Inventory, Market, DealFactory,
+    PriceFeeds = {}, RepToken, Market, DealFactory,
     deployer, seller, buyer, mediator,
     offers = [], deal;
 
@@ -100,52 +100,6 @@ describe('Deployment', function()
         })
     });
 
-    describe('Inventory', function() {
-        it('is deployed', async function() {
-            Inventory = await ethers.deployContract('Inventory', [MockUniswap.target]);
-            return expect(Inventory.target).to.be.properAddress;
-        });
-
-        it ('add supported tokens', async function() {
-            const tokens = [MockBTC.target, MockETH.target, MockUSDT.target, MockDummy.target];
-            await expect(Inventory.addTokens(tokens, 500)).to.not.reverted;
-        });
-
-        it ('remove a token', async function() {
-            const kill = await MockDummy.symbol();
-            await expect(Inventory.removeTokens([kill])).to.not.reverted;
-        });
-
-        it ('add supported fiats', async function() {
-            let fiats = [];
-            for (const [key, value] of Object.entries(PriceFeeds)) {
-                fiats.push([key, value.target]);
-            }
-            await expect(Inventory.addFiats(fiats)).to.not.reverted;
-        });
-
-        it ('remove a fiat', async function() {
-            await expect(Inventory.removeFiats(['XXX'])).to.not.reverted;
-        });
-
-
-        // this is an expensive, but required one-time operation. Mediators must know the methods to solve disputes.
-        it('add payment methods', async function() {
-            const methods = [
-                {name: 'Zelle', group: 3, country: 188},
-                {name: 'SEPA',  group: 3, country: 1},
-                {name: 'Monero', group: 1, country: 0},
-                {name: 'Cash To ATM',  group: 2, country: 0},
-            ];
-            await expect(Inventory.addMethods(methods)).to.not.reverted;
-        });
-
-        it ('remove a payment method' , async function() {
-            const receipt = await Inventory.removeMethods(['Monero']).then((tx) => tx.wait());
-            await expect(receipt).to.not.reverted;
-        });
-    });
-
     describe('Market', function() {
         it ('is upgradable', async function() {
             const MarketFactory = await ethers.getContractFactory("Market");
@@ -154,7 +108,7 @@ describe('Deployment', function()
 
         it ('is deployed', async function() {
             Market = await ethers.deployContract('Market');
-            await Market.initialize(RepToken.target, Inventory.target).then(tx => tx.wait());
+            await Market.initialize(RepToken.target, MockUniswap.target).then(tx => tx.wait());
             expect(Market.target).to.be.properAddress;
         });
 
@@ -170,6 +124,45 @@ describe('Deployment', function()
         it('set market address in rep token', async function() {
             await RepToken.grantRole(MARKET_ROLE, Market.target).then(tx => tx.wait());
             await expect(RepToken.hasRole(MARKET_ROLE, Market.target)).to.eventually.true;
+        });
+
+        it ('add supported tokens', async function() {
+            const tokens = [MockBTC.target, MockETH.target, MockUSDT.target, MockDummy.target];
+            await expect(Market.addTokens(tokens, 500)).to.not.reverted;
+        });
+
+        it ('remove a token', async function() {
+            const kill = await MockDummy.symbol();
+            await expect(Market.removeTokens([kill])).to.not.reverted;
+        });
+
+        it ('add supported fiats', async function() {
+            let fiats = [];
+            for (const [key, value] of Object.entries(PriceFeeds)) {
+                fiats.push([key, value.target]);
+            }
+            await expect(Market.addFiats(fiats)).to.not.reverted;
+        });
+
+        it ('remove a fiat', async function() {
+            await expect(Market.removeFiats(['XXX'])).to.not.reverted;
+        });
+
+
+        // this is an expensive, but required one-time operation. Mediators must know the methods to solve disputes.
+        it('add payment methods', async function() {
+            const methods = [
+                {name: 'Zelle', group: 3, country: 188},
+                {name: 'SEPA',  group: 3, country: 1},
+                {name: 'Monero', group: 1, country: 0},
+                {name: 'Cash To ATM',  group: 2, country: 0},
+            ];
+            await expect(Market.addMethods(methods)).to.not.reverted;
+        });
+
+        it ('remove a payment method' , async function() {
+            const receipt = await Market.removeMethods(['Monero']).then((tx) => tx.wait());
+            await expect(receipt).to.not.reverted;
         });
     });
 
@@ -192,7 +185,7 @@ describe('Browser builds UI', function ()
     let tokens, fiats, methods = [];
 
     it ('get tokens', async function() {
-        tokens = await Inventory.getTokens();
+        tokens = await Market.getTokens();
         expect(tokens).to.have.length(3);
         expect(tokens[0][1]).to.eq('WBTC');
         expect(tokens[1][1]).to.eq('WETH');
@@ -200,7 +193,7 @@ describe('Browser builds UI', function ()
     });
 
     it ('get fiats', async function() {
-        fiats = await Inventory.getFiats();
+        fiats = await Market.getFiats();
         fiats = fiats.map(ethers.decodeBytes32String);
         expect(fiats).to.have.length(2);
         expect(fiats[0]).to.eq('THB');
@@ -208,7 +201,7 @@ describe('Browser builds UI', function ()
     });
 
     it ('get methods', async function() {
-        methods = await Inventory.getMethods();
+        methods = await Market.getMethods();
         await expect(methods).to.have.length(3);
         await expect(methods[0][0]).to.eq('Zelle');
         await expect(methods[1][0]).to.eq('SEPA');
@@ -216,10 +209,10 @@ describe('Browser builds UI', function ()
     });
 
     it ('get prices', async function() {
-        await expect(Inventory.getPrice(await MockETH.symbol(), "USD")).to.eventually.eq(3474_809672); // 3474.8096 USDT per ETH
-        await expect(Inventory.getPrice(await MockETH.symbol(), "EUR")).to.eventually.eq(3249_687565);
-        await expect(Inventory.getPrice(await MockUSDT.symbol(), "USD")).to.eventually.eq(1000000);
-        await expect(Inventory.getPrice(await MockUSDT.symbol(), "EUR")).to.eventually.eq(935213);
+        await expect(Market.getPrice(await MockETH.symbol(), "USD")).to.eventually.eq(3474_809672); // 3474.8096 USDT per ETH
+        await expect(Market.getPrice(await MockETH.symbol(), "EUR")).to.eventually.eq(3249_687565);
+        await expect(Market.getPrice(await MockUSDT.symbol(), "USD")).to.eventually.eq(1000000);
+        await expect(Market.getPrice(await MockUSDT.symbol(), "EUR")).to.eventually.eq(935213);
     });
 });
 
