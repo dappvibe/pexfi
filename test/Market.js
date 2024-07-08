@@ -261,42 +261,33 @@ describe('Users post offers', function()
         await expect(Market.getOffer(offers[0][0])).to.eventually.have.length(9);
     });
 
-/*    describe('invalid input', async function() {
-        function params(replace = {}) {
-            return {
-                isSell: true,
-                token: "WBTC",
-                fiat:  "EUR",
-                rate: 10250, // 1.025 * market price
-                min: 1000,
-                max: 5000,
-                method: 'Zelle',
-                acceptanceTime: 900,
-                terms: 'No KYC',
-                ...replace
-            };
+    describe('invalid input', async function() {
+        function params(i, replace) {
+            const p = [true, 'WBTC', 'USD', 'Zelle', 10250, [1000, 5000], ''];
+            p[i] = replace;
+            return p;
         }
-        it('invalid fiat currency', async function() {
-            await expect(Market.createOffer(params({fiat: 'USDT'}))).to.be.reverted;
-            await expect(Market.createOffer(params({fiat: 'XXX'}))).to.be.reverted;
+        it('invalid token', async function() {
+            await expect(OfferFactory.create(...params(1, 'XXX'))).to.be.reverted;
         });
 
-        it('invalid rate', async function() {
-            await expect(Market.createOffer(params({rate: 0}))).to.be.reverted;
-        });
-
-        it ('invalid min', async function() {
-            await expect(Market.createOffer(params({min: 0}))).to.be.reverted;
-        });
-
-        it('invalid max', async function() {
-            await expect(Market.createOffer(params({max: 0}))).to.be.reverted;
+        it('invalid fiat', async function() {
+            await expect(OfferFactory.create(...params(2, 'USDT'))).to.be.reverted;
+            await expect(OfferFactory.create(...params(2, 'XXX'))).to.be.reverted;
         });
 
         it('invalid method', async function() {
-            await expect(Market.createOffer(params({method: 'Hugs and kisses'}))).to.be.reverted;
+            await expect(OfferFactory.create(...params(3, 'Hugs and kisses'))).to.be.reverted;
         });
-    });*/
+
+        it('invalid rate', async function() {
+            await expect(OfferFactory.create(...params(4, 0))).to.be.reverted;
+        });
+
+        it ('invalid limits', async function() {
+            await expect(OfferFactory.create(...params(5, [100, 0]))).to.be.reverted;
+        });
+    });
 });
 
 describe('Browser fetches offers', function() {

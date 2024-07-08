@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "../Offer.sol";
-import "hardhat/console.sol";
 
 library Offers
 {
@@ -21,14 +20,9 @@ library Offers
     {
         require(self.all.add(address(offer)), 'exists');
 
-        /*bytes32 token   = bytes32(bytes(offer.token().symbol()));
-        bytes32 fiat    = bytes32(bytes(offer.fiat()));
-        (string memory m,) = offer.method();
-        bytes32 method  = bytes32(bytes(m));*/
-
-        string memory token   = offer.token().symbol();
+        string memory token   = offer.token();
         string memory fiat    = offer.fiat();
-        (string memory method,)  = offer.method();
+        string memory method  = offer.method();
 
         if (offer.isSell()) {
             self.sell[token][fiat]['ANY'].add(address(offer));
@@ -43,14 +37,9 @@ library Offers
     internal view
     returns (address[] memory offers)
     {
-        console.log(isSell_, token_, fiat_, method_);
-
-        /*bytes32 token   = bytes32(bytes(token_));
-        bytes32 fiat    = bytes32(bytes(fiat_));
-        bytes32 method  = bytes32(bytes(method_));*/
-
-        EnumerableSet.AddressSet storage offersSet = isSell_ ? self.sell[token_][fiat_][method_] : self.buy[token_][fiat_][method_];
-
+        EnumerableSet.AddressSet storage offersSet = isSell_
+            ? self.sell[token_][fiat_][method_]
+            : self.buy[token_][fiat_][method_];
         return offersSet.values();
     }
 }
