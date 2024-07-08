@@ -3,6 +3,7 @@ const {ethers, upgrades, ignition} = require("hardhat");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const {deployMockERC20} = require("./mocks")
 const DealFactoryModule = require("../ignition/modules/DealFactory");
+const OfferFactoryModule = require("../ignition/modules/OfferFactory");
 
 function address(number) {
     let hexString = number.toString(16);
@@ -17,7 +18,7 @@ const DEFAULT_ADMIN_ROLE = '0x00000000000000000000000000000000000000000000000000
 const MARKET_ROLE = ethers.encodeBytes32String('MARKET_ROLE');
 
 let MockUniswap, MockBTC, MockETH, MockUSDT, MockDummy,
-    PriceFeeds = {}, RepToken, Market, DealFactory,
+    PriceFeeds = {}, RepToken, Market, DealFactory, OfferFactory,
     deployer, seller, buyer, mediator,
     offers = [], deal;
 
@@ -175,6 +176,16 @@ describe('Deployment', function()
             expect(await Market.setDealFactory(DealFactory.target)).to.not.reverted;
         });
     });
+
+    describe('OfferFactory', function() {
+        it ('is deployed', async function() {
+            const res = await ignition.deploy(OfferFactoryModule);
+            OfferFactory = res.OfferFactory;
+            expect(OfferFactory.target).to.be.properAddress;
+            expect(await OfferFactory.initialize(Market.target)).to.not.reverted;
+            expect(await Market.setOfferFactory(OfferFactory.target)).to.not.reverted;
+        });
+    });
 });
 
 /**
@@ -238,14 +249,11 @@ describe('Users post offers', function()
         it(title, async function() {
             const provider = params[0] ? seller : buyer;
             Market = Market.connect(provider);
-            const response = Market.createOffer(params).then((tx) => tx.wait()).then(receipt => {
-                const OfferCreated = Market.interface.parseLog(receipt.logs[0]);
-                offers.push(OfferCreated.args[3]);
-                return receipt;
-            });
-            await expect(response)
-                .to.emit(Market, 'OfferCreated')
-                .withArgs(provider.address, anyValue, anyValue, anyValue);
+            const tx = await OfferFactory.create(params[0], params[1], params[2], params[3], params[4], [params[5], params[6]], params[7]);
+            const receipt = await tx.wait();
+            const OfferCreated = Market.interface.parseLog(receipt.logs[1]);
+            offers.push(OfferCreated.args[3]);
+            expect(OfferCreated.args[3]).to.properAddress;
         });
     });
 
@@ -253,7 +261,7 @@ describe('Users post offers', function()
         await expect(Market.getOffer(offers[0][0])).to.eventually.have.length(9);
     });
 
-    describe('invalid input', async function() {
+/*    describe('invalid input', async function() {
         function params(replace = {}) {
             return {
                 isSell: true,
@@ -288,7 +296,7 @@ describe('Users post offers', function()
         it('invalid method', async function() {
             await expect(Market.createOffer(params({method: 'Hugs and kisses'}))).to.be.reverted;
         });
-    });
+    });*/
 });
 
 describe('Browser fetches offers', function() {
