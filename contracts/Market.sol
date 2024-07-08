@@ -70,14 +70,14 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     }
 
     function addOffer(Offer offer) external {
-        require(msg.sender == address(offerFactory), 'auth');
+        require(msg.sender == address(offerFactory), UnauthorizedAccount(msg.sender));
         offers.add(offer);
         emit OfferCreated(msg.sender, offer.token(), offer.fiat(), offer);
     }
     function hasOffer(address offer_) external view returns (bool) { return offers.has(offer_); }
 
     function trackDeal(Deal deal) external {
-        require(msg.sender == address(dealFactory), 'auth');
+        require(msg.sender == address(dealFactory), UnauthorizedAccount(msg.sender));
         Offer offer = deal.offer();
 
         deals.add(address(deal), address(offer));
@@ -93,7 +93,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
 
     /// @dev users provide allowance once to the market
     function fundDeal() external {
-        require(deals.has(msg.sender), "NE");
+        require(deals.has(msg.sender), UnauthorizedAccount(msg.sender));
 
         Deal $deal = Deal(msg.sender);
         require($deal.state() == Deal.State.Accepted, "not accepted");

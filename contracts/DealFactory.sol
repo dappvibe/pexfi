@@ -6,6 +6,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {Offer} from "./Offer.sol";
 import {Market} from "./Market.sol";
 import {Deal} from "./Deal.sol";
+import "./libraries/Errors.sol";
 
 contract DealFactory is UUPSUpgradeable, OwnableUpgradeable
 {
@@ -23,7 +24,7 @@ contract DealFactory is UUPSUpgradeable, OwnableUpgradeable
         require(market.hasOffer(offer_), "no offer");
 
         Offer $offer = Offer(offer_);
-        require(msg.sender != $offer.owner(), "self");
+        require(msg.sender != $offer.owner(), UnauthorizedAccount(msg.sender));
 
         uint $tokenAmount = market.convert(fiatAmount_, $offer.fiat(), $offer.token(), $offer.rate());
 

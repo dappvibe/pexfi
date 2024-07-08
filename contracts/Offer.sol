@@ -2,11 +2,10 @@
 pragma solidity ^0.8.0;
 
 import {Methods} from "./libraries/Methods.sol";
+import {UnauthorizedAccount} from "./libraries/Errors.sol";
 
 contract Offer
 {
-    error UnauthorizedAccount(address account);
-
     struct Limits {
         uint32 min;
         uint32 max;
