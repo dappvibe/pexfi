@@ -1,18 +1,8 @@
 const {expect} = require("chai");
 const {ethers, upgrades, ignition} = require("hardhat");
-const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const {deployMockERC20} = require("./mocks")
 const DealFactoryModule = require("../ignition/modules/DealFactory");
 const OfferFactoryModule = require("../ignition/modules/OfferFactory");
-
-function address(number) {
-    let hexString = number.toString(16);
-
-    while (hexString.length < 40) {
-        hexString = '0' + hexString;
-    }
-    return '0x' + hexString;
-}
 
 const DEFAULT_ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
 const MARKET_ROLE = ethers.encodeBytes32String('MARKET_ROLE');
@@ -230,7 +220,6 @@ describe('Browser builds UI', function ()
 describe('Users post offers', function()
 {
     it ('seller provides allowance', async function() {
-
         await MockBTC.connect(seller).approve(Market.target, ethers.MaxUint256);
         await MockETH.connect(seller).approve(Market.target, ethers.MaxUint256);
     });
