@@ -37,9 +37,9 @@ contract Offer is Ownable
         token = token_;
         fiat = fiat_;
         method = method_;
-        setRate(rate_);
-        setLimits(limits_);
-        setTerms(terms_);
+        rate = rate_;
+        limits = limits_;
+        terms = terms_;
     }
 
     function setRate(uint16 rate_) public onlyOwner {
