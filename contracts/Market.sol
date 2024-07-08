@@ -20,17 +20,16 @@ import {Offers} from "./libraries/Offers.sol";
 import {Fiats} from "./libraries/Fiats.sol";
 import {Offer} from "./Offer.sol";
 
-import {IMarket} from "./interfaces/IMarket.sol";
-import {IDeal} from "./interfaces/IDeal.sol";
-import {IDealFactory} from "./interfaces/IDealFactory.sol";
-import {IRepToken} from "./interfaces/IRepToken.sol";
-import "./OfferFactory.sol";
+import {DealFactory} from "./DealFactory.sol";
+import {OfferFactory} from "./OfferFactory.sol";
 import {Deal} from "./Deal.sol";
 import {RepToken} from "./RepToken.sol";
 
-
-contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
+contract Market is OwnableUpgradeable, UUPSUpgradeable
 {
+    event OfferCreated(address indexed owner, string indexed crypto, string indexed fiat, Offer offer);
+    event DealCreated(address indexed offerOwner, address indexed taker, address indexed offer, address deal);
+
     using Strings   for string;
     using SafeERC20 for IERC20Metadata;
 
@@ -46,7 +45,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     Offers.Storage  private offers;
     Deals.Storage   private deals;
 
-    IDealFactory    public dealFactory;
+    DealFactory    public dealFactory;
     OfferFactory    public offerFactory;
     RepToken        public repToken;
 
@@ -97,7 +96,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
         require(deals.has(msg.sender), "NE");
 
         Deal $deal = Deal(msg.sender);
-        require($deal.state() == IDeal.State.Accepted, "not accepted");
+        require($deal.state() == Deal.State.Accepted, "not accepted");
 
         require ($deal.offer().isSell(), "not selling offer");
 
@@ -106,7 +105,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     }
 
     function setRepToken(address repToken_) public onlyOwner { repToken = RepToken(repToken_); }
-    function setDealFactory(address dealFactory_) public onlyOwner { dealFactory = IDealFactory(dealFactory_); }
+    function setDealFactory(address dealFactory_) public onlyOwner { dealFactory = DealFactory(dealFactory_); }
     function setOfferFactory(address offerFactory_) public onlyOwner { offerFactory = OfferFactory(offerFactory_); }
     function setMediator(address mediator_) public onlyOwner { mediator = mediator_; }
 

@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import "./libraries/Fiats.sol";
 import {Methods} from "./libraries/Methods.sol";
-import {IOffer} from "./interfaces/IOffer.sol";
 
 contract Offer is Ownable
 {

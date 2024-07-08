@@ -3,10 +3,9 @@ pragma solidity ^0.8.0;
 
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "./interfaces/IMarket.sol";
-import {IDealFactory} from "./interfaces/IDealFactory.sol";
 import {Offer} from "./Offer.sol";
 import {Market} from "./Market.sol";
+import {Deal} from "./Deal.sol";
 
 contract DealFactory is UUPSUpgradeable, OwnableUpgradeable
 {
