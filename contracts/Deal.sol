@@ -7,6 +7,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {Market} from "./Market.sol";
 import {Offer} from "./Offer.sol";
 import {RepToken} from "./RepToken.sol";
+import "./libraries/Errors.sol";
 
 uint8 constant FEE = 100; // 1%
 
@@ -74,7 +75,6 @@ contract Deal is AccessControl
     )
     {
         market = Market(market_);
-
         offer = Offer(offer_);
 
         taker = taker_;
@@ -107,7 +107,7 @@ contract Deal is AccessControl
     }
 
     function accept() external stateBetween(State.Initiated, State.Initiated) {
-        require(msg.sender == offer.owner(), 'offer owner');
+        require(msg.sender == offer.owner(), UnauthorizedAccount(msg.sender));
 
         _state(State.Accepted);
 
@@ -130,7 +130,7 @@ contract Deal is AccessControl
         else if (hasRole(BUYER, offer.owner())) {
             token.transfer(offer.owner(), tokenAmount - (tokenAmount * FEE / 10000));
         }
-        else revert ('no buyer');
+        else revert('no buyer');
         token.transfer(market.mediator(), token.balanceOf(address(this)));
 
         _state(State.Completed);
