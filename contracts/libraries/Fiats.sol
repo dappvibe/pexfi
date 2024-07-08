@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.26;
 
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "../interfaces/IChainlink.sol";
+
+error InvalidFiat(string fiat);
 
 library Fiats {
     using EnumerableSet for EnumerableSet.Bytes32Set;
@@ -24,7 +26,9 @@ library Fiats {
     }
 
     function get(Storage storage self, string memory symbol) internal view returns (Fiat storage) {
-        return self.values[bytes32(bytes(symbol))];
+        bytes32 key = bytes32(bytes(symbol));
+        require(self.keys.contains(key), InvalidFiat(symbol));
+        return self.values[key];
     }
 
     function list(Storage storage self) internal view returns (bytes32[] memory) {

@@ -111,7 +111,6 @@ contract Deal is AccessControl
 
         _state(State.Accepted);
 
-        // FIXME fund by calling market contract
         if(offer.isSell()) {
             market.fundDeal();
             _state(State.Funded);
@@ -124,7 +123,7 @@ contract Deal is AccessControl
     }
 
     function release() external onlyRole(SELLER) stateBetween(State.Funded, State.Disputed) {
-        IERC20Metadata token = market.token(offer.token());
+        IERC20Metadata token = market.token(offer.token()).api;
         if (hasRole(BUYER, taker)) {
             token.transfer(taker, tokenAmount - (tokenAmount * FEE / 10000));
         }
@@ -155,7 +154,7 @@ contract Deal is AccessControl
         || (hasRole(SELLER, msg.sender) && ((state < State.Paid && block.timestamp > allowCancelUnpaidAfter)))
         )
         {
-            IERC20Metadata token = market.token(offer.token());
+            IERC20Metadata token = market.token(offer.token()).api;
             if (state == State.Funded) {
                 if (hasRole(SELLER, taker)) {
                     token.transfer(taker, tokenAmount);
