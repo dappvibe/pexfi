@@ -37,6 +37,6 @@ contract DealFactory is UUPSUpgradeable, OwnableUpgradeable
             paymentInstructions_
         );
 
-        market.trackDeal(deal);
+        market.addDeal(deal);
     }
 }
