@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.26;
+pragma solidity 0.8.26;
 
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {StorageSlot} from "@openzeppelin/contracts/utils/StorageSlot.sol";
