@@ -27,7 +27,7 @@ import {RepToken} from "./RepToken.sol";
 
 contract Market is OwnableUpgradeable, UUPSUpgradeable
 {
-    event OfferCreated(address indexed owner, string indexed crypto, string indexed fiat, Offer offer);
+    event OfferCreated(address indexed owner, string indexed token, string indexed fiat, Offer offer);
     event DealCreated(address indexed offerOwner, address indexed taker, address indexed offer, address deal);
 
     using Strings   for string;
