@@ -1,34 +1,15 @@
 const {expect} = require("chai");
 const {ethers, upgrades, ignition} = require("hardhat");
-const {deployMockERC20} = require("./mocks")
-const DealFactoryModule = require("../ignition/modules/DealFactory");
-const OfferFactoryModule = require("../ignition/modules/OfferFactory");
+const PriceFeedModule = require("../ignition/modules/PriceFeed");
+const MarketModule = require("../ignition/modules/Market");
 
-const MARKET_ROLE = ethers.encodeBytes32String('MARKET_ROLE');
-
-let MockUniswap, MockBTC, MockETH, MockUSDT, MockDummy,
+let Uniswap, Tokens = {},
     PriceFeeds = {}, RepToken, Market, DealFactory, OfferFactory,
-    deployer, seller, buyer, mediator,
+    deployer, buyer, seller, mediator,
     offers = [], deal;
 
-/**
- * Only mocks here. Actual deployment is explained in the first test.
- */
 before(async function() {
     [deployer, seller, buyer, mediator] = await ethers.getSigners();
-    MockBTC = await deployMockERC20('WBTC', 8);
-    MockETH =  await deployMockERC20('WETH', 18);
-    MockUSDT = await deployMockERC20('USDT', 6);
-    MockDummy = await deployMockERC20('Dummy', 18);
-    await MockBTC.transfer(seller.address, 10n * 10n**8n); // seller has 10 coins to sell
-    await MockETH.transfer(seller.address, 2000n * 10n**18n);
-    await MockUSDT.transfer(seller.address, 20000000n * 10n**6n);
-
-    const PoolBTC = await ethers.deployContract('PoolBTC');
-    const PoolETH = await ethers.deployContract('PoolETH');
-    MockUniswap = await ethers.deployContract('MockUniswapV3Factory');
-    MockUniswap.setPool(MockBTC.target, PoolBTC.target);
-    MockUniswap.setPool(MockETH.target, PoolETH.target);
 });
 
 async function openDeal(provider, offer) {
@@ -45,56 +26,122 @@ async function openDeal(provider, offer) {
     return await ethers.getContractAt('Deal', deal);
 }
 
-/**
- * In tests all contracts are deployed directly without proxy to ease debugging, speedup runs and keep stacktraces clean.
- * Deployment scripts MUST deploy proxies.
- */
+describe('Deployment', function()
+{
+    describe('Mocks', () => {
+        it ('ERC20 Tokens', async function() {
+            const tokens = [
+                ['WBTC', 8], ['WETH', 18], ['USDT', 6]
+            ];
+            const factory = await ethers.getContractFactory("MockERC20");
+            for (const token of tokens) {
+                const t = Tokens[token[0]] = await factory.deploy(...token);
+                // deployer has all the tokens minted, share some for the tests
+                await t.transfer(seller.address, BigInt(100000 * Math.pow(10, token[1])));
+            }
+        });
 
+        it ('Uniswap Factory', async function() {
+            Uniswap = await ethers.deployContract('MockUniswapV3Factory');
+            // see uniswap contract for hardcoded return values
+            Uniswap.setPool(Tokens['WBTC'], await ethers.deployContract('PoolBTC'));
+            Uniswap.setPool(Tokens['WETH'], await ethers.deployContract('PoolETH'));
+        });
+    });
 
-/**
- * How to get data for React client.
- */
-describe('Browser builds UI', function ()
+    describe ('Fiat oracles', function()
+    {
+        const fiats = {
+            USD: 1_00000000, EUR: 1_06927500, THB: 36_43338519
+        }
+        for (let fiat in fiats) {
+            it (`${fiat} is deployed`, async function() {
+                const { PriceFeed } = await ignition.deploy(PriceFeedModule, {
+                    parameters: { PriceFeed: {
+                            currency: fiat
+                        }}
+                })
+                PriceFeeds[fiat] = PriceFeed;
+            });
+            it (`set() ${fiat} rate`, async function() {
+                await PriceFeeds[fiat].set(fiats[fiat]);
+                const data = await PriceFeeds[fiat].latestRoundData();
+                expect(data[1]).to.eq(fiats[fiat]);
+            });
+        }
+    });
+
+    describe('Market', function()
+    {
+        it ('ignition bundle', async function() {
+            ({ Market, OfferFactory, DealFactory, RepToken } = await ignition.deploy(MarketModule, {
+                parameters: { Market: {
+                        uniswap: Uniswap.target,
+                        addTokens_0: Object.values(Tokens).map(t => t.target),
+                        addTokens_1: 500,
+                        fiats: [
+                            ['USD', PriceFeeds['USD'].target],
+                            ['EUR', PriceFeeds['EUR'].target],
+                            ['THB', PriceFeeds['THB'].target],
+                            ['XXX', ethers.ZeroAddress] // this will be removed
+                        ],
+                        methods: [
+                            ['Zelle', 0],
+                            ['SEPA', 0],
+                        ]
+                    }}
+            }));
+            expect(await Market.owner()).to.eq(deployer.address);
+            expect(await Market.mediator()).to.eq(deployer.address);
+            expect(await Market.offerFactory()).to.not.eq(ethers.ZeroAddress);
+            expect(await Market.dealFactory()).to.not.eq(ethers.ZeroAddress);
+            expect(await Market.repToken()).to.not.eq(ethers.ZeroAddress);
+
+            expect(await OfferFactory.market()).to.eq(Market.target);
+            expect(await DealFactory.market()).to.eq(Market.target);
+            expect(await RepToken.hasRole(ethers.encodeBytes32String('MARKET_ROLE'), Market.target)).to.be.true;
+        });
+
+        it ('set mediator', async function () {
+            await Market.setMediator(mediator.address);
+            expect(await Market.mediator()).to.eq(mediator.address);
+        })
+    });
+});
+
+describe('UI fetch inventory', function ()
 {
     let tokens, fiats, methods = [];
 
     it ('get tokens', async function() {
         tokens = await Market.getTokens();
         expect(tokens).to.have.length(3);
-        expect(tokens[0][1]).to.eq('WBTC');
-        expect(tokens[1][1]).to.eq('WETH');
-        expect(tokens[2][1]).to.eq('USDT');
     });
 
     it ('get fiats', async function() {
         fiats = await Market.getFiats();
         fiats = fiats.map(ethers.decodeBytes32String);
-        expect(fiats).to.have.length(2);
-        expect(fiats[0]).to.eq('THB');
-        expect(fiats[1]).to.eq('EUR');
+        expect(fiats).to.have.length(4);
     });
 
     it ('get methods', async function() {
         methods = await Market.getMethods();
-        await expect(methods).to.have.length(3);
-        await expect(methods[0][0]).to.eq('Zelle');
-        await expect(methods[1][0]).to.eq('SEPA');
-        await expect(methods[2][0]).to.eq('Cash To ATM');
+        await expect(methods).to.have.length(2);
     });
 
     it ('get prices', async function() {
-        await expect(Market.getPrice(await MockETH.symbol(), "USD")).to.eventually.eq(3474_809672); // 3474.8096 USDT per ETH
-        await expect(Market.getPrice(await MockETH.symbol(), "EUR")).to.eventually.eq(3249_687565);
-        await expect(Market.getPrice(await MockUSDT.symbol(), "USD")).to.eventually.eq(1000000);
-        await expect(Market.getPrice(await MockUSDT.symbol(), "EUR")).to.eventually.eq(935213);
+        expect(await Market.getPrice('WETH', "USD")).to.eq(3474_809672); // 3474.8096 USDT per ETH
+        expect(await Market.getPrice('WETH', "EUR")).to.eq(3249_687565);
+        expect(await Market.getPrice('USDT', "USD")).to.eq(1000000);
+        expect(await Market.getPrice('USDT', "EUR")).to.eq(935213);
     });
 });
 
 describe('Users post offers', function()
 {
     it ('seller provides allowance', async function() {
-        await MockBTC.connect(seller).approve(Market.target, ethers.MaxUint256);
-        await MockETH.connect(seller).approve(Market.target, ethers.MaxUint256);
+        await Tokens['WBTC'].connect(seller).approve(Market.target, ethers.MaxUint256);
+        await Tokens['WETH'].connect(seller).approve(Market.target, ethers.MaxUint256);
     });
 
     [
@@ -168,7 +215,7 @@ describe('Browser fetches offers', function() {
 
 describe('Taker sells', function() {
     it ('provides allowance', async function() {
-        await MockUSDT.connect(seller).approve(Market.target, ethers.MaxUint256);
+        await Tokens['USDT'].connect(seller).approve(Market.target, ethers.MaxUint256);
     });
 
     it('deal created', async function() {
@@ -187,12 +234,12 @@ describe('Taker sells', function() {
     });
 
     it ('USDT is deposited', async function() {
-        await expect(MockUSDT.balanceOf(deal.target)).to.eventually.eq(5027135678);
+        await expect(Tokens['USDT'].balanceOf(deal.target)).to.eventually.eq(5027135678);
     })
 
     it ('accepted by owner', async function() {
         deal = await deal.connect(buyer);
-        await expect(deal.accept()).to.emit(deal, 'DealState').not.emit(MockUSDT, 'Transfer');
+        await expect(deal.accept()).to.emit(deal, 'DealState').not.emit(Tokens['USDT'], 'Transfer');
     });
 });
 
@@ -207,11 +254,11 @@ describe('Buyer opens deal', function() {
 
     it ('accepted by owner', async function() {
         deal = await deal.connect(seller);
-        await expect(deal.accept()).to.emit(deal, 'DealState').emit(MockETH, 'Transfer');
+        await expect(deal.accept()).to.emit(deal, 'DealState').emit(Tokens['WETH'], 'Transfer');
     });
 
     it ('tokens are deposited', async function() {
-        await expect(MockETH.balanceOf(deal.target)).to.eventually.eq(370617242369402679n);
+        await expect(Tokens['WETH'].balanceOf(deal.target)).to.eventually.eq(370617242369402679n);
     })
 });
 
@@ -229,19 +276,24 @@ describe('Seller releases tokens', function() {
         const response = deal.release(deal).then((tx) => tx.wait());
         await expect(response).to
             .emit(deal, 'DealState')
-            .emit(MockETH, 'Transfer')
-            .emit(MockETH, 'Transfer');
+            .emit(Tokens['WETH'], 'Transfer')
+            .emit(Tokens['WETH'], 'Transfer');
     });
     it('buyer receives tokens', async function() {
-        await expect(MockETH.balanceOf(buyer.address)).to.eventually.eq(366911069945708653n);
+        await expect(Tokens['WETH'].balanceOf(buyer.address)).to.eventually.eq(366911069945708653n);
     });
     it('mediator receives fees', async function() {
-        await expect(MockETH.balanceOf(mediator.address)).to.eventually.eq(3706172423694026n);
+        await expect(Tokens['WETH'].balanceOf(mediator.address)).to.eventually.eq(3706172423694026n);
     });
 });
 
 // this must be tested on a completed deal because of state rquirement
 describe('Feedback', function() {
+    it ('users create profiles', async function() {
+        await RepToken.connect(seller).register();
+        await RepToken.connect(buyer).register();
+    });
+
     it('seller rates buyer', async function() {
         deal = await deal.connect(seller);
         await expect(deal.feedback(true, 'good')).to.emit(deal, 'FeedbackGiven');
@@ -264,7 +316,7 @@ describe('Buyer cancels deal', function() {
     it ('accepted by seller', async function() {
         deal = await openDeal(buyer, offers[2]);
         deal = await deal.connect(seller);
-        await expect(deal.accept()).to.emit(deal, 'DealState').emit(MockETH, 'Transfer');
+        await expect(deal.accept()).to.emit(deal, 'DealState').emit(Tokens['WETH'], 'Transfer');
     });
     it('seller cannot cancel', async function() {
         deal = await deal.connect(seller);
@@ -279,11 +331,11 @@ describe('Buyer cancels deal', function() {
         const response = deal.cancel().then((tx) => tx.wait());
         await expect(response).to
             .emit(deal, 'DealState')
-            .emit(MockETH, 'Transfer');
+            .emit(Tokens['WETH'], 'Transfer');
     });
     it ('seller gets refund', async function() {
-        await expect(MockETH.balanceOf(deal.target)).to.eventually.eq(0);
-        await expect(MockETH.balanceOf(seller.address)).to.eventually.eq(1999258765515261194642n);
+        await expect(Tokens['WETH'].balanceOf(deal.target)).to.eventually.eq(0);
+        await expect(Tokens['WETH'].balanceOf(seller.address)).to.eventually.eq(99999258765515252806034n);
     });
 });
 
@@ -293,7 +345,7 @@ describe('buyer disputes deal', function() {
     });
     it ('accepted by seller', async function() {
         deal = await deal.connect(seller);
-        await expect(deal.accept()).to.emit(deal, 'DealState').emit(MockETH, 'Transfer');
+        await expect(deal.accept()).to.emit(deal, 'DealState').emit(Tokens['WETH'], 'Transfer');
     });
     it ('deal disputed', async function() {
         deal = await deal.connect(buyer);
