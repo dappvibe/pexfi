@@ -56,7 +56,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     function initialize(address repToken_, address uniswap_) initializer external {
         __Ownable_init(msg.sender);
         mediator = msg.sender;
-        setRepToken(repToken_);
+        repToken = RepToken(repToken_);
         uniswap = IUniswapV3Factory(uniswap_);
     }
     function _authorizeUpgrade(address) internal onlyOwner override {}
@@ -105,7 +105,6 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
         $token.safeTransferFrom($deal.offer().owner(), address($deal), $deal.tokenAmount());
     }
 
-    function setRepToken(address repToken_) public onlyOwner { repToken = RepToken(repToken_); }
     function setDealFactory(address dealFactory_) public onlyOwner { dealFactory = DealFactory(dealFactory_); }
     function setOfferFactory(address offerFactory_) public onlyOwner { offerFactory = OfferFactory(offerFactory_); }
     function setMediator(address mediator_) public onlyOwner { mediator = mediator_; }
