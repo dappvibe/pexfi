@@ -18,11 +18,11 @@ import {Deals} from "./libraries/Deals.sol";
 import {Methods} from "./libraries/Methods.sol";
 import {Offers} from "./libraries/Offers.sol";
 import {Fiats} from "./libraries/Fiats.sol";
-import {Offer} from "./Offer.sol";
 
 import {DealFactory} from "./DealFactory.sol";
-import {OfferFactory} from "./OfferFactory.sol";
 import {Deal} from "./Deal.sol";
+import {OfferFactory} from "./OfferFactory.sol";
+import {Offer} from "./Offer.sol";
 import {RepToken} from "./RepToken.sol";
 
 contract Market is OwnableUpgradeable, UUPSUpgradeable
@@ -32,7 +32,6 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
 
     using Strings   for string;
     using SafeERC20 for IERC20Metadata;
-
     using Tokens    for Tokens.Storage;
     using Fiats     for Fiats.Storage;
     using Methods   for Methods.Storage;
@@ -48,21 +47,29 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     DealFactory     public dealFactory;
     OfferFactory    public offerFactory;
     RepToken        public repToken;
-
     IUniswapV3Factory private uniswap;
 
     address public mediator;
 
-    function initialize(address repToken_, address uniswap_) initializer external {
+    function initialize(
+        address offerFactory_,
+        address dealFactory_,
+        address repToken_,
+        address uniswap_
+    )
+    initializer external
+    {
         __Ownable_init(msg.sender);
         mediator = msg.sender;
+        offerFactory = OfferFactory(offerFactory_);
+        dealFactory = DealFactory(dealFactory_);
         repToken = RepToken(repToken_);
         uniswap = IUniswapV3Factory(uniswap_);
     }
     function _authorizeUpgrade(address) internal onlyOwner override {}
 
     /// @param isSell_ offers posted by Sellers, i.e. offers to buy tokens for fiat
-    /// @param method_ may be empty string to list all offers
+    /// @param method_ filter can be disabled by passing "ANY"
     function getOffers(bool isSell_, string calldata token_, string calldata fiat_, string calldata method_)
     external view
     returns (address[] memory) {
