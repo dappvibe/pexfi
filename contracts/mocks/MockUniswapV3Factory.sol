@@ -33,8 +33,9 @@ contract PoolETH {
 
 contract MockUniswapV3Factory
 {
-    mapping(address tokenA => address pool) private pools;
+    mapping(address tokenA => address pool) public pools;
 
+    // original method
     function getPool(
         address tokenA,
         address tokenB,

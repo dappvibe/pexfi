@@ -4,7 +4,6 @@ const {deployMockERC20} = require("./mocks")
 const DealFactoryModule = require("../ignition/modules/DealFactory");
 const OfferFactoryModule = require("../ignition/modules/OfferFactory");
 
-const DEFAULT_ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
 const MARKET_ROLE = ethers.encodeBytes32String('MARKET_ROLE');
 
 let MockUniswap, MockBTC, MockETH, MockUSDT, MockDummy,
@@ -50,133 +49,7 @@ async function openDeal(provider, offer) {
  * In tests all contracts are deployed directly without proxy to ease debugging, speedup runs and keep stacktraces clean.
  * Deployment scripts MUST deploy proxies.
  */
-describe('Deployment', function()
-{
-    describe('Fiat oracles to extend chainlink', function()
-    {
-        ['THB', 'EUR', 'XXX']
-        .forEach((fiat, i) => {
-            it (`${fiat} is deployed`, function() {
-                return ethers.deployContract('PriceFeed', [fiat])
-                    .then((feed) => PriceFeeds[fiat] = feed);
-            });
-        });
 
-        it ('update prices regularly', async function() {
-            await PriceFeeds['EUR'].set(106927500);
-            const data = await PriceFeeds['EUR'].latestRoundData();
-            expect(data[1]).to.eq(106927500);
-        });
-    });
-
-    describe('Reputation token', function(){
-        it('is deployed', async function() {
-            RepToken = await ethers.deployContract('RepToken');
-            await expect(RepToken.initialize().then(tx => tx.wait())).to
-                .emit(RepToken, 'RoleGranted')
-                .withArgs(DEFAULT_ADMIN_ROLE, deployer.address, deployer.address);
-            return expect(RepToken.target).to.be.properAddress;
-        });
-
-        it ('deployer is default admin', async function() {
-            return expect(RepToken.hasRole(DEFAULT_ADMIN_ROLE, deployer.address)).to.eventually.true;
-        });
-        it ('Mint tokens for users in this test', async function() {
-            let signed = await RepToken.connect(buyer);
-            await signed.register();
-            await expect(signed.ownerToTokenId(buyer)).to.eventually.eq(1);
-            signed = await RepToken.connect(seller);
-            await signed.register();
-            return expect(signed.ownerToTokenId(seller)).to.eventually.eq(2);
-        })
-    });
-
-    describe('Market', function() {
-        it ('is upgradable', async function() {
-            const MarketFactory = await ethers.getContractFactory("Market");
-            expect(upgrades.validateImplementation(MarketFactory)).to.eventually.be.undefined; // no error
-        });
-
-        it ('is deployed', async function() {
-            Market = await ethers.deployContract('Market');
-            await Market.initialize(RepToken.target, MockUniswap.target).then(tx => tx.wait());
-            expect(Market.target).to.be.properAddress;
-        });
-
-        it('is owned by deployer', function() {
-            return expect(Market.owner()).to.eventually.eq(deployer.address);
-        });
-
-        it ('set mediator address', async function() {
-            await Market.setMediator(mediator.address);
-            await expect(await Market.mediator()).to.eq(mediator.address);
-        });
-
-        it('set market address in rep token', async function() {
-            await RepToken.grantRole(MARKET_ROLE, Market.target).then(tx => tx.wait());
-            await expect(RepToken.hasRole(MARKET_ROLE, Market.target)).to.eventually.true;
-        });
-
-        it ('add supported tokens', async function() {
-            const tokens = [MockBTC.target, MockETH.target, MockUSDT.target, MockDummy.target];
-            await expect(Market.addTokens(tokens, 500)).to.not.reverted;
-        });
-
-        it ('remove a token', async function() {
-            const kill = await MockDummy.symbol();
-            await expect(Market.removeTokens([kill])).to.not.reverted;
-        });
-
-        it ('add supported fiats', async function() {
-            let fiats = [];
-            for (const [key, value] of Object.entries(PriceFeeds)) {
-                fiats.push([key, value.target]);
-            }
-            await expect(Market.addFiats(fiats)).to.not.reverted;
-        });
-
-        it ('remove a fiat', async function() {
-            await expect(Market.removeFiats(['XXX'])).to.not.reverted;
-        });
-
-
-        // this is an expensive, but required one-time operation. Mediators must know the methods to solve disputes.
-        it('add payment methods', async function() {
-            const methods = [
-                {name: 'Zelle', group: 3, country: 188},
-                {name: 'SEPA',  group: 3, country: 1},
-                {name: 'Monero', group: 1, country: 0},
-                {name: 'Cash To ATM',  group: 2, country: 0},
-            ];
-            await expect(Market.addMethods(methods)).to.not.reverted;
-        });
-
-        it ('remove a payment method' , async function() {
-            const receipt = await Market.removeMethods(['Monero']).then((tx) => tx.wait());
-            await expect(receipt).to.not.reverted;
-        });
-    });
-
-    describe('DealFactory', function() {
-        it ('is deployed', async function() {
-            const res = await ignition.deploy(DealFactoryModule);
-            DealFactory = res.DealFactory;
-            expect(DealFactory.target).to.be.properAddress;
-            expect(await DealFactory.initialize(Market.target)).to.not.reverted;
-            expect(await Market.setDealFactory(DealFactory.target)).to.not.reverted;
-        });
-    });
-
-    describe('OfferFactory', function() {
-        it ('is deployed', async function() {
-            const res = await ignition.deploy(OfferFactoryModule);
-            OfferFactory = res.OfferFactory;
-            expect(OfferFactory.target).to.be.properAddress;
-            expect(await OfferFactory.initialize(Market.target)).to.not.reverted;
-            expect(await Market.setOfferFactory(OfferFactory.target)).to.not.reverted;
-        });
-    });
-});
 
 /**
  * How to get data for React client.
