@@ -1,8 +1,6 @@
 import {Button, Card, Col, Form, Input, InputNumber, message, Radio, Row, Select, Skeleton, Space} from "antd";
-import {Await, useLoaderData, useNavigate, useOutletContext} from "react-router-dom";
+import {Await, useNavigate, useOutletContext} from "react-router-dom";
 import React, {Suspense, useRef} from "react";
-import {useWalletProvider} from "@/hooks/useWalletProvider";
-import {ethers} from "ethers";
 import {useContract} from "@/hooks/useContract.jsx";
 
 const { TextArea } = Input;
@@ -11,7 +9,7 @@ export default function OfferNew()
 {
     const navigate = useNavigate();
     const { tokens, fiats, methods } = useOutletContext();
-    const {market, inventory, signed} = useContract();
+    const {market, offerFactory, signed} = useContract();
 
 
     const [lockSubmit, setLockSubmit] = React.useState(false);
@@ -25,18 +23,21 @@ export default function OfferNew()
         val.rate = Math.floor((1 + val.rate / 100) * 10**4);
         val.terms ??= '';
 
+        const params = [
+            val.isSell, val.token, val.fiat, val.method, val.rate, [val.min, val.max], val.terms
+        ];
+
         try {
-            const m = await signed(market);
-            const tx = await m.createOffer(val);
+            const factory = await signed(offerFactory);
+            const tx = await factory.create(...params);
             message.success('Offer submitted. You will be redirected shortly.');
 
             const receipt = await tx.wait();
             receipt.logs.forEach(log => {
-                const OfferCreated = m.interface.parseLog(log);
+                const OfferCreated = market.interface.parseLog(log);
                 if (OfferCreated) {
                     message.success('Offer created');
-                    const offer = OfferCreated.args[3];
-                    navigate(`/trade/offer/${offer[0]}`);
+                    navigate(`/trade/offer/${OfferCreated.args[3]}`);
                 }
             });
         }
@@ -52,7 +53,7 @@ export default function OfferNew()
         const fiat = form.getFieldValue('fiat');
         if (token && fiat) {
             // FIXME store market rate somewhere, not from current
-            let price = Number(await inventory.getPrice(token, fiat));
+            let price = Number(await market.getPrice(token, fiat));
             price = (price / 10**6).toFixed(2);
             marketPrice.current = price;
             previewPrice();
