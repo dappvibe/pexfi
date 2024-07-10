@@ -26,9 +26,8 @@ async function deploy()
     rates = rates.usd;
     const currencies = require('./currencies.json');
     const factory = await ethers.getContractFactory("PriceFeed");
-    // noinspection ES6MissingAwait
-    currencies.forEach(async (currency) => {
-        if (currency.chainlink) return; // in production must pass chainlink address
+    for (let currency of currencies) {
+        //if (currency.chainlink) return; // in production must pass chainlink address
         const contract = PriceFeeds[currency.code] = await factory.deploy(currency.code);
         let rate = rates[currency.code.toLowerCase()];
         if (rate) {
@@ -37,7 +36,7 @@ async function deploy()
             console.log(currency.code + ': ' + rate);
         }
         else console.log('No rate for ' + currency.code);
-    });
+    }
 
     // Market
     let params = {
