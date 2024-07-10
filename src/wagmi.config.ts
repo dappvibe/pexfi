@@ -11,3 +11,9 @@ export const config = createConfig({
         [hardhat.id]: http(),
     },
 })
+
+declare module 'wagmi' {
+    interface Register {
+        config: typeof config
+    }
+}
