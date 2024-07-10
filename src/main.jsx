@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import {createBrowserRouter, createHashRouter, createRoutesFromElements, Navigate, Route, RouterProvider} from "react-router-dom";
+import {createHashRouter, createRoutesFromElements, Navigate, Route, RouterProvider} from "react-router-dom";
 
 import './main.css'
 import {WalletProvider} from "./hooks/WalletProvider";
