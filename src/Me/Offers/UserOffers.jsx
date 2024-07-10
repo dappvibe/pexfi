@@ -15,10 +15,17 @@ export default function UserOffers()
         if (account) {
             const filter = MarketContract.filters.OfferCreated(account);
             MarketContract.queryFilter(filter).then(logs => {
-                return logs.map(log => Offer.hydrate(log.args[3]));
+                return Promise.all(logs.map(log => Offer.fetch(log.args[3])));
+            })
+            .then(offers => {
+                return Promise.all(offers.map(offer => {
+                    return MarketContract.getPrice(offer.token, offer.fiat).then(price => offer.setPairPrice(price));
+                }));
             })
             // wrap it to meet <Offers/> expectations
-            .then(offers => setOffers(Promise.resolve({offers: offers})));
+            .then(offers => setOffers(Promise.resolve({
+                offers: offers
+            })));
 
         }
     }, [account]);
