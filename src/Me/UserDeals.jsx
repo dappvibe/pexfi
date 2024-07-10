@@ -1,5 +1,5 @@
 import {Link} from "react-router-dom";
-import {List, Skeleton, Tag} from "antd";
+import {Empty, List, Skeleton, Tag} from "antd";
 import React, {useEffect, useState} from "react";
 import {useWalletProvider} from "../hooks/useWalletProvider";
 import {MarketContract} from "@/hooks/useContract.jsx";
@@ -75,6 +75,7 @@ export default function UserDeals()
     if (deals === undefined) {
         return <Skeleton active/>
     } else {
+        if (deals.length === 0) return <Empty />;
         return (
         <List itemLayout={"vertical"} bordered={true}>
             {deals.reverse().map((deal, i) => {
