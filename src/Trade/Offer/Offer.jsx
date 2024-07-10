@@ -4,14 +4,13 @@ import React, {useEffect, useRef, useState} from "react";
 import {MarketContract, useContract} from "@/hooks/useContract.jsx";
 import Subnav from "@/Trade/Offer/Subnav.jsx";
 import Description from "@/Trade/Offer/Description.jsx";
-import {Token} from "@/model/Token.js";
 import {useWalletProvider} from "@/hooks/useWalletProvider";
 import {ethers} from "ethers";
 
 export default function Offer() {
-    const { offer: promise } = useLoaderData();
+    const { offer: offerPromise } = useLoaderData();
     const navigate = useNavigate();
-    const { market, inventory, token: tokenContract, signed } = useContract();
+    const { market, token: tokenContract, dealFactory, signed } = useContract();
     const { wallet, account } = useWalletProvider();
 
     const [offer, setOffer] = useState();
@@ -20,9 +19,9 @@ export default function Offer() {
     const token = useRef();
 
     useEffect(() => {
-        promise.then((offer) => {
+        offerPromise.then((offer) => {
             if (account && !offer.isSell) {
-                inventory.token(offer.token).then((address) => {
+                market.token(offer.token).then(([address]) => {
                     token.current = tokenContract.attach(address);
                     token.current.allowance(account, MarketContract.target).then((res) => {
                         setAllowance(res)
@@ -50,20 +49,16 @@ export default function Offer() {
         setLockButton(true);
         await approve();
 
-        const m = await signed(market);
+        const factory = await signed(dealFactory);
         const amount = BigInt(values['fiatAmount'] * 10**6);
 
         try {
-            const tx = await m.createDeal(offer.id, amount, values['paymentInstructions'] ?? '');
+            await market.once('DealCreated', (owner, taker, offer, deal) => {
+                setLockButton(false);
+                navigate('/trade/deal/'+deal);
+            })
+            await factory.create(offer.address, amount, values['paymentInstructions'] ?? '');
             message.info('Deal submitted. You will be redirected shortly.');
-            const receipt = await tx.wait();
-            receipt.logs.forEach(log => {
-                const DealCreated = market.interface.parseLog(log);
-                if (DealCreated) {
-                    setLockButton(false);
-                    navigate('/trade/deal/'+DealCreated.args[3]);
-                }
-            });
         }
         catch (e) {
             const error = token.current.interface.parseError(e.data);
