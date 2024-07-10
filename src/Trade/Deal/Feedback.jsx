@@ -14,12 +14,12 @@ export default function Feedback()
     useEffect(() => {
         if (!account) return;
 
-        if (deal.buyer.toLowerCase() === account.toLowerCase()) {
-            deal.contract.feedbackForSeller().then(res =>
+        if (deal.taker.toLowerCase() === account.toLowerCase()) {
+            deal.contract.feedbackForOwner().then(res =>
                 setGiven(res[0]));
         }
-        if (deal.seller.toLowerCase() === account.toLowerCase()) {
-            deal.contract.feedbackForBuyer().then(res =>
+        if (deal.offer.owner.toLowerCase() === account.toLowerCase()) {
+            deal.contract.feedbackForTaker().then(res =>
                 setGiven(res[0]));
         }
     }, [account]);
