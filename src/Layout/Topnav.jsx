@@ -22,7 +22,7 @@ export default function Topnav()
     return (
         <Flex justify={'space-between'}>
             <Flex>
-                <Link style={{width: 80}} to={"/"}>Fiat D.app</Link>
+                <Link style={{width: 80}} to={"/"}>Logo</Link>
                 <Menu mode={"horizontal"}
                       theme={"dark"}
                       items={top}
