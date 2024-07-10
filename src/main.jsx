@@ -18,6 +18,9 @@ import Offers from "@/Trade/Offers/Offers.jsx";
 import {offerLoader} from "@/Trade/Offer/offerLoader.js";
 import {dealLoader} from "@/Trade/Deal/dealLoader.js";
 import UserOffers from "@/Me/Offers/UserOffers.jsx";
+import {WagmiProvider} from "wagmi";
+import {config} from "@/wagmi.config.ts";
+import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 
 const router = createHashRouter( createRoutesFromElements(
     <Route element={<Layout />}>
@@ -37,10 +40,16 @@ const router = createHashRouter( createRoutesFromElements(
     </Route>
 ));
 
+const queryClient = new QueryClient()
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-      <WalletProvider>
-          <RouterProvider router={router} />
-      </WalletProvider>
+      <WagmiProvider config={config}>
+          <QueryClientProvider client={queryClient}>
+              <WalletProvider>
+                  <RouterProvider router={router} />
+              </WalletProvider>
+          </QueryClientProvider>
+      </WagmiProvider>
   </React.StrictMode>,
 )
