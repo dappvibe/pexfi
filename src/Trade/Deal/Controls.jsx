@@ -67,13 +67,14 @@ export default function Controls() {
     }
 
     if (deal.isParticipant(account)) {
-        if (deal.offer.owner.toLowerCase() !== account.toLowerCase() && deal.state === 0) {
+        if (deal.offer.owner.toLowerCase() !== account.toLowerCase() && deal.state === 0 && deal.allowCancelUnpaidAfter < new Date()) {
             return <Space>Waiting for acceptance: <Statistic.Countdown value={deal.allowCancelUnacceptedAfter} /></Space>
         }
     }
 
+    // FIXME taker / maker
     // for buyer
-    if (account.toLowerCase() === deal.buyer.toLowerCase()) {
+    if (account.toLowerCase() === deal.offer.owner.toLowerCase()) {
         return (
         <>
             <Space>
@@ -88,7 +89,7 @@ export default function Controls() {
     }
 
     // for seller
-    if (account.toLowerCase() === deal.seller.toLowerCase()) {
+    if (account.toLowerCase() === deal.taker.toLowerCase()) {
         return (
         <>
             <Space>

@@ -43,12 +43,11 @@ export default function MessageBox()
             <>
             <List size="small" bordered dataSource={messages} renderItem={(msg) => (
                 <List.Item>
-                    <b>{msg[0] === deal.seller ? 'Seller' : msg[0] === deal.buyer ? 'Buyer' : 'Mediator'}</b>
+                    <b>{msg[0] === deal.taker ? 'Taker' : msg[0] === deal.offer.owner ? 'Owner' : 'Mediator'}</b>
                     {': '}
                     {msg[1]}
                 </List.Item>
-            )}>
-            </List>
+            )} />
             <Form onFinish={send} form={form}>
                 <Form.Item name="message" rules={[{required: true, message: "Required"}]}>
                     <Input.TextArea placeholder={"Message"} />
