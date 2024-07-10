@@ -1,14 +1,33 @@
-import {InventoryContract, MarketContract} from "@/hooks/useContract.jsx";
+import {MarketContract} from "@/hooks/useContract.jsx";
+import {OfferContract} from "@/hooks/useContract.jsx";
 
 export default class Offer
 {
-    static fetch (id) {
-        return MarketContract.getOffer(id)
-            .then((offer) => Offer.hydrate(offer))
-            .then((offer) => {
-                return InventoryContract.getPrice(offer.token, offer.fiat)
-                    .then((price) => offer.setPairPrice(price))
-            })
+    static fetch (address) {
+        const self = new Offer();
+        self.contract = OfferContract.attach(address);
+        self.address = address;
+        return Promise.all([
+            self.contract.owner(),
+            self.contract.isSell(),
+            self.contract.token(),
+            self.contract.fiat(),
+            self.contract.method(),
+            self.contract.rate(),
+            self.contract.limits(),
+            self.contract.terms(),
+        ]).then(([owner, isSell, token, fiat, method, rate, limits, terms]) => {
+            self.owner = owner;
+            self.isSell = isSell;
+            self.token = token;
+            self.fiat = fiat;
+            self.method = method;
+            self.rate = Number(rate) / 10**4;
+            self.min = Number(limits[0]);
+            self.max = Number(limits[1]);
+            self.terms = terms;
+            return self;
+        });
     }
 
     /**
@@ -30,7 +49,7 @@ export default class Offer
     }
 
     /**
-     * @param marketPrice BigInt from Inventory contract
+     * @param marketPrice BigInt from Market contract
      */
     setPairPrice = (marketPrice) => {
         const price = Number(marketPrice / 10000n) / 100;

@@ -29,7 +29,7 @@ export default function OffersTable({offers, price})
                 } else {
                     return (
                         <Space size={"middle"}>
-                            <Link to={`/trade/offer/${offer.id}`}>
+                            <Link to={`/trade/offer/${offer.address}`}>
                                 <Button>{offer.isSell ? 'Buy' : 'Sell'}</Button>
                             </Link>
                         </Space>
@@ -88,7 +88,7 @@ export default function OffersTable({offers, price})
         <Divider orientation={"left"}>
         </Divider>
         <Table columns={columns} dataSource={offers} pagination={false}
-               rowKey={offer => offer.id}
+               rowKey={offer => offer.address}
                showSorterTooltip={false} /*Buggy tooltip blinks on render*/
                title={title}
                /*expandable={{
