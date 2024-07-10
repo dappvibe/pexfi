@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import {createBrowserRouter, createRoutesFromElements, Navigate, Route, RouterProvider} from "react-router-dom";
+import {createBrowserRouter, createHashRouter, createRoutesFromElements, Navigate, Route, RouterProvider} from "react-router-dom";
 
 import './main.css'
 import {WalletProvider} from "./hooks/WalletProvider";
@@ -19,7 +19,7 @@ import {offerLoader} from "@/Trade/Offer/offerLoader.js";
 import {dealLoader} from "@/Trade/Deal/dealLoader.js";
 import UserOffers from "@/Me/Offers/UserOffers.jsx";
 
-const router = createBrowserRouter( createRoutesFromElements(
+const router = createHashRouter( createRoutesFromElements(
     <Route element={<Layout />}>
         <Route index element={<Home/>} />
         <Route path={"/trade"} element={<TradeLayout/>} loader={inventoryLoader}>
