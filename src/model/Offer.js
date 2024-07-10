@@ -1,4 +1,3 @@
-import {MarketContract} from "@/hooks/useContract.jsx";
 import {OfferContract} from "@/hooks/useContract.jsx";
 
 export default class Offer

@@ -67,8 +67,8 @@ export default function Offers({offers}) {
 
     <React.Suspense fallback={<Skeleton active />}>
         <Await resolve={offers}>
-        {({offers, price}) => (
-            <OffersTable offers={activeOffers} price={price} />
+        {({offers}) => (
+            <OffersTable offers={activeOffers} />
         )}
         </Await>
     </React.Suspense>

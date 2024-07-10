@@ -61,15 +61,10 @@ export default function UserDeals()
             ]).then(([asOwner, asTaker]) => {
                 const fetching = asOwner.concat(asTaker).map(log =>
                     (new Deal(log.args[3])).fetch().then(deal => {
-                        return Offer.fetch(deal.offerId).then(offer => {
-                            deal.offer = offer;
+                        return MarketContract.runner.getBlock(log.blockHash).then(block => {
+                            deal.createdAt = block;
                             return deal;
-                        }).then(deal => {
-                            return MarketContract.runner.getBlock(log.blockHash).then(block => {
-                                deal.createdAt = block;
-                                return deal;
-                            })
-                        });
+                        })
                     })
                 );
                 Promise.all(fetching).then(setDeals);

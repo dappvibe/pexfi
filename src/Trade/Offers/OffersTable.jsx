@@ -5,7 +5,7 @@ import Username from "@/components/Username.jsx";
 import {useWalletProvider} from "@/hooks/useWalletProvider";
 import {formatMoney} from "@/utils.js";
 
-export default function OffersTable({offers, price})
+export default function OffersTable({offers})
 {
     const { account } = useWalletProvider();
     let {
@@ -102,5 +102,4 @@ export default function OffersTable({offers, price})
 
 OffersTable.propTypes = {
     offers: PropTypes.array.isRequired,
-    price: PropTypes.number.isRequired,
 }
