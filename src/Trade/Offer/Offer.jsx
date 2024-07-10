@@ -53,12 +53,16 @@ export default function Offer() {
         const amount = BigInt(values['fiatAmount'] * 10**6);
 
         try {
-            await market.once('DealCreated', (owner, taker, offer, deal) => {
-                setLockButton(false);
-                navigate('/trade/deal/'+deal);
-            })
-            await factory.create(offer.address, amount, values['paymentInstructions'] ?? '');
+            const tx = await factory.create(offer.address, amount, values['paymentInstructions'] ?? '');
             message.info('Deal submitted. You will be redirected shortly.');
+            const receipt = await tx.wait();
+            receipt.logs.forEach(log => {
+                const DealCreated = market.interface.parseLog(log);
+                if (DealCreated) {
+                    navigate(`/trade/deal/${DealCreated.args[3]}`);
+                }
+            });
+            setLockButton(false);
         }
         catch (e) {
             const error = token.current.interface.parseError(e.data);
