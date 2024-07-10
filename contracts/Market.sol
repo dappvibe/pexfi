@@ -79,7 +79,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     function addOffer(Offer offer) external {
         require(msg.sender == address(offerFactory), UnauthorizedAccount(msg.sender));
         offers.add(offer);
-        emit OfferCreated(msg.sender, offer.token(), offer.fiat(), offer);
+        emit OfferCreated(offer.owner(), offer.token(), offer.fiat(), offer);
     }
     function hasOffer(address offer_) external view returns (bool) { return offers.has(offer_); }
 
