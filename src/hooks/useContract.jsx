@@ -11,33 +11,39 @@ import {useEffect, useState} from "react";
 import {useWalletProvider} from "./useWalletProvider";
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const provider = new ethers.JsonRpcProvider('http://localhost:8545');
-export const MarketContract = new ethers.Contract( contracts['Market#Market'], MarketAbi, provider );
-export const RepTokenContract = new ethers.Contract( contracts['RepToken#RepToken'], RepTokenAbi, provider );
-export const OfferFactoryContract = new ethers.Contract( contracts['OfferFactory#OfferFactory'], OfferFactoryAbi, provider );
-export const DealFactoryContract = new ethers.Contract( contracts['DealFactory#DealFactory'], DealFactoryAbi, provider );
-export const TokenContract = new ethers.Contract( '0x', ERC20Abi, provider );
-export const OfferContract = new ethers.Contract( '0x', OfferAbi, provider );
-export const DealContract = new ethers.Contract( '0x', DealAbi, provider );
+let provider;
+if (window.ethereum) {
+    provider = new ethers.BrowserProvider(window.ethereum);
+} else {
+    provider = new ethers.JsonRpcProvider('http://localhost:8545');
+}
+export { provider };
+export let MarketContract = new ethers.Contract( contracts['Market#Market'], MarketAbi, provider );
+export let RepTokenContract = new ethers.Contract( contracts['RepToken#RepToken'], RepTokenAbi, provider );
+export let OfferFactoryContract = new ethers.Contract( contracts['OfferFactory#OfferFactory'], OfferFactoryAbi, provider );
+export let DealFactoryContract = new ethers.Contract( contracts['DealFactory#DealFactory'], DealFactoryAbi, provider );
+export let TokenContract = new ethers.Contract( '0x', ERC20Abi, provider );
+export let OfferContract = new ethers.Contract( '0x', OfferAbi, provider );
+export let DealContract = new ethers.Contract( '0x', DealAbi, provider );
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function useContract()
 {
     const { wallet } = useWalletProvider();
 
-    const deal = DealContract;
-    const market = MarketContract;
-    const repToken = RepTokenContract;
-    const token = TokenContract;
-    const offerFactory = OfferFactoryContract;
-    const dealFactory = DealFactoryContract;
+    let deal = DealContract;
+    let market = MarketContract;
+    let repToken = RepTokenContract;
+    let token = TokenContract;
+    let offerFactory = OfferFactoryContract;
+    let dealFactory = DealFactoryContract;
 
     const [signed, setSigned] = useState(() => ()=> console.warn('singer is not available'));
 
     useEffect(() => {
         if (wallet) {
+            const provider = new ethers.BrowserProvider(wallet.provider);
             const getSigner = async (contract) => {
-                const provider = new ethers.BrowserProvider(wallet.provider);
                 const signer = await provider.getSigner();
                 return contract.connect(signer);
             };

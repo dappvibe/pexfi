@@ -2,6 +2,7 @@ import {Button, Col, Flex, Menu, Row, Space} from "antd";
 import {generatePath, Link, useParams} from "react-router-dom";
 import WalletMenu from "../components/WalletMenu.jsx";
 import {useWalletProvider} from "../hooks/useWalletProvider";
+import NetworkSelector from "@/components/NetworkSelector.jsx";
 
 export default function Topnav()
 {
@@ -31,10 +32,13 @@ export default function Topnav()
                 />
             </Flex>
             <Flex>
-                {account &&
-                    <Space><Button><Link to={'/trade/offer/new'}>Create Offer</Link></Button></Space>
-                }
-                <WalletMenu />
+                <Space>
+                    {account &&
+                        <Button><Link to={'/trade/offer/new'}>Create Offer</Link></Button>
+                    }
+                    <NetworkSelector />
+                    <WalletMenu />
+                </Space>
             </Flex>
         </Flex>
     );
