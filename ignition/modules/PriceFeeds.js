@@ -1,7 +1,11 @@
 const {buildModule} = require("@nomicfoundation/hardhat-ignition/modules");
 
 module.exports = buildModule("PriceFeeds", (m) => {
-    const currencies = require('../currencies.json');
+    //const currencies = require('../currencies.json');
+    const currencies = [
+        {code: 'EUR'},
+        {code: 'GBP'}
+    ];
 
     const fiats = {};
     currencies.forEach(currency => {

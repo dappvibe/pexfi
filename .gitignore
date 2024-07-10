@@ -4,4 +4,4 @@ cache/
 out/
 artifacts/
 cache_hardhat/
-ignition/deployments/
+ignition/deployments/chain-31337/
