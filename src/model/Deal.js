@@ -1,5 +1,6 @@
 import {Token} from "@/model/Token.js";
-import {DealContract} from "@/hooks/useContract.jsx";
+import {DealContract, MarketContract} from "@/hooks/useContract.jsx";
+import Offer from "@/model/Offer.js";
 
 export class Deal {
     constructor(address) {
@@ -12,11 +13,8 @@ export class Deal {
 
     fetch() {
         return Promise.all([
-            this.contract.offerId(),
-            this.contract.buyer(),
-            this.contract.seller(),
-            this.contract.mediator(),
-            this.contract.token(),
+            this.contract.offer(),
+            this.contract.taker(),
             this.contract.tokenAmount(),
             this.contract.fiatAmount(),
             this.contract.state(),
@@ -24,31 +22,34 @@ export class Deal {
             this.contract.allowCancelUnacceptedAfter(),
             this.contract.allowCancelUnpaidAfter(),
         ])
-        .then(([offerId, buyer, seller, mediator, token, tokenAmount, fiatAmount, state, paymentInstructions, allowCancelUnacceptedAfter, allowCancelUnpaidAfter]) => {
-            this.offerId = offerId;
-            this.buyer = buyer;
-            this.seller = seller;
-            this.mediator = mediator;
-            this.token = token; // address
+        .then(([offer, taker, tokenAmount, fiatAmount, state, paymentInstructions, allowCancelUnacceptedAfter, allowCancelUnpaidAfter]) => {
+            this.taker = taker;
             this.tokenAmount = Number(tokenAmount);
             this.fiatAmount = Number(fiatAmount) / 10**6; // FIXME test with large input
             this.state = Number(state); // FIXME constants
             this.paymentInstructions = paymentInstructions;
             this.allowCancelUnacceptedAfter = new Date(Number(allowCancelUnacceptedAfter) * 1000);
             this.allowCancelUnpaidAfter = new Date(Number(allowCancelUnpaidAfter) * 1000);
-            return this;
-        })
-        .then(() => {
-            return (new Token(this.token)).fetch().then(token => {
-                this.token = token;
-                this.tokenAmount /= 10**token.decimals;
+            return Offer.fetch(offer).then(o => {
+                this.offer = o;
                 return this;
             });
+        })
+        .then(() => {
+            return MarketContract.token(this.offer.token).then(([address, symbol, name, decimals]) => {
+                const token = new Token(address);
+                token.symbol = symbol;
+                token.name = name;
+                token.decimals = decimals;
+                this.token = token;
+                return this;
+            })
         });
     }
 
     isParticipant(address) {
-        return [this.buyer.toLowerCase(), this.seller.toLowerCase(), this.mediator.toLowerCase()]
+        // TODO mediator is not yet in deal contract
+        return [this.taker.toLowerCase(), this.offer.owner.toLowerCase()]
             .includes(address.toLowerCase());
     }
 }
