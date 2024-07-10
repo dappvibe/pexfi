@@ -1,5 +1,5 @@
 import {ethers} from "ethers";
-import {InventoryContract as contract} from "@/hooks/useContract.jsx";
+import {MarketContract as contract} from "@/hooks/useContract.jsx";
 import {defer} from "react-router-dom";
 
 export default async function inventoryLoader() {
