@@ -15,6 +15,7 @@ Features
 - Creation of buy or sell offers as smart contracts, listed by token, fiat currency, and payment method.
 - Decentralized dispute mediation.
 - Fully on-chain messaging.
+- Reputation system for traders. (It's NFT!)
 
 Call to Action
 ==============
