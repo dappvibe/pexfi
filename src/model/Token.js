@@ -1,11 +1,10 @@
 import {ethers} from "ethers";
-import {MarketContract, provider} from "@/hooks/useContract.jsx";
 
 import { abi } from '../../contracts/artifacts/ERC20.json';
 
 export class Token {
-    constructor(address) {
-        this.contract = new ethers.Contract(address, abi, provider);
+    constructor(contract) {
+        this.contract = contract;
     }
 
     fetch() {
