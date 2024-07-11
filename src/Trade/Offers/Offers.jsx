@@ -30,7 +30,7 @@ export default function Offers({offers: argOffers}) {
             let price;
             setLoading(true);
             Promise.all([
-                Market.getOffers(side === 'sell', token, fiat, method || 'ANY'),
+                Market.getOffers(side === 'buy', token, fiat, method || 'ANY'),
                 Market.getPrice(token, fiat)
             ])
             .then(([offers, p]) => {
