@@ -1,16 +1,18 @@
 import React, {useContext} from "react";
 import {DealContext} from "@/Trade/Deal/Deal.jsx";
-import {useWalletProvider} from "@/hooks/useWalletProvider";
 import {message, Space, Statistic} from "antd";
 import {ethers} from "ethers";
 import LoadingButton from "@/components/LoadingButton.jsx";
 import {useContract} from "@/hooks/useContract.jsx";
 import Feedback from "@/Trade/Deal/Feedback.jsx";
+import {useAccount} from "wagmi";
 
 export default function Controls() {
     const {deal, setDeal} = useContext(DealContext);
-    const { account } = useWalletProvider();
-    const {token, market, signed} = useContract();
+    const { address } = useAccount();
+    const {Token, Market, signed} = useContract();
+
+    if (!address) return;
 
     async function call(methodName) {
         const contract = await signed(deal.contract);
@@ -19,7 +21,7 @@ export default function Controls() {
             return await tx.wait();
         } catch (e) {
             let parsed = deal.contract.interface.parseError(e.data);
-            if (!parsed) parsed = token.interface.parseError(e.data)
+            if (!parsed) parsed = Token.interface.parseError(e.data)
             if (parsed) message.error(parsed.name)
             if (parsed.name === 'ERC20InsufficientBalance') {
                 message.error(`Not enough ${deal.token.symbol}. You have ${parsed.args[1]}`);
@@ -28,25 +30,25 @@ export default function Controls() {
         }
     }
     function release() {
-        call('release').then(() => {
+        return call('release').then(() => {
             setDeal(deal.clone({state: 7}));
             message.success('Released');
         });
     }
     function paid() {
-        call('paid').then(() => {
+        return call('paid').then(() => {
             setDeal(deal.clone({state: 3}));
             message.success('Paid');
         })
     }
     function cancel() {
-        call('cancel').then(() => {
+        return call('cancel').then(() => {
             setDeal(deal.clone({state: 5}));
             message.success('Cancelled');
         })
     }
     function dispute() {
-        call('dispute').then(() => {
+        return call('dispute').then(() => {
             setDeal(deal.clone({state: 4}));
             message.success('Disputed');
         });
@@ -54,10 +56,10 @@ export default function Controls() {
 
     async function accept() {
         if (deal.offer.isSell) {
-            const t = await signed(token.attach(deal.token.contract.target));
-            const allowance = await t.allowance(account, market.target);
+            const t = await signed(Token.attach(deal.token.contract.target));
+            const allowance = await t.allowance(address, Market.target);
             if (allowance < deal.tokenAmount) {
-                await t.approve(market.target, ethers.MaxUint256);
+                await t.approve(Market.target, ethers.MaxUint256);
             }
         }
         return call('accept').then(() => {
@@ -66,43 +68,80 @@ export default function Controls() {
         });
     }
 
-    if (deal.isParticipant(account)) {
-        if (deal.offer.owner.toLowerCase() !== account.toLowerCase() && deal.state === 0 && deal.allowCancelUnpaidAfter < new Date()) {
-            return <Space>Waiting for acceptance: <Statistic.Countdown value={deal.allowCancelUnacceptedAfter} /></Space>
-        }
+    function isOwner() {
+        return address.toLowerCase() === deal.offer.owner.toLowerCase();
+    }
+    function isTaker() {
+        return address.toLowerCase() === deal.taker.toLowerCase();
+    }
+    function isBuyer() {
+        return (deal.offer.isSell && isTaker()) || (!deal.offer.isSell && isOwner());
+    }
+    function isSeller() {
+        return (deal.offer.isSell && isOwner()) || (!deal.offer.isSell && isTaker());
     }
 
-    // FIXME taker / maker
-    // for buyer
-    if (account.toLowerCase() === deal.offer.owner.toLowerCase()) {
-        return (
-        <>
-            <Space>
-            {deal.state === 0 && account.toLowerCase() === deal.offer.owner.toLowerCase()
-                && <LoadingButton type={"primary"} onClick={accept}>Accept</LoadingButton>}
-            {deal.state === 2 && <LoadingButton type={"primary"} onClick={paid}>Paid</LoadingButton>}
-            {deal.state <= 4  && <LoadingButton danger onClick={cancel}>Cancel</LoadingButton> }
-            {deal.state === 4  && <LoadingButton danger onClick={dispute}>Dispute</LoadingButton> }
-        </Space>
-        {deal.state >= 6 && <Feedback />}
-        </>);
+    console.log(deal.state);
+    const State = {
+        Initiated: 0,
+        Accepted: 1,
+        Funded: 2,
+        Paid: 3,
+        Disputed: 4,
+        Cancelled: 5,
+        Resolved: 6,
+        Completed: 6
+    };
+    const controls = [];
+    // accept
+    if (deal.state === State.Initiated && isOwner()) {
+        controls.push(<LoadingButton type={"primary"} onClick={accept}>Accept</LoadingButton>);
     }
 
-    // for seller
-    if (account.toLowerCase() === deal.taker.toLowerCase()) {
+    console.log(deal);
+
+    // cancel
+    switch (true) {
+        case isOwner() && deal.state === State.Initiated:
+        case isBuyer() && deal.allowCancelUnpaidAfter < new Date():
+        case isBuyer() && deal.state > State.Initiated:
+        case isSeller() && deal.state < State.Paid && deal.allowCancelUnpaidAfter < new Date():
+            controls.push(<LoadingButton danger onClick={cancel}>Cancel</LoadingButton>);
+            break;
+
+        case isTaker() && deal.allowCancelUnacceptedAfter > new Date():
+            controls.push(<span>Waiting for acceptance: <Statistic.Countdown value={deal.allowCancelUnacceptedAfter} /></span>);
+            break;
+
+        case isSeller() && deal.state < State.Paid && deal.allowCancelUnpaidAfter > new Date():
+            controls.push(<span>Cancel in <Statistic.Countdown value={deal.allowCancelUnpaidAfter} /></span>);
+            break;
+    }
+
+    // paid
+    if (deal.state === State.Funded && isBuyer()) {
+        controls.push(<LoadingButton type={"primary"} onClick={paid}>Paid</LoadingButton>);
+    }
+
+    // release
+    if (deal.state > State.Funded && deal.state < State.Cancelled && isSeller()) {
+        controls.push(<LoadingButton type={"primary"} onClick={release}>Release</LoadingButton>);
+    }
+
+    // dispute
+    switch (true) {
+        case deal.state >= State.Paid && deal.state < State.Disputed:
+            controls.push(<LoadingButton danger onClick={dispute}>Dispute</LoadingButton>);
+    }
+
+    if (deal.state < State.Completed) {
         return (
-        <>
-            <Space>
-            {deal.state === 0 && account.toLowerCase() === deal.offer.owner.toLowerCase()
-                && <LoadingButton type={"primary"} onClick={accept}>Accept</LoadingButton>}
-            {deal.state > 1 && deal.state < 5 && <LoadingButton type={"primary"} onClick={release}>Release</LoadingButton> }
-            {deal.state === 0  && <LoadingButton danger onClick={cancel}>Cancel</LoadingButton> }
-            {deal.state > 0 && deal.state < 3 && deal.allowCancelUnpaidAfter > new Date() && <LoadingButton danger onClick={cancel}>Cancel</LoadingButton> }
-            {deal.state > 0 && deal.state < 3 && deal.allowCancelUnpaidAfter < new Date() && <Space>Cancel in <Statistic.Countdown value={deal.allowCancelUnpaidAfter} /></Space> }
-            {deal.state === 4  && <LoadingButton danger onClick={dispute}>Dispute</LoadingButton> }
-        </Space>
-        {deal.state >= 6 && <Feedback />}
-        </>
-        );
+        <Space>
+            {controls.map((button, index) => (
+                <React.Fragment key={index}>{button}</React.Fragment>
+            ))}
+        </Space>);
+    } else {
+        return (<Feedback />);
     }
 }
