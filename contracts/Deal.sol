@@ -115,7 +115,7 @@ contract Deal is AccessControl
         _state(State.Paid);
     }
 
-    function release() external onlyRole(SELLER) stateBetween(State.Funded, State.Disputed) {
+    function release() external onlyRole(SELLER) stateBetween(State.Funded, State.Canceled) {
         IERC20Metadata token = market.token(offer.token()).api;
         if (hasRole(BUYER, taker)) {
             token.transfer(taker, tokenAmount - (tokenAmount * FEE / 10000));
