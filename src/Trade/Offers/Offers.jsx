@@ -26,6 +26,7 @@ export default function Offers({offers: argOffers}) {
     useEffect(() => {
         if (argOffers) {
             setAllOffers(argOffers);
+            setLoading(false);
         } else {
             let price;
             setLoading(true);
