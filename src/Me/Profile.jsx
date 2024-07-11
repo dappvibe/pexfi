@@ -4,17 +4,18 @@ import {useEffect, useState} from "react";
 import LoadingButton from "../components/LoadingButton.jsx";
 import {Card, Descriptions, Result} from "antd";
 import Username from "@/components/Username.jsx";
+import {useAccount} from "wagmi";
 
 export default function Profile()
 {
-    const { account } = useWalletProvider();
-    const { repToken, signed } = useContract();
+    const { address } = useAccount();
+    const { RepToken, signed } = useContract();
     const [tokenId, setTokenId] = useState(null);
     const [stats, setStats] = useState({});
 
     useEffect(() => {
-        if (account) {
-            repToken.ownerToTokenId(account).then((tokenId) => {
+        if (address) {
+            RepToken.ownerToTokenId(address).then((tokenId) => {
                 if (!tokenId) return;
                 setTokenId(tokenId);
                 refreshStats(tokenId);
@@ -24,13 +25,13 @@ export default function Profile()
             setTokenId(null);
             setStats(null);
         }
-    }, [account]);
+    }, [address]);
 
     async function create() {
-        const rep = await signed(repToken);
+        const rep = await signed(RepToken);
         return rep.register().then((tx) => {
             tx.wait().then((receipt) => {
-                const {args} = repToken.interface.parseLog(receipt.logs[0]);
+                const {args} = RepToken.interface.parseLog(receipt.logs[0]);
                 setTokenId(args[2])
                 refreshStats(args[2]);
             });
@@ -38,7 +39,7 @@ export default function Profile()
     }
 
     async function refreshStats(tokenId) {
-        let result = await repToken.stats(tokenId);
+        let result = await RepToken.stats(tokenId);
         result = result.map(Number)
         result = {
             createdAt:      new Date(result[0] * 1000),
@@ -64,7 +65,7 @@ export default function Profile()
     if (tokenId && stats) {
         return (
         <Card title={"Profile token ID: " + tokenId}>
-            <Descriptions layout={"vertical"} title={<Username address={account} avatar />}>
+            <Descriptions layout={"vertical"} title={<Username address={address} avatar />}>
                 <Descriptions.Item label={"Registered"}>{stats.createdAt.toLocaleString()}</Descriptions.Item>
                 <Descriptions.Item label={"Rating"}>{rating(stats.upvotes, stats.downvotes)}</Descriptions.Item>
                 <Descriptions.Item label={"Deals completed"}>{stats.dealsCompleted}</Descriptions.Item>
