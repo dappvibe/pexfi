@@ -1,34 +1,32 @@
 import {useWalletProvider} from "@/hooks/useWalletProvider";
 import {useEffect, useState} from "react";
-import {MarketContract} from "@/hooks/useContract.jsx";
 import Offer from "@/model/Offer.js";
 import Offers from "@/Trade/Offers/Offers.jsx";
 import {Skeleton} from "antd";
+import {useAccount} from "wagmi";
+import {useContract} from "@/hooks/useContract.jsx";
 
 export default function UserOffers()
 {
-    const {account} = useWalletProvider();
+    const {address} = useAccount();
+    const {Market, Offer: OfferContract} = useContract();
 
     const [offers, setOffers] = useState();
 
     useEffect(() => {
-        if (account) {
-            const filter = MarketContract.filters.OfferCreated(account);
-            MarketContract.queryFilter(filter).then(logs => {
-                return Promise.all(logs.map(log => Offer.fetch(log.args[3])));
+        if (address) {
+            const filter = Market.filters.OfferCreated(address);
+            Market.queryFilter(filter).then(logs => {
+                return Promise.all(logs.map(log => Offer.fetch(OfferContract.attach(log.args[3]))));
             })
             .then(offers => {
                 return Promise.all(offers.map(offer => {
-                    return MarketContract.getPrice(offer.token, offer.fiat).then(price => offer.setPairPrice(price));
+                    return Market.getPrice(offer.token, offer.fiat).then(price => offer.setPairPrice(price));
                 }));
             })
-            // wrap it to meet <Offers/> expectations
-            .then(offers => setOffers(Promise.resolve({
-                offers: offers
-            })));
-
+            .then(setOffers);
         }
-    }, [account]);
+    }, [address]);
 
     if (offers === undefined)
         return (<Skeleton active />)

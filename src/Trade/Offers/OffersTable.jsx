@@ -2,12 +2,12 @@ import {Avatar, Button, Divider, Space, Table, Tag} from "antd";
 import {Link, useParams} from "react-router-dom";
 import PropTypes from "prop-types";
 import Username from "@/components/Username.jsx";
-import {useWalletProvider} from "@/hooks/useWalletProvider";
 import {formatMoney} from "@/utils.js";
+import {useAccount} from "wagmi";
 
 export default function OffersTable({offers})
 {
-    const { account } = useWalletProvider();
+    const { address } = useAccount();
     let {
         side = 'sell',
         token = 'WBTC',
@@ -20,7 +20,7 @@ export default function OffersTable({offers})
             title: '',
             width: 0,
             render: (_, offer) => {
-                if (account && offer.owner.toLowerCase() === account.toLowerCase()) {
+                if (address && offer.owner.toLowerCase() === address.toLowerCase()) {
                     return (
                         <Space>
                             <Button type="primary">Edit</Button>
