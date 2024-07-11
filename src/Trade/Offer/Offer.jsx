@@ -1,17 +1,20 @@
-import {useLoaderData, useNavigate} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import {Button, Card, Form, Input, message, Skeleton, Space} from "antd";
 import React, {useEffect, useRef, useState} from "react";
-import {MarketContract, useContract} from "@/hooks/useContract.jsx";
 import Subnav from "@/Trade/Offer/Subnav.jsx";
 import Description from "@/Trade/Offer/Description.jsx";
-import {useWalletProvider} from "@/hooks/useWalletProvider";
 import {ethers} from "ethers";
+import {useContract} from "@/hooks/useContract.jsx";
+import {useAccount, useChainId} from "wagmi";
+import Offer from "@/model/Offer.js";
 
-export default function Offer() {
-    const { offer: offerPromise } = useLoaderData();
+export default function OfferPage() {
     const navigate = useNavigate();
-    const { market, token: tokenContract, dealFactory, signed } = useContract();
-    const { wallet, account } = useWalletProvider();
+    const chainId = useChainId();
+    const account = useAccount();
+    const { Market, Offer: OfferContract, Token, DealFactory, signed } = useContract();
+
+    const {offerId} = useParams();
 
     const [offer, setOffer] = useState();
     const [allowance, setAllowance] = useState(0);
@@ -19,28 +22,33 @@ export default function Offer() {
     const token = useRef();
 
     useEffect(() => {
-        offerPromise.then((offer) => {
-            if (account && !offer.isSell) {
-                market.token(offer.token).then(([address]) => {
-                    token.current = tokenContract.attach(address);
-                    token.current.allowance(account, MarketContract.target).then((res) => {
-                        setAllowance(res)
+        Offer.fetch(OfferContract.attach(offerId))
+            .then(offer => {
+                return Market.getPrice(offer.token, offer.fiat).then((price) =>
+                    offer.setPairPrice(price))
+            })
+            .then(offer => {
+                if (account.address && !offer.isSell) {
+                    Market.token(offer.token).then(([address]) => {
+                        token.current = Token.attach(address);
+                        token.current.allowance(account.address, Market).then((res) => {
+                            setAllowance(res)
+                        });
                     });
-                });
-            }
-            return offer;
-        })
-        .then(setOffer);
-    }, [account]);
+                }
+                return offer;
+            })
+            .then(setOffer);
+    }, [chainId, account?.address]); // TODO account switch
 
     async function approve()
     {
         if (allowance > 0 || offer.isSell) return Promise.resolve();
 
         const t = await signed(token.current)
-        return t.approve(MarketContract.target, ethers.MaxUint256).then((tx) => {
+        return t.approve(Market.target, ethers.MaxUint256).then((tx) => {
             tx.wait().then(() => {
-                token.current.allowance(account, MarketContract.target).then(setAllowance);
+                token.current.allowance(account.address, Market).then(setAllowance);
             });
         });
     }
@@ -49,7 +57,7 @@ export default function Offer() {
         setLockButton(true);
         await approve();
 
-        const factory = await signed(dealFactory);
+        const factory = await signed(DealFactory);
         const amount = BigInt(values['fiatAmount'] * 10**6);
 
         try {
@@ -57,7 +65,7 @@ export default function Offer() {
             message.info('Deal submitted. You will be redirected shortly.');
             const receipt = await tx.wait();
             receipt.logs.forEach(log => {
-                const DealCreated = market.interface.parseLog(log);
+                const DealCreated = Market.interface.parseLog(log);
                 if (DealCreated) {
                     navigate(`/trade/deal/${DealCreated.args[3]}`);
                 }
