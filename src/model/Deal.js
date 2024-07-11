@@ -1,10 +1,6 @@
-import {Token} from "@/model/Token.js";
-import {DealContract, MarketContract} from "@/hooks/useContract.jsx";
-import Offer from "@/model/Offer.js";
-
 export class Deal {
-    constructor(address) {
-        this.contract = DealContract.attach(address);
+    constructor(contract) {
+        this.contract = contract;
     }
 
     clone(overrides = {}) {
@@ -23,6 +19,7 @@ export class Deal {
             this.contract.allowCancelUnpaidAfter(),
         ])
         .then(([offer, taker, tokenAmount, fiatAmount, state, paymentInstructions, allowCancelUnacceptedAfter, allowCancelUnpaidAfter]) => {
+            this.offer = offer;
             this.taker = taker;
             this.tokenAmount = Number(tokenAmount);
             this.fiatAmount = Number(fiatAmount) / 10**6; // FIXME test with large input
@@ -30,21 +27,8 @@ export class Deal {
             this.paymentInstructions = paymentInstructions;
             this.allowCancelUnacceptedAfter = new Date(Number(allowCancelUnacceptedAfter) * 1000);
             this.allowCancelUnpaidAfter = new Date(Number(allowCancelUnpaidAfter) * 1000);
-            return Offer.fetch(offer).then(o => {
-                this.offer = o;
-                return this;
-            });
+            return this;
         })
-        .then(() => {
-            return MarketContract.token(this.offer.token).then(([address, symbol, name, decimals]) => {
-                const token = new Token(address);
-                token.symbol = symbol;
-                token.name = name;
-                token.decimals = decimals;
-                this.token = token;
-                return this;
-            })
-        });
     }
 
     isParticipant(address) {

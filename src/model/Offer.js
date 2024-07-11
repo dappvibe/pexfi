@@ -1,11 +1,10 @@
-import {OfferContract} from "@/hooks/useContract.jsx";
 
 export default class Offer
 {
-    static fetch (address) {
+    static fetch (contract) {
         const self = new Offer();
-        self.contract = OfferContract.attach(address);
-        self.address = address;
+        self.contract = contract;
+        self.address = contract.target;
         return Promise.all([
             self.contract.owner(),
             self.contract.isSell(),
