@@ -5,19 +5,6 @@ import {Skeleton} from "antd";
 import {ethers} from "ethers";
 import {useContract} from "@/hooks/useContract.jsx";
 
-function cached(key, promise) {
-    const now = new Date();
-    const cache = localStorage.getItem(key);
-    if (cache) {
-        return Promise.resolve(JSON.parse(cache).data);
-    } else {
-        return promise.then((res) => {
-            localStorage.setItem(key, JSON.stringify({ timestamp: now.getTime(), data: res }));
-            return res;
-        });
-    }
-}
-
 export default function TradeLayout() {
     const { Market } = useContract();
 
@@ -25,7 +12,7 @@ export default function TradeLayout() {
 
     useEffect(() => {
         setInventory({
-            tokens: cached('tokens', Market.getTokens().then(res => {
+            tokens: Market.getTokens().then(res => {
                 let tokens = {};
                 res.map(token => {
                     token = {
@@ -37,11 +24,11 @@ export default function TradeLayout() {
                     tokens[token.symbol] = token;
                 });
                 return tokens;
-            })),
-            fiats: cached('fiats', Market.getFiats().then(res => {
+            }),
+            fiats: Market.getFiats().then(res => {
                 return res.map(ethers.decodeBytes32String);
-            })),
-            methods: cached('methods', Market.getMethods().then(res => {
+            }),
+            methods: Market.getMethods().then(res => {
                 let methods = {};
                 res.map(method => {
                     method = {
@@ -51,7 +38,7 @@ export default function TradeLayout() {
                     methods[method.name] = method;
                 });
                 return methods;
-            }))
+            })
         });
     }, []);
 
