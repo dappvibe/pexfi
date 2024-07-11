@@ -2,8 +2,9 @@ import {Link} from "react-router-dom";
 import {Empty, List, Skeleton, Tag} from "antd";
 import React, {useEffect, useState} from "react";
 import {useWalletProvider} from "../hooks/useWalletProvider";
-import {MarketContract} from "@/hooks/useContract.jsx";
 import {Deal} from "@/model/Deal.js";
+import {useAccount} from "wagmi";
+import {useContract} from "@/hooks/useContract.jsx";
 import Offer from "@/model/Offer.js";
 
 function StateTag(args) {
@@ -21,12 +22,12 @@ function StateTag(args) {
 }
 
 function DealItem({deal}) {
-    const { account } = useWalletProvider();
+    const { address } = useWalletProvider();
 
     function title(deal) {
         const href = '/trade/deal/' + deal.contract.target;
-        let title = deal.seller === account ? "Sell " : "Buy ";
-        title += deal.tokenAmount + ' ' + deal.offer.token + " for " + deal.tokenAmount + ' ' + deal.offer.fiat + " with " + deal.offer.method;
+        let title = deal.seller === address ? "Sell " : "Buy ";
+        title += deal.tokenAmount + ' ' + deal.offer.token + " for " + deal.fiatAmount + ' ' + deal.offer.fiat + " with " + deal.offer.method;
         return <Link to={href}>{title}</Link>;
     }
 
@@ -49,28 +50,37 @@ DealItem.propTypes = {
 
 export default function UserDeals()
 {
-    const { account } = useWalletProvider();
-
+    const { address } = useAccount();
+    const { Market, Deal: DealContract, Offer: OfferContract } = useContract();
     const [deals, setDeals] = useState();
 
     useEffect(() => {
-        if (account) {
+        if (address) {
             Promise.all([
-                MarketContract.queryFilter(MarketContract.filters.DealCreated(account)), // as owner (maker)
-                MarketContract.queryFilter(MarketContract.filters.DealCreated(null, account)), // as taker
+                Market.queryFilter(Market.filters.DealCreated(address)), // as owner (maker)
+                Market.queryFilter(Market.filters.DealCreated(null, address)), // as taker
             ]).then(([asOwner, asTaker]) => {
                 const fetching = asOwner.concat(asTaker).map(log =>
-                    (new Deal(log.args[3])).fetch().then(deal => {
-                        return MarketContract.runner.getBlock(log.blockHash).then(block => {
+                    (new Deal(DealContract.attach(log.args[3]))).fetch().then(deal => {
+                        return Market.runner.getBlock(log.blockHash).then(block => {
                             deal.createdAt = block;
                             return deal;
+                        })
+                        .then(deal => {
+                            return Offer.fetch(OfferContract.attach(deal.offer)).then(offer => {
+                                deal.offer = offer;
+                                return Market.token(offer.token).then(token => {
+                                    deal.tokenAmount /= 10**Number(token.decimals);
+                                    return deal;
+                                });
+                            });
                         })
                     })
                 );
                 Promise.all(fetching).then(setDeals);
             })
         }
-    }, [account]);
+    }, [address]);
 
     if (deals === undefined) {
         return <Skeleton active/>
