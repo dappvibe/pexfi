@@ -1,6 +1,5 @@
 import {defer} from "react-router-dom";
 
-import {DealContract} from "@/hooks/useContract.jsx";
 import {Deal} from "@/model/Deal.js";
 
 export async function dealLoader(request) {

@@ -4,13 +4,14 @@ import {useWalletProvider} from "@/hooks/useWalletProvider";
 import {DealContext} from "@/Trade/Deal/Deal.jsx";
 import {useForm} from "antd/lib/form/Form.js";
 import {useContract} from "@/hooks/useContract.jsx";
+import {useAccount} from "wagmi";
 
 export default function MessageBox()
 {
     const {deal} = useContext(DealContext);
     const [ lockSubmit, setLockSubmit ] = useState(false);
     const [messages, setMessages] = useState([]);
-    const { account } = useWalletProvider();
+    const { address } = useAccount();
     const { signed } = useContract();
     const [form] = useForm();
 
@@ -38,7 +39,7 @@ export default function MessageBox()
         ;
     }
 
-    if (deal.isParticipant(account)) {
+    if (address && deal.isParticipant(address)) {
         return (
             <>
             <List size="small" bordered dataSource={messages} renderItem={(msg) => (

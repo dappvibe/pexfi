@@ -7,12 +7,11 @@ import {WalletProvider} from "./hooks/WalletProvider";
 import Layout from "./Layout";
 import Home from "./Home/index.jsx";
 import Profile from "@/Me/Profile.jsx";
-import Deal from "@/Trade/Deal/Deal.jsx";
+import DealPage from "@/Trade/Deal/Deal.jsx";
 import UserDeals from "@/Me/UserDeals.jsx";
 import OfferNew from "@/Trade/Offer/New/OfferNew.jsx";
 import TradeLayout from "@/Trade/TradeLayout.jsx";
 import Offers from "@/Trade/Offers/Offers.jsx";
-import {dealLoader} from "@/Trade/Deal/dealLoader.js";
 import UserOffers from "@/Me/Offers/UserOffers.jsx";
 import {WagmiProvider} from "wagmi";
 import {config} from "@/wagmi.config.ts";
@@ -27,7 +26,7 @@ const router = createHashRouter( createRoutesFromElements(
             <Route path=":side/:token?/:fiat?/:method?" element={<Offers />}/>
             <Route path={"offer/:offerId"} element={<OfferPage />} />
             <Route path={"offer/new" } element={<OfferNew/>} />
-            <Route path={"deal/:dealId"} element={<Deal/>} loader={dealLoader} />
+            <Route path={"deal/:dealId"} element={<DealPage />} />
         </Route>
         <Route path={"/me"} element={<TradeLayout/>}>
             <Route index element={<Profile />} />
