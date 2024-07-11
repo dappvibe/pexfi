@@ -3,10 +3,11 @@ import {generatePath, Link, useParams} from "react-router-dom";
 import WalletMenu from "../components/WalletMenu.jsx";
 import {useWalletProvider} from "../hooks/useWalletProvider";
 import NetworkSelector from "@/components/NetworkSelector.jsx";
+import {useAccount} from "wagmi";
 
 export default function Topnav()
 {
-    const { account } = useWalletProvider();
+    const { address } = useAccount();
     const params = useParams();
 
     const top = [
@@ -33,7 +34,7 @@ export default function Topnav()
             </Flex>
             <Flex>
                 <Space>
-                    {account &&
+                    {address &&
                         <Button><Link to={'/trade/offer/new'}>Create Offer</Link></Button>
                     }
                     <NetworkSelector />
