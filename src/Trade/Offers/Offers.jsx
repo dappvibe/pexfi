@@ -1,14 +1,14 @@
-import {Await, generatePath, useLoaderData, useNavigate, useOutletContext, useParams} from "react-router-dom";
+import {Await, generatePath, useNavigate, useOutletContext, useParams} from "react-router-dom";
 import React, {useEffect, useState} from "react";
 import {Input, Select, Skeleton, Space} from "antd";
 import OffersTable from "@/Trade/Offers/OffersTable.jsx";
+import {useContract} from "@/hooks/useContract.jsx";
+import Offer from "@/model/Offer.js";
+import {useChainId} from "wagmi";
 
-export default function Offers({offers}) {
+export default function Offers({offers: argOffers}) {
+    const chainId = useChainId();
     const {fiats, methods} = useOutletContext();
-    if (offers === undefined) {
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        offers = useLoaderData().offers;
-    }
     const navigate = useNavigate();
     let {
         side = 'sell',
@@ -16,19 +16,47 @@ export default function Offers({offers}) {
         fiat = 'USD',
         method = null
     } = useParams();
+    const { Market, Offer: OfferContract } = useContract();
 
-    const [activeOffers, setActiveOffers] = useState([]);
+    const [offers, setOffers] = useState([]);
+    const [allOffers, setAllOffers] = useState(argOffers);
     const [filterAmount, setFilterAmount] = useState('');
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        offers.then(({ offers }) => {
+        if (argOffers) {
+            setAllOffers(argOffers);
+        } else {
+            let price;
+            setLoading(true);
+            Promise.all([
+                Market.getOffers(side === 'sell', token, fiat, method || 'ANY'),
+                Market.getPrice(token, fiat)
+            ])
+            .then(([offers, p]) => {
+                price = p;
+                return Promise.all(offers.map(offer =>
+                    Offer.fetch(OfferContract.attach(offer))));
+            })
+            .then((offers) => {
+                offers = offers.map(offer => offer.setPairPrice(price))
+                offers = offers.sort((a, b) => b.price - a.price);
+                return offers;
+            })
+            .then(setAllOffers)
+            .then(() => setLoading(false));
+        }
+    }, [chainId, side, token, fiat, method]);
+
+    useEffect(() => {
+        if (allOffers) {
             if (filterAmount === '') {
-                setActiveOffers(offers);
+                setOffers(allOffers);
             } else {
-                setActiveOffers(offers.filter(offer => offer.min <= filterAmount && offer.max >= filterAmount));
+                setOffers(allOffers.filter(offer => offer.min <= filterAmount && offer.max >= filterAmount));
             }
-        });
-    }, [filterAmount, offers]);
+        }
+    }, [filterAmount, allOffers]);
 
     return (<>
     <Space style={{margin: '10px 0 0 10px'}}>
@@ -64,13 +92,6 @@ export default function Offers({offers}) {
             )}
         </Await>
     </Space>
-
-    <React.Suspense fallback={<Skeleton active />}>
-        <Await resolve={offers}>
-        {({offers}) => (
-            <OffersTable offers={activeOffers} />
-        )}
-        </Await>
-    </React.Suspense>
+    {loading ? <Skeleton active /> : <OffersTable offers={offers} />}
     </>);
 }
