@@ -81,7 +81,6 @@ export default function Controls() {
         return (deal.offer.isSell && isOwner()) || (!deal.offer.isSell && isTaker());
     }
 
-    console.log(deal.state);
     const State = {
         Initiated: 0,
         Accepted: 1,
@@ -97,8 +96,6 @@ export default function Controls() {
     if (deal.state === State.Initiated && isOwner()) {
         controls.push(<LoadingButton type={"primary"} onClick={accept}>Accept</LoadingButton>);
     }
-
-    console.log(deal);
 
     // cancel
     switch (true) {
