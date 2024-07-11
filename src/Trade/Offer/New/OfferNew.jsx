@@ -9,7 +9,7 @@ export default function OfferNew()
 {
     const navigate = useNavigate();
     const { tokens, fiats, methods } = useOutletContext();
-    const {market, offerFactory, signed} = useContract();
+    const {Market, OfferFactory, signed} = useContract();
 
 
     const [lockSubmit, setLockSubmit] = React.useState(false);
@@ -28,13 +28,13 @@ export default function OfferNew()
         ];
 
         try {
-            const factory = await signed(offerFactory);
+            const factory = await signed(OfferFactory);
             const tx = await factory.create(...params);
             message.success('Offer submitted. You will be redirected shortly.');
 
             const receipt = await tx.wait();
             receipt.logs.forEach(log => {
-                const OfferCreated = market.interface.parseLog(log);
+                const OfferCreated = Market.interface.parseLog(log);
                 if (OfferCreated) {
                     message.success('Offer created');
                     navigate(`/trade/offer/${OfferCreated.args[3]}`);
@@ -53,7 +53,7 @@ export default function OfferNew()
         const fiat = form.getFieldValue('fiat');
         if (token && fiat) {
             // FIXME store market rate somewhere, not from current
-            let price = Number(await market.getPrice(token, fiat));
+            let price = Number(await Market.getPrice(token, fiat));
             price = (price / 10**6).toFixed(2);
             marketPrice.current = price;
             previewPrice();
