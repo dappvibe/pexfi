@@ -56,12 +56,7 @@ describe('Deployment', function()
         }
         for (let fiat in fiats) {
             it (`${fiat} is deployed`, async function() {
-                const { PriceFeed } = await ignition.deploy(PriceFeedModule, {
-                    parameters: { PriceFeed: {
-                            currency: fiat
-                        }}
-                })
-                PriceFeeds[fiat] = PriceFeed;
+                PriceFeeds[fiat] = await ethers.deployContract('PriceFeed', [fiat]);
             });
             it (`set() ${fiat} rate`, async function() {
                 await PriceFeeds[fiat].set(fiats[fiat]);
@@ -91,15 +86,15 @@ describe('Deployment', function()
                         ]
                     }}
             }));
-            expect(await Market.owner()).to.eq(deployer.address);
-            expect(await Market.mediator()).to.eq(deployer.address);
-            expect(await Market.offerFactory()).to.not.eq(ethers.ZeroAddress);
-            expect(await Market.dealFactory()).to.not.eq(ethers.ZeroAddress);
-            expect(await Market.repToken()).to.not.eq(ethers.ZeroAddress);
+            await expect(await Market.owner()).to.eq(deployer.address);
+            await expect(await Market.mediator()).to.eq(deployer.address);
+            await expect(await Market.offerFactory()).to.not.eq(ethers.ZeroAddress);
+            await expect(await Market.dealFactory()).to.not.eq(ethers.ZeroAddress);
+            await expect(await Market.repToken()).to.not.eq(ethers.ZeroAddress);
 
-            expect(await OfferFactory.market()).to.eq(Market.target);
-            expect(await DealFactory.market()).to.eq(Market.target);
-            expect(await RepToken.hasRole(ethers.encodeBytes32String('MARKET_ROLE'), Market.target)).to.be.true;
+            await expect(await OfferFactory.market()).to.eq(Market.target);
+            await expect(await DealFactory.market()).to.eq(Market.target);
+            await expect(await RepToken.hasRole(ethers.encodeBytes32String('MARKET_ROLE'), Market.target)).to.be.true;
         });
 
         it ('set mediator', async function () {
