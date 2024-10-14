@@ -31,7 +31,6 @@
     "ethers": "^6.13.1",
     "hardhat": "^2.22.5",
     "hardhat-contract-sizer": "^2.10.0",
-    "hardhat-dependency-compiler": "^1.2.1",
-    "hardhat-gas-reporter": "^2.2.0"
+    "hardhat-dependency-compiler": "^1.2.1"
   }
 }
