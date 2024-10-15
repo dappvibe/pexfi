@@ -1,0 +1,67 @@
+{
+  "Market": {
+    "uniswap": "0x162A433068F51e18b7d13932F27e66a3f99E6890",
+    "addTokens_0": [
+      "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+      "0x59b670e9fA9D0A427751Af201D676719a970857b",
+      "0x99bbA657f2BbC93c02D617f8bA121cB8Fc104Acf"
+    ],
+    "addTokens_1": 500,
+    "fiats": [
+      [
+        "AUD",
+        "0x04C89607413713Ec9775E14b954286519d836FEf"
+      ],
+      [
+        "CAD",
+        "0x21dF544947ba3E8b3c32561399E88B52Dc8b2823"
+      ],
+      [
+        "CHF",
+        "0xD8a5a9b31c3C0232E196d518E89Fd8bF83AcAd43"
+      ],
+      [
+        "EUR",
+        "0x51A1ceB83B83F1985a81C295d1fF28Afef186E02"
+      ],
+      [
+        "GBP",
+        "0x8198f5d8F8CfFE8f9C413d98a0A55aEB8ab9FbB7"
+      ],
+      [
+        "JPY",
+        "0x202CCe504e04bEd6fC0521238dDf04Bc9E8E15aB"
+      ],
+      [
+        "KRW",
+        "0x172076E0166D1F9Cc711C77Adf8488051744980C"
+      ],
+      [
+        "PHP",
+        "0xBEc49fA140aCaA83533fB00A2BB19bDdd0290f25"
+      ],
+      [
+        "SEK",
+        "0x2B0d36FACD61B71CC05ab8F3D2355ec3631C0dd5"
+      ],
+      [
+        "SGD",
+        "0x46b142DD1E924FAb83eCc3c08e4D46E82f005e0E"
+      ],
+      [
+        "USD",
+        "0x1c85638e118b37167e9298c2268758e058DdfDA0"
+      ]
+    ],
+    "methods": [
+      [
+        "National Bank",
+        0
+      ],
+      [
+        "SEPA",
+        0
+      ]
+    ]
+  }
+}
