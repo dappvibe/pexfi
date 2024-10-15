@@ -8,7 +8,7 @@ export const config = createConfig({
     ],
     transports: {
         [arbitrumSepolia.id]: http(),
-        [hardhat.id]: http(),
+        [hardhat.id]: http("http://192.168.8.2:8545"),
     },
 })
 
