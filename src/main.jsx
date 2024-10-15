@@ -5,7 +5,7 @@ import {createHashRouter, createRoutesFromElements, Navigate, Route, RouterProvi
 import './main.css'
 import {WalletProvider} from "./hooks/WalletProvider";
 import Layout from "./Layout";
-import Home from "./Home/index.jsx";
+import Home from "./pages/Home/Home.jsx";
 import Profile from "@/Me/Profile.jsx";
 import DealPage from "@/Trade/Deal/Deal.jsx";
 import UserDeals from "@/Me/UserDeals.jsx";
