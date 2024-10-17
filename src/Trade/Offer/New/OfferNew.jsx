@@ -1,6 +1,6 @@
 import {Button, Card, Col, Form, Input, InputNumber, message, Radio, Row, Select, Skeleton, Space} from "antd";
-import {Await, useNavigate, useOutletContext} from "react-router-dom";
-import React, {Suspense, useRef} from "react";
+import {useNavigate} from "react-router-dom";
+import React, {useRef} from "react";
 import {useContract} from "@/hooks/useContract.jsx";
 import {useInventory} from "@/hooks/useInventory.jsx";
 
@@ -11,8 +11,11 @@ export default function OfferNew()
     const navigate = useNavigate();
     const {Market, OfferFactory, signed} = useContract();
     const [lockSubmit, setLockSubmit] = React.useState(false);
-
     const { tokens, fiats, methods } = useInventory();
+    const marketPrice = useRef();
+    const [form] = Form.useForm();
+
+    if (fiats.length === 0) return <Skeleton active />;
 
     async function submit(val) {
         // FIXME this causes rerender all form and selects flicker
@@ -46,9 +49,6 @@ export default function OfferNew()
         }
     }
 
-    const marketPrice = useRef();
-    const [form] = Form.useForm();
-
     async function fetchRate() {
         const token = form.getFieldValue('token');
         const fiat = form.getFieldValue('fiat');
@@ -70,11 +70,8 @@ export default function OfferNew()
     }
 
     const required = [ {required: true, message: 'required'} ];
-    const resolved = Promise.all([tokens, fiats, methods]);
 
     return (
-    <Suspense fallback={<Skeleton active />}><Await resolve={resolved}>
-    {([tokens, fiats, methods]) => (
     <Card title={'Submit an offer'}>
         <Form form={form} layout={"horizontal"} onFinish={submit} colon={false}>
             <Row><Col>
@@ -148,7 +145,5 @@ export default function OfferNew()
             </Form.Item>
         </Form>
     </Card>
-    )}
-    </Await></Suspense>
     );
 }
