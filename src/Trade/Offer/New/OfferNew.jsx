@@ -2,17 +2,23 @@ import {Button, Card, Col, Form, Input, InputNumber, message, Radio, Row, Select
 import {Await, useNavigate, useOutletContext} from "react-router-dom";
 import React, {Suspense, useRef} from "react";
 import {useContract} from "@/hooks/useContract.jsx";
+import {useInventory} from "@/hooks/useInventory.jsx";
 
 const { TextArea } = Input;
 
 export default function OfferNew()
 {
     const navigate = useNavigate();
-    const { tokens, fiats, methods } = useOutletContext();
     const {Market, OfferFactory, signed} = useContract();
-
-
     const [lockSubmit, setLockSubmit] = React.useState(false);
+
+    const inv = useInventory();
+    let tokens, fiats, methods;
+    if (inv) {
+        ({ tokens, fiats, methods } = inv);
+    } else {
+        return <Skeleton active />
+    }
 
     async function submit(val) {
         // FIXME this causes rerender all form and selects flicker
@@ -48,6 +54,7 @@ export default function OfferNew()
 
     const marketPrice = useRef();
     const [form] = Form.useForm();
+
     async function fetchRate() {
         const token = form.getFieldValue('token');
         const fiat = form.getFieldValue('fiat');
@@ -70,6 +77,7 @@ export default function OfferNew()
 
     const required = [ {required: true, message: 'required'} ];
     const resolved = Promise.all([tokens, fiats, methods]);
+
     return (
     <Suspense fallback={<Skeleton active />}><Await resolve={resolved}>
     {([tokens, fiats, methods]) => (
