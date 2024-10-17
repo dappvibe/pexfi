@@ -1,14 +1,16 @@
 import PropTypes from "prop-types";
 import {Menu} from "antd";
 import {generatePath, Link, useParams} from "react-router-dom";
+import {useInventory} from "@/hooks/useInventory.jsx";
 
-export default function TokenNav({tokens}) {
+export default function TokenNav() {
     let {
         side = 'sell',
         token = 'WBTC',
         fiat = 'USD',
         method = null
     } = useParams();
+    const { tokens } = useInventory();
 
     const tokensMenu = Object.keys(tokens).map(token => {
         return {
@@ -27,7 +29,3 @@ export default function TokenNav({tokens}) {
     />
     );
 }
-
-TokenNav.propTypes = {
-    tokens: PropTypes.object.isRequired,
-};
