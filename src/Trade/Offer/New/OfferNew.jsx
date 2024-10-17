@@ -12,13 +12,7 @@ export default function OfferNew()
     const {Market, OfferFactory, signed} = useContract();
     const [lockSubmit, setLockSubmit] = React.useState(false);
 
-    const inv = useInventory();
-    let tokens, fiats, methods;
-    if (inv) {
-        ({ tokens, fiats, methods } = inv);
-    } else {
-        return <Skeleton active />
-    }
+    const { tokens, fiats, methods } = useInventory();
 
     async function submit(val) {
         // FIXME this causes rerender all form and selects flicker

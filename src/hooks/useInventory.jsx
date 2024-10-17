@@ -37,6 +37,11 @@ export function useInventory() {
     const { data } = useQuery({
         queryKey: ['inventory'],
         queryFn: () => fetchInventory(Market),
+        placeholderData: {
+            tokens: {},
+            fiats: [],
+            methods: {},
+        }
     });
 
     return data;
