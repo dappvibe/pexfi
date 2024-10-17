@@ -40,7 +40,12 @@ export function useContract()
             name: chain.name,
             ensAddress: chain.contracts?.ensRegistry?.address,
         }
-        const provider = new BrowserProvider(transport, network)
+        let provider;
+        try {
+            provider = new BrowserProvider(transport, network)
+        } catch (error) {
+            provider = new JsonRpcProvider(transport.url, network)
+        }
         return new JsonRpcSigner(provider, account.address)
     }
     const { data: connector } = useConnectorClient({ chainId })
