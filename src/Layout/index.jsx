@@ -1,6 +1,6 @@
 import {Layout as AntLayout} from "antd";
 import Topnav from "./Topnav.jsx";
-import {Outlet, useParams} from "react-router-dom";
+import {Outlet} from "react-router-dom";
 
 const {Header, Content} = AntLayout;
 
