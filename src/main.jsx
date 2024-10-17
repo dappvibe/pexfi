@@ -9,7 +9,6 @@ import Home from "./pages/Home/Home.jsx";
 import Profile from "@/Me/Profile.jsx";
 import DealPage from "@/Trade/Deal/Deal.jsx";
 import UserDeals from "@/Me/UserDeals.jsx";
-import OfferNew from "@/Trade/Offer/New/OfferNew.jsx";
 import TradeLayout from "@/Trade/TradeLayout.jsx";
 import Offers from "@/Trade/Offers/Offers.jsx";
 import UserOffers from "@/Me/Offers/UserOffers.jsx";
@@ -19,6 +18,8 @@ import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import OfferPage from "@/Trade/Offer/Offer.jsx";
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
+import OfferEdit from "@/pages/Trade/Offer/OfferEdit.jsx";
+import OfferNew from "@/pages/Trade/Offer/OfferNew.jsx";
 
 
 const router = createHashRouter( createRoutesFromElements(
@@ -29,7 +30,7 @@ const router = createHashRouter( createRoutesFromElements(
             <Route path=":side/:token?/:fiat?/:method?" element={<Offers />}/>
             <Route path={"offer/:offerId"} element={<OfferPage />} />
             <Route path={"offer/new" } element={<OfferNew/>} />
-            <Route path={"offer/edit/:offerId" } element={<OfferNew/>} />
+            <Route path={"offer/edit/:offerId" } element={<OfferEdit/>} />
             <Route path={"deal/:dealId"} element={<DealPage />} />
         </Route>
         <Route path={"/me"} element={<TradeLayout/>}>
