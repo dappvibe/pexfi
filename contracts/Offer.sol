@@ -19,6 +19,7 @@ contract Offer
     uint16 public rate; // 4 decimals
     Limits public limits;
     string public terms;
+    bool public disabled;
 
     constructor(
         address owner_,
@@ -54,5 +55,9 @@ contract Offer
     function setTerms(string memory terms_) public {
         require(msg.sender == owner, UnauthorizedAccount(msg.sender));
         terms = terms_;
+    }
+    function setDisabled(bool disabled_) public {
+        require(msg.sender == owner, UnauthorizedAccount(msg.sender));
+        disabled = disabled_;
     }
 }
