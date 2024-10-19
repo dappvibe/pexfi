@@ -73,20 +73,20 @@ describe('Deployment', function()
         it ('ignition bundle', async function() {
             ({ Market, OfferFactory, DealFactory, RepToken } = await ignition.deploy(MarketModule, {
                 parameters: { Market: {
-                        uniswap: Uniswap.target,
-                        addTokens_0: Object.values(Tokens).map(t => t.target),
-                        addTokens_1: 500,
-                        fiats: [
-                            ['USD', PriceFeeds['USD'].target],
-                            ['EUR', PriceFeeds['EUR'].target],
-                            ['THB', PriceFeeds['THB'].target],
-                            ['XXX', ethers.ZeroAddress] // this will be removed
-                        ],
-                        methods: [
-                            ['Zelle', 0],
-                            ['SEPA', 0],
-                        ]
-                    }}
+                    uniswap: Uniswap.target,
+                    addTokens_0: Object.values(Tokens).map(t => t.target),
+                    addTokens_1: 500,
+                    fiats: [
+                        ['USD', PriceFeeds['USD'].target],
+                        ['EUR', PriceFeeds['EUR'].target],
+                        ['THB', PriceFeeds['THB'].target],
+                        ['XXX', ethers.ZeroAddress] // this will be removed
+                    ],
+                    methods: [
+                        ['Zelle', 0],
+                        ['SEPA', 0],
+                    ]
+                }}
             }));
             await expect(await Market.owner()).to.eq(deployer.address);
             await expect(await Market.mediator()).to.eq(deployer.address);
