@@ -57,6 +57,15 @@ export default function OfferForm({offer})
         });
     }
 
+    async function disable(offer) {
+        const o = await signed(Offer.attach(offer.address));
+        const tx = await o.setDisabled(!offer.disabled);
+        tx.wait().then(() => {
+            message.success('Updated');
+            window.location.reload();
+        });
+    }
+
     async function submit(val) {
         // FIXME this causes rerender all form and selects flicker
         setLockSubmit(true);
@@ -188,13 +197,22 @@ export default function OfferForm({offer})
                 <Form.Item name="terms" label="Terms" initialValue={offer ? offer.terms : undefined}>
                     <TextArea rows={4} placeholder={"Written in blockchain. Keep it short."} />
                 </Form.Item>
-                {offer && <Form.Item>
+                {offer &&
+                    <>
+                    <Form.Item>
                     <Button onClick={() => setTerms(form.getFieldValue('terms'))}>Update</Button>
-                </Form.Item>}
+                    </Form.Item>
+                    <Form.Item>
+                        <Button onClick={() => disable(offer)}>{offer.disabled ? 'Enable' : 'Disable'}</Button>
+                    </Form.Item>
+                    </>
+                }
                 {!offer &&
+                    <>
                     <Form.Item>
                         <Button loading={lockSubmit} type="primary" htmlType="submit">Submit</Button>
                     </Form.Item>
+                    </>
                 }
             </Form>
         </Card>

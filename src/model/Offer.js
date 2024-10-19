@@ -14,7 +14,8 @@ export default class Offer
             self.contract.rate(),
             self.contract.limits(),
             self.contract.terms(),
-        ]).then(([owner, isSell, token, fiat, method, rate, limits, terms]) => {
+            self.contract.disabled()
+        ]).then(([owner, isSell, token, fiat, method, rate, limits, terms, disabled]) => {
             self.owner = owner;
             self.isSell = isSell;
             self.token = token;
@@ -24,6 +25,7 @@ export default class Offer
             self.min = Number(limits[0]);
             self.max = Number(limits[1]);
             self.terms = terms;
+            self.disabled = disabled;
             return self;
         });
     }
