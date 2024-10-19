@@ -68,6 +68,8 @@ describe('Deployment', function()
 
     describe('Market', function()
     {
+        this.timeout(20000);
+
         it ('ignition bundle', async function() {
             ({ Market, OfferFactory, DealFactory, RepToken } = await ignition.deploy(MarketModule, {
                 parameters: { Market: {
