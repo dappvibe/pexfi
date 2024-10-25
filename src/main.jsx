@@ -33,6 +33,7 @@ const router = createHashRouter( createRoutesFromElements(
             <Route path={"offer/edit/:offerId" } element={<OfferEdit/>} />
             <Route path={"deal/:dealId"} element={<DealPage />} />
         </Route>
+        <Route path={"/profile/:profile"} element={<Profile />} />
         <Route path={"/me"} element={<TradeLayout/>}>
             <Route index element={<Profile />} />
             <Route path={"offers"} element={<UserOffers />}/>
