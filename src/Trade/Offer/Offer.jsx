@@ -101,6 +101,9 @@ export default function OfferPage() {
             submit = <Button type={"primary"} htmlType="submit" loading={lockButton} disabled={!account}>Approve {offer.token}</Button>;
         }
     }
+    if (offer && offer.disabled) {
+        submit = <Button type={"primary"} disabled>Offer is disabled</Button>;
+    }
 
     if (!offer) return (<Skeleton active />);
     return (
@@ -115,7 +118,7 @@ export default function OfferPage() {
         >
             <Space>
             <Form.Item name={"tokenAmount"}>
-                <Input placeholder={"Crypto Amount"} suffix={offer.token}
+                <Input placeholder={"Crypto Amount"} suffix={offer.token} disabled={offer.disabled}
                        onChange={(e) => form.syncFiatAmount(e.target.value)}
                 />
             </Form.Item>
@@ -133,13 +136,13 @@ export default function OfferPage() {
                     },
                 }),
             ]}>
-                <Input placeholder={"Fiat Amount"} suffix={offer.fiat}
+                <Input placeholder={"Fiat Amount"} suffix={offer.fiat} disabled={offer.disabled}
                        onChange={(e) => form.syncTokenAmount(e.target.value)}
                 />
             </Form.Item>
             </Space>
             <Form.Item name={"paymentInstructions"}>
-                <Input.TextArea placeholder={"Payment instructions"}/>
+                <Input.TextArea placeholder={"Payment instructions"} disabled={offer.disabled}/>
             </Form.Item>
             <Form.Item>
                 {submit}
