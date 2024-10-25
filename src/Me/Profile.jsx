@@ -5,13 +5,17 @@ import LoadingButton from "../components/LoadingButton.jsx";
 import {Card, Descriptions, Result} from "antd";
 import Username from "@/components/Username.jsx";
 import {useAccount} from "wagmi";
+import {useParams} from "react-router-dom";
 
 export default function Profile()
 {
-    const { address } = useAccount();
+    let { address } = useAccount();
     const { RepToken, signed } = useContract();
     const [tokenId, setTokenId] = useState(null);
     const [stats, setStats] = useState({});
+
+    const { profile } = useParams();
+    if (profile) address = profile;
 
     useEffect(() => {
         if (address) {
@@ -77,6 +81,9 @@ export default function Profile()
             </Descriptions>
         </Card>
         );
+    }
+    else if (profile) {
+        return (<Result title={"This address does not have a profile token."} />);
     }
     else {
         return (<Result title={"You do not have a profile token yet."}
