@@ -25,6 +25,7 @@ contract DealFactory is UUPSUpgradeable, OwnableUpgradeable
 
         Offer $offer = Offer(offer_);
         require(msg.sender != $offer.owner(), UnauthorizedAccount(msg.sender));
+        require(!$offer.disabled(), "disabled");
 
         uint $tokenAmount = market.convert(fiatAmount_, $offer.fiat(), $offer.token(), $offer.rate());
 
