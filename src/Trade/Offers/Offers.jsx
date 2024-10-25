@@ -40,6 +40,7 @@ export default function Offers({offers: argOffers}) {
                 return Promise.all(offers.map(offer =>
                     Offer.fetch(OfferContract.attach(offer))));
             })
+            .then(offers => offers.filter(offer => !offer.disabled))
             .then((offers) => {
                 offers = offers.map(offer => offer.setPairPrice(price))
                 offers = offers.sort((a, b) => b.price - a.price);
