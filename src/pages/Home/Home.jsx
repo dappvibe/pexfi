@@ -45,49 +45,49 @@ export default function Home() {
     <>
         <div style={{ padding: '20px' }}>
             <header style={{ textAlign: 'center', marginBottom: '40px' }}>
-                <h1>Fully decentralized P2P crypto marketplace</h1>
-                <p>Trade ERC20 tokens on-chain securely and censorship-resistant.</p>
-                <p>Make crypto decentralized again. How it's meant to be: peer-to-peer.</p>
+                <h1>Fully Decentralized P2P Crypto Marketplace</h1>
+                <p>Trade ERC20 tokens securely and censorship-resistant — entirely on-chain.</p>
+                <p>Make crypto decentralized again, as it was meant to be: peer-to-peer.</p>
             </header>
             <Row gutter={16}>
                 <Col span={8}>
                     <Card title={'Unstoppable'}>
-                        <p>Marketplace has no central server.</p>
-                        <p>Client app connects directly to blockchain.</p>
-                        <p>It can be downloaded and used locally.</p>
+                        <p>The marketplace operates without a central server.</p>
+                        <p>The client app connects directly to the blockchain.</p>
+                        <p>Download and use it locally for a fully decentralized experience.</p>
                     </Card>
                 </Col>
                 <Col span={8}>
                     <Card title={"Non-custodial"}>
-                        <p>We don't have accounts here. Your crypto - your wallet.</p>
-                        <p>Each trade is a smart contract funded on-demand.</p>
+                        <p>No accounts needed — your crypto, your wallet.</p>
+                        <p>Each trade is facilitated by an on-demand funded smart contract.</p>
                     </Card>
                 </Col>
                 <Col span={8}>
                     <Card title={"Anonymous"}>
-                        <p>Platform does not touch the money and does not enforce KYC/AML.</p>
-                        <p>Traders may require KYC if they want.</p>
+                        <p>The platform does not handle funds and does not enforce KYC/AML requirements.</p>
+                        <p>Individual traders may request KYC if they choose.</p>
                     </Card>
                 </Col>
             </Row>
             <Row gutter={16}>
                 <Col span={8}>
                     <Card title={"No Limits"}>
-                        <p>Traders set their own rules of their ads. Any amounts goes.</p>
+                        <p>Traders set their own rules for their ads — any amount goes.</p>
                     </Card>
                 </Col>
                 <Col span={8}>
                     <Card title={"Tokenized Reputation"}>
-                        <p>Trading stats is an NFT making it flexible.</p>
-                        <p>Can be connected to multiple addresses, be transferred or sold.</p>
-                        <p>Your reputation is an asset.</p>
+                        <p>Trading stats are represented as an NFT, making it flexible.</p>
+                        <p>It can be linked to multiple addresses, transferred, or sold.</p>
+                        <p>Your reputation is your asset.</p>
                     </Card>
                 </Col>
                 <Col span={8}>
                     <Card title={"Secure"}>
-                        <p>Traded crypto is funded in smart contract.</p>
-                        <p>Dispute resolution system is in-place.</p>
-                        <p>Arbitrators can only release or revert payment. They can't send crypto somewhere else.</p>
+                        <p>Traded crypto is held in a smart contract for security.</p>
+                        <p>A dispute resolution system is in place.</p>
+                        <p>Arbitrators can only release or revert payments — they cannot redirect funds elsewhere.</p>
                     </Card>
                 </Col>
             </Row>
