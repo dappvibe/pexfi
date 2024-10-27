@@ -12,7 +12,9 @@ export default function Layout()
             <Topnav />
         </Header>
         <Content>
-            <Outlet />
+            <div className={"width-container"}>
+                <Outlet />
+            </div>
         </Content>
     </AntLayout>
     );
