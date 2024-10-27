@@ -1,7 +1,6 @@
-import {Button, Col, Flex, Menu, Row, Space} from "antd";
+import {Button, Flex, Menu, Space} from "antd";
 import {generatePath, Link, useParams} from "react-router-dom";
 import WalletMenu from "../components/WalletMenu.jsx";
-import {useWalletProvider} from "../hooks/useWalletProvider";
 import NetworkSelector from "@/components/NetworkSelector.jsx";
 import {useAccount} from "wagmi";
 
@@ -25,7 +24,7 @@ export default function Topnav()
         <div className={"width-container"}>
         <Flex justify={'space-between'}>
             <Flex>
-                <Link style={{width: 80}} to={"/"}>Logo</Link>
+                <Link style={{width: 80}} to={"/"}>SOV</Link>
                 <Menu mode={"horizontal"}
                       theme={"dark"}
                       items={top}
