@@ -1,6 +1,7 @@
 import {Layout as AntLayout} from "antd";
 import Topnav from "./Topnav.jsx";
 import {Outlet} from "react-router-dom";
+import {Footer} from "antd/es/layout/layout.js";
 
 const {Header, Content} = AntLayout;
 
@@ -16,6 +17,7 @@ export default function Layout()
                 <Outlet />
             </div>
         </Content>
+        <Footer />
     </AntLayout>
     );
 }
