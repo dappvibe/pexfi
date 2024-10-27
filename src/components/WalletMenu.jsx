@@ -37,7 +37,7 @@ export default function WalletMenu()
     else {
         return (
         <>
-            <Button style={{marginRight: 20}} onClick={() => setModalOpen(true)}>
+            <Button onClick={() => setModalOpen(true)}>
                 Connect Wallet
             </Button>
             {modalOpen && (
