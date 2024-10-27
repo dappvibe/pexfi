@@ -22,6 +22,7 @@ export default function Topnav()
     ];
 
     return (
+        <div className={"width-container"}>
         <Flex justify={'space-between'}>
             <Flex>
                 <Link style={{width: 80}} to={"/"}>Logo</Link>
@@ -42,5 +43,6 @@ export default function Topnav()
                 </Space>
             </Flex>
         </Flex>
+        </div>
     );
 }

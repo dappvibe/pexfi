@@ -43,7 +43,6 @@ export default function Home() {
 
     return (
     <>
-        <div style={{ padding: '20px' }}>
             <header style={{ textAlign: 'center', marginBottom: '40px' }}>
                 <h1>Fully Decentralized P2P Crypto Marketplace</h1>
                 <p>Trade ERC20 tokens securely and censorship-resistant — entirely on-chain.</p>
@@ -91,7 +90,6 @@ export default function Home() {
                     </Card>
                 </Col>
             </Row>
-        </div>
         <div>
             <h2>F.A.Q.</h2>
             <Collapse items={faq} />
