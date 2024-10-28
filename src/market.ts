@@ -7,6 +7,7 @@ import { Address, BigInt } from "@graphprotocol/graph-ts"
 
 export function handleOfferCreated(event: OfferCreatedEvent): void {
   let offer = new OfferEntity(event.params.offer.toHex())
+  offer.owner = event.params.owner
   offer.token = event.params.token.toHexString()
   offer.fiat = event.params.fiat.toHexString()
 
@@ -55,21 +56,19 @@ export function handleOfferCreated(event: OfferCreatedEvent): void {
   let repTokenContract = RepTokenContract.bind(repTokenAddress)
   let tokenIdResult = repTokenContract.try_ownerToTokenId(event.params.owner)
 
-  let profile = ProfileEntity.load(event.params.owner.toHexString())
-  if (profile == null) {
-    profile = new ProfileEntity(event.params.owner.toHexString())
-  }
-
   if (!tokenIdResult.reverted) {
     let tokenId = tokenIdResult.value
-
     if (tokenId != BigInt.fromI32(0)) {
-      // Fetch stats using tokenId
+      // if exists it will be updated
+      let profile = new ProfileEntity(tokenId.toHex())
+
       let stats = repTokenContract.try_stats(tokenId)
       if (!stats.reverted) {
         profile.createdAt = stats.value.value0.toI32()
         profile.upvotes = stats.value.value1.toI32()
         profile.downvotes = stats.value.value2.toI32()
+        let totalVotes = profile.upvotes + profile.downvotes;
+        profile.rating = totalVotes ? profile.upvotes / totalVotes * 100 : 0;
         profile.volumeUSD = stats.value.value3.toI32()
         profile.dealsCompleted = stats.value.value4.toI32()
         profile.dealsExpired = stats.value.value5.toI32()
@@ -77,10 +76,11 @@ export function handleOfferCreated(event: OfferCreatedEvent): void {
         profile.avgPaymentTime = stats.value.value7.toI32()
         profile.avgReleaseTime = stats.value.value8.toI32()
       }
+
+      profile.save()
+      offer.profile = profile.id
     }
   }
 
-  profile.save()
-  offer.owner = profile.id
   offer.save()
 }
