@@ -17,6 +17,7 @@
     "@uniswap/v3-core": "^1.0.1",
     "hardhat-ignore-warnings": "^0.2.11",
     "hardhat-tracer": "^3.0.1",
+    "solidity-docgen": "^0.6.0-beta.36",
     "ts-jest": "^29.1.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
