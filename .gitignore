@@ -5,3 +5,4 @@ out/
 artifacts/
 cache_hardhat/
 ignition/deployments/chain-31337/
+docs/
