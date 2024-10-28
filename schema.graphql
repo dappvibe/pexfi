@@ -1,43 +1,35 @@
 type Offer @entity {
   id: ID!
-  owner: Bytes! # address
-  rep: RepToken,
+  # at least Owner.ID is filled with address (if no token yet)
+  owner: Profile!,
   isSell: Boolean!
-  token: String!
+  token: Token!
   fiat: String!
   method: String!
   rate: Int!
-  minLimit: BigInt!
-  maxLimit: BigInt!
+  minFiat: Int!
+  maxFiat: Int!
   terms: String!
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+  blockTimestamp: Int!
 }
-type RepToken @entity {
+
+type Profile @entity {
   id: ID!
-  account: Bytes!
-  target: Bytes!
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-  createdAt: Int!
-  upvotes: Int!
-  downvotes: Int!
-  volumeUSD: BigInt!
-  dealsCompleted: Int!
-  dealsExpired: Int!
-  disputesLost: Int!
-  avgPaymentTime: Int!
-  avgReleaseTime: Int!
+  tokenId: Int
+  createdAt: Int
+  upvotes: Int
+  downvotes: Int
+  volumeUSD: Int
+  dealsCompleted: Int
+  dealsExpired: Int
+  disputesLost: Int
+  avgPaymentTime: Int
+  avgReleaseTime: Int
 }
+
 type Token @entity {
   id: ID!
   name: String!
   symbol: String!
   decimals: Int!
-  totalSupply: BigInt!
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
 }
