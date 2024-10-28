@@ -17,6 +17,7 @@ dataSources:
       language: wasm/assemblyscript
       entities:
         - Offer
+        - Profile
         - Token
       abis:
         - name: Market
@@ -25,6 +26,8 @@ dataSources:
           file: ./abis/Offer.json
         - name: Token
           file: ./abis/ERC20.json
+        - name: RepToken
+          file: ./abis/RepToken.json
       eventHandlers:
         - event: OfferCreated(indexed address,indexed string,indexed string,address)
           handler: handleOfferCreated
