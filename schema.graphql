@@ -1,0 +1,33 @@
+type Offer @entity(immutable: true) {
+  id: ID!
+  owner: Bytes! # address
+  rep: RepToken!,
+  isSell: Boolean!
+  token: String!
+  fiat: String!
+  method: String!
+  rate: Int!
+  minLimit: Int!
+  maxLimit: Int!
+  terms: String!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+type RepToken @entity {
+  id: ID!
+  account: Bytes!
+  target: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  createdAt: Int!
+  upvotes: Int!
+  downvotes: Int!
+  volumeUSD: BigInt!
+  dealsCompleted: Int!
+  dealsExpired: Int!
+  disputesLost: Int!
+  avgPaymentTime: Int!
+  avgReleaseTime: Int!
+}

@@ -1,0 +1,598 @@
+[
+  {
+    "inputs": [
+      { "internalType": "address", "name": "target", "type": "address" }
+    ],
+    "name": "AddressEmptyCode",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "account", "type": "address" }
+    ],
+    "name": "AddressInsufficientBalance",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "implementation", "type": "address" }
+    ],
+    "name": "ERC1967InvalidImplementation",
+    "type": "error"
+  },
+  { "inputs": [], "name": "ERC1967NonPayable", "type": "error" },
+  { "inputs": [], "name": "FailedInnerCall", "type": "error" },
+  {
+    "inputs": [{ "internalType": "string", "name": "fiat", "type": "string" }],
+    "name": "InvalidFiat",
+    "type": "error"
+  },
+  { "inputs": [], "name": "InvalidInitialization", "type": "error" },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "method", "type": "string" }
+    ],
+    "name": "InvalidMethod",
+    "type": "error"
+  },
+  {
+    "inputs": [{ "internalType": "string", "name": "token", "type": "string" }],
+    "name": "InvalidToken",
+    "type": "error"
+  },
+  { "inputs": [], "name": "NotInitializing", "type": "error" },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "owner", "type": "address" }
+    ],
+    "name": "OwnableInvalidOwner",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "account", "type": "address" }
+    ],
+    "name": "OwnableUnauthorizedAccount",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "token", "type": "address" }
+    ],
+    "name": "SafeERC20FailedOperation",
+    "type": "error"
+  },
+  { "inputs": [], "name": "UUPSUnauthorizedCallContext", "type": "error" },
+  {
+    "inputs": [
+      { "internalType": "bytes32", "name": "slot", "type": "bytes32" }
+    ],
+    "name": "UUPSUnsupportedProxiableUUID",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "account", "type": "address" }
+    ],
+    "name": "UnauthorizedAccount",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "offerOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "taker",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "offer",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "deal",
+        "type": "address"
+      }
+    ],
+    "name": "DealCreated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint64",
+        "name": "version",
+        "type": "uint64"
+      }
+    ],
+    "name": "Initialized",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "string",
+        "name": "token",
+        "type": "string"
+      },
+      {
+        "indexed": true,
+        "internalType": "string",
+        "name": "fiat",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "contract Offer",
+        "name": "offer",
+        "type": "address"
+      }
+    ],
+    "name": "OfferCreated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "implementation",
+        "type": "address"
+      }
+    ],
+    "name": "Upgraded",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "UPGRADE_INTERFACE_VERSION",
+    "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "contract Deal", "name": "deal", "type": "address" }
+    ],
+    "name": "addDeal",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          { "internalType": "string", "name": "symbol", "type": "string" },
+          {
+            "internalType": "contract IChainlink",
+            "name": "toUSD",
+            "type": "address"
+          }
+        ],
+        "internalType": "struct Fiats.Fiat[]",
+        "name": "fiats_",
+        "type": "tuple[]"
+      }
+    ],
+    "name": "addFiats",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          { "internalType": "string", "name": "name", "type": "string" },
+          {
+            "internalType": "enum Methods.Group",
+            "name": "group",
+            "type": "uint8"
+          }
+        ],
+        "internalType": "struct Methods.Method[]",
+        "name": "new_",
+        "type": "tuple[]"
+      }
+    ],
+    "name": "addMethods",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "contract Offer", "name": "offer", "type": "address" }
+    ],
+    "name": "addOffer",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address[]", "name": "tokens_", "type": "address[]" },
+      { "internalType": "uint16", "name": "uniswapPoolFee", "type": "uint16" }
+    ],
+    "name": "addTokens",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "amount_", "type": "uint256" },
+      { "internalType": "string", "name": "fromFiat_", "type": "string" },
+      { "internalType": "string", "name": "toToken_", "type": "string" },
+      { "internalType": "uint256", "name": "denominator", "type": "uint256" }
+    ],
+    "name": "convert",
+    "outputs": [
+      { "internalType": "uint256", "name": "$amount", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "dealFactory",
+    "outputs": [
+      { "internalType": "contract DealFactory", "name": "", "type": "address" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "symbol_", "type": "string" }
+    ],
+    "name": "fiat",
+    "outputs": [
+      {
+        "components": [
+          { "internalType": "string", "name": "symbol", "type": "string" },
+          {
+            "internalType": "contract IChainlink",
+            "name": "toUSD",
+            "type": "address"
+          }
+        ],
+        "internalType": "struct Fiats.Fiat",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "fundDeal",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getFiats",
+    "outputs": [
+      { "internalType": "bytes32[]", "name": "", "type": "bytes32[]" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getMethods",
+    "outputs": [
+      {
+        "components": [
+          { "internalType": "string", "name": "name", "type": "string" },
+          {
+            "internalType": "enum Methods.Group",
+            "name": "group",
+            "type": "uint8"
+          }
+        ],
+        "internalType": "struct Methods.Method[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bool", "name": "isSell_", "type": "bool" },
+      { "internalType": "string", "name": "token_", "type": "string" },
+      { "internalType": "string", "name": "fiat_", "type": "string" },
+      { "internalType": "string", "name": "method_", "type": "string" }
+    ],
+    "name": "getOffers",
+    "outputs": [
+      { "internalType": "address[]", "name": "", "type": "address[]" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "token_", "type": "string" },
+      { "internalType": "string", "name": "fiat_", "type": "string" }
+    ],
+    "name": "getPrice",
+    "outputs": [
+      { "internalType": "uint256", "name": "price", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getTokens",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "contract IERC20Metadata",
+            "name": "api",
+            "type": "address"
+          },
+          { "internalType": "string", "name": "symbol", "type": "string" },
+          { "internalType": "string", "name": "name", "type": "string" },
+          { "internalType": "uint8", "name": "decimals", "type": "uint8" },
+          {
+            "internalType": "uint16",
+            "name": "uniswapPoolFee",
+            "type": "uint16"
+          }
+        ],
+        "internalType": "struct Tokens.Token[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "offer_", "type": "address" }
+    ],
+    "name": "hasOffer",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "offerFactory_", "type": "address" },
+      { "internalType": "address", "name": "dealFactory_", "type": "address" },
+      { "internalType": "address", "name": "repToken_", "type": "address" },
+      { "internalType": "address", "name": "uniswap_", "type": "address" }
+    ],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "mediator",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "symbol_", "type": "string" }
+    ],
+    "name": "method",
+    "outputs": [
+      {
+        "components": [
+          { "internalType": "string", "name": "name", "type": "string" },
+          {
+            "internalType": "enum Methods.Group",
+            "name": "group",
+            "type": "uint8"
+          }
+        ],
+        "internalType": "struct Methods.Method",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "offerFactory",
+    "outputs": [
+      { "internalType": "contract OfferFactory", "name": "", "type": "address" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "proxiableUUID",
+    "outputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "string[]", "name": "fiat_", "type": "string[]" }
+    ],
+    "name": "removeFiats",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "string[]", "name": "names_", "type": "string[]" }
+    ],
+    "name": "removeMethods",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "string[]", "name": "token_", "type": "string[]" }
+    ],
+    "name": "removeTokens",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "repToken",
+    "outputs": [
+      { "internalType": "contract RepToken", "name": "", "type": "address" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "dealFactory_", "type": "address" }
+    ],
+    "name": "setDealFactory",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "mediator_", "type": "address" }
+    ],
+    "name": "setMediator",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "offerFactory_", "type": "address" }
+    ],
+    "name": "setOfferFactory",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "symbol_", "type": "string" }
+    ],
+    "name": "token",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "contract IERC20Metadata",
+            "name": "api",
+            "type": "address"
+          },
+          { "internalType": "string", "name": "symbol", "type": "string" },
+          { "internalType": "string", "name": "name", "type": "string" },
+          { "internalType": "uint8", "name": "decimals", "type": "uint8" },
+          {
+            "internalType": "uint16",
+            "name": "uniswapPoolFee",
+            "type": "uint16"
+          }
+        ],
+        "internalType": "struct Tokens.Token",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "newOwner", "type": "address" }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newImplementation",
+        "type": "address"
+      },
+      { "internalType": "bytes", "name": "data", "type": "bytes" }
+    ],
+    "name": "upgradeToAndCall",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  }
+]
