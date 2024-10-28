@@ -1,14 +1,14 @@
-type Offer @entity(immutable: true) {
+type Offer @entity {
   id: ID!
   owner: Bytes! # address
-  rep: RepToken!,
+  rep: RepToken,
   isSell: Boolean!
   token: String!
   fiat: String!
   method: String!
   rate: Int!
-  minLimit: Int!
-  maxLimit: Int!
+  minLimit: BigInt!
+  maxLimit: BigInt!
   terms: String!
   blockNumber: BigInt!
   blockTimestamp: BigInt!
@@ -30,4 +30,14 @@ type RepToken @entity {
   disputesLost: Int!
   avgPaymentTime: Int!
   avgReleaseTime: Int!
+}
+type Token @entity {
+  id: ID!
+  name: String!
+  symbol: String!
+  decimals: Int!
+  totalSupply: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
 }
