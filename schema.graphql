@@ -1,9 +1,9 @@
 type Offer @entity {
   id: ID!
-  # at least Owner.ID is filled with address (if no token yet)
-  owner: Profile!,
+  owner: Bytes!
+  profile: Profile
   isSell: Boolean!
-  token: Token!
+  token: String!
   fiat: String!
   method: String!
   rate: Int!
@@ -13,21 +13,22 @@ type Offer @entity {
   blockTimestamp: Int!
 }
 
+# Rep NFT
 type Profile @entity {
   id: ID!
-  tokenId: Int
-  createdAt: Int
-  upvotes: Int
-  downvotes: Int
-  volumeUSD: Int
-  dealsCompleted: Int
-  dealsExpired: Int
-  disputesLost: Int
-  avgPaymentTime: Int
-  avgReleaseTime: Int
+  createdAt: Int!
+  rating: Int!
+  upvotes: Int!
+  downvotes: Int!
+  volumeUSD: Int!
+  dealsCompleted: Int!
+  dealsExpired: Int!
+  disputesLost: Int!
+  avgPaymentTime: Int!
+  avgReleaseTime: Int!
 }
 
-type Token @entity {
+type Token @entity(immutable: true) {
   id: ID!
   name: String!
   symbol: String!
