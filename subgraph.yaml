@@ -1,0 +1,32 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: Market
+    network: arbitrum-one
+    source:
+      address: "0xB82008565FdC7e44609fA118A4a681E92581e680"
+      abi: Market
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - DealCreated
+        - Initialized
+        - OfferCreated
+        - OwnershipTransferred
+        - Upgraded
+      abis:
+        - name: Market
+          file: ./abis/Market.json
+      eventHandlers:
+        - event: DealCreated(indexed address,indexed address,indexed address,address)
+          handler: handleDealCreated
+        - event: OfferCreated(indexed address,indexed string,indexed string,address)
+          handler: handleOfferCreated
+      file: ./src/market.ts
