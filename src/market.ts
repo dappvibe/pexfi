@@ -8,8 +8,7 @@ import { Address, BigInt } from "@graphprotocol/graph-ts"
 export function handleOfferCreated(event: OfferCreatedEvent): void {
   let offer = new OfferEntity(event.params.offer.toHex())
   offer.owner = event.params.owner
-  offer.token = event.params.token.toHexString()
-  offer.fiat = event.params.fiat.toHexString()
+  // for some reason token/fiat from event is not a valid string
 
   // Fetch data from the newly created Offer contract
   let offerContract = OfferContract.bind(event.params.offer as Address)
@@ -17,6 +16,16 @@ export function handleOfferCreated(event: OfferCreatedEvent): void {
   let isSellResult = offerContract.try_isSell()
   if (!isSellResult.reverted) {
     offer.isSell = isSellResult.value
+  }
+
+  let tokenResult = offerContract.try_token()
+  if (!tokenResult.reverted) {
+      offer.token = tokenResult.value
+  }
+
+  let fiatResult = offerContract.try_fiat()
+  if (!fiatResult.reverted) {
+      offer.fiat = fiatResult.value
   }
 
   let methodResult = offerContract.try_method()
