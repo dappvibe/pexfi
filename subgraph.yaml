@@ -16,17 +16,16 @@ dataSources:
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - DealCreated
-        - Initialized
-        - OfferCreated
-        - OwnershipTransferred
-        - Upgraded
+        - Offer
+        - Token
       abis:
         - name: Market
           file: ./abis/Market.json
+        - name: Offer
+          file: ./abis/Offer.json
+        - name: Token
+          file: ./abis/ERC20.json
       eventHandlers:
-        - event: DealCreated(indexed address,indexed address,indexed address,address)
-          handler: handleDealCreated
         - event: OfferCreated(indexed address,indexed string,indexed string,address)
           handler: handleOfferCreated
       file: ./src/market.ts
