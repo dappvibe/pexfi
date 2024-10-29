@@ -28,6 +28,17 @@ type Profile @entity {
   avgReleaseTime: Int!
 }
 
+type Deal @entity {
+  id: ID!
+  state: Int8!
+  offer: Offer!
+  taker: Bytes!
+  tokenAmount: BigInt!
+  fiatAmount: BigInt!
+  paymentInstructions: String!
+  blockTimestamp: Int!
+}
+
 type Token @entity(immutable: true) {
   id: ID!
   name: String!

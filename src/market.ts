@@ -1,9 +1,10 @@
-import { OfferCreated as OfferCreatedEvent } from "../generated/Market/Market"
-import { Offer as OfferEntity, Profile as ProfileEntity } from "../generated/schema"
-import { Offer as OfferContract } from "../generated/Market/Offer"
-import { Market as MarketContract } from "../generated/Market/Market"
-import { RepToken as RepTokenContract } from "../generated/Market/RepToken"
-import { Address, BigInt } from "@graphprotocol/graph-ts"
+import {DealCreated, Market as MarketContract, OfferCreated as OfferCreatedEvent} from "../generated/Market/Market"
+import {Deal as DealEntity, Offer as OfferEntity} from "../generated/schema"
+import {Offer as OfferContract} from "../generated/Market/Offer"
+import {Address, DataSourceContext} from "@graphprotocol/graph-ts"
+import {Deal as DealTemplate} from "../generated/templates";
+import {Deal as DealContract} from "../generated/templates/Deal/Deal"
+import {updateProfileFor} from "./profile";
 
 export function handleOfferCreated(event: OfferCreatedEvent): void {
   let offer = new OfferEntity(event.params.offer.toHex())
@@ -60,36 +61,58 @@ export function handleOfferCreated(event: OfferCreatedEvent): void {
   }
 
   let repTokenAddress = repTokenAddressResult.value
+  let profile = updateProfileFor(repTokenAddress, event.params.owner)
+  if (profile) {
+    offer.profile = profile.id
+  }
+  offer.save()
+}
 
-  // Fetch tokenId from RepToken contract using ownerToTokenId
-  let repTokenContract = RepTokenContract.bind(repTokenAddress)
-  let tokenIdResult = repTokenContract.try_ownerToTokenId(event.params.owner)
+export function handleDealCreated(event: DealCreated): void {
+  // Create a new Deal entity
+  let deal = new DealEntity(event.params.deal.toHex())
 
-  if (!tokenIdResult.reverted) {
-    let tokenId = tokenIdResult.value
-    if (tokenId != BigInt.fromI32(0)) {
-      // if exists it will be updated
-      let profile = new ProfileEntity(tokenId.toHex())
+  // Bind the Deal contract to the event address
+  let dealContract = DealContract.bind(event.params.deal as Address)
 
-      let stats = repTokenContract.try_stats(tokenId)
-      if (!stats.reverted) {
-        profile.createdAt = stats.value.value0.toI32()
-        profile.upvotes = stats.value.value1.toI32()
-        profile.downvotes = stats.value.value2.toI32()
-        let totalVotes = profile.upvotes + profile.downvotes;
-        profile.rating = totalVotes ? profile.upvotes / totalVotes * 100 : 0;
-        profile.volumeUSD = stats.value.value3.toI32()
-        profile.dealsCompleted = stats.value.value4.toI32()
-        profile.dealsExpired = stats.value.value5.toI32()
-        profile.disputesLost = stats.value.value6.toI32()
-        profile.avgPaymentTime = stats.value.value7.toI32()
-        profile.avgReleaseTime = stats.value.value8.toI32()
-      }
-
-      profile.save()
-      offer.profile = profile.id
-    }
+  // Request data from the Deal contract
+  let stateResult = dealContract.try_state()
+  if (!stateResult.reverted) {
+    deal.state = stateResult.value
   }
 
-  offer.save()
+  let offerResult = dealContract.try_offer()
+  if (!offerResult.reverted) {
+    deal.offer = offerResult.value.toHex()
+  }
+
+  let takerResult = dealContract.try_taker()
+  if (!takerResult.reverted) {
+    deal.taker = takerResult.value
+  }
+
+  let tokenAmountResult = dealContract.try_tokenAmount()
+  if (!tokenAmountResult.reverted) {
+    deal.tokenAmount = tokenAmountResult.value
+  }
+
+  let fiatAmountResult = dealContract.try_fiatAmount()
+  if (!fiatAmountResult.reverted) {
+    deal.fiatAmount = fiatAmountResult.value
+  }
+
+  let paymentInstructionsResult = dealContract.try_paymentInstructions()
+  if (!paymentInstructionsResult.reverted) {
+    deal.paymentInstructions = paymentInstructionsResult.value
+  }
+
+  deal.blockTimestamp = event.block.timestamp.toI32()
+
+  // Save the Deal entity
+  deal.save()
+
+  // start listening to events from the new Deal contract
+  let context = new DataSourceContext()
+  context.setString('marketAddress', event.address.toHexString())
+  DealTemplate.createWithContext(event.params.deal, context)
 }

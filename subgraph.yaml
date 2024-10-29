@@ -28,7 +28,36 @@ dataSources:
           file: ./abis/ERC20.json
         - name: RepToken
           file: ./abis/RepToken.json
+        - name: Deal
+          file: ./abis/Deal.json
       eventHandlers:
         - event: OfferCreated(indexed address,indexed string,indexed string,address)
           handler: handleOfferCreated
+        - event: DealCreated(indexed address,indexed address,indexed address,address)
+          handler: handleDealCreated
       file: ./src/market.ts
+templates:
+  - kind: ethereum/contract
+    name: Deal
+    network: arbitrum-one
+    source:
+      abi: Deal
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Deal
+      abis:
+        - name: Market
+          file: ./abis/Market.json
+        - name: RepToken
+          file: ./abis/RepToken.json
+        - name: Deal
+          file: ./abis/Deal.json
+      eventHandlers:
+        - event: DealState(uint8)
+          handler: handleDealState
+        - event: FeedbackGiven(indexed address,bool,string)
+          handler: handleFeedbackGiven
+      file: ./src/deal.ts
