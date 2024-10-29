@@ -1,13 +1,13 @@
-import {Button, Form, Input, message, Radio, Result} from "antd";
+import {Button, Form, Input, Radio, Result} from "antd";
 import {DealContext} from "@/Trade/Deal/Deal.jsx";
 import {useContext, useEffect, useState} from "react";
-import {useWalletProvider} from "@/hooks/useWalletProvider";
 import {useContract} from "@/hooks/useContract.jsx";
+import {useAccount} from "wagmi";
 
 export default function Feedback()
 {
     const {deal} = useContext(DealContext);
-    const {account} = useWalletProvider();
+    const {address: account} = useAccount()
     const {signed} = useContract();
     const [given, setGiven] = useState(false);
 
