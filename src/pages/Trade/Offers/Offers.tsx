@@ -1,6 +1,6 @@
 import {generatePath, useNavigate, useParams} from "react-router-dom";
 import React, {useEffect, useState} from "react";
-import {Input, Select, Skeleton, Space} from "antd";
+import {Input, message, Select, Skeleton, Space} from "antd";
 import OffersTable from "./OffersTable";
 import {useContract} from "@/hooks/useContract.jsx";
 import {useChainId} from "wagmi";
@@ -103,6 +103,13 @@ export default function Offers({offers: argOffers})
             }
         }
     }, [filterAmount, allOffers]);
+
+    useEffect(() => {
+        if (error) {
+            console.error(error.message);
+            message.error('Failed to load offers');
+        }
+    }, [error]);
 
     return (<>
     <Space style={{margin: '10px 0 0 10px'}}>
