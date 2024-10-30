@@ -1,7 +1,7 @@
 import {useWalletProvider} from "@/hooks/useWalletProvider";
 import {useEffect, useState} from "react";
 import Offer from "@/model/Offer.js";
-import Offers from "@/Trade/Offers/Offers.jsx";
+import Offers from "@/pages/Trade/Offers/Offers";
 import {Skeleton} from "antd";
 import {useAccount} from "wagmi";
 import {useContract} from "@/hooks/useContract.jsx";
