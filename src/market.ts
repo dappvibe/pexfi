@@ -1,61 +1,17 @@
 import {DealCreated, Market as MarketContract, OfferCreated as OfferCreatedEvent} from "../generated/Market/Market"
-import {Deal as DealEntity, Offer as OfferEntity} from "../generated/schema"
-import {Offer as OfferContract} from "../generated/Market/Offer"
+import {Deal as DealEntity } from "../generated/schema"
 import {Address, DataSourceContext} from "@graphprotocol/graph-ts"
 import {Deal as DealTemplate} from "../generated/templates";
+import {Offer as OfferTemplate} from "../generated/templates";
 import {Deal as DealContract} from "../generated/templates/Deal/Deal"
 import {updateProfileFor} from "./profile";
+import {fetchAndSaveOffer} from "./offer";
 
 export function handleOfferCreated(event: OfferCreatedEvent): void {
-  let offer = new OfferEntity(event.params.offer.toHex())
-  offer.owner = event.params.owner
-  // for some reason token/fiat from event is not a valid string
+  // start indexind the offer and delegate first fetch
+  OfferTemplate.create(event.params.offer);
 
-  // Fetch data from the newly created Offer contract
-  let offerContract = OfferContract.bind(event.params.offer as Address)
-
-  let isSellResult = offerContract.try_isSell()
-  if (!isSellResult.reverted) {
-    offer.isSell = isSellResult.value
-  }
-
-  let tokenResult = offerContract.try_token()
-  if (!tokenResult.reverted) {
-      offer.token = tokenResult.value
-  }
-
-  let fiatResult = offerContract.try_fiat()
-  if (!fiatResult.reverted) {
-      offer.fiat = fiatResult.value
-  }
-
-  let methodResult = offerContract.try_method()
-  if (!methodResult.reverted) {
-    offer.method = methodResult.value
-  }
-
-  let rateResult = offerContract.try_rate()
-  if (!rateResult.reverted) {
-    offer.rate = rateResult.value
-  }
-
-  let limitsResult = offerContract.try_limits()
-  if (!limitsResult.reverted) {
-    offer.minFiat = limitsResult.value.getMin().toI32()
-    offer.maxFiat = limitsResult.value.getMax().toI32()
-  }
-
-  let termsResult = offerContract.try_terms()
-  if (!termsResult.reverted) {
-    offer.terms = termsResult.value
-  }
-
-  let disabledResult = offerContract.try_disabled()
-  if (!disabledResult.reverted) {
-      offer.disabled = disabledResult.value
-  }
-
-  offer.blockTimestamp = event.block.timestamp.toI32()
+  const offer = fetchAndSaveOffer(event.params.offer);
 
   // Fetch RepToken address from Market contract
   let marketContract = MarketContract.bind(event.address)
