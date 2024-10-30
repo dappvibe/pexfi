@@ -13,7 +13,7 @@ export default function Username({address, avatar = false, profile = null})
         trades = profile.dealsCompleted
         rating = profile.rating
     } else {
-        trades = '0';
+        trades = '-';
         rating = '??'
     }
 
