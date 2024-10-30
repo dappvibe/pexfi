@@ -1,23 +1,25 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import {createHashRouter, createRoutesFromElements, Navigate, Route, RouterProvider} from "react-router-dom";
+import {WagmiProvider} from "wagmi";
+import {config} from "@/wagmi.config.ts";
+import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
+import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
+import { persistQueryClient } from '@tanstack/react-query-persist-client';
+import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
 
 import './main.css'
 import {WalletProvider} from "./hooks/WalletProvider";
+
 import Layout from "./Layout";
 import Home from "./pages/Home/Home.jsx";
 import Profile from "@/Me/Profile.jsx";
 import DealPage from "@/Trade/Deal/Deal.jsx";
 import UserDeals from "@/Me/UserDeals.jsx";
 import TradeLayout from "@/Trade/TradeLayout.jsx";
-import Offers from "@/Trade/Offers/Offers.jsx";
+import Offers from "@/pages/Trade/Offers/Offers.tsx";
 import UserOffers from "@/Me/Offers/UserOffers.jsx";
-import {WagmiProvider} from "wagmi";
-import {config} from "@/wagmi.config.ts";
-import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import OfferPage from "@/Trade/Offer/Offer.jsx";
-import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
-import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import OfferEdit from "@/pages/Trade/Offer/OfferEdit.jsx";
 import OfferNew from "@/pages/Trade/Offer/OfferNew.jsx";
 
@@ -46,7 +48,6 @@ const queryClient = new QueryClient()
 const localStoragePersister = createSyncStoragePersister({
     storage: window.localStorage,
 });
-
 persistQueryClient({
     queryClient,
     persister: localStoragePersister,
@@ -56,12 +57,19 @@ persistQueryClient({
     },
 });
 
+const apolloClient = new ApolloClient({
+    uri: 'http://localhost:8000/subgraphs/name/sov',
+    cache: new InMemoryCache()
+});
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
       <WagmiProvider config={config}>
           <QueryClientProvider client={queryClient}>
               <WalletProvider>
-                  <RouterProvider router={router} />
+                  <ApolloProvider client={apolloClient}>
+                      <RouterProvider router={router} />
+                  </ApolloProvider>
               </WalletProvider>
           </QueryClientProvider>
       </WagmiProvider>
