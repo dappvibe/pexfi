@@ -1,11 +1,11 @@
 import {Avatar, Button, Divider, Space, Table, Tag} from "antd";
 import {Link, useParams} from "react-router-dom";
 import PropTypes from "prop-types";
-import Username from "@/components/Username.jsx";
+import Username from "@/components/Username";
 import {formatMoney} from "@/utils.js";
 import {useAccount} from "wagmi";
 
-export default function OffersTable({offers})
+export default function OffersTable({offers, loading})
 {
     const { address } = useAccount();
     let {
@@ -23,7 +23,7 @@ export default function OffersTable({offers})
                 if (address && offer.owner.toLowerCase() === address.toLowerCase()) {
                     return (
                         <Space>
-                            <Link to={`/trade/offer/edit/${offer.address}`}>
+                            <Link to={`/trade/offer/edit/${offer.id}`}>
                                 <Button type="primary">Edit</Button>
                             </Link>
                         </Space>
@@ -31,7 +31,7 @@ export default function OffersTable({offers})
                 } else {
                     return (
                         <Space size={"middle"}>
-                            <Link to={`/trade/offer/${offer.address}`}>
+                            <Link to={`/trade/offer/${offer.id}`}>
                                 <Button>{offer.isSell ? 'Buy' : 'Sell'}</Button>
                             </Link>
                         </Space>
@@ -43,16 +43,16 @@ export default function OffersTable({offers})
             title: 'Price',
             width: 0,
             dataIndex: 'price',
-            sorter: (a, b) => a.price - b.price,
-            defaultSortOrder: 'descend',
+            //sorter: (a, b) => a.price - b.price,
+            //defaultSortOrder: 'descend',
             render: (text) => <b>{formatMoney(fiat, text)}</b>,
         },
         {
             title: 'Limits',
             width: 120,
             responsive: ['sm'],
-            sorter: (a, b) => a.min - b.min,
-            render: (text, offer) => <span>{`${offer.min} - ${offer.max}`}</span>
+            //sorter: (a, b) => a.minFiat - b.minFiat,
+            render: (text, offer) => <span>{`${offer.minFiat} - ${offer.maxFiat}`}</span>
         },
         //Table.EXPAND_COLUMN,
         {
@@ -66,7 +66,7 @@ export default function OffersTable({offers})
                         src={'https://effigy.im/a/'+offer.owner+'.svg'}
                         draggable={false}
                     />
-                    <Username address={offer.owner} />
+                    <Username address={offer.owner} profile={offer.profile} />
                 </Space>
             )
         },
@@ -89,8 +89,8 @@ export default function OffersTable({offers})
         <>
         <Divider orientation={"left"}>
         </Divider>
-        <Table columns={columns} dataSource={offers} pagination={false}
-               rowKey={offer => offer.address}
+        <Table columns={columns} dataSource={offers} pagination={false} loading={loading}
+               rowKey={offer => offer.id}
                showSorterTooltip={false} /*Buggy tooltip blinks on render*/
                title={title}
                /*expandable={{

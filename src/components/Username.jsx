@@ -6,30 +6,16 @@ import {Link} from "react-router-dom";
 import {useEffect, useState} from "react";
 import {useContract} from "@/hooks/useContract.jsx";
 
-export default function Username({address, avatar = false})
+export default function Username({address, avatar = false, profile = null})
 {
-    const { RepToken } = useContract();
-
-    const [ trades, setTrades ] = useState('0');
-    const [ rating, setRating ] = useState('0');
-
-    useEffect(() => {
-        if (RepToken) {
-            RepToken.ownerToTokenId(address).then(tokenId => {
-                RepToken.stats(tokenId).then(stats => {
-                    setTrades(String(stats[5]));
-                    const upvotes = Number(stats[1]);
-                    const downvotes = Number(stats[2]);
-                    const total = upvotes + downvotes;
-                    if (total === 0) {
-                        return setRating('- ');
-                    } else {
-                        setRating(String(upvotes / total * 100));
-                    }
-                });
-            });
-        }
-    });
+    let trades, rating;
+    if (profile) {
+        trades = profile.dealsCompleted
+        rating = profile.rating
+    } else {
+        trades = '0';
+        rating = '??'
+    }
 
     const link = (
         <Link to={"/profile/"+address}>{formatAddress(address)} ({trades}; {rating}%)</Link>
