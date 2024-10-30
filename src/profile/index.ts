@@ -27,11 +27,7 @@ export function updateProfileFor(repTokenAddress: Address, ownerAddress: Address
                 profile.disputesLost = stats.value.value6.toI32()
                 profile.avgPaymentTime = stats.value.value7.toI32()
                 profile.avgReleaseTime = stats.value.value8.toI32()
-                if (profile.rating >= PROFILE_GOODSTANDING_RATING && profile.dealsCompleted >= PROFILE_GOODSTANDING_DEALS) {
-                    profile.lineup = 1;
-                } else {
-                    profile.lineup = 0;
-                }
+                profile.goodstanding = profile.rating >= PROFILE_GOODSTANDING_RATING && profile.dealsCompleted >= PROFILE_GOODSTANDING_DEALS;
                 profile.save()
                 return profile;
             }
