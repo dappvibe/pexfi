@@ -2,6 +2,10 @@ import {RepToken as RepTokenContract} from "../../generated/Market/RepToken";
 import {Address, BigInt} from "@graphprotocol/graph-ts";
 import {Profile as ProfileEntity} from "../../generated/schema";
 
+// lower than that will be drowned in the offers list
+const PROFILE_GOODSTANDING_RATING = 75;
+const PROFILE_GOODSTANDING_DEALS = 3;
+
 export function updateProfileFor(repTokenAddress: Address, ownerAddress: Address) : ProfileEntity | null {
     // Fetch tokenId from RepToken contract using ownerToTokenId
     let repTokenContract = RepTokenContract.bind(repTokenAddress)
@@ -23,6 +27,11 @@ export function updateProfileFor(repTokenAddress: Address, ownerAddress: Address
                 profile.disputesLost = stats.value.value6.toI32()
                 profile.avgPaymentTime = stats.value.value7.toI32()
                 profile.avgReleaseTime = stats.value.value8.toI32()
+                if (profile.rating >= PROFILE_GOODSTANDING_RATING && profile.dealsCompleted >= PROFILE_GOODSTANDING_DEALS) {
+                    profile.lineup = 1;
+                } else {
+                    profile.lineup = 0;
+                }
                 profile.save()
                 return profile;
             }

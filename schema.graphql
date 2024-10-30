@@ -18,6 +18,8 @@ type Offer @entity {
 type Profile @entity {
   id: ID!
   createdAt: Int!
+  # sort order group to display ads, higher number - higher sorting
+  lineup: Int!
   rating: Int!
   upvotes: Int!
   downvotes: Int!
