@@ -6,6 +6,8 @@ import {UnauthorizedAccount} from "./libraries/Errors.sol";
 
 contract Offer
 {
+    event OfferUpdated();
+
     struct Limits {
         uint32 min;
         uint32 max;
@@ -46,18 +48,22 @@ contract Offer
         require(msg.sender == owner, UnauthorizedAccount(msg.sender));
         require(rate_ > 0, "rate");
         rate = rate_;
+        emit OfferUpdated();
     }
     function setLimits(Limits memory limits_) public {
         require(msg.sender == owner, UnauthorizedAccount(msg.sender));
         require (limits_.min < limits_.max, 'limits');
         limits = limits_;
+        emit OfferUpdated();
     }
     function setTerms(string memory terms_) public {
         require(msg.sender == owner, UnauthorizedAccount(msg.sender));
         terms = terms_;
+        emit OfferUpdated();
     }
     function setDisabled(bool disabled_) public {
         require(msg.sender == owner, UnauthorizedAccount(msg.sender));
         disabled = disabled_;
+        emit OfferUpdated();
     }
 }
