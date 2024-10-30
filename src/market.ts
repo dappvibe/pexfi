@@ -50,6 +50,11 @@ export function handleOfferCreated(event: OfferCreatedEvent): void {
     offer.terms = termsResult.value
   }
 
+  let disabledResult = offerContract.try_disabled()
+  if (!disabledResult.reverted) {
+      offer.disabled = disabledResult.value
+  }
+
   offer.blockTimestamp = event.block.timestamp.toI32()
 
   // Fetch RepToken address from Market contract

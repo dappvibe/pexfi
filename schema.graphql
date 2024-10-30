@@ -10,6 +10,7 @@ type Offer @entity {
   minFiat: Int!
   maxFiat: Int!
   terms: String!
+  disabled: Boolean!
   blockTimestamp: Int!
 }
 
