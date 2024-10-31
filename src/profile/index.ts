@@ -6,6 +6,11 @@ import {Profile as ProfileEntity} from "../../generated/schema";
 const PROFILE_GOODSTANDING_RATING = 75;
 const PROFILE_GOODSTANDING_DEALS = 3;
 
+export function getRangingModifier(profile: ProfileEntity | null) : i32 {
+    if (!profile) return 1;
+    return profile.goodstanding ? 100 : 10;
+}
+
 export function updateProfileFor(repTokenAddress: Address, ownerAddress: Address) : ProfileEntity | null {
     // Fetch tokenId from RepToken contract using ownerToTokenId
     let repTokenContract = RepTokenContract.bind(repTokenAddress)

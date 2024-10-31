@@ -9,24 +9,11 @@ import {fetchAndSaveOffer} from "./offer";
 
 export function handleOfferCreated(event: OfferCreatedEvent): void {
   // start indexind the offer and delegate first fetch
-  OfferTemplate.create(event.params.offer);
+  let context = new DataSourceContext()
+  context.setString('marketAddress', event.address.toHexString())
+  OfferTemplate.createWithContext(event.params.offer, context);
 
-  const offer = fetchAndSaveOffer(event.params.offer);
-
-  // Fetch RepToken address from Market contract
-  let marketContract = MarketContract.bind(event.address)
-  let repTokenAddressResult = marketContract.try_repToken()
-
-  if (repTokenAddressResult.reverted) {
-    return
-  }
-
-  let repTokenAddress = repTokenAddressResult.value
-  let profile = updateProfileFor(repTokenAddress, event.params.owner)
-  if (profile) {
-    offer.profile = profile.id
-  }
-  offer.save()
+  fetchAndSaveOffer(event.params.offer, event.address);
 }
 
 export function handleDealCreated(event: DealCreated): void {
