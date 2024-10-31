@@ -14,8 +14,8 @@ import {gql, useQuery} from "@apollo/client";
  * Instead of simply sort by profile DESC, price.
  */
 const GQL_OFFERS = gql`
-query Offers($where: Offer_filter, $orderDir: String) {
-    offers(where: $where, orderBy: ranging, orderDirection: $orderDir) {
+query Offers($skip: Int, $where: Offer_filter, $orderDir: String) {
+    offers(first: 20, skip: $skip, where: $where, orderBy: ranging, orderDirection: $orderDir) {
         id,
         owner,
         ranging,
@@ -56,12 +56,30 @@ export default function Offers({offers: argOffers})
     }
     if (method) where['method'] = method;
 
-    const { loading, error, data, refetch } = useQuery(GQL_OFFERS, {
+    const { loading, error, data, refetch, fetchMore } = useQuery(GQL_OFFERS, {
         variables: {
+            skip: 0,
             where: where,
             orderDir: side === 'buy' ? 'asc' : 'desc'
         },
     });
+
+    const [totalOffers, setTotalOffers] = useState(null);
+    useEffect(() => {
+        setTotalOffers(null);
+    }, [side, token, fiat, method]);
+
+    function loadMore() {
+        return fetchMore({
+            variables: {
+                skip: data.offers.length,
+            },
+            updateQuery: (prev, {fetchMoreResult}) => {
+                if (fetchMoreResult.offers.length < 20) setTotalOffers(prev.offers.length + fetchMoreResult.offers.length); // fetched all
+                return {offers: [...prev.offers, ...fetchMoreResult.offers]};
+            }
+        });
+    }
 
     const [allOffers, setAllOffers] = useState(null); // data with market prices appended
     const [offers, setOffers] = useState(null); // filtered, shown in the table
@@ -144,6 +162,6 @@ export default function Offers({offers: argOffers})
                 generatePath('/trade/:side/:token/:fiat/:method?', {side, token, fiat, method}))}
         />
     </Space>
-    {offers === null ? <Skeleton active /> : <OffersTable offers={offers} loading={loading || loading2} />}
+    {offers === null ? <Skeleton active /> : <OffersTable offers={offers} loading={loading || loading2} loadMore={loadMore} totalOffers={totalOffers} />}
     </>);
 }

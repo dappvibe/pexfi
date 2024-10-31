@@ -1,11 +1,11 @@
-import {Avatar, Button, Divider, Space, Table, Tag} from "antd";
+import {Avatar, Button, Divider, Flex, Space, Table, Tag} from "antd";
 import {Link, useParams} from "react-router-dom";
 import PropTypes from "prop-types";
 import Username from "@/components/Username";
 import {formatMoney} from "@/utils.js";
 import {useAccount} from "wagmi";
 
-export default function OffersTable({offers, loading})
+export default function OffersTable({offers, loading, loadMore, totalOffers})
 {
     const { address } = useAccount();
     let {
@@ -93,6 +93,10 @@ export default function OffersTable({offers, loading})
                rowKey={offer => offer.id}
                showSorterTooltip={false} /*Buggy tooltip blinks on render*/
                title={title}
+               footer={() =>
+                   <Flex justify={"center"}>
+                       {totalOffers !== null && `Shown all ${totalOffers} offers` || <Button onClick={loadMore}>Load more...</Button>}
+                   </Flex>}
                /*expandable={{
                    expandedRowRender: offer => <p>{offer.terms}</p>,
                    rowExpandable: offer => offer.terms !== '',
