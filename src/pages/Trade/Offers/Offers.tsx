@@ -7,21 +7,36 @@ import {useChainId} from "wagmi";
 import {useInventory} from "@/hooks/useInventory";
 import {gql, useQuery} from "@apollo/client";
 
+/**
+ * The offers list must sort by price, but new profiles must be ranged below others.
+ * However, Thegraph does not support multiple fields ordering.
+ * Thus, three queries are made to get offers with goodstanding profiles first, then badstanding, and finally no profile.
+ * Instead of simply sort by profile DESC, price.
+ */
 const GQL_OFFERS = gql`
-query Offers($filter: Offer_filter, $orderDir: String) {
-    offers(where: $filter, orderBy: rate, orderDirection: $orderDir) {
+fragment Offer on Offer {
+    id,
+    owner,
+    profile {
         id,
-        owner,
-        profile {
-            id,
-            dealsCompleted,
-            rating
-        },
-        isSell,
-        token, fiat, method,
-        rate,
-        minFiat, maxFiat,
-        terms
+        dealsCompleted,
+        rating
+    },
+    isSell,
+    token, fiat, method,
+    rate,
+    minFiat, maxFiat,
+    terms
+}
+query Offers($filterGood: Offer_filter, $filterBad: Offer_filter, $filterNone: Offer_filter, $orderDir: String) {
+    good:offers(where: $filterGood, orderBy: rate, orderDirection: $orderDir) {
+        ...Offer
+    }
+    bad:offers(where: $filterBad, orderBy: rate, orderDirection: $orderDir) {
+        ...Offer
+    }
+    none:offers(where: $filterNone, orderBy: rate, orderDirection: $orderDir) {
+        ...Offer
     }
 }`;
 
@@ -51,7 +66,18 @@ export default function Offers({offers: argOffers})
 
     const { loading, error, data, refetch } = useQuery(GQL_OFFERS, {
         variables: {
-            filter: filter,
+            filterGood: {
+                ...filter,
+                profile_: {goodstanding: true}
+            },
+            filterBad: {
+                ...filter,
+                profile_: {goodstanding: false}
+            },
+            filterNone: {
+                ...filter,
+                profile: null
+            },
             orderDir: side === 'buy' ? 'asc' : 'desc'
         },
     });
@@ -73,7 +99,8 @@ export default function Offers({offers: argOffers})
         setLoading2(true)
         Market.getPrice(token, fiat).then(price => {
             price = Number(price / 10000n) / 100;
-            const offers = data.offers.map(offer => {
+            let offers = [...data.good, ...data.bad, ...data.none];
+            offers = offers.map(offer => {
                 const rate = Number(offer.rate) / 10**4;
                 return {
                     ...offer,
