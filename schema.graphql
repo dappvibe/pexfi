@@ -11,6 +11,9 @@ type Offer @entity {
   maxFiat: Int!
   terms: String!
   disabled: Boolean!
+
+  # sorting order based on price factored by profile rating
+  ranging: Int!
 }
 
 # Rep NFT
