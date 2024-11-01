@@ -43,15 +43,12 @@ export default function OffersTable({offers, loading, loadMore, totalOffers})
             title: 'Price',
             width: 0,
             dataIndex: 'price',
-            //sorter: (a, b) => a.price - b.price,
-            //defaultSortOrder: 'descend',
             render: (text) => <b>{formatMoney(fiat, text)}</b>,
         },
         {
             title: 'Limits',
             width: 120,
             responsive: ['sm'],
-            //sorter: (a, b) => a.minFiat - b.minFiat,
             render: (text, offer) => <span>{`${offer.minFiat} - ${offer.maxFiat}`}</span>
         },
         //Table.EXPAND_COLUMN,
