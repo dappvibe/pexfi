@@ -10,5 +10,6 @@
     "baseUrl": "./src",
     "rootDir": "./src",
     "moduleResolution": "bundler"
-  }
+  },
+  "include": ["src/**/*"],
 }
