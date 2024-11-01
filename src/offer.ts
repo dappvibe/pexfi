@@ -64,10 +64,10 @@ export function fetchAndSaveOffer(target: Address, market: Address): Offer {
   offer.profile = profile ? profile.id : null;
   if (offer.isSell) {
     // ASC sorting, lowest first, so decrease goodstanding
-    offer.ranging = offer.rate * 10000 / getRangingModifier(profile);
+    offer.ranging = offer.rate * 100 / getRangingModifier(profile);
   } else {
     // DESC sorting, highest first so increase goodstanding
-    offer.ranging = offer.rate * getRangingModifier(profile) * 100;
+    offer.ranging = offer.rate * getRangingModifier(profile);
   }
 
   offer.save();
