@@ -1,4 +1,3 @@
-import {useWalletProvider} from "../hooks/useWalletProvider";
 import {useContract} from "../hooks/useContract.jsx";
 import {useEffect, useState} from "react";
 import LoadingButton from "../components/LoadingButton.jsx";

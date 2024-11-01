@@ -1,7 +1,6 @@
 import {Link} from "react-router-dom";
 import {Empty, List, Skeleton, Tag} from "antd";
 import React, {useEffect, useState} from "react";
-import {useWalletProvider} from "../hooks/useWalletProvider";
 import {Deal} from "@/model/Deal.js";
 import {useAccount} from "wagmi";
 import {useContract} from "@/hooks/useContract.jsx";
@@ -22,7 +21,7 @@ function StateTag(args) {
 }
 
 function DealItem({deal}) {
-    const { address } = useWalletProvider();
+    const { account: address} = useAccount();
 
     function title(deal) {
         const href = '/trade/deal/' + deal.contract.target;

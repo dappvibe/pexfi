@@ -1,6 +1,5 @@
-import {Button, Form, Input, List, Space} from "antd";
+import {Button, Form, Input, List} from "antd";
 import React, {useContext, useEffect, useState} from "react";
-import {useWalletProvider} from "@/hooks/useWalletProvider";
 import {DealContext} from "@/Trade/Deal/Deal.jsx";
 import {useForm} from "antd/lib/form/Form.js";
 import {useContract} from "@/hooks/useContract.jsx";
