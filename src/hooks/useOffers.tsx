@@ -64,7 +64,11 @@ query Offers($first: Int, $skip: Int, $where: Offer_filter, $orderDirection: Str
             rating
         },
         isSell,
-        token,
+        token {
+            id
+            name
+            decimals
+        },
         fiat,
         method,
         rate,
