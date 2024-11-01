@@ -76,7 +76,7 @@ templates:
           file: ./abis/Deal.json
       eventHandlers:
         - event: DealState(uint8)
-          handler: handleDealState
+          handler: indexDealAndProfile
         - event: FeedbackGiven(indexed address,bool,string)
-          handler: handleFeedbackGiven
+          handler: indexDealAndProfile
       file: ./src/deal.ts
