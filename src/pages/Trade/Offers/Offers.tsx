@@ -1,4 +1,4 @@
-import {useNavigate, useParams} from "react-router-dom";
+import {useParams} from "react-router-dom";
 import React, {useEffect, useState} from "react";
 import {message} from "antd";
 import OffersTable from "./OffersTable";
@@ -8,10 +8,9 @@ import {useOffers} from "../../../hooks/useOffers";
 import {useQuery} from "@tanstack/react-query";
 import OffersFilters from "./OffersFilters";
 
-export default function Offers({offers: argOffers})
+export default function Offers({filter: superFilter})
 {
     const chainId = useChainId();
-    const navigate = useNavigate();
     const { Market } = useContract();
 
     /**
@@ -31,7 +30,7 @@ export default function Offers({offers: argOffers})
         loading: listLoading,
         error
     } = useOffers({
-        filter: {
+        filter: superFilter || {
             disabled: false,
             isSell: side.toLowerCase() === 'buy',
             token: token,
@@ -89,8 +88,8 @@ export default function Offers({offers: argOffers})
 
     return (<>
     <OffersFilters setFilterAmount={setFilterAmount} />
-    <OffersTable offers={offers}
-                 loading={!offers || listLoading || priceLoading}
+    <OffersTable offers={offers || []}
+                 loading={offers === null || listLoading || priceLoading}
                  loadMore={loadMore}
                  totalOffers={totalCount}
     />
