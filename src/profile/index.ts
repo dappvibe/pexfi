@@ -8,7 +8,7 @@ const PROFILE_GOODSTANDING_DEALS = 3;
 
 export function getRangingModifier(profile: ProfileEntity | null) : i32 {
     if (!profile) return 1;
-    return profile.goodstanding ? 100 : 10;
+    return profile.goodstanding ? 10000 : 1000 + profile.rating;
 }
 
 export function updateProfileFor(repTokenAddress: Address, ownerAddress: Address) : ProfileEntity | null {
