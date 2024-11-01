@@ -1,4 +1,3 @@
-import {useWalletProvider} from "@/hooks/useWalletProvider";
 import {useEffect, useState} from "react";
 import Offer from "@/model/Offer.js";
 import Offers from "@/pages/Trade/Offers/Offers";

@@ -9,7 +9,6 @@ import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
 
 import './main.css'
-import {WalletProvider} from "./hooks/WalletProvider";
 
 import Layout from "./Layout";
 import Home from "./pages/Home/Home.jsx";
@@ -66,11 +65,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
       <WagmiProvider config={config}>
           <QueryClientProvider client={queryClient}>
-              <WalletProvider>
-                  <ApolloProvider client={apolloClient}>
-                      <RouterProvider router={router} />
-                  </ApolloProvider>
-              </WalletProvider>
+              <ApolloProvider client={apolloClient}>
+                  <RouterProvider router={router} />
+              </ApolloProvider>
           </QueryClientProvider>
       </WagmiProvider>
   </React.StrictMode>,
