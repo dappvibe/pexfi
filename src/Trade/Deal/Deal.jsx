@@ -4,7 +4,7 @@ import React, {createContext, useEffect, useState} from "react";
 import DealCard from "@/Trade/Deal/DealCard.jsx";
 import MessageBox from "@/Trade/Deal/MessageBox.jsx";
 import {useAccount, useChainId} from "wagmi";
-import {useContract} from "@/hooks/useContract.jsx";
+import {useContract} from "@/hooks/useContract.tsx";
 import {Deal} from "@/model/Deal.js";
 import {Token} from "@/model/Token.js";
 import Offer from "@/model/Offer.js";
