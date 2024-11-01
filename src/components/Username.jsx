@@ -1,10 +1,7 @@
 import PropTypes from "prop-types";
-import ExplorerLink from "./ExplorerLink.jsx";
 import {formatAddress} from "../utils.js";
 import {Avatar, Space} from "antd";
 import {Link} from "react-router-dom";
-import {useEffect, useState} from "react";
-import {useContract} from "@/hooks/useContract.jsx";
 
 export default function Username({address, avatar = false, profile = null})
 {

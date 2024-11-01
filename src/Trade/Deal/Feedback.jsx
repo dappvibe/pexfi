@@ -1,7 +1,7 @@
 import {Button, Form, Input, Radio, Result} from "antd";
 import {DealContext} from "@/Trade/Deal/Deal.jsx";
 import {useContext, useEffect, useState} from "react";
-import {useContract} from "@/hooks/useContract.jsx";
+import {useContract} from "@/hooks/useContract.tsx";
 import {useAccount} from "wagmi";
 
 export default function Feedback()

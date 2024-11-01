@@ -3,7 +3,7 @@ import {Empty, List, Skeleton, Tag} from "antd";
 import React, {useEffect, useState} from "react";
 import {Deal} from "@/model/Deal.js";
 import {useAccount} from "wagmi";
-import {useContract} from "@/hooks/useContract.jsx";
+import {useContract} from "@/hooks/useContract.tsx";
 import Offer from "@/model/Offer.js";
 
 function StateTag(args) {

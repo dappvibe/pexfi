@@ -2,7 +2,7 @@ import {Button, Form, Input, List} from "antd";
 import React, {useContext, useEffect, useState} from "react";
 import {DealContext} from "@/Trade/Deal/Deal.jsx";
 import {useForm} from "antd/lib/form/Form.js";
-import {useContract} from "@/hooks/useContract.jsx";
+import {useContract} from "@/hooks/useContract.tsx";
 import {useAccount} from "wagmi";
 
 export default function MessageBox()
