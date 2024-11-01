@@ -13,7 +13,7 @@ import './main.css'
 import Layout from "./Layout";
 import Home from "./pages/Home/Home.jsx";
 import Profile from "@/Me/Profile.jsx";
-import DealPage from "@/Trade/Deal/Deal.jsx";
+import DealPage from "@/pages/Trade/Deal/Deal";
 import UserDeals from "@/Me/UserDeals.jsx";
 import TradeLayout from "@/Trade/TradeLayout.jsx";
 import Offers from "@/pages/Trade/Offers/Offers.tsx";
