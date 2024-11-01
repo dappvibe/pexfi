@@ -1,4 +1,4 @@
-import {useContract} from "../hooks/useContract.jsx";
+import {useContract} from "../hooks/useContract.tsx";
 import {useEffect, useState} from "react";
 import LoadingButton from "../components/LoadingButton.jsx";
 import {Card, Descriptions, Result} from "antd";

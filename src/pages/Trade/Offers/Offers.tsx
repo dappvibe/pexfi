@@ -2,9 +2,9 @@ import {useNavigate, useParams} from "react-router-dom";
 import React, {useEffect, useState} from "react";
 import {message} from "antd";
 import OffersTable from "./OffersTable";
-import {useContract} from "@/hooks/useContract.jsx";
+import {useContract} from "@/hooks/useContract.tsx";
 import {useChainId} from "wagmi";
-import {useOffers} from "../../../hooks/useOffers";
+import {useOffers} from "@/hooks/useOffers.tsx";
 import {useQuery} from "@tanstack/react-query";
 import OffersFilters from "./OffersFilters";
 

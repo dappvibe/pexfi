@@ -4,7 +4,7 @@ import React, {useEffect, useRef, useState} from "react";
 import Subnav from "@/Trade/Offer/Subnav.jsx";
 import Description from "@/Trade/Offer/Description.jsx";
 import {ethers} from "ethers";
-import {useContract} from "@/hooks/useContract.jsx";
+import {useContract} from "@/hooks/useContract.tsx";
 import {useAccount, useChainId} from "wagmi";
 import Offer from "@/model/Offer.js";
 

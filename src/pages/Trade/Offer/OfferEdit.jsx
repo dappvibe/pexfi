@@ -1,7 +1,7 @@
 import {useParams} from "react-router-dom";
 import {useEffect, useState} from "react";
 import Offer from "@/model/Offer.js";
-import {useContract} from "@/hooks/useContract.jsx";
+import {useContract} from "@/hooks/useContract.tsx";
 import {useAccount, useChainId} from "wagmi";
 import {Skeleton} from "antd";
 import OfferForm from "@/pages/Trade/Offer/OfferForm.jsx";
