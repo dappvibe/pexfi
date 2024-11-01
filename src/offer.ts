@@ -1,5 +1,5 @@
 import {OfferUpdated} from "../generated/templates/Offer/Offer";
-import {Offer as OfferEntity, Offer} from "../generated/schema";
+import {Offer as OfferEntity, Offer, Token} from "../generated/schema";
 import {Offer as OfferContract} from "../generated/Market/Offer"
 import {Address, dataSource, log} from '@graphprotocol/graph-ts';
 import {Market as MarketContract} from "../generated/Market/Market";
@@ -8,6 +8,8 @@ import {getRangingModifier, updateProfileFor} from "./profile";
 export function fetchAndSaveOffer(target: Address, market: Address): Offer {
   let offerContract = OfferContract.bind(target);
   let offer = new OfferEntity(target.toHex());
+
+  let marketContract = MarketContract.bind(market);
 
   let ownerResult = offerContract.try_owner();
   if (!ownerResult.reverted) {
@@ -21,7 +23,16 @@ export function fetchAndSaveOffer(target: Address, market: Address): Offer {
 
   let tokenResult = offerContract.try_token();
   if (!tokenResult.reverted) {
-    offer.token = tokenResult.value;
+    let marketTokenResult = marketContract.try_token(tokenResult.value);
+    let token = Token.load(marketTokenResult.value.symbol);
+    if (!token) {
+      token = new Token(marketTokenResult.value.symbol);
+      token.address = marketTokenResult.value.api;
+      token.name = marketTokenResult.value.name;
+      token.decimals = marketTokenResult.value.decimals;
+      token.save();
+    }
+    offer.token = token.id;
   }
 
   let fiatResult = offerContract.try_fiat();
@@ -54,8 +65,6 @@ export function fetchAndSaveOffer(target: Address, market: Address): Offer {
   if (!disabledResult.reverted) {
     offer.disabled = disabledResult.value;
   }
-
-  let marketContract = MarketContract.bind(market);
 
   let repTokenResult = marketContract.try_repToken();
   let repTokenAddress = repTokenResult.value;

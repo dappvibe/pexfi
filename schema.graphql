@@ -3,7 +3,7 @@ type Offer @entity {
   owner: Bytes!
   profile: Profile
   isSell: Boolean!
-  token: String!
+  token: Token!
   fiat: String!
   method: String!
   rate: Int!
@@ -14,6 +14,14 @@ type Offer @entity {
 
   # sorting order based on price factored by profile rating
   ranging: Int!
+}
+
+type Token @entity(immutable: true) {
+  # symbol is used as the PK so that client can filter by query param string
+  id: ID!
+  address: Bytes!
+  name: String!
+  decimals: Int!
 }
 
 # Rep NFT
@@ -54,11 +62,4 @@ type Feedback @entity {
   given: Boolean,
   upvote: Boolean,
   message: String!
-}
-
-type Token @entity(immutable: true) {
-  id: ID!
-  name: String!
-  symbol: String!
-  decimals: Int!
 }
