@@ -35,13 +35,25 @@ type Profile @entity {
 
 type Deal @entity {
   id: ID!
+  createdAt: Int!
   state: Int8!
   offer: Offer!
   taker: Bytes!
   tokenAmount: BigInt!
   fiatAmount: BigInt!
+  terms: String
   paymentInstructions: String!
-  blockTimestamp: Int!
+  allowCancelUnacceptedAfter: Int!
+  allowCancelUnpaidAfter: Int!
+  feedbackForOwner: Feedback
+  feedbackForTaker: Feedback
+}
+
+type Feedback @entity {
+  id: ID!
+  given: Boolean,
+  upvote: Boolean,
+  message: String!
 }
 
 type Token @entity(immutable: true) {
