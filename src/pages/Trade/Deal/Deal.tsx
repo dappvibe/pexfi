@@ -1,15 +1,20 @@
-import {useLoaderData, useParams} from "react-router-dom";
+import {useParams} from "react-router-dom";
 import {Col, Row, Skeleton} from "antd";
-import React, {createContext, useEffect, useState} from "react";
-import DealCard from "@/Trade/Deal/DealCard.jsx";
-import MessageBox from "@/Trade/Deal/MessageBox.jsx";
+import React, {createContext, useContext, useEffect, useState} from "react";
+import DealCard from "./DealCard.jsx";
+import MessageBox from "./MessageBox.jsx";
 import {useAccount, useChainId} from "wagmi";
 import {useContract} from "@/hooks/useContract.tsx";
 import {Deal} from "@/model/Deal.js";
 import {Token} from "@/model/Token.js";
 import Offer from "@/model/Offer.js";
 
-export const DealContext = createContext({});
+export type DealContextValue = {
+    deal: Deal;
+    setDeal: (deal: Deal) => void;
+}
+export const DealContext = createContext<DealContextValue>(null);
+export const useDealContext = () => useContext(DealContext);
 
 export default function DealPage() {
     const chainId = useChainId();
@@ -48,7 +53,9 @@ export default function DealPage() {
         .then(setDeal);
     }, [address, chainId]);
 
-    if (deal) {return (
+    if (deal) {
+        console.log(deal);
+        return (
         <DealContext.Provider value={{deal, setDeal}}>
             <Row gutter={5}>
                 <Col span={16}>

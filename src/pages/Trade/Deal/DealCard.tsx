@@ -1,11 +1,11 @@
 import {Card, Descriptions, Divider, Steps} from "antd";
 import React, {useContext} from "react";
 import Username from "@/components/Username.jsx";
-import {DealContext} from "@/Trade/Deal/Deal.jsx";
-import Controls from "@/Trade/Deal/Controls.jsx";
+import {DealContext, useDealContext} from "./Deal.jsx";
+import Controls from "./Controls.jsx";
 
 function Progress() {
-    const {deal} = useContext(DealContext);
+    const {deal} = useDealContext();
 
     let steps = [
         {
