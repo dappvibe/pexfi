@@ -1,7 +1,7 @@
 import {Link} from "react-router-dom";
 import {Empty, List, Skeleton, Tag} from "antd";
 import React, {useEffect, useState} from "react";
-import {Deal} from "@/model/Deal.js";
+import Deal from "@/model/Deal.js";
 import {useAccount} from "wagmi";
 import {useContract} from "@/hooks/useContract.tsx";
 import Offer from "@/model/Offer.js";
