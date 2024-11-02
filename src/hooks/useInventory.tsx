@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { ethers } from 'ethers';
-import { useContract } from '@/hooks/useContract';
+import { useContract } from 'hooks/useContract';
 
 const fetchInventory = async (Market) => {
     const [tokensRes, fiatsRes, methodsRes] = await Promise.all([

@@ -1,6 +1,6 @@
 import {Card, Descriptions, Divider, Steps} from "antd";
 import React, {useContext} from "react";
-import Username from "@/components/Username.jsx";
+import Username from "components/Username";
 import {DealContext, useDealContext} from "./Deal.jsx";
 import Controls from "./Controls.jsx";
 
