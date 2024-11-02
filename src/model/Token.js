@@ -2,7 +2,7 @@ import {ethers} from "ethers";
 
 import { abi } from '../../contracts/artifacts/ERC20.json';
 
-export class Token {
+export default class Token {
     constructor(contract) {
         this.contract = contract;
     }

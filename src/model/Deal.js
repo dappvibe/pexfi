@@ -1,4 +1,4 @@
-export class Deal {
+export default class Deal {
     constructor(contract) {
         this.contract = contract;
     }
