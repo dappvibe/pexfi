@@ -76,7 +76,7 @@ export default function DealCard()
     return (
     <Card title={
         `${deal.offer.isSell ? 'Buying' : 'Selling'}
-         ${deal.tokenAmount} ${deal.offer.token} 
+         ${deal.tokenAmount} ${deal.offer.token.id} 
          for ${deal.fiatAmount.toFixed(2)} ${deal.offer.fiat} 
          using ${deal.offer.method}`}
     >
