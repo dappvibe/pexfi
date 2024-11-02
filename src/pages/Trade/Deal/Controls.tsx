@@ -3,7 +3,7 @@ import {useDealContext} from "./Deal.jsx";
 import {message, Space, Statistic} from "antd";
 import {ethers} from "ethers";
 import LoadingButton from "components/LoadingButton.jsx";
-import {useContract} from "hooks/useContract.tsx";
+import {useContract} from "hooks/useContract";
 import Feedback from "./Feedback.jsx";
 import {useAccount} from "wagmi";
 
