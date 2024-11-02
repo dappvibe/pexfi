@@ -1,5 +1,5 @@
 import {Card, Divider} from "antd";
-import React, {useContext} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {DealContext} from "./Deal.jsx";
 import Controls from "./Controls.jsx";
 import {useAccount} from "wagmi";
@@ -12,15 +12,20 @@ export default function DealCard()
     const {deal} = useContext(DealContext);
     const {address} = useAccount();
 
-    let title = '';
-    if (equal(deal.offer.owner, address)) {
-        title += deal.offer.isSell ? 'Selling' : 'Buying';
-    } else if (equal(deal.taker, address)) {
-        title += deal.offer.isSell ? 'Buying' : 'Selling';
-    }
-    title += ' ' + deal.offer.token.id;
-    title += ' for ' + deal.offer.fiat;
-    title += ' using ' + deal.offer.method;
+    const [title, setTitle] = useState<string>('');
+    useEffect(() => {
+        if (!deal || !address) return;
+        let newTitle: string = '';
+        if (equal(deal.offer.owner, address)) {
+            newTitle += deal.offer.isSell ? 'Selling' : 'Buying';
+        } else if (equal(deal.taker, address)) {
+            newTitle += deal.offer.isSell ? 'Buying' : 'Selling';
+        }
+        newTitle += ' ' + deal.offer.token.id;
+        newTitle += ' for ' + deal.offer.fiat;
+        newTitle += ' using ' + deal.offer.method;
+        setTitle(newTitle);
+    }, [address, deal]);
 
     return (
     <Card title={title}
