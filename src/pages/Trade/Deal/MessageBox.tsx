@@ -4,6 +4,7 @@ import {useDealContext} from "./Deal.jsx";
 import {useForm} from "antd/lib/form/Form.js";
 import {useContract} from "hooks/useContract";
 import {useAccount} from "wagmi";
+import {equal} from 'utils';
 
 export default function MessageBox()
 {
@@ -29,12 +30,11 @@ export default function MessageBox()
     }
 
     if (address && isParticipant(deal, address)) {
-        const eq = (str1, str2) => str1.toLowerCase() === str2.toLowerCase();
         return (
             <>
             <List size="small" bordered dataSource={deal.messages} renderItem={(msg) => (
                 <List.Item>
-                    <b>{eq(msg.sender, deal.taker) ? 'Taker' : eq(msg.sender, deal.offer.owner) ? 'Owner' : 'Mediator'}</b>
+                    <b>{equal(msg.sender, deal.taker) ? 'Taker' : equal(msg.sender, deal.offer.owner) ? 'Owner' : 'Mediator'}</b>
                     {': '}
                     {msg.message}
                 </List.Item>

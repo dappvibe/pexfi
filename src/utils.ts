@@ -15,3 +15,5 @@ export const formatMoney = (currency, amount) => {
         maximumFractionDigits: 3,
     })).format(amount);
 }
+
+export const equal = (str1, str2) => str1.toLowerCase() === str2.toLowerCase();
