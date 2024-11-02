@@ -49,6 +49,7 @@ query GetDeal($id: ID!) {
             isSell
             token {
                 id
+                address
                 name
                 decimals
             }
