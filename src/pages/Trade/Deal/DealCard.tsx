@@ -1,75 +1,11 @@
-import {Card, Descriptions, Divider, Steps} from "antd";
+import {Card, Divider} from "antd";
 import React, {useContext} from "react";
-import Username from "components/Username";
-import {DealContext, useDealContext} from "./Deal.jsx";
+import {DealContext} from "./Deal.jsx";
 import Controls from "./Controls.jsx";
 import {useAccount} from "wagmi";
 import {equal} from "../../../utils";
-
-function Progress() {
-    const {deal} = useDealContext();
-
-    let steps = [
-        {
-            title: 'Accepting',
-            description: 'Counterparty confirms the deal',
-            status: 'process'
-        },
-        {
-            title: 'Funding',
-            description: 'Crypto escrowed',
-            status: 'wait'
-        },
-        {
-            title: 'Paying',
-            description: 'Buyer send fiat',
-            status: 'wait'
-        },
-        {
-            title: 'Releasing',
-            description: 'Seller send crypto',
-            status: 'wait'
-        }
-    ];
-    if (deal.state >= 1) {
-        steps[0] = {status: 'finish', title: 'Accepted'};
-        steps[1] = {...steps[1], status: 'process'};
-    }
-    if (deal.state >= 2) {
-        steps[1] = {status: 'finish', title: 'Funded'};
-        steps[2] = {...steps[2], status: 'process'};
-    }
-    if (deal.state >= 3) {
-        steps[2] = {status: 'finish', title: 'Paid'};
-        steps[3] = {...steps[3], status: 'process'};
-    }
-    if (deal.state >= 7) {
-        steps[3] = {status: 'finish', title: 'Completed'};
-    }
-
-    if (deal.state === 5) {
-        steps = [{status: 'finish', 'title': 'Cancelled'}];
-    }
-
-    return (<Steps items={steps} />);
-}
-
-function Info() {
-    const {deal} = useContext(DealContext);
-    let key = 1;
-    const items = [
-        {key: key++, label: 'Price', children: <b>{(deal.fiatAmount / deal.tokenAmount).toFixed(3)}</b>},
-        {key: key++, label: 'Crypto', children: deal.tokenAmount},
-        {key: key++, label: 'Fiat', children: deal.fiatAmount.toFixed(2)},
-        {key: key++, label: 'Buyer', children: deal.offer.isSell ? <Username address={deal.taker} /> : <Username address={deal.offer.owner} /> },
-        {key: key++, label: 'Seller', children: !deal.offer.isSell ? <Username address={deal.taker} /> : <Username address={deal.offer.owner} /> },
-        {key: key++, label: 'Method', children: deal.offer.method},
-        {key: key++, label: 'Payment instructions', children: deal.paymentInstructions || <i>None</i>},
-        {key: key++, label: 'Terms', children: deal.offer.terms || <i>No terms</i>}
-    ];
-
-    return (<Descriptions items={items} />);
-}
+import DealProgress from "./DealProgress";
+import DealInfo from "./DealInfo";
 
 export default function DealCard()
 {
@@ -89,9 +25,9 @@ export default function DealCard()
     return (
     <Card title={title}
     >
-        <Progress />
+        <DealProgress />
         <Divider />
-        <Info />
+        <DealInfo />
         <Divider />
         <Controls />
     </Card>
