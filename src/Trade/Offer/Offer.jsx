@@ -64,6 +64,7 @@ export default function OfferPage() {
             const tx = await factory.create(offer.address, amount, values['paymentInstructions'] ?? '');
             message.info('Deal submitted. You will be redirected shortly.');
             const receipt = await tx.wait();
+            // FIXME when user is refirected immediately subgraph did not index the deal yet which leads to page fail to load
             receipt.logs.forEach(log => {
                 const DealCreated = Market.interface.parseLog(log);
                 if (DealCreated) {
