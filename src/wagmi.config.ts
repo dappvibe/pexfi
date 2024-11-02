@@ -1,4 +1,4 @@
-import {createConfig, http} from 'wagmi'
+import {createConfig, http, webSocket} from 'wagmi'
 import {arbitrumSepolia, hardhat} from 'wagmi/chains'
 
 export const config = createConfig({
@@ -8,7 +8,7 @@ export const config = createConfig({
     ],
     transports: {
         [arbitrumSepolia.id]: http(),
-        [hardhat.id]: http(),
+        [hardhat.id]: webSocket('ws://127.0.0.1:8545/'),
     },
 })
 
