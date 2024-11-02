@@ -1,39 +1,26 @@
 import {Button, Form, Input, List} from "antd";
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import {useDealContext} from "./Deal.jsx";
 import {useForm} from "antd/lib/form/Form.js";
-import {useContract} from "hooks/useContract.tsx";
+import {useContract} from "hooks/useContract";
 import {useAccount} from "wagmi";
 
 export default function MessageBox()
 {
     const {deal, refetch} = useDealContext();
     const [ lockSubmit, setLockSubmit ] = useState(false);
-    const [messages, setMessages] = useState([]);
     const { address } = useAccount();
     const { signed } = useContract();
     const [form] = useForm();
 
-    function push(log) {
-        setMessages((messages) => [...messages, log.args]);
-    }
-
-    // display existing messages
-    useEffect(() => {
-        //setMessages(deal.messages.map(msgLogs => msgLogs.args));
-        return () => setMessages([]);
-    }, [deal]);
-
-    function send(values) {
+    async function send(values) {
         setLockSubmit(true);
-        signed(deal.contract)
-            .then((contract) => contract.message(values.message))
-            .then((tx) => {
-                form.resetFields();
-                tx.wait().then(() => refetch())
-            })
-            .finally(() => setLockSubmit(false))
-        ;
+        try {
+            const contract = await signed(deal.contract);
+            return contract.message(values.message).then(() => form.resetFields());
+        } finally {
+            setLockSubmit(false);
+        }
     }
 
     function isParticipant(deal, address) {
@@ -42,11 +29,12 @@ export default function MessageBox()
     }
 
     if (address && isParticipant(deal, address)) {
+        const eq = (str1, str2) => str1.toLowerCase() === str2.toLowerCase();
         return (
             <>
             <List size="small" bordered dataSource={deal.messages} renderItem={(msg) => (
                 <List.Item>
-                    <b>{msg.sender === deal.taker ? 'Taker' : msg.sender === deal.offer.owner ? 'Owner' : 'Mediator'}</b>
+                    <b>{eq(msg.sender, deal.taker) ? 'Taker' : eq(msg.sender, deal.offer.owner) ? 'Owner' : 'Mediator'}</b>
                     {': '}
                     {msg.message}
                 </List.Item>
