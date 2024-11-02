@@ -3,11 +3,11 @@ import {Col, message, Row, Skeleton} from "antd";
 import React, {createContext, useContext, useEffect, useState} from "react";
 import DealCard from "./DealCard.jsx";
 import MessageBox from "./MessageBox.jsx";
-import {useChainId} from "wagmi";
+import {useChainId, useWatchContractEvent} from "wagmi";
 import {Deal} from "model/Deal.js";
 import {useDeal} from "hooks/useDeal";
 import {useContract} from "hooks/useContract";
-import { useAlchemy } from "hooks/useAlchemy";
+import {LogDescription} from "ethers";
 
 export type DealContextValue = {
     deal: Deal;
@@ -49,8 +49,32 @@ export default function DealPage() {
         setDeal(deal);
     }, [reply.deal]);
 
-    // subscribe to updates
-
+    /**
+     * Listen to events so that the UI is updated when other users interact with the contract.
+     */
+    useWatchContractEvent({
+        // @ts-ignore
+        address: dealId,
+        abi: Deal.interface.format(),
+        onLogs(logs) {
+            // TODO will it wait for confirmation? if yes, update UI after this user's action, not on logs. other users actions come from logs
+            logs.forEach(log => {
+                const event: LogDescription = Deal.interface.parseLog(log);
+                if (event.name === 'Message') { // TODO notify when message from others
+                    // actual block timestamp is not stricly required here. save bandwidth
+                    const newDeal = {...deal, messages: [...deal.messages, {
+                        createdAt: Math.floor(Date.now() / 1000),
+                        sender: event.args[0].toLowerCase(),
+                        message: event.args[1]
+                    }]};
+                    setDeal(newDeal);
+                }
+            })
+        },
+        onError: (error) => {
+            console.error(error);
+        }
+    });
 
     if (!deal) return (<Skeleton active />);
     return (
