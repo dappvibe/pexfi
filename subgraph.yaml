@@ -79,4 +79,6 @@ templates:
           handler: indexDealAndProfile
         - event: FeedbackGiven(indexed address,bool,string)
           handler: indexDealAndProfile
+        - event: Message(indexed address,string)
+          handler: handleMessage
       file: ./src/deal.ts

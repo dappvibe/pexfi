@@ -24,6 +24,29 @@ type Token @entity(immutable: true) {
   decimals: Int!
 }
 
+type Deal @entity {
+  id: ID!
+  createdAt: Int!
+  state: Int8!
+  offer: Offer!
+  taker: Bytes!
+  tokenAmount: BigInt!
+  fiatAmount: BigInt!
+  terms: String
+  paymentInstructions: String!
+  allowCancelUnacceptedAfter: Int!
+  allowCancelUnpaidAfter: Int!
+  messages: [DealMessage!]!
+  feedbackForOwner: Feedback
+  feedbackForTaker: Feedback
+}
+type DealMessage @entity(immutable: true) {
+  id: Bytes!
+  sender: Bytes!
+  message: String!
+  createdAt: Int!
+}
+
 # Rep NFT
 type Profile @entity {
   id: ID!
@@ -39,22 +62,6 @@ type Profile @entity {
   disputesLost: Int!
   avgPaymentTime: Int!
   avgReleaseTime: Int!
-}
-
-type Deal @entity {
-  id: ID!
-  createdAt: Int!
-  state: Int8!
-  offer: Offer!
-  taker: Bytes!
-  tokenAmount: BigInt!
-  fiatAmount: BigInt!
-  terms: String
-  paymentInstructions: String!
-  allowCancelUnacceptedAfter: Int!
-  allowCancelUnpaidAfter: Int!
-  feedbackForOwner: Feedback
-  feedbackForTaker: Feedback
 }
 
 type Feedback @entity {

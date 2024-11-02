@@ -1,9 +1,8 @@
-import {Deal as DealContract, DealState as DealStateEvent, FeedbackGiven as FeedbackGivenEvent} from "../generated/templates/Deal/Deal"
-import {Deal as DealEntity, Feedback, Offer} from "../generated/schema"
-import {Address, BigInt, dataSource} from "@graphprotocol/graph-ts"
+import {Deal as DealContract, DealState as DealStateEvent, Message} from "../generated/templates/Deal/Deal"
+import {Deal as DealEntity, DealMessage, Feedback, Offer} from "../generated/schema"
+import {Address, Bytes, dataSource, log} from "@graphprotocol/graph-ts"
 import {Market as MarketContract} from "../generated/Market/Market";
 import {updateProfileFor} from "./profile";
-import { log } from '@graphprotocol/graph-ts'
 
 export function fetchDeal(dealAddress: Address): DealEntity {
   let dealContract = DealContract.bind(dealAddress)
@@ -11,6 +10,7 @@ export function fetchDeal(dealAddress: Address): DealEntity {
   let deal = DealEntity.load(dealAddress.toHexString())
   if (deal == null) {
     deal = new DealEntity(dealAddress.toHexString())
+    deal.messages = [];
   }
 
   let stateResult = dealContract.try_state()
@@ -91,4 +91,22 @@ function doUpdateProfile(deal: DealEntity): void {
   }
   updateProfileFor(repTokenAddress, Address.fromBytes(offer.owner))
   updateProfileFor(repTokenAddress, Address.fromBytes(deal.taker))
+}
+
+export function handleMessage(event: Message): void {
+  let msg = new DealMessage(Bytes.fromUTF8(event.transaction.hash.toHexString() + event.logIndex.toHexString()))
+  msg.sender = event.params.sender
+  msg.message = event.params.message
+  msg.createdAt = event.block.timestamp.toI32()
+  msg.save()
+
+  let deal = DealEntity.load(event.address.toHexString())
+  if (!deal) {
+    log.error("Deal not found for message: {}", [event.address.toHexString()])
+    return;
+  }
+  let messages = deal.messages;
+  messages.push(msg.id)
+  deal.messages = messages
+  deal.save()
 }
