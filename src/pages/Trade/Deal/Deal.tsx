@@ -4,9 +4,10 @@ import React, {createContext, useContext, useEffect, useState} from "react";
 import DealCard from "./DealCard.jsx";
 import MessageBox from "./MessageBox.jsx";
 import {useChainId} from "wagmi";
-import {Deal} from "@/model/Deal.js";
-import {useDeal} from "../../../hooks/useDeal";
-import {useContract} from "../../../hooks/useContract";
+import {Deal} from "model/Deal.js";
+import {useDeal} from "hooks/useDeal";
+import {useContract} from "hooks/useContract";
+import { useAlchemy } from "hooks/useAlchemy";
 
 export type DealContextValue = {
     deal: Deal;
