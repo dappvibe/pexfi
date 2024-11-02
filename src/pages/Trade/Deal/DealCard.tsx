@@ -3,6 +3,8 @@ import React, {useContext} from "react";
 import Username from "components/Username";
 import {DealContext, useDealContext} from "./Deal.jsx";
 import Controls from "./Controls.jsx";
+import {useAccount} from "wagmi";
+import {equal} from "../../../utils";
 
 function Progress() {
     const {deal} = useDealContext();
@@ -72,13 +74,20 @@ function Info() {
 export default function DealCard()
 {
     const {deal} = useContext(DealContext);
+    const {address} = useAccount();
+
+    let title = '';
+    if (equal(deal.offer.owner, address)) {
+        title += deal.offer.isSell ? 'Selling' : 'Buying';
+    } else if (equal(deal.taker, address)) {
+        title += deal.offer.isSell ? 'Buying' : 'Selling';
+    }
+    title += ' ' + deal.offer.token.id;
+    title += ' for ' + deal.offer.fiat;
+    title += ' using ' + deal.offer.method;
 
     return (
-    <Card title={
-        `${deal.offer.isSell ? 'Buying' : 'Selling'}
-         ${deal.tokenAmount} ${deal.offer.token.id} 
-         for ${deal.fiatAmount.toFixed(2)} ${deal.offer.fiat} 
-         using ${deal.offer.method}`}
+    <Card title={title}
     >
         <Progress />
         <Divider />
