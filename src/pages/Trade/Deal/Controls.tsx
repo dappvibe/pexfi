@@ -8,13 +8,13 @@ import Feedback from "./Feedback.jsx";
 import {useAccount} from "wagmi";
 
 export default function Controls() {
-    const {deal, setDeal} = useDealContext();
+    const {deal} = useDealContext();
     const { address } = useAccount();
     const {Token, Market, signed} = useContract();
 
     if (!address) return;
 
-    async function call(methodName) {
+    async function call(methodName: string) {
         const contract = await signed(deal.contract);
         try {
             const tx = await contract[methodName]();
@@ -29,41 +29,36 @@ export default function Controls() {
             throw e;
         }
     }
-    function release() {
-        return call('release').then(() => {
-            setDeal(deal.clone({state: 7}));
-            message.success('Released');
-        });
+
+    async function release() {
+        await call('release');
+        message.success('Released');
     }
-    function paid() {
-        return call('paid').then(() => {
-            setDeal(deal.clone({state: 3}));
-            message.success('Paid');
-        })
+
+    async function paid() {
+        await call('paid');
+        message.success('Paid');
     }
-    function cancel() {
-        return call('cancel').then(() => {
-            setDeal(deal.clone({state: 5}));
-            message.success('Cancelled');
-        })
+
+    async function cancel() {
+        await call('cancel');
+        message.success('Cancelled');
     }
-    function dispute() {
-        return call('dispute').then(() => {
-            setDeal(deal.clone({state: 4}));
-            message.success('Disputed');
-        });
+
+    async function dispute() {
+        await call('dispute');
+        message.success('Disputed');
     }
 
     async function accept() {
         if (deal.offer.isSell) {
-            const t = await signed(Token.attach(deal.token.contract.target));
+            const t = await signed(Token.attach(deal.offer.token.address));
             const allowance = await t.allowance(address, Market.target);
             if (allowance < deal.tokenAmount) {
                 await t.approve(Market.target, ethers.MaxUint256);
             }
         }
         return call('accept').then(() => {
-            setDeal(deal.clone({state: 2}));
             message.success('Accepted');
         });
     }
@@ -89,7 +84,7 @@ export default function Controls() {
         Disputed: 4,
         Cancelled: 5,
         Resolved: 6,
-        Completed: 6
+        Completed: 7
     };
     const controls = [];
     // accept

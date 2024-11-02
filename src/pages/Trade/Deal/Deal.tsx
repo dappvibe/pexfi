@@ -69,6 +69,10 @@ export default function DealPage() {
                     }]};
                     setDeal(newDeal);
                 }
+                if (event.name === 'DealState') {
+                    const newDeal = {...deal, state: Number(event.args[0])};
+                    setDeal(newDeal);
+                }
             })
         },
         onError: (error) => {
