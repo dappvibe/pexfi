@@ -7,7 +7,7 @@ import {useAccount} from "wagmi";
 
 export default function MessageBox()
 {
-    const {deal} = useDealContext();
+    const {deal, refetch} = useDealContext();
     const [ lockSubmit, setLockSubmit ] = useState(false);
     const [messages, setMessages] = useState([]);
     const { address } = useAccount();
@@ -20,11 +20,9 @@ export default function MessageBox()
 
     // display existing messages
     useEffect(() => {
-        const parsed = deal.logs.map((l) => deal.contract.interface.parseLog(l));
-        const msgs = parsed.filter((l) => l.name === 'Message');
-        setMessages(msgs.map(msgLogs => msgLogs.args));
+        //setMessages(deal.messages.map(msgLogs => msgLogs.args));
         return () => setMessages([]);
-    }, []);
+    }, [deal]);
 
     function send(values) {
         setLockSubmit(true);
@@ -32,20 +30,25 @@ export default function MessageBox()
             .then((contract) => contract.message(values.message))
             .then((tx) => {
                 form.resetFields();
-                tx.wait().then((receipt) => receipt.logs.forEach(push))
+                tx.wait().then(() => refetch())
             })
             .finally(() => setLockSubmit(false))
         ;
     }
 
-    if (address && deal.isParticipant(address)) {
+    function isParticipant(deal, address) {
+        return [deal.taker.toLowerCase(), deal.offer.owner.toLowerCase()]
+            .includes(address.toLowerCase());
+    }
+
+    if (address && isParticipant(deal, address)) {
         return (
             <>
-            <List size="small" bordered dataSource={messages} renderItem={(msg) => (
+            <List size="small" bordered dataSource={deal.messages} renderItem={(msg) => (
                 <List.Item>
-                    <b>{msg[0] === deal.taker ? 'Taker' : msg[0] === deal.offer.owner ? 'Owner' : 'Mediator'}</b>
+                    <b>{msg.sender === deal.taker ? 'Taker' : msg.sender === deal.offer.owner ? 'Owner' : 'Mediator'}</b>
                     {': '}
-                    {msg[1]}
+                    {msg.message}
                 </List.Item>
             )} />
             <Form onFinish={send} form={form}>
