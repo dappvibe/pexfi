@@ -1,6 +1,6 @@
 import {Avatar, Button, Menu, Modal, Space} from "antd";
 import {useState} from "react";
-import {formatAddress} from "../utils.js";
+import {formatAddress} from "@/utils";
 import {Link} from "react-router-dom";
 import {useAccount, useConnect, useDisconnect} from "wagmi";
 
