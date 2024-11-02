@@ -16,6 +16,12 @@ export type OffersRequestParams = {
     order: 'asc' | 'desc';
 };
 
+export type Token = {
+    id: string;
+    name: string;
+    decimals: number;
+}
+
 export type Offer = {
     id: string;
     // the owner address is always here even if the profile is not created
@@ -26,7 +32,7 @@ export type Offer = {
         rating: number;
     } | null;
     isSell: boolean;
-    token: string;
+    token: Token;
     fiat: string;
     method: string;
     // rate is just a multiplier, not a price. must be factored by market price to display the actual price
