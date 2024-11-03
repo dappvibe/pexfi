@@ -1,6 +1,5 @@
 const {expect} = require("chai");
-const {ethers, upgrades, ignition} = require("hardhat");
-const PriceFeedModule = require("../ignition/modules/PriceFeed");
+const {ethers, upgrades, ignition, config} = require("hardhat");
 const MarketModule = require("../ignition/modules/Market");
 
 let Uniswap, Tokens = {},
@@ -10,6 +9,12 @@ let Uniswap, Tokens = {},
 
 before(async function() {
     [deployer, seller, buyer, mediator] = await ethers.getSigners();
+});
+
+after(async function() {
+    // delete deployment folder so that next run doesn't fail with a reconciliation error
+    const fs = require('fs');
+    fs.rm(config.paths.root + '/ignition/deployments/test', {recursive: true});
 });
 
 async function openDeal(provider, offer) {
@@ -86,7 +91,8 @@ describe('Deployment', function()
                         ['Zelle', 0],
                         ['SEPA', 0],
                     ]
-                }}
+                }},
+                deploymentId: 'test',
             }));
             await expect(await Market.owner()).to.eq(deployer.address);
             await expect(await Market.mediator()).to.eq(deployer.address);
