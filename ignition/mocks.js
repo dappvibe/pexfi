@@ -3,20 +3,21 @@ const MarketModule = require('./modules/Market');
 
 let Uniswap, PriceFeeds = {}, Tokens = {};
 
-async function deploy()
-{
-    // ERC20 tokens (mocks)
-    const TokenFactory = await ethers.getContractFactory("MockERC20");
+(async () => {
+    const signers = await ethers.getSigners();
+    // do not use the first signer, it is the deployer. so that real contracts have predictable addresses
+    signers.shift();
+
+    const TokenFactory = await ethers.getContractFactory("MockERC20", signers[0]);
     for (const token of [ ['WBTC', 8], ['WETH', 18], ['USDT', 6] ]) {
         const t = Tokens[token[0]] = await TokenFactory.deploy(...token);
-        const signers = await ethers.getSigners();
         for (const signer of signers) {
             await t.transfer(signer.address, BigInt(100000 * Math.pow(10, token[1])));
         }
     }
 
     // uniswap pools (mocks)
-    Uniswap = await ethers.deployContract('MockUniswapV3Factory');
+    Uniswap = await ethers.deployContract('MockUniswapV3Factory', signers[0]);
     Uniswap.setPool(Tokens['WBTC'], await ethers.deployContract('PoolBTC'));
     Uniswap.setPool(Tokens['WETH'], await ethers.deployContract('PoolETH'));
 
@@ -25,7 +26,7 @@ async function deploy()
     rates = await rates.json();
     rates = rates.usd;
     const currencies = require('./currencies.json');
-    const factory = await ethers.getContractFactory("PriceFeed");
+    const factory = await ethers.getContractFactory("PriceFeed", signers[0]);
     // in production must pass chainlink address, for mocks set current market rate once
     for (let currency of currencies) {
         const contract = PriceFeeds[currency.code] = await factory.deploy(currency.code);
@@ -53,5 +54,4 @@ async function deploy()
 
     // Use this to deploy Market
     console.log(JSON.stringify({"Market": params}, null, 2));
-}
-return deploy();
+})();
