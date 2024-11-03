@@ -15,7 +15,7 @@ contract Deal is AccessControl
 {
     using Strings for string;
 
-    event DealState(State state);
+    event DealState(State state, address sender);
     event Message(address indexed sender, string message);
     event FeedbackGiven(address indexed to, bool upvote, string message);
 
@@ -219,6 +219,6 @@ contract Deal is AccessControl
 
     function _state(State state_) private {
         state = state_;
-        emit DealState(state);
+        emit DealState(state, msg.sender);
     }
 }
