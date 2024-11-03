@@ -8,7 +8,7 @@ dataSources:
     name: Market
     network: arbitrum-one
     source:
-      address: "0xB82008565FdC7e44609fA118A4a681E92581e680"
+      address: "0xc0c5618f0F3Fa66b496F2940f373DC366d765BAe"
       abi: Market
       startBlock: 0
     mapping:
