@@ -140,7 +140,7 @@ contract Deal is AccessControl
     }
 
     function cancel() external onlyRole(MEMBER) stateBetween(State.Initiated, State.Resolved) {
-        require(state >= State.Accepted || block.timestamp > allowCancelUnacceptedAfter, "too early");
+        if (state == State.Initiated && taker == msg.sender && block.timestamp < allowCancelUnacceptedAfter) revert("too early");
 
         if ((state < State.Accepted)
         ||  (hasRole(BUYER, msg.sender) && state < State.Canceled)
