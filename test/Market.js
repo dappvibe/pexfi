@@ -351,13 +351,13 @@ describe('buyer disputes deal', function() {
 });
 
 describe('Cancelation by state', async function() {
-    it ('noone can cancel during acceptance window', async function() {
+    it ('only owner can cancel during acceptance window', async function() {
         deal = await openDeal(seller, offers[7]);
         deal = await deal.connect(seller);
         await expect(deal.cancel()).to.reverted;
         deal = await openDeal(seller, offers[7]);
         deal = await deal.connect(buyer);
-        await expect(deal.cancel()).to.reverted;
+        await expect(deal.cancel()).to.not.reverted;
     });
     it ('everyone can cancel when acceptance window expired', async function() {
         deal = await openDeal(seller, offers[7]);
