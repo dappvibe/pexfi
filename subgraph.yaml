@@ -75,7 +75,7 @@ templates:
         - name: Deal
           file: ./abis/Deal.json
       eventHandlers:
-        - event: DealState(uint8)
+        - event: DealState(uint8,address)
           handler: indexDealAndProfile
         - event: FeedbackGiven(indexed address,bool,string)
           handler: indexDealAndProfile
