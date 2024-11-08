@@ -96,6 +96,9 @@ contract Deal is AccessControl
 
         // copy MUTABLE offer values to freeze them for this deal
         terms = offer.terms();
+
+        // notify from the new address for unified state transitions
+        emit DealState(state, taker_);
     }
 
     /// @notice Offer owner agrees to the deal
