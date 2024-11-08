@@ -70,3 +70,19 @@ type Feedback @entity {
   upvote: Boolean,
   message: String!
 }
+
+type Notification @entity(immutable: true) {
+  id: ID!
+  createdAt: Int!
+  to: Bytes!
+  deal: Deal!
+  event: NotificationEvent!
+}
+type NotificationEvent @entity(immutable: true) {
+  id: ID!
+  name: String!
+  arg0: String
+  arg1: String
+  arg2: String
+  arg3: String
+}
