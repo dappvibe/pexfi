@@ -60,6 +60,10 @@ export default function DealPage() {
             // TODO will it wait for confirmation? if yes, update UI after this user's action, not on logs. other users actions come from logs
             logs.forEach(log => {
                 const event: LogDescription = Deal.interface.parseLog(log);
+                if (!event) {
+                    console.error('Failed to parse log', log);
+                    return;
+                }
                 if (event.name === 'Message') { // TODO notify when message from others
                     // actual block timestamp is not stricly required here. save bandwidth
                     const newDeal = {...deal, messages: [...deal.messages, {
