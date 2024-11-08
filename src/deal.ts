@@ -1,8 +1,10 @@
 import {Deal as DealContract, DealState as DealStateEvent, Message} from "../generated/templates/Deal/Deal"
-import {Deal as DealEntity, DealMessage, Feedback, Offer} from "../generated/schema"
+import {Offer as OfferContract} from "../generated/templates/Offer/Offer"
+import {Deal as DealEntity, DealMessage, Feedback, Notification, NotificationEvent, Offer} from "../generated/schema"
 import {Address, Bytes, dataSource, log} from "@graphprotocol/graph-ts"
 import {Market as MarketContract} from "../generated/Market/Market";
 import {updateProfileFor} from "./profile";
+import {FeedbackGiven} from "../generated/Market/Deal";
 
 export function fetchDeal(dealAddress: Address): DealEntity {
   let dealContract = DealContract.bind(dealAddress)
@@ -67,8 +69,8 @@ export function fetchDeal(dealAddress: Address): DealEntity {
   return deal;
 }
 
-export function indexDealAndProfile(event: DealStateEvent): void {
-  let deal = fetchDeal(event.address)
+export function indexDealAndProfile(address: Address): void {
+  let deal = fetchDeal(address)
   deal.save();
   doUpdateProfile(deal)
 }
@@ -109,4 +111,89 @@ export function handleMessage(event: Message): void {
   messages.push(msg.id)
   deal.messages = messages
   deal.save()
+
+  function notify(who: Bytes, event: Message, notificationEvent: NotificationEvent): void {
+    const notification = new Notification(event.transaction.hash.toHexString() + event.logIndex.toHexString() + "-" + who.toHexString());
+    notification.createdAt = event.block.timestamp.toI32();
+    notification.deal = event.address.toHexString();
+    notification.event = notificationEvent.id;
+    notification.to = who;
+    notification.save();
+  }
+
+  const notificationEvent = new NotificationEvent(event.transaction.hash.toHexString() + event.logIndex.toHexString());
+  notificationEvent.name = 'Message';
+  notificationEvent.arg0 = event.params.sender.toHexString();
+  notificationEvent.save();
+
+  let offer = Offer.load(deal.offer)
+  if (!offer) {
+    log.error("Offer not found for deal: {}", [deal.offer]);
+    return;
+  }
+  if (event.params.sender != offer.owner) {
+    notify(offer.owner, event, notificationEvent);
+  }
+  if (event.params.sender != deal.taker) {
+    notify(deal.taker, event, notificationEvent);
+  }
+}
+
+export function handleDealState(event: DealStateEvent): void {
+  indexDealAndProfile(event.address)
+
+  const notificationEvent = new NotificationEvent(event.transaction.hash.toHexString() + event.logIndex.toHexString());
+  notificationEvent.name = 'DealState';
+  notificationEvent.arg0 = event.params.state.toString();
+  notificationEvent.arg1 = event.params.sender.toHexString();
+  notificationEvent.save(); // at least one participant will be notified
+
+  // closures are not supported in assemblyscript so pass all args
+  function notify(who: Bytes, event: DealStateEvent, notificationEvent: NotificationEvent): void {
+    const notification = new Notification(event.transaction.hash.toHexString() + event.logIndex.toHexString() + "-" + who.toHexString());
+    notification.createdAt = event.block.timestamp.toI32();
+    notification.deal = event.address.toHexString();
+    notification.event = notificationEvent.id;
+    notification.to = who;
+    notification.save();
+  }
+
+  // owner
+  let dealContract = DealContract.bind(event.address);
+  let offerResult = dealContract.try_offer();
+  if (!offerResult.reverted) {
+    let offerAddress = offerResult.value;
+    let offerContract = OfferContract.bind(offerAddress);
+    let ownerResult = offerContract.try_owner();
+    if (!ownerResult.reverted) {
+      if (ownerResult.value != event.params.sender) {
+        notify(ownerResult.value, event, notificationEvent);
+      }
+    }
+  }
+
+  // taker
+  if (event.params.state > 0) {
+    let takerResult = dealContract.try_taker();
+    if (!takerResult.reverted) {
+      if (takerResult.value != event.params.sender) {
+        notify(takerResult.value, event, notificationEvent);
+      }
+    }
+  }
+
+  // mediator (on dispute)
+  if (event.params.state == 4) {
+    let context = dataSource.context();
+    let marketAddress = context.getString('marketAddress');
+    let marketContract = MarketContract.bind(Address.fromString(marketAddress));
+    let mediatorResult = marketContract.try_mediator();
+    if (!mediatorResult.reverted) {
+      notify(mediatorResult.value, event, notificationEvent);
+    }
+  }
+}
+
+export function handleFeedbackGiven(event: FeedbackGiven): void {
+  indexDealAndProfile(event.address)
 }
