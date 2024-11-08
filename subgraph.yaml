@@ -1,3 +1,5 @@
+# FIXME update profile entity of newly minted token
+# TODO start tracking RepToken and others on Market.initialize() (and update?)
 specVersion: 1.0.0
 indexerHints:
   prune: auto
@@ -8,7 +10,7 @@ dataSources:
     name: Market
     network: arbitrum-one
     source:
-      address: "0xc0c5618f0F3Fa66b496F2940f373DC366d765BAe"
+      address: "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318"
       abi: Market
       startBlock: 0
     mapping:
