@@ -70,6 +70,8 @@ templates:
       entities:
         - Deal
       abis:
+        - name: Offer
+          file: ./abis/Offer.json
         - name: Market
           file: ./abis/Market.json
         - name: RepToken
@@ -78,9 +80,9 @@ templates:
           file: ./abis/Deal.json
       eventHandlers:
         - event: DealState(uint8,address)
-          handler: indexDealAndProfile
+          handler: handleDealState
         - event: FeedbackGiven(indexed address,bool,string)
-          handler: indexDealAndProfile
+          handler: handleFeedbackGiven
         - event: Message(indexed address,string)
           handler: handleMessage
       file: ./src/deal.ts
