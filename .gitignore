@@ -4,6 +4,6 @@ cache/
 out/
 artifacts/
 cache_hardhat/
-ignition/deployments/chain-31337/
+ignition/deployments/
 ignition/parameters/hardhat.json
 docs/
