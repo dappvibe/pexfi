@@ -18,8 +18,8 @@ const { ethers } = require('hardhat');
                 let min = 0;
                 for (let i = 0; i < 10; i++){
                     contract = contract.connect(signers[Math.floor(Math.random() * signers.length)]);
-                    contract.create(true, token, fiat, 'Zelle', 10000 + Math.floor(Math.random() * 500), [min = Math.floor(Math.random() * 1000) + 100, min + 10000], '');
-                    contract.create(false, token, fiat, 'Zelle', 10000 + Math.floor(Math.random() * 500), [min = Math.floor(Math.random() * 1000) + 100, min + 10000], '');
+                    contract.create(true, token, fiat, 'National Bank', 10000 + Math.floor(Math.random() * 500), [min = Math.floor(Math.random() * 1000) + 100, min + 10000], '');
+                    contract.create(false, token, fiat, 'National Bank', 10000 + Math.floor(Math.random() * 500), [min = Math.floor(Math.random() * 1000) + 100, min + 10000], '');
                 }
             });
         });
