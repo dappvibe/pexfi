@@ -3,6 +3,7 @@ import {generatePath, Link, useParams} from "react-router-dom";
 import WalletMenu from "../components/WalletMenu.jsx";
 import NetworkSelector from "@/components/NetworkSelector.jsx";
 import {useAccount} from "wagmi";
+import Notifications from "@/components/Notifications.tsx";
 
 export default function Topnav()
 {
@@ -38,6 +39,7 @@ export default function Topnav()
                         <Button><Link to={'/trade/offer/new'}>Create Offer</Link></Button>
                     }
                     <NetworkSelector />
+                    <Notifications />
                     <WalletMenu />
                 </Space>
             </Flex>
