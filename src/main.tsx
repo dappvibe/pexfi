@@ -50,9 +50,6 @@ persistQueryClient({
     queryClient,
     persister: localStoragePersister,
     maxAge: 1000 * 60 * 60 * 24, // 24 hours
-    hydrateOptions: {
-        queries: ['inventory'], // Only persist the inventory query
-    },
 });
 
 const apolloClient = new ApolloClient({
