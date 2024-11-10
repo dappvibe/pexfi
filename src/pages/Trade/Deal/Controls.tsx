@@ -1,12 +1,12 @@
 import React from "react";
-import {useDealContext} from "./Deal.jsx";
+import {useDealContext} from "./Deal";
 import {message, Space, Statistic} from "antd";
 import {ethers} from "ethers";
-import LoadingButton from "components/LoadingButton.jsx";
+import LoadingButton from "components/LoadingButton";
 import {useContract} from "hooks/useContract";
-import Feedback from "./Feedback.jsx";
+import Feedback from "./Feedback";
 import {useAccount} from "wagmi";
-import {equal} from "../../../utils";
+import {equal} from "utils";
 
 export default function Controls() {
     const {deal} = useDealContext();
