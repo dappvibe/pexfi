@@ -1,9 +1,9 @@
 import {Button, Flex, Menu, Space} from "antd";
 import {generatePath, Link, useParams} from "react-router-dom";
-import WalletMenu from "../components/WalletMenu.jsx";
-import NetworkSelector from "@/components/NetworkSelector.jsx";
+import WalletMenu from "components/WalletMenu.jsx";
+import NetworkSelector from "components/NetworkSelector.jsx";
 import {useAccount} from "wagmi";
-import Notifications from "@/components/Notifications.tsx";
+import Notifications from "components/Notifications";
 
 export default function Topnav()
 {
