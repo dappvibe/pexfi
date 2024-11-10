@@ -51,6 +51,8 @@ templates:
       entities:
         - Offer
       abis:
+        - name: Market
+          file: ./abis/Market.json
         - name: Offer
           file: ./abis/Offer.json
       eventHandlers:
