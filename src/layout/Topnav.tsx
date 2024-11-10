@@ -1,13 +1,11 @@
-import {Button, Flex, Menu, Space} from "antd";
+import {Flex, Menu, Space} from "antd";
 import {generatePath, Link, useParams} from "react-router-dom";
 import WalletMenu from "components/WalletMenu";
 import NetworkSelector from "components/NetworkSelector";
-import {useAccount} from "wagmi";
 import Notifications from "components/Notifications";
 
 export default function Topnav()
 {
-    const { address } = useAccount();
     const params = useParams();
 
     const top = [
@@ -35,9 +33,6 @@ export default function Topnav()
             </Flex>
             <Flex>
                 <Space>
-                    {address &&
-                        <Button><Link to={'/trade/offer/new'}>Create Offer</Link></Button>
-                    }
                     <NetworkSelector />
                     <Notifications />
                     <WalletMenu />

@@ -21,9 +21,10 @@ export default function WalletMenu()
                     <b>{formatAddress(address)}</b>
                 </Space>,
                 children: [
-                    {label: <Link to={'/me'}>Profile</Link>, key: 'profile'},
+                    {label: <Link to={'/trade/offer/new'}>Create Offer</Link>, key: 'create-offer'},
                     {label: <Link to={'/me/offers'}>My Offers</Link>, key: 'my-offers'},
                     {label: <Link to={'/me/deals'}>My Deals</Link>, key: 'my-deals'},
+                    {label: <Link to={'/me'}>Profile</Link>, key: 'profile'},
                     {type: 'divider'},
                     {label: 'Disconnect', key: 'disconnect', onClick: disconnect}
                 ]
