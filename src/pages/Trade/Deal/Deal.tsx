@@ -7,7 +7,7 @@ import {useChainId, useWatchContractEvent} from "wagmi";
 import {Deal} from "model/Deal.js";
 import {useDeal} from "hooks/useDeal";
 import {useContract} from "hooks/useContract";
-import {LogDescription} from "ethers";
+import {Log, LogDescription} from "ethers";
 
 export type DealContextValue = {
     deal: Deal;
@@ -27,7 +27,6 @@ export default function DealPage() {
     useEffect(() => {
         if (reply.error) {
             console.error(reply.error.message);
-            // noinspection JSIgnoredPromiseFromCall
             message.error('Failed to load offers');
         }
     }, [reply.error]);
@@ -39,7 +38,7 @@ export default function DealPage() {
     const [deal, setDeal] = useState<Deal>(null);
     useEffect(() => {
         if (!reply.deal) return;
-        const deal = {...reply.deal};
+        const deal: any = {...reply.deal};
         deal.contract = Deal.attach(deal.id);
         deal.state = Number(deal.state);
         deal.allowCancelUnacceptedAfter = new Date(Number(deal.allowCancelUnacceptedAfter) * 1000);
@@ -53,10 +52,10 @@ export default function DealPage() {
      * Listen to events so that the UI is updated when other users interact with the contract.
      */
     useWatchContractEvent({
-        // @ts-ignore
-        address: dealId,
+        address: dealId as `0x${string}`,
         abi: Deal.interface.format(),
-        onLogs(logs) {
+        // @ts-ignore incompatible argument types with viem
+        onLogs: (logs: Log[]) => {
             // TODO will it wait for confirmation? if yes, update UI after this user's action, not on logs. other users actions come from logs
             logs.forEach(log => {
                 const event: LogDescription = Deal.interface.parseLog(log);
@@ -64,7 +63,7 @@ export default function DealPage() {
                     console.error('Failed to parse log', log);
                     return;
                 }
-                if (event.name === 'Message') { // TODO notify when message from others
+                if (event.name === 'Message') {
                     // actual block timestamp is not stricly required here. save bandwidth
                     const newDeal = {...deal, messages: [...deal.messages, {
                         createdAt: Math.floor(Date.now() / 1000),

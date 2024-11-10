@@ -3,19 +3,20 @@ import {useNavigate} from "react-router-dom";
 import React, {useRef} from "react";
 import {useContract} from "hooks/useContract";
 import {useInventory} from "hooks/useInventory";
+import * as Types from "types";
 
 const { TextArea } = Input;
 
 /**
  * @param offer     If given, we're editing certain fields of existing offer.
  */
-export default function OfferForm({offer})
+export default function OfferForm({offer = null})
 {
     const navigate = useNavigate();
     const {Market, OfferFactory, Offer, signed} = useContract();
     const [lockSubmit, setLockSubmit] = React.useState(false);
     const { tokens, fiats, methods } = useInventory();
-    const marketPrice = useRef();
+    const marketPrice = useRef(null);
     const [form] = Form.useForm();
 
     if (fiats.length === 0) return <Skeleton active />;
@@ -26,8 +27,7 @@ export default function OfferForm({offer})
         rate = Math.floor((1 + rate / 100) * 10**4);
         if (offer.rate * 10**4 == rate) return;
 
-        let o = Offer.attach(offer.address);
-        o = await signed(o);
+        const o = await signed(Offer.attach(offer.address)) as Types.Offer;
         const tx = await o.setRate(rate);
         tx.wait().then(() => {
             message.success('Updated');
@@ -35,11 +35,12 @@ export default function OfferForm({offer})
         });
     }
 
-    async function setLimits(min, max) {
+    async function setLimits(min: number, max: number) {
         if (!offer) return;
         min = Math.floor(min);
         max = Math.ceil(max);
-        const o = await signed(Offer.attach(offer.address));
+        const o = await signed(Offer.attach(offer.address)) as Types.Offer;
+        // @ts-ignore generated LimitsStruct is wrong, array works
         const tx = await o.setLimits([min, max]);
         tx.wait().then(() => {
             message.success('Updated');
@@ -49,7 +50,7 @@ export default function OfferForm({offer})
 
     async function setTerms(terms) {
         if (!offer) return;
-        const o = await signed(Offer.attach(offer.address));
+        const o = await signed(Offer.attach(offer.address)) as Types.Offer;
         const tx = await o.setTerms(terms);
         tx.wait().then(() => {
             message.success('Updated');
@@ -58,7 +59,7 @@ export default function OfferForm({offer})
     }
 
     async function disable(offer) {
-        const o = await signed(Offer.attach(offer.address));
+        const o = await signed(Offer.attach(offer.address)) as Types.Offer;
         const tx = await o.setDisabled(!offer.disabled);
         tx.wait().then(() => {
             message.success('Updated');
@@ -81,6 +82,7 @@ export default function OfferForm({offer})
 
         try {
             const factory = await signed(OfferFactory);
+            // @ts-ignore
             const tx = await factory.create(...params);
             message.success('Offer submitted. You will be redirected shortly.');
 
@@ -103,7 +105,7 @@ export default function OfferForm({offer})
         const fiat = form.getFieldValue('fiat');
         if (token && fiat) {
             // FIXME store market rate somewhere, not from current
-            let price = Number(await Market.getPrice(token, fiat));
+            let price: number | string = Number(await Market.getPrice(token, fiat));
             price = (price / 10**6).toFixed(2);
             marketPrice.current = price;
             previewPrice();

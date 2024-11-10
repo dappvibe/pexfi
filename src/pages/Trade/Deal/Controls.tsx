@@ -1,12 +1,13 @@
 import React from "react";
-import {useDealContext} from "./Deal";
-import {message, Space, Statistic} from "antd";
+import {useAccount} from "wagmi";
 import {ethers} from "ethers";
+import {message, Space, Statistic} from "antd";
+import {useDealContext} from "./Deal";
 import LoadingButton from "components/LoadingButton";
 import {useContract} from "hooks/useContract";
 import Feedback from "./Feedback";
-import {useAccount} from "wagmi";
 import {equal} from "utils";
+import * as Types from "types";
 
 export default function Controls() {
     const {deal} = useDealContext();
@@ -44,7 +45,7 @@ export default function Controls() {
      */
     async function accept() {
         if (deal.offer.isSell) {
-            const t = await signed(Token.attach(deal.offer.token.address));
+            const t = await signed(Token.attach(deal.offer.token.address)) as Types.ERC20;
             const allowance = await t.allowance(address, Market.target);
             if (allowance < deal.tokenAmount) {
                 await t.approve(Market.target, ethers.MaxUint256);

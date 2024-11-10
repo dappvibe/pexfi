@@ -1,5 +1,5 @@
 import {useNavigate, useParams} from "react-router-dom";
-import {Button, Card, Form, Input, message, Skeleton, Space} from "antd";
+import {Button, Card, Form, FormInstance, Input, message, Skeleton, Space} from "antd";
 import React, {useEffect, useRef, useState} from "react";
 import Subnav from "./Subnav";
 import Description from "./Description";
@@ -7,6 +7,7 @@ import {ethers} from "ethers";
 import {useContract} from "hooks/useContract";
 import {useAccount, useChainId} from "wagmi";
 import Offer from "model/Offer.js";
+import {ERC20} from "../../../types";
 
 export default function OfferPage() {
     const navigate = useNavigate();
@@ -16,10 +17,10 @@ export default function OfferPage() {
 
     const {offerId} = useParams();
 
-    const [offer, setOffer] = useState();
+    const [offer, setOffer] = useState(null);
     const [allowance, setAllowance] = useState(0);
 
-    const token = useRef();
+    const token = useRef(null);
 
     useEffect(() => {
         Offer.fetch(OfferContract.attach(offerId))
@@ -30,7 +31,7 @@ export default function OfferPage() {
             .then(offer => {
                 if (account.address && !offer.isSell) {
                     Market.token(offer.token).then(([address]) => {
-                        token.current = Token.attach(address);
+                        token.current = Token.attach(address) as ERC20;
                         token.current.allowance(account.address, Market).then((res) => {
                             setAllowance(res)
                         });
@@ -85,11 +86,11 @@ export default function OfferPage() {
     }
 
     const [form] = Form.useForm();
-    form.syncTokenAmount = (fiat) => {
+    const syncTokenAmount = (fiat) => {
         const value = fiat.length > 0 ? (fiat / offer.price).toFixed(8) : '';
         form.setFieldValue('tokenAmount', value);
     }
-    form.syncFiatAmount = (token) => {
+    const syncFiatAmount = (token) => {
         const value = token.length > 0 ? (token * offer.price).toFixed(2) : '';
         form.setFieldValue('fiatAmount', value);
         form.validateFields(['fiatAmount']);
@@ -120,7 +121,7 @@ export default function OfferPage() {
             <Space>
             <Form.Item name={"tokenAmount"}>
                 <Input placeholder={"Crypto Amount"} suffix={offer.token} disabled={offer.disabled}
-                       onChange={(e) => form.syncFiatAmount(e.target.value)}
+                       onChange={(e) => syncFiatAmount(e.target.value)}
                 />
             </Form.Item>
             <Form.Item name={"fiatAmount"} rules={[
@@ -138,7 +139,7 @@ export default function OfferPage() {
                 }),
             ]}>
                 <Input placeholder={"Fiat Amount"} suffix={offer.fiat} disabled={offer.disabled}
-                       onChange={(e) => form.syncTokenAmount(e.target.value)}
+                       onChange={(e) => syncTokenAmount(e.target.value)}
                 />
             </Form.Item>
             </Space>

@@ -13,11 +13,11 @@ export default function Topnav()
     const top = [
         {
             key: 'sell',
-            label: (<Link to={generatePath('/trade/sell/:token?/:fiat?/:method?', useParams())}>Sell</Link>),
+            label: (<Link to={generatePath('/trade/sell/:token?/:fiat?/:method?', useParams() as any)}>Sell</Link>),
         },
         {
             key: 'buy',
-            label: (<Link to={generatePath('/trade/buy/:token?/:fiat?/:method?', useParams())}>Buy</Link>),
+            label: (<Link to={generatePath('/trade/buy/:token?/:fiat?/:method?', useParams() as any)}>Buy</Link>),
         },
     ];
 

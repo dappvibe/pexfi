@@ -7,8 +7,9 @@ import {abi as OfferFactoryAbi} from '../../contracts/artifacts/OfferFactory.jso
 import {abi as DealFactoryAbi} from '../../contracts/artifacts/DealFactory.json';
 import {abi as ERC20Abi} from '../../contracts/artifacts/ERC20.json';
 import {useChainId, useClient, useConnectorClient} from "wagmi";
-import {BrowserProvider, ethers, FallbackProvider, JsonRpcProvider, JsonRpcSigner} from "ethers";
+import {BaseContract, BrowserProvider, ethers, FallbackProvider, JsonRpcProvider, JsonRpcSigner, JsonRpcApiProvider} from "ethers";
 import {useMemo} from "react";
+import * as Types from "types";
 
 export function useContract()
 {
@@ -33,14 +34,14 @@ export function useContract()
     }
     useMemo(() => (client ? clientToProvider(client) : undefined), [client])
 
-    function clientToSigner(client) {
+    function clientToSigner(client: any) {
         const { account, chain, transport } = client
         const network = {
             chainId: chain.id,
             name: chain.name,
             ensAddress: chain.contracts?.ensRegistry?.address,
         }
-        let provider;
+        let provider: JsonRpcApiProvider;
         try {
             provider = new BrowserProvider(transport, network)
         } catch (error) {
@@ -54,18 +55,18 @@ export function useContract()
     const addresses = deployed[chainId];
     const provider = clientToProvider(client);
 
-    const signed = async (contract) => {
+    const signed = async <T extends BaseContract>(contract: T): Promise<T> => {
         const signer = clientToSigner(connector);
-        return contract.connect(signer);
+        return contract.connect(signer) as T;
     };
 
-    const Market = new ethers.Contract(addresses['Market#Market'], MarketAbi, provider);
-    const OfferFactory = new ethers.Contract(addresses['OfferFactory#OfferFactory'], OfferFactoryAbi, provider);
-    const DealFactory = new ethers.Contract(addresses['DealFactory#DealFactory'], DealFactoryAbi, provider);
-    const RepToken = new ethers.Contract(addresses['RepToken#RepToken'], RepTokenAbi, provider);
-    const Deal = new ethers.Contract('0x', DealAbi, provider);
-    const Offer = new ethers.Contract('0x', OfferAbi, provider);
-    const Token = new ethers.Contract('0x', ERC20Abi, provider);
+    const Market = new ethers.Contract(addresses['Market#Market'], MarketAbi, provider) as unknown as Types.Market;
+    const OfferFactory = new ethers.Contract(addresses['OfferFactory#OfferFactory'], OfferFactoryAbi, provider) as unknown as Types.OfferFactory;
+    const DealFactory = new ethers.Contract(addresses['DealFactory#DealFactory'], DealFactoryAbi, provider) as unknown as Types.DealFactory;
+    const RepToken = new ethers.Contract(addresses['RepToken#RepToken'], RepTokenAbi, provider) as unknown as Types.RepToken;
+    const Deal = new ethers.Contract('0x', DealAbi, provider) as unknown as Types.Deal;
+    const Offer = new ethers.Contract('0x', OfferAbi, provider) as unknown as Types.Offer;
+    const Token = new ethers.Contract('0x', ERC20Abi, provider) as unknown as Types.ERC20;
 
     return {
         signed,

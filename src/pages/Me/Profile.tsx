@@ -5,16 +5,29 @@ import {Card, Descriptions, Result} from "antd";
 import Username from "components/Username";
 import {useAccount} from "wagmi";
 import {useParams} from "react-router-dom";
+import {BigNumberish, ContractTransactionResponse} from "ethers";
+
+type Stats = {
+    createdAt: Date;
+    upvotes: number;
+    downvotes: number;
+    volumeUSD: number;
+    dealsCompleted: number;
+    dealsExpired: number;
+    disputesLost: number;
+    avgPaymentTime: number;
+    avgReleaseTime: number;
+};
 
 export default function Profile()
 {
     let { address } = useAccount();
     const { RepToken, signed } = useContract();
     const [tokenId, setTokenId] = useState(null);
-    const [stats, setStats] = useState({});
+    const [stats, setStats] = useState<Stats | null>(null);
 
     const { profile } = useParams();
-    if (profile) address = profile;
+    if (profile) address = profile as `0x${string}`;
 
     useEffect(() => {
         if (address) {
@@ -32,7 +45,7 @@ export default function Profile()
 
     async function create() {
         const rep = await signed(RepToken);
-        return rep.register().then((tx) => {
+        return rep.register().then((tx: ContractTransactionResponse) => {
             tx.wait().then((receipt) => {
                 const {args} = RepToken.interface.parseLog(receipt.logs[0]);
                 setTokenId(args[2])
@@ -41,8 +54,8 @@ export default function Profile()
         });
     }
 
-    async function refreshStats(tokenId) {
-        let result = await RepToken.stats(tokenId);
+    async function refreshStats(tokenId: BigNumberish) {
+        let result: any = await RepToken.stats(tokenId);
         result = result.map(Number)
         result = {
             createdAt:      new Date(result[0] * 1000),
@@ -58,7 +71,7 @@ export default function Profile()
         setStats(result);
     }
 
-    function rating(upvotes, downvotes) {
+    function rating(upvotes: number, downvotes: number) {
         const totalVotes = upvotes + downvotes;
         if (totalVotes === 0) return '-';
         const ratingPercentage = (upvotes / totalVotes) * 100;
