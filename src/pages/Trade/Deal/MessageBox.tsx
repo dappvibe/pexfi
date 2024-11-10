@@ -55,7 +55,7 @@ export default function MessageBox()
     if (address && isParticipant(deal, address)) {
         return (
             <>
-            <List size="small" bordered dataSource={deal.messages} renderItem={(msg) => (
+            <List size="small" bordered dataSource={deal.messages} renderItem={(msg: any) => (
                 <List.Item>
                     <b>{equal(msg.sender, deal.taker) ? 'Taker' : equal(msg.sender, deal.offer.owner) ? 'Owner' : 'Mediator'}</b>
                     {': '}
@@ -69,7 +69,7 @@ export default function MessageBox()
                 <Form.Item>
                     <Button type={"primary"} htmlType={"submit"} loading={lockSubmit}>Send</Button>
                     <Upload
-                        action={upload}
+                        beforeUpload={upload}
                         accept="image/*"
                         showUploadList={false}
                     >

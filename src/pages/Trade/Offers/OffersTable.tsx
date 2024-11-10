@@ -15,7 +15,7 @@ export default function OffersTable({offers, loading, loadMore, totalOffers})
         method = null
     } = useParams();
 
-    const columns = [
+    const columns: any = [
         {
             title: '',
             width: 0,

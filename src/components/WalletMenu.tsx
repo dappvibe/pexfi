@@ -48,7 +48,10 @@ export default function WalletMenu()
                 >
                 {connectors.length > 0
                     ? connectors.map((connector) => (
-                        <Button type={"primary"} key={connector.uid} onClick={() => connect({ connector }) && setModalOpen(false)}>
+                        <Button type={"primary"} key={connector.uid} onClick={() => {
+                            connect({ connector });
+                            setModalOpen(false);
+                        }}>
                             {connector.name}
                         </Button>
                     ))
