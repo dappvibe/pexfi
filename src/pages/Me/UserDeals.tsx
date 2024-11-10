@@ -6,6 +6,8 @@ import {useAccount} from "wagmi";
 import {useContract} from "hooks/useContract";
 import Offer from "model/Offer.js";
 
+// TODO GraphQL for user deals
+
 function StateTag(args) {
     const index = [
         'Initiated',
@@ -21,7 +23,7 @@ function StateTag(args) {
 }
 
 function DealItem({deal}) {
-    const { account: address} = useAccount();
+    const { address } = useAccount();
 
     function title(deal) {
         const href = '/trade/deal/' + deal.contract.target;
