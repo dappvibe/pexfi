@@ -1,12 +1,12 @@
 import {useNavigate, useParams} from "react-router-dom";
 import {Button, Card, Form, Input, message, Skeleton, Space} from "antd";
 import React, {useEffect, useRef, useState} from "react";
-import Subnav from "@/Trade/Offer/Subnav.jsx";
-import Description from "@/Trade/Offer/Description.jsx";
+import Subnav from "./Subnav";
+import Description from "./Description";
 import {ethers} from "ethers";
-import {useContract} from "@/hooks/useContract.tsx";
+import {useContract} from "hooks/useContract";
 import {useAccount, useChainId} from "wagmi";
-import Offer from "@/model/Offer.js";
+import Offer from "model/Offer.js";
 
 export default function OfferPage() {
     const navigate = useNavigate();

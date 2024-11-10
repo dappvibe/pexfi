@@ -1,5 +1,5 @@
 import { Card, Col, Row } from "antd";
-import Faq from "./Faq.jsx";
+import Faq from "./Faq";
 
 export default function Home() {
     return (
