@@ -3,6 +3,7 @@ import {generatePath, Link, useParams} from "react-router-dom";
 import WalletMenu from "components/WalletMenu";
 import NetworkSelector from "components/NetworkSelector";
 import Notifications from "components/Notifications";
+import logo from 'assets/images/logo.png';
 
 export default function Topnav()
 {
@@ -23,7 +24,9 @@ export default function Topnav()
         <div className={"width-container"}>
         <Flex justify={'space-between'}>
             <Flex>
-                <Link style={{width: 80}} to={"/"}>SOV</Link>
+                <Link style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}} to={"/"}>
+                    <img alt={'Logo'} src={logo} style={{maxWidth: '40px', height: 'auto', marginRight: 20}} />
+                </Link>
                 <Menu mode={"horizontal"}
                       theme={"dark"}
                       items={top}
