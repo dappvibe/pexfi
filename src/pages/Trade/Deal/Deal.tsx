@@ -1,8 +1,8 @@
 import {useParams} from "react-router-dom";
 import {Col, message, Row, Skeleton} from "antd";
 import React, {createContext, useContext, useEffect, useState} from "react";
-import DealCard from "./DealCard.jsx";
-import MessageBox from "./MessageBox.jsx";
+import DealCard from "./DealCard";
+import MessageBox from "./MessageBox";
 import {useChainId, useWatchContractEvent} from "wagmi";
 import {Deal} from "model/Deal.js";
 import {useDeal} from "hooks/useDeal";

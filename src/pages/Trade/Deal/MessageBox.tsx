@@ -1,6 +1,6 @@
 import {Button, Form, Input, List, Upload, message} from "antd";
 import React, {useState} from "react";
-import {useDealContext} from "./Deal.jsx";
+import {useDealContext} from "./Deal";
 import {useForm} from "antd/lib/form/Form.js";
 import {useContract} from "hooks/useContract";
 import {useAccount} from "wagmi";

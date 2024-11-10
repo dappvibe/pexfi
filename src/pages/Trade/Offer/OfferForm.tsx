@@ -1,8 +1,8 @@
 import {Button, Card, Col, Form, Input, InputNumber, message, Radio, Row, Select, Skeleton, Space} from "antd";
 import {useNavigate} from "react-router-dom";
 import React, {useRef} from "react";
-import {useContract} from "@/hooks/useContract.tsx";
-import {useInventory} from "@/hooks/useInventory.tsx";
+import {useContract} from "hooks/useContract";
+import {useInventory} from "hooks/useInventory";
 
 const { TextArea } = Input;
 

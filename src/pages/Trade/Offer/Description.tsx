@@ -1,4 +1,4 @@
-import Username from "@/components/Username.jsx";
+import Username from "components/Username";
 import {Descriptions} from "antd";
 import React from "react";
 

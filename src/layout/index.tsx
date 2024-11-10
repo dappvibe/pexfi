@@ -1,8 +1,8 @@
 import {Layout as AntLayout} from "antd";
-import Topnav from "./Topnav.tsx";
+import Topnav from "./Topnav";
 import {Outlet} from "react-router-dom";
 import {Footer} from "antd/es/layout/layout.js";
-import {Announcement} from "@/components/Announcement.tsx";
+import {Announcement} from "components/Announcement";
 
 const {Header, Content} = AntLayout;
 

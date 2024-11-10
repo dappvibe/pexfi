@@ -2,13 +2,13 @@ import {useParams} from "react-router-dom";
 import React, {useEffect, useState} from "react";
 import {message} from "antd";
 import OffersTable from "./OffersTable";
-import {useContract} from "../../../hooks/useContract";
+import {useContract} from "hooks/useContract";
 import {useChainId} from "wagmi";
-import {useOffers} from "../../../hooks/useOffers";
+import {useOffers} from "hooks/useOffers";
 import {useQuery} from "@tanstack/react-query";
 import OffersFilters from "./OffersFilters";
 
-export default function Offers({filter: superFilter})
+export default function Offers({filter: superFilter = null})
 {
     const chainId = useChainId();
     const { Market } = useContract();
