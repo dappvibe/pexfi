@@ -14,10 +14,8 @@ export default function Layout()
             <Topnav />
         </Header>
         <Content>
-            <div style={{margin: 10}}>
-                <Announcement />
-            </div>
             <div className={"width-container"}>
+                <Announcement />
                 <Outlet />
             </div>
         </Content>
