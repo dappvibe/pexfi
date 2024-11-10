@@ -53,7 +53,7 @@ persistQueryClient({
 });
 
 const apolloClient = new ApolloClient({
-    uri: 'http://localhost:8000/subgraphs/name/sov',
+    uri: import.meta.env.VITE_GRAPH_ENDPOINT,
     cache: new InMemoryCache()
 });
 
