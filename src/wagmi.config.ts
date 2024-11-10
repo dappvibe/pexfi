@@ -1,8 +1,20 @@
 import {createConfig, http, webSocket} from 'wagmi'
-import {arbitrumSepolia, hardhat} from 'wagmi/chains'
+import {arbitrum, arbitrumSepolia, Chain, hardhat} from 'wagmi/chains'
+
+let chains: [Chain, ...Chain[]];
+switch (import.meta.env.MODE) {
+    case 'staging':
+        chains = [arbitrumSepolia]
+        break
+    case 'production':
+        chains = [arbitrum]
+        break
+    default:
+        chains = [hardhat]
+}
 
 export const config = createConfig({
-    chains: [arbitrumSepolia, hardhat],
+    chains: chains,
     connectors: [
         // autodetected
     ],
