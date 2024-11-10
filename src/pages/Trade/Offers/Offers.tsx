@@ -1,12 +1,13 @@
 import {useParams} from "react-router-dom";
 import React, {useEffect, useState} from "react";
 import {message} from "antd";
-import OffersTable from "./OffersTable";
-import {useContract} from "hooks/useContract";
 import {useChainId} from "wagmi";
-import {useOffers} from "hooks/useOffers";
 import {useQuery} from "@tanstack/react-query";
+import {useContract} from "hooks/useContract";
+import {useOffers} from "hooks/useOffers";
+import OffersTable from "./OffersTable";
 import OffersFilters from "./OffersFilters";
+import TokenNav from "./TokenNav";
 
 export default function Offers({filter: superFilter = null})
 {
@@ -86,9 +87,11 @@ export default function Offers({filter: superFilter = null})
         }
     }, [filterAmount, allOffers]);
 
-    return (<>
-    <OffersFilters setFilterAmount={setFilterAmount} />
-    <OffersTable offers={offers || []}
+    return (
+    <>
+        <TokenNav />
+        <OffersFilters setFilterAmount={setFilterAmount} />
+        <OffersTable offers={offers || []}
                  loading={offers === null || listLoading || priceLoading}
                  loadMore={loadMore}
                  totalOffers={totalCount}
