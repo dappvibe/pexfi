@@ -1,9 +1,9 @@
 import {Card, Divider} from "antd";
 import React, {useContext, useEffect, useState} from "react";
-import {DealContext} from "./Deal.jsx";
-import Controls from "./Controls.jsx";
+import {DealContext} from "./Deal";
+import Controls from "./Controls";
 import {useAccount} from "wagmi";
-import {equal} from "../../../utils";
+import {equal} from "utils";
 import DealProgress from "./DealProgress";
 import DealInfo from "./DealInfo";
 

@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import {createHashRouter, createRoutesFromElements, Navigate, Route, RouterProvider} from "react-router-dom";
 import {WagmiProvider} from "wagmi";
-import {config} from "@/wagmi.config.ts";
+import {config} from "wagmi.config";
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
@@ -10,17 +10,17 @@ import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
 
 import './main.css'
 
-import Layout from "./Layout";
-import Home from "./pages/Home/Home.jsx";
-import Profile from "@/Me/Profile.jsx";
-import DealPage from "@/pages/Trade/Deal/Deal";
-import UserDeals from "@/Me/UserDeals.jsx";
-import TradeLayout from "@/Trade/TradeLayout.jsx";
-import Offers from "@/pages/Trade/Offers/Offers.tsx";
-import UserOffers from "@/Me/Offers/UserOffers.jsx";
-import OfferPage from "@/Trade/Offer/Offer.jsx";
-import OfferEdit from "@/pages/Trade/Offer/OfferEdit.jsx";
-import OfferNew from "@/pages/Trade/Offer/OfferNew.jsx";
+import Layout from "./layout";
+import Home from "./pages/Home/Home";
+import Profile from "pages/Me/Profile";
+import DealPage from "pages/Trade/Deal/Deal";
+import UserDeals from "pages/Me/UserDeals";
+import TradeLayout from "pages/Trade/TradeLayout";
+import Offers from "pages/Trade/Offers/Offers";
+import UserOffers from "pages/Me/Offers/UserOffers";
+import OfferPage from "pages/Trade/Offer/Offer";
+import OfferEdit from "pages/Trade/Offer/OfferEdit";
+import OfferNew from "pages/Trade/Offer/OfferNew";
 
 
 const router = createHashRouter( createRoutesFromElements(

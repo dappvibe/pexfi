@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import {Menu} from "antd";
 import {generatePath, Link, useParams} from "react-router-dom";
-import {useInventory} from "@/hooks/useInventory.tsx";
+import {useInventory} from "hooks/useInventory";
 
 export default function TokenNav() {
     let {

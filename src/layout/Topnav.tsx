@@ -1,7 +1,7 @@
 import {Button, Flex, Menu, Space} from "antd";
 import {generatePath, Link, useParams} from "react-router-dom";
-import WalletMenu from "components/WalletMenu.jsx";
-import NetworkSelector from "components/NetworkSelector.jsx";
+import WalletMenu from "components/WalletMenu";
+import NetworkSelector from "components/NetworkSelector";
 import {useAccount} from "wagmi";
 import Notifications from "components/Notifications";
 

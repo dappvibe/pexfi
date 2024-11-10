@@ -1,8 +1,8 @@
-import {useContract} from "../hooks/useContract.tsx";
+import {useContract} from "hooks/useContract";
 import {useEffect, useState} from "react";
-import LoadingButton from "../components/LoadingButton.jsx";
+import LoadingButton from "components/LoadingButton";
 import {Card, Descriptions, Result} from "antd";
-import Username from "@/components/Username.jsx";
+import Username from "components/Username";
 import {useAccount} from "wagmi";
 import {useParams} from "react-router-dom";
 
