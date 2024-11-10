@@ -3,7 +3,7 @@ import {useEffect, useState} from "react";
 import Offer from "model/Offer.js";
 import {useContract} from "hooks/useContract";
 import {useAccount, useChainId} from "wagmi";
-import {Skeleton} from "antd";
+import {Card, Skeleton} from "antd";
 import OfferForm from "pages/Trade/Offer/OfferForm";
 
 export default function OfferEdit()
@@ -21,5 +21,9 @@ export default function OfferEdit()
 
     if (!offer) return <Skeleton active />;
 
-    return <OfferForm offer={offer} />;
+    return (
+    <Card title={'Update offer'}>
+        <OfferForm offer={offer} />
+    </Card>
+    );
 }

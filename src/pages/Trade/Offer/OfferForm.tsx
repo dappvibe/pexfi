@@ -1,4 +1,4 @@
-import {Button, Card, Col, Form, Input, InputNumber, message, Radio, Row, Select, Skeleton, Space} from "antd";
+import {Button, Col, Form, Input, InputNumber, message, Radio, Row, Select, Skeleton, Space} from "antd";
 import {useNavigate} from "react-router-dom";
 import React, {useRef} from "react";
 import {useContract} from "hooks/useContract";
@@ -40,7 +40,7 @@ export default function OfferForm({offer = null})
         min = Math.floor(min);
         max = Math.ceil(max);
         const o = await signed(Offer.attach(offer.address)) as Types.Offer;
-        // @ts-ignore generated LimitsStruct is wrong, array works
+        // @ts-ignore generated LimitsStruct is wrong, an array works
         const tx = await o.setLimits([min, max]);
         tx.wait().then(() => {
             message.success('Updated');
@@ -115,7 +115,7 @@ export default function OfferForm({offer = null})
     async function previewPrice() {
         const ratio = form.getFieldValue('rate') ?? 0;
         if (marketPrice.current) {
-            // adjust price by ratio which is unsigned percentage of margin from current rate
+            // adjust price by ratio which is an unsigned percentage of margin from the current rate
             const current = marketPrice.current * (1 + (ratio / 100));
             form.setFieldValue('preview', current.toFixed(2));
         }
@@ -125,98 +125,94 @@ export default function OfferForm({offer = null})
     const required = [ {required: true, message: 'required'} ];
 
     return (
-        <Card title={offer ? 'Update offer' : 'Submit an offer'}>
-            <Form form={form} layout={"horizontal"} onFinish={submit} colon={false} onLoad={offer ? fetchRate : undefined}>
-                <Row><Col>
-                    <Space wrap size={"middle"}>
-                        <Form.Item name="isSell" label={"I want to"} rules={required} initialValue={offer ? offer.isSell : undefined}>
-                            <Radio.Group disabled={!!offer}>
-                                <Radio.Button value={false}>Buy</Radio.Button>
-                                <Radio.Button value={true}>Sell</Radio.Button>
-                            </Radio.Group>
-                        </Form.Item>
-                        <Form.Item name="token" label={"token"}  rules={required} initialValue={offer ? offer.token : undefined}>
-                            <Select showSearch style={{width: 85}} onChange={fetchRate} disabled={!!offer}>
-                                {Object.keys(tokens).map((key) => {
-                                    const token = tokens[key];
-                                    return <Select.Option key={token.address} value={token.symbol}>
-                                        {token.symbol}
-                                    </Select.Option>
-                                })}
-                            </Select>
-                        </Form.Item>
-                        <Form.Item name="fiat" label={"for"} rules={required} initialValue={offer ? offer.fiat : undefined}>
-                            <Select showSearch style={{width: 85}} onChange={fetchRate} disabled={!!offer}>
-                                {fiats.map((symbol) => {
-                                    return <Select.Option key={symbol} value={symbol}>
-                                        {symbol}
-                                    </Select.Option>
-                                })}
-                            </Select>
-                        </Form.Item>
-                        <Form.Item name="method" label={"using"} rules={required} initialValue={offer ? offer.method : undefined}>
-                            <Select showSearch placeholder={"Payment method"} disabled={!!offer}>
-                                {Object.keys(methods).map((key) => {
-                                    const method = methods[key];
-                                    return <Select.Option key={key} value={key}>
-                                        {method.name}
-                                    </Select.Option>
-                                })}
-                            </Select>
-                        </Form.Item>
-                    </Space>
-                </Col></Row>
-                <Row><Col>
-                    <Space direction={"horizontal"}>
-                        <Form.Item name="rate" label={"Margin"} rules={required} initialValue={offer ? ((offer.rate - 1) * 100).toFixed(2) : undefined}>
-                            <InputNumber style={{width: 120}}
-                                         changeOnWheel step={'0.01'}
-                                         addonAfter={'%'}
-                                         onChange={previewPrice}
-                            />
-                        </Form.Item>
-                        <Form.Item name={"preview"} initialValue={offer ? previewPrice() : undefined}>
-                            <Input style={{width: 150}} prefix={'~'} suffix={form.getFieldValue('fiat')} disabled />
-                        </Form.Item>
-                        {offer && <Form.Item>
-                            <Button onClick={() => setRate(form.getFieldValue('rate'))}>Update</Button>
-                        </Form.Item>}
-                    </Space>
-                </Col></Row>
-                <Row><Col>
-                    <Space>
-                        <Form.Item name="min" label="Limits" rules={required} initialValue={offer ? offer.min : undefined}>
-                            <Input style={{width: 120}}/>
-                        </Form.Item>
-                        <Form.Item name={"max"} label={"-"} rules={required} initialValue={offer ? offer.max : undefined}>
-                            <Input style={{width: 120}} />
-                        </Form.Item>
-                        {offer && <Form.Item>
-                            <Button onClick={() => setLimits(form.getFieldValue('min'), form.getFieldValue('max'))}>Update</Button>
-                        </Form.Item>}
-                    </Space>
-                </Col></Row>
-                <Form.Item name="terms" label="Terms" initialValue={offer ? offer.terms : undefined}>
-                    <TextArea rows={4} placeholder={"Written in blockchain. Keep it short."} />
+        <Form form={form} layout={"horizontal"} onFinish={submit} colon={false} onLoad={offer ? fetchRate : undefined}>
+            <Row><Col>
+                <Space wrap size={"middle"}>
+                    <Form.Item name="isSell" label={"I want to"} rules={required} initialValue={offer ? offer.isSell : undefined}>
+                        <Radio.Group disabled={!!offer}>
+                            <Radio.Button value={false}>Buy</Radio.Button>
+                            <Radio.Button value={true}>Sell</Radio.Button>
+                        </Radio.Group>
+                    </Form.Item>
+                    <Form.Item name="token" label={"token"}  rules={required} initialValue={offer ? offer.token : undefined}>
+                        <Select showSearch style={{width: 85}} onChange={fetchRate} disabled={!!offer}>
+                            {Object.keys(tokens).map((key) => {
+                                const token = tokens[key];
+                                return <Select.Option key={token.address} value={token.symbol}>
+                                    {token.symbol}
+                                </Select.Option>
+                            })}
+                        </Select>
+                    </Form.Item>
+                    <Form.Item name="fiat" label={"for"} rules={required} initialValue={offer ? offer.fiat : undefined}>
+                        <Select showSearch style={{width: 85}} onChange={fetchRate} disabled={!!offer}>
+                            {fiats.map((symbol) => {
+                                return <Select.Option key={symbol} value={symbol}>
+                                    {symbol}
+                                </Select.Option>
+                            })}
+                        </Select>
+                    </Form.Item>
+                    <Form.Item name="method" label={"using"} rules={required} initialValue={offer ? offer.method : undefined}>
+                        <Select showSearch placeholder={"Payment method"} disabled={!!offer}>
+                            {Object.keys(methods).map((key) => {
+                                const method = methods[key];
+                                return <Select.Option key={key} value={key}>
+                                    {method.name}
+                                </Select.Option>
+                            })}
+                        </Select>
+                    </Form.Item>
+                </Space>
+            </Col></Row>
+            <Row><Col>
+                <Space direction={"horizontal"}>
+                    <Form.Item name="rate" label={"Margin"} rules={required} initialValue={offer ? ((offer.rate - 1) * 100).toFixed(2) : undefined}>
+                        <InputNumber style={{width: 120}}
+                                     changeOnWheel step={'0.01'}
+                                     addonAfter={'%'}
+                                     onChange={previewPrice}
+                        />
+                    </Form.Item>
+                    <Form.Item name={"preview"} initialValue={offer ? previewPrice() : undefined}>
+                        <Input style={{width: 150}} prefix={'~'} suffix={form.getFieldValue('fiat')} disabled />
+                    </Form.Item>
+                    {offer && <Form.Item>
+                        <Button onClick={() => setRate(form.getFieldValue('rate'))}>Update</Button>
+                    </Form.Item>}
+                </Space>
+            </Col></Row>
+            <Row><Col>
+                <Space>
+                    <Form.Item name="min" label="Limits" rules={required} initialValue={offer ? offer.min : undefined}>
+                        <Input style={{width: 120}}/>
+                    </Form.Item>
+                    <Form.Item name={"max"} label={"-"} rules={required} initialValue={offer ? offer.max : undefined}>
+                        <Input style={{width: 120}} />
+                    </Form.Item>
+                    {offer && <Form.Item>
+                        <Button onClick={() => setLimits(form.getFieldValue('min'), form.getFieldValue('max'))}>Update</Button>
+                    </Form.Item>}
+                </Space>
+            </Col></Row>
+            <Form.Item name="terms" label="Terms" initialValue={offer ? offer.terms : undefined}>
+                <TextArea rows={4} placeholder={"Written in blockchain. Keep it short."} />
+            </Form.Item>
+            {offer &&
+                <>
+                <Form.Item>
+                <Button onClick={() => setTerms(form.getFieldValue('terms'))}>Update</Button>
                 </Form.Item>
-                {offer &&
-                    <>
-                    <Form.Item>
-                    <Button onClick={() => setTerms(form.getFieldValue('terms'))}>Update</Button>
-                    </Form.Item>
-                    <Form.Item>
-                        <Button onClick={() => disable(offer)}>{offer.disabled ? 'Enable' : 'Disable'}</Button>
-                    </Form.Item>
-                    </>
-                }
-                {!offer &&
-                    <>
-                    <Form.Item>
-                        <Button loading={lockSubmit} type="primary" htmlType="submit">Submit</Button>
-                    </Form.Item>
-                    </>
-                }
-            </Form>
-        </Card>
+                <Form.Item>
+                    <Button onClick={() => disable(offer)}>{offer.disabled ? 'Enable' : 'Disable'}</Button>
+                </Form.Item>
+                </>
+            }
+            {!offer &&
+                <Form.Item>
+                    <Button loading={lockSubmit} type="primary" htmlType="submit">Deploy contract</Button>
+                </Form.Item>
+            }
+        </Form>
     );
 }
