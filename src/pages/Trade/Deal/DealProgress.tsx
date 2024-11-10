@@ -5,7 +5,7 @@ import React from "react";
 export default function DealProgress() {
     const {deal} = useDealContext();
 
-    let steps = [
+    let steps: any = [
         {
             title: 'Accepting',
             description: 'Counterparty confirms the deal',
