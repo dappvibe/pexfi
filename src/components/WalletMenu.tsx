@@ -1,4 +1,4 @@
-import {Avatar, Button, Menu, Modal, Space} from "antd";
+import {Avatar, Button, Col, Menu, Modal, Row, Space} from "antd";
 import {useState} from "react";
 import {formatAddress} from "utils";
 import {Link} from "react-router-dom";
@@ -16,10 +16,15 @@ export default function WalletMenu()
         const top = [
             {
                 key: address,
-                label: address && <Space>
-                    <Avatar src={'https://effigy.im/a/'+address+'.svg'} draggable={false}/>
-                    <b>{formatAddress(address)}</b>
-                </Space>,
+                label: address &&
+                <Row>
+                    <Col xs={{span: 8, offset: 16}} sm={{offset: 0}}>
+                        <Avatar src={'https://effigy.im/a/'+address+'.svg'} draggable={false}/>
+                    </Col>
+                    <Col xs={{span: 0}} sm={{span: 16}}>
+                        <b>{formatAddress(address)}</b>
+                    </Col>
+                </Row>,
                 children: [
                     {label: <Link to={'/trade/offer/new'}>Create Offer</Link>, key: 'create-offer'},
                     {label: <Link to={'/me/offers'}>My Offers</Link>, key: 'my-offers'},
@@ -32,7 +37,7 @@ export default function WalletMenu()
         ];
 
         return (
-            <Menu items={top} theme={"dark"} mode={"horizontal"} style={{minWidth: 200, flex: 'auto'}} />
+            <Menu items={top} theme={"dark"} mode={"horizontal"} triggerSubMenuAction={"hover"} />
         );
     }
     else {

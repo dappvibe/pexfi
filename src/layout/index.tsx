@@ -11,7 +11,9 @@ export default function Layout()
     return (
     <AntLayout>
         <Header style={{padding: 0}}>
-            <Topnav />
+            <div className={"width-container"}>
+                <Topnav/>
+            </div>
         </Header>
         <Content>
             <div className={"width-container"}>
