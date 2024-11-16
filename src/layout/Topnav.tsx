@@ -1,4 +1,4 @@
-import {Col, Flex, Menu, Row, Space} from "antd";
+import {Col, Menu, Row} from "antd";
 import {generatePath, Link, useParams} from "react-router-dom";
 import WalletMenu from "components/WalletMenu";
 import NetworkSelector from "components/NetworkSelector";
