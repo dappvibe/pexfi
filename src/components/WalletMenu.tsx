@@ -37,7 +37,7 @@ export default function WalletMenu()
         ];
 
         return (
-            <Menu items={top} theme={"dark"} mode={"horizontal"} triggerSubMenuAction={"hover"} />
+            <Menu items={top} theme={"dark"} mode={"horizontal"} triggerSubMenuAction={"hover"} selectable={false} />
         );
     }
     else {
