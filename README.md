@@ -8,7 +8,7 @@
 2. Run blockscout
     * `cd blockscout && docker compose up -d`
 
-3. Deploy tokens/currencies mocks to local node (defaults to localhost, see `hardhat.config.js`)
+3. Deploy tokens/currencies mocks to default local node
     * `npx hardhat run ignition/mocks.js > ignition/parameters/hardhat.json`
 
 ## Deploy
