@@ -9,8 +9,6 @@
     <extra-mocha-options />
     <test-kind>TEST_FILE</test-kind>
     <test-file>$PROJECT_DIR$/test/Market.js</test-file>
-    <method v="2">
-      <option name="ToolBeforeRunTask" enabled="true" actionId="Tool_External Tools_compile" />
-    </method>
+    <method v="2" />
   </configuration>
 </component>
