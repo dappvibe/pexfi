@@ -7,7 +7,7 @@ switch (import.meta.env.MODE) {
         chains = [arbitrumSepolia]
         break
     case 'production':
-        chains = [arbitrum]
+        chains = [arbitrum, arbitrumSepolia]
         break
     default:
         chains = [hardhat]
