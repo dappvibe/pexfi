@@ -14,6 +14,6 @@
 ## Deploy
 
 Use parameters file that holds uniswap, tokens, chainlink oracles addresses. For each network its own.
-Use `--network` to select blockchain.
+Use `--network` to select blockchain. Networks are in ignition/parameters/
 
 `npx hardhat ignition deploy ignition/modules/Market.js --parameters ignition/parameters/hardhat.json --verify --deployment-id hardhat`
