@@ -13,6 +13,10 @@ require('dotenv').config();
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
     networks: {
+        arbitrum: {
+            url: process.env.ARBITRUM_URL ? process.env.ARBITRUM_URL : "https://arb-mainnet.g.alchemy.com/v2/demo",
+            accounts: process.env.DEPLOYER_KEY ? [process.env.DEPLOYER_KEY] : "remote"
+        },
         "arbitrum-sepolia": {
             url: "https://sepolia-rollup.arbitrum.io/rpc",
         },
