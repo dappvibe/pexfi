@@ -10,7 +10,7 @@ switch (import.meta.env.MODE) {
         chains = [arbitrum, arbitrumSepolia]
         break
     default:
-        chains = [hardhat]
+        chains = [hardhat, arbitrum, arbitrumSepolia]
 }
 
 export const config = createConfig({
