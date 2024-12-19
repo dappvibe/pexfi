@@ -19,6 +19,7 @@ module.exports = {
         },
         "arbitrum-sepolia": {
             url: "https://sepolia-rollup.arbitrum.io/rpc",
+            accounts: process.env.DEPLOYER_KEY ? [process.env.DEPLOYER_KEY] : "remote"
         },
     },
 
