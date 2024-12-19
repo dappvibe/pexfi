@@ -51,10 +51,14 @@ templates:
       entities:
         - Offer
       abis:
-        - name: Market
-          file: ./abis/Market.json
         - name: Offer
           file: ./abis/Offer.json
+        - name: Market
+          file: ./abis/Market.json
+        - name: RepToken
+          file: ./abis/RepToken.json
+        - name: Deal
+          file: ./abis/Deal.json
       eventHandlers:
         - event: OfferUpdated()
           handler: handleOfferUpdated
