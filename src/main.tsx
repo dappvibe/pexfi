@@ -1,7 +1,7 @@
-import React from 'react'
+import React, {useEffect, useState} from 'react'
 import ReactDOM from 'react-dom/client'
 import {createHashRouter, createRoutesFromElements, Navigate, Route, RouterProvider} from "react-router-dom";
-import {WagmiProvider} from "wagmi";
+import {useChainId, WagmiProvider} from "wagmi";
 import {config} from "wagmi.config";
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
@@ -20,6 +20,7 @@ import UserOffers from "pages/Me/Offers/UserOffers";
 import OfferPage from "pages/Trade/Offer/Offer";
 import OfferEdit from "pages/Trade/Offer/OfferEdit";
 import OfferNew from "pages/Trade/Offer/OfferNew";
+import * as process from "node:process";
 
 
 const router = createHashRouter( createRoutesFromElements(
@@ -52,19 +53,43 @@ persistQueryClient({
     maxAge: 1000 * 60 * 60 * 24, // 24 hours
 });
 
-const apolloClient = new ApolloClient({
-    uri: import.meta.env.VITE_GRAPH_ENDPOINT,
-    cache: new InMemoryCache()
-});
+const getApolloClient = (chainId) => {
+    const params = {
+        uri: undefined,
+        cache: new InMemoryCache()
+    };
+
+    if (chainId === 31337) {
+        params.uri = 'http://localhost:8000/subgraphs/name/sov';
+    }
+    else {
+        params.uri = import.meta.env.VITE_GRAPH_ENDPOINT.replace('CHAINID', `${chainId}`);
+    }
+
+    return new ApolloClient(params);
+};
+
+const App = () => {
+    const chainId = useChainId();
+    const [apolloClient, setApolloClient] = useState(() => getApolloClient(chainId));
+
+    useEffect(() => {
+        setApolloClient(getApolloClient(chainId));
+    }, [chainId]);
+
+    return (
+        <QueryClientProvider client={queryClient}>
+            <ApolloProvider client={apolloClient}>
+                <RouterProvider router={router} />
+            </ApolloProvider>
+        </QueryClientProvider>
+    )
+}
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
       <WagmiProvider config={config}>
-          <QueryClientProvider client={queryClient}>
-              <ApolloProvider client={apolloClient}>
-                  <RouterProvider router={router} />
-              </ApolloProvider>
-          </QueryClientProvider>
+          <App />
       </WagmiProvider>
   </React.StrictMode>,
 )
