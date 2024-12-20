@@ -16,18 +16,19 @@ switch (import.meta.env.MODE) {
 /**
  * To allow reuse in useContract() when building ethers provider from Wagmi Client.
  */
-export function getRpcUrl(chainId: number): string
+export function getRpcUrl(chainId: number, https: boolean = false): string
 {
     // to match allowed bigint
     chainId = Number(chainId);
 
+    const proto = https ? 'https' : 'wss';
     switch (chainId) {
         case 42161:
-            return 'wss://arb-mainnet.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY
+            return proto+'://arb-mainnet.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY
         case 421614:
-            return 'wss://arb-sepolia.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY;
+            return proto+'://arb-sepolia.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY;
         default:
-            return 'ws://localhost:8545';
+            return proto+'://localhost:8545';
     }
 }
 
