@@ -7,9 +7,11 @@ import {abi as OfferFactoryAbi} from '../../contracts/artifacts/OfferFactory.jso
 import {abi as DealFactoryAbi} from '../../contracts/artifacts/DealFactory.json';
 import {abi as ERC20Abi} from '../../contracts/artifacts/ERC20.json';
 import {useChainId, useClient, useConnectorClient} from "wagmi";
-import {BaseContract, BrowserProvider, ethers, FallbackProvider, JsonRpcProvider, JsonRpcSigner, JsonRpcApiProvider} from "ethers";
+import {BaseContract, BrowserProvider, ethers, FallbackProvider, JsonRpcProvider, WebSocketProvider, JsonRpcSigner, JsonRpcApiProvider} from "ethers";
 import {useMemo} from "react";
 import * as Types from "types";
+
+import { getRpcUrl} from "../wagmi.config";
 
 export function useContract()
 {
@@ -17,20 +19,14 @@ export function useContract()
     const client = useClient({chainId});
 
     function clientToProvider(client) {
-        const { chain, transport } = client
+        const { chain } = client
         const network = {
             chainId: chain.id,
             name: chain.name,
             ensAddress: chain.contracts?.ensRegistry?.address,
         }
-        if (transport.type === 'fallback') {
-            const providers = (transport.transports).map(
-                ({ value }) => new JsonRpcProvider(value?.url, network),
-            )
-            if (providers.length === 1) return providers[0]
-            return new FallbackProvider(providers)
-        }
-        return new JsonRpcProvider(transport.url, network)
+
+        return new WebSocketProvider(getRpcUrl(chainId), network)
     }
     useMemo(() => (client ? clientToProvider(client) : undefined), [client])
 
