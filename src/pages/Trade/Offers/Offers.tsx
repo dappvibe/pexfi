@@ -56,7 +56,7 @@ export default function Offers({filter: superFilter = null})
      */
     const [allOffers, setAllOffers] = useState(null);
     const { data: marketPrice, isLoading: priceLoading } = useQuery({
-        queryKey: ['marketPrice', {token, fiat}],
+        queryKey: ['marketPrice'+chainId, {token, fiat}],
         queryFn: () => Market.getPrice(token, fiat).then(price => Number(price / 10000n) / 100),
         staleTime: 30000,
     });
