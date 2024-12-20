@@ -17,7 +17,7 @@ export const Announcement: React.FC = () => {
   return (
     <>
     {testnet &&
-        <Alert
+        <Alert style={{marginTop: 10, marginBottom: 10}}
           message="This is a testnet. Tokens have no value here."
           type="error"
           showIcon
