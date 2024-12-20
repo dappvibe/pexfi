@@ -7,6 +7,7 @@ import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
+import ReactGA from "react-ga4";
 
 import './main.css'
 
@@ -80,6 +81,10 @@ const App = () => {
 
         setApolloClient(getApolloClient(chainId));
     }, [chainId]);
+
+    if (import.meta.env.MODE === 'production') {
+        ReactGA.initialize('G-M9XYZ703GP');
+    }
 
     return (
         <QueryClientProvider client={queryClient}>
