@@ -11,13 +11,13 @@ export default function Layout()
     return (
     <AntLayout>
         <Header style={{padding: 0}}>
-            <Topnav />
+            <div className={"width-container"}>
+                <Topnav/>
+            </div>
         </Header>
         <Content>
-            <div style={{margin: 10}}>
-                <Announcement />
-            </div>
             <div className={"width-container"}>
+                <Announcement />
                 <Outlet />
             </div>
         </Content>
