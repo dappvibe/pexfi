@@ -20,7 +20,6 @@ import UserOffers from "pages/Me/Offers/UserOffers";
 import OfferPage from "pages/Trade/Offer/Offer";
 import OfferEdit from "pages/Trade/Offer/OfferEdit";
 import OfferNew from "pages/Trade/Offer/OfferNew";
-import * as process from "node:process";
 
 
 const router = createHashRouter( createRoutesFromElements(
@@ -43,14 +42,8 @@ const router = createHashRouter( createRoutesFromElements(
     </Route>
 ));
 
-const queryClient = new QueryClient()
 const localStoragePersister = createSyncStoragePersister({
     storage: window.localStorage,
-});
-persistQueryClient({
-    queryClient,
-    persister: localStoragePersister,
-    maxAge: 1000 * 60 * 60 * 24, // 24 hours
 });
 
 const getApolloClient = (chainId) => {
@@ -73,7 +66,18 @@ const App = () => {
     const chainId = useChainId();
     const [apolloClient, setApolloClient] = useState(() => getApolloClient(chainId));
 
+
+    const [queryClient, setQueryClient] = useState(() => new QueryClient());
+
     useEffect(() => {
+        const newQueryClient = new QueryClient();
+        persistQueryClient({
+            queryClient: newQueryClient,
+            persister: localStoragePersister,
+            maxAge: 1000 * 60 * 60 * 24, // 24 hours
+        });
+        setQueryClient(newQueryClient);
+
         setApolloClient(getApolloClient(chainId));
     }, [chainId]);
 
