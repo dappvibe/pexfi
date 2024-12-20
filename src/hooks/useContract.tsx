@@ -26,7 +26,8 @@ export function useContract()
             ensAddress: chain.contracts?.ensRegistry?.address,
         }
 
-        return new WebSocketProvider(getRpcUrl(chainId), network)
+        const url = getRpcUrl(chainId, true);
+        return new JsonRpcProvider(url, network)
     }
     useMemo(() => (client ? clientToProvider(client) : undefined), [client])
 
@@ -41,7 +42,7 @@ export function useContract()
         try {
             provider = new BrowserProvider(transport, network)
         } catch (error) {
-            provider = new JsonRpcProvider(transport.url, network)
+            provider = clientToProvider(client);
         }
         return new JsonRpcSigner(provider, account.address)
     }
