@@ -23,6 +23,10 @@ export const Announcement: React.FC = () => {
           showIcon
         />
     }
+    <Alert message={"Welcome to Priveer's MVP! Your feedback is valuable at this stage! We plan on a design overhaul once funding allows us to expand the team."}
+       style={{marginTop: 10, marginBottom: 10}}
+          type={"info"}
+    />
     </>
   );
 };
