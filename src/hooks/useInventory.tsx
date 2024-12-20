@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { ethers } from 'ethers';
 import { useContract } from 'hooks/useContract';
+import {useChainId} from "wagmi";
 
 const fetchInventory = async (Market) => {
     const [tokensRes, fiatsRes, methodsRes] = await Promise.all([
@@ -34,8 +35,9 @@ const fetchInventory = async (Market) => {
 
 export function useInventory() {
     const { Market } = useContract();
+    const chainId = useChainId();
     const { data } = useQuery({
-        queryKey: ['inventory'],
+        queryKey: ['inventory' + chainId],
         queryFn: () => fetchInventory(Market),
         placeholderData: {
             tokens: {},
