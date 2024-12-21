@@ -3,6 +3,7 @@ import Topnav from "./Topnav";
 import {Outlet} from "react-router-dom";
 import {Footer} from "antd/es/layout/layout.js";
 import {Announcement} from "components/Announcement";
+import ChatWidget from "../components/ChatWidget";
 
 const {Header, Content} = AntLayout;
 
@@ -22,6 +23,7 @@ export default function Layout()
             </div>
         </Content>
         <Footer />
+        <ChatWidget />
     </AntLayout>
     );
 }
