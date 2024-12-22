@@ -26,7 +26,7 @@ export default function NetworkSelector()
                 <Switch
                     checked={false}
                     checkedChildren={"Mainnet"}
-                    unCheckedChildren={"Mainnet"}
+                    unCheckedChildren={"Sepolia"}
                     disabled={true}
                     onChange={handleChange}
                     style={{
