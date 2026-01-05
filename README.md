@@ -12,11 +12,7 @@ Ethereum backend: the core of the platform.
 2. Deploy tokens/currencies mocks to default local node
     * `npx hardhat run ignition/mocks.js --network localhost > ignition/parameters/hardhat.json`
 
-3. (Optionally) Run blockscout to view changes in the local blockchain
-   ```shell
-    git clone https://github.com/pexfi-com/blockscout
-    cd blockscout && docker compose up -d
-   ```
+NOTE: dotenv lib writes "tips" there. Remove manually from the generated JSON.
 
 ## Deploy
 
@@ -30,3 +26,11 @@ npx hardhat ignition deploy ignition/modules/Market.js \
     --network localhost \
     --verify
 ```
+
+## Browsing local blockchain
+   ```shell
+    git clone https://github.com/pexfi-com/blockscout
+    cd blockscout && docker compose up -d
+   ```
+   And then to let blockscout show names and ABI's in tihs repo's root
+   `npx hardhat ignition verify hardhat --network localhost --include-unrelated-contracts`
