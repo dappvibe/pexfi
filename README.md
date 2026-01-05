@@ -1,19 +1,32 @@
-## How to run dev environment
+# EVM contracts for PEXFI
 
-1. Install hardhat and run local ETH node (EVM-emulator memory-only)
+Ethereum backend: the core of the platform.
+
+## How to run a dev environment
+
+1. Install hardhat and run the local ETH node (EVM-emulator memory-only)
     * `sudo apt-get install npm`
     * `npm install`
     * `docker compose up -d hardhat`
 
-2. Run blockscout
-    * `cd blockscout && docker compose up -d`
+2. Deploy tokens/currencies mocks to default local node
+    * `npx hardhat run ignition/mocks.js --network localhost > ignition/parameters/hardhat.json`
 
-3. Deploy tokens/currencies mocks to default local node
-    * `npx hardhat run ignition/mocks.js > ignition/parameters/hardhat.json`
+3. (Optionally) Run blockscout to view changes in the local blockchain
+   ```shell
+    git clone https://github.com/pexfi-com/blockscout
+    cd blockscout && docker compose up -d
+   ```
 
 ## Deploy
 
 Use parameters file that holds uniswap, tokens, chainlink oracles addresses. For each network its own.
 Use `--network` to select blockchain. Networks are in ignition/parameters/
 
-`npx hardhat ignition deploy ignition/modules/Market.js --parameters ignition/parameters/hardhat.json --verify --deployment-id hardhat`
+```shell
+npx hardhat ignition deploy ignition/modules/Market.js \
+    --parameters ignition/parameters/hardhat.json \
+    --deployment-id hardhat \
+    --network localhost \
+    --verify
+```
