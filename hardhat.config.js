@@ -1,11 +1,14 @@
-require("@nomicfoundation/hardhat-toolbox");
+
 require("@nomicfoundation/hardhat-ignition-ethers");
+require("@nomicfoundation/hardhat-chai-matchers");
+require("@nomicfoundation/hardhat-ethers");
+require("@nomicfoundation/hardhat-network-helpers");
 require('@openzeppelin/hardhat-upgrades');
 require('hardhat-ignore-warnings');
-require("hardhat-tracer");
 require("hardhat-contract-sizer");
 require('hardhat-dependency-compiler');
 require("@nomicfoundation/hardhat-verify");
+require("hardhat-gas-reporter");
 require('solidity-docgen');
 
 require('dotenv').config();
