@@ -1,13 +1,12 @@
-import Offers from "pages/Trade/Offers/Offers";
-import {useAccount} from "wagmi";
+import Offers from 'pages/Trade/Offers/Offers'
+import { useAccount } from 'wagmi'
 
-export default function UserOffers()
-{
-    const {address} = useAccount();
+export default function UserOffers() {
+  const { address } = useAccount()
 
-    const filter = {
-        owner: address
-    };
+  const filter = {
+    owner: address,
+  }
 
-    return (<Offers filter={filter} />);
+  return <Offers filter={filter} />
 }
