@@ -1,4 +1,4 @@
-type Offer @entity {
+type Offer @entity(immutable: false) {
   id: ID!
   owner: Bytes!
   profile: Profile
@@ -24,7 +24,7 @@ type Token @entity(immutable: true) {
   decimals: Int!
 }
 
-type Deal @entity {
+type Deal @entity(immutable: false) {
   id: ID!
   createdAt: Int!
   state: Int8!
@@ -48,7 +48,7 @@ type DealMessage @entity(immutable: true) {
 }
 
 # Rep NFT
-type Profile @entity {
+type Profile @entity(immutable: false) {
   id: ID!
   createdAt: Int!
   # used in offers sorting
@@ -64,7 +64,7 @@ type Profile @entity {
   avgReleaseTime: Int!
 }
 
-type Feedback @entity {
+type Feedback @entity(immutable: false) {
   id: ID!
   given: Boolean,
   upvote: Boolean,
