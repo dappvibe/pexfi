@@ -1,5 +1,6 @@
-import {gql, useQuery} from "@apollo/client";
-import {useEffect, useState} from "react";
+import { gql } from "@apollo/client";
+import { useQuery } from "@apollo/client/react";
+import { useEffect, useState } from "react";
 
 export type OffersFilter = {
     disabled?: boolean;
@@ -84,9 +85,8 @@ query Offers($first: Int, $skip: Int, $where: Offer_filter, $orderDirection: Str
     }
 }`;
 
-export function useOffers(params: OffersRequestParams): UseOffersResult
-{
-    const {data, loading, error, fetchMore, refetch} = useQuery(GQL_OFFERS, {
+export function useOffers(params: OffersRequestParams): UseOffersResult {
+    const { data, loading, error, fetchMore, refetch } = useQuery(GQL_OFFERS, {
         variables: {
             first: RECORDS_PER_FETCH,
             skip: 0,
@@ -105,11 +105,11 @@ export function useOffers(params: OffersRequestParams): UseOffersResult
             variables: {
                 skip: data.offers.length,
             },
-            updateQuery: (prev, {fetchMoreResult}) => {
+            updateQuery: (prev, { fetchMoreResult }) => {
                 if (fetchMoreResult.offers.length < RECORDS_PER_FETCH) {
                     setTotalCount(prev.offers.length + fetchMoreResult.offers.length);
                 } // fetched all
-                return {offers: [...prev.offers, ...fetchMoreResult.offers]};
+                return { offers: [...prev.offers, ...fetchMoreResult.offers] };
             }
         });
     }
