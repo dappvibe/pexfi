@@ -1,5 +1,6 @@
 import React, {useEffect, useMemo} from 'react';
-import {gql, useQuery} from '@apollo/client';
+import {gql} from '@apollo/client';
+import {useQuery} from '@apollo/client/react';
 import {notification} from 'antd';
 import {useAccount} from 'wagmi';
 import {Link} from "react-router-dom";

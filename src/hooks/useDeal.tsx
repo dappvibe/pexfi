@@ -1,5 +1,6 @@
-import {gql, useQuery} from "@apollo/client";
-import {Offer} from "./useOffers";
+import { gql } from "@apollo/client";
+import { useQuery } from "@apollo/client/react";
+import { Offer } from "./useOffers";
 
 export type Deal = {
     id: string;
@@ -82,10 +83,9 @@ query GetDeal($id: ID!) {
     }
 }`;
 
-export function useDeal(address: string): UseDealResult
-{
-    const {data, loading, error, refetch} = useQuery(GQL_DEAL, {
-        variables: {id: address.toLowerCase()},
+export function useDeal(address: string): UseDealResult {
+    const { data, loading, error, refetch } = useQuery(GQL_DEAL, {
+        variables: { id: address.toLowerCase() },
     });
 
     return {
