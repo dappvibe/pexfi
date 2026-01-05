@@ -356,7 +356,7 @@ describe('buyer disputes deal', function() {
     });
 });
 
-describe('Cancelation by state', async function() {
+describe('Cancellation by state', async function() {
     it ('only owner can cancel during acceptance window', async function() {
         deal = await openDeal(seller, offers[7]);
         deal = await deal.connect(seller);
