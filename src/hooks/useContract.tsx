@@ -7,16 +7,7 @@ import { abi as OfferFactoryAbi } from '../../contracts/artifacts/OfferFactory.j
 import { abi as DealFactoryAbi } from '../../contracts/artifacts/DealFactory.json'
 import { abi as ERC20Abi } from '../../contracts/artifacts/ERC20.json'
 import { useChainId, useClient, useConnectorClient } from 'wagmi'
-import {
-  BaseContract,
-  BrowserProvider,
-  ethers,
-  FallbackProvider,
-  JsonRpcProvider,
-  WebSocketProvider,
-  JsonRpcSigner,
-  JsonRpcApiProvider,
-} from 'ethers'
+import { BaseContract, BrowserProvider, ethers, WebSocketProvider, JsonRpcSigner, JsonRpcApiProvider } from 'ethers'
 import { useMemo } from 'react'
 import * as Types from 'types'
 
@@ -34,8 +25,8 @@ export function useContract() {
       ensAddress: chain.contracts?.ensRegistry?.address,
     }
 
-    const url = getRpcUrl(chainId, true)
-    return new JsonRpcProvider(url, network)
+    const url = getRpcUrl(chainId, chain.id !== 31337)
+    return new WebSocketProvider(url, network)
   }
   useMemo(() => (client ? clientToProvider(client) : undefined), [client])
 
