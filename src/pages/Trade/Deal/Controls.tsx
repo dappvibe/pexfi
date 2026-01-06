@@ -2,12 +2,12 @@ import React from 'react'
 import { useAccount } from 'wagmi'
 import { ethers } from 'ethers'
 import { message, Space, Statistic } from 'antd'
-import { useDealContext } from './Deal'
-import LoadingButton from 'components/LoadingButton'
-import { useContract } from 'hooks/useContract'
-import Feedback from './Feedback'
-import { equal } from 'utils'
-import * as Types from 'types'
+import { useDealContext } from '@/pages/Trade/Deal/Deal'
+import LoadingButton from '@/components/LoadingButton'
+import { useContract } from '@/hooks/useContract'
+import Feedback from '@/pages/Trade/Deal/Feedback'
+import { equal } from '@/utils'
+import * as Types from '@/types'
 
 export default function Controls() {
   const { deal } = useDealContext()

@@ -1,17 +1,17 @@
-import deployed from '../../contracts/addresses.json'
-import { abi as MarketAbi } from '../../contracts/artifacts/Market.json'
-import { abi as RepTokenAbi } from '../../contracts/artifacts/RepToken.json'
-import { abi as DealAbi } from '../../contracts/artifacts/Deal.json'
-import { abi as OfferAbi } from '../../contracts/artifacts/Offer.json'
-import { abi as OfferFactoryAbi } from '../../contracts/artifacts/OfferFactory.json'
-import { abi as DealFactoryAbi } from '../../contracts/artifacts/DealFactory.json'
-import { abi as ERC20Abi } from '../../contracts/artifacts/ERC20.json'
+import deployed from '@contracts/addresses.json'
+import { abi as MarketAbi } from '@contracts/artifacts/Market.json'
+import { abi as RepTokenAbi } from '@contracts/artifacts/RepToken.json'
+import { abi as DealAbi } from '@contracts/artifacts/Deal.json'
+import { abi as OfferAbi } from '@contracts/artifacts/Offer.json'
+import { abi as OfferFactoryAbi } from '@contracts/artifacts/OfferFactory.json'
+import { abi as DealFactoryAbi } from '@contracts/artifacts/DealFactory.json'
+import { abi as ERC20Abi } from '@contracts/artifacts/ERC20.json'
 import { useChainId, useClient, useConnectorClient } from 'wagmi'
 import { BaseContract, BrowserProvider, ethers, WebSocketProvider, JsonRpcSigner, JsonRpcApiProvider } from 'ethers'
 import { useMemo } from 'react'
-import * as Types from 'types'
+import * as Types from '@/types'
 
-import { getRpcUrl } from '../wagmi.config'
+import { getRpcUrl } from '@/wagmi.config'
 
 export function useContract() {
   const chainId = useChainId()

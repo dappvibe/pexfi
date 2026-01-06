@@ -1,10 +1,10 @@
 import { useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import Offer from 'model/Offer.js'
-import { useContract } from 'hooks/useContract'
+import Offer from '@/model/Offer.js'
+import { useContract } from '@/hooks/useContract'
 import { useAccount, useChainId } from 'wagmi'
 import { Card, Skeleton } from 'antd'
-import OfferForm from 'pages/Trade/Offer/OfferForm'
+import OfferForm from '@/pages/Trade/Offer/OfferForm'
 
 export default function OfferEdit() {
   const { offerId } = useParams()
