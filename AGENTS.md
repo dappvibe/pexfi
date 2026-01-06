@@ -1,4 +1,6 @@
+# Code Style
 * Always use configured @ aliases when importing modules
+* Never comment WHAT code does, only WHY if really necessary
 
 # Testing
 * Tests are stored in tests/ mirroring src/ folders.
