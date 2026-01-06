@@ -1,4 +1,3 @@
-import { vi } from 'vitest'
 
 // 1. Mock Wagmi (Viem integration)
 vi.mock('wagmi', async (importOriginal) => {
@@ -47,12 +46,13 @@ vi.mock('ethers', async (importOriginal) => {
 })
 
 // 3. Mock Project Config (Adjust path as necessary relative to this file)
-vi.mock('../src/wagmi.config', () => ({
+// 3. Mock Project Config (Adjust path as necessary relative to this file)
+vi.mock('@/wagmi.config', () => ({
   getRpcUrl: vi.fn(() => 'http://localhost:8545'),
 }))
 
 // 4. Mock Contract Addresses (Matches test expectations)
-vi.mock('../contracts/addresses.json', () => ({
+vi.mock('@contracts/addresses.json', () => ({
   default: {
     31337: {
       'Market#Market': '0xMarketAddress',
