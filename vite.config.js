@@ -9,6 +9,7 @@ export default defineConfig({
     alias: {
       '@': '/src',
       '@contracts': '/contracts',
+      '@tests': '/tests',
     },
   },
   test: {
