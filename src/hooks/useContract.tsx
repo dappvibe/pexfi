@@ -28,7 +28,6 @@ export function useContract() {
     const url = getRpcUrl(chainId, chain.id !== 31337)
     return new WebSocketProvider(url, network)
   }
-  useMemo(() => (client ? clientToProvider(client) : undefined), [client])
 
   function clientToSigner(client: any) {
     const { account, chain, transport } = client
@@ -46,10 +45,10 @@ export function useContract() {
     return new JsonRpcSigner(provider, account.address)
   }
   const { data: connector } = useConnectorClient({ chainId })
-  useMemo(() => (connector ? clientToSigner(connector) : undefined), [connector])
 
   const addresses = deployed[chainId]
-  const provider = clientToProvider(client)
+
+  const provider = useMemo(() => (client ? clientToProvider(client) : undefined), [client, chainId])
 
   const signed = async <T extends BaseContract>(contract: T): Promise<T> => {
     const signer = clientToSigner(connector)
