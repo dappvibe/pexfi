@@ -10,7 +10,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@contracts/*": ["contracts/*"]
+      "@contracts/*": ["contracts/*"],
+      "@tests/*": ["tests/*"]
     },
     "rootDir": "./src",
     "moduleResolution": "bundler",
