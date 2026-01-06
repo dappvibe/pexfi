@@ -1,4 +1,6 @@
-const {ethers, ignition} = require("hardhat");
+const {ethers} = require("hardhat");
+const fs = require('fs');
+const path = require('path');
 require('./modules/Market');
 
 (async () => {
@@ -56,6 +58,8 @@ require('./modules/Market');
     }
 
     // Use this to deploy Market
-    console.log(JSON.stringify({"Market": params}, null, 2));
+    const outputPath = path.join(__dirname, 'parameters', 'hardhat.json');
+    fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+    fs.writeFileSync(outputPath, JSON.stringify({"Market": params}, null, 2));
     process.stderr.write('Done\n');
 })();
