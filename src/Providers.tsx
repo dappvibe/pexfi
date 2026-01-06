@@ -6,6 +6,7 @@ import { persistQueryClient } from '@tanstack/react-query-persist-client'
 import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client'
 import { ApolloProvider } from '@apollo/client/react'
 import { config } from '@/wagmi.config'
+import { HelmetProvider } from '@dr.pogodin/react-helmet'
 
 const localStoragePersister = createSyncStoragePersister({
   storage: window.localStorage,
@@ -50,7 +51,9 @@ export const Providers = ({ children }: { children: ReactNode }) => {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <ApolloChainProvider>{children}</ApolloChainProvider>
+        <ApolloChainProvider>
+          <HelmetProvider>{children}</HelmetProvider>
+        </ApolloChainProvider>
       </QueryClientProvider>
     </WagmiProvider>
   )
