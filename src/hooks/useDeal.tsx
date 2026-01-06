@@ -1,6 +1,6 @@
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
-import { Offer } from './useOffers'
+import { Offer } from '@/hooks/useOffers'
 
 export type Deal = {
   id: string

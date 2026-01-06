@@ -1,9 +1,9 @@
 import { Button, Col, Form, Input, InputNumber, message, Radio, Row, Select, Skeleton, Space } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import React, { useRef } from 'react'
-import { useContract } from 'hooks/useContract'
-import { useInventory } from 'hooks/useInventory'
-import * as Types from 'types'
+import { useContract } from '@/hooks/useContract'
+import { useInventory } from '@/hooks/useInventory'
+import * as Types from '@/types'
 
 const { TextArea } = Input
 

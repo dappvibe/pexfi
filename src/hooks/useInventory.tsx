@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { ethers } from 'ethers'
-import { useContract } from 'hooks/useContract'
-import { Market } from 'types'
+import { useContract } from '@/hooks/useContract'
+import { Market } from '@/types'
 import { useChainId } from 'wagmi'
 
 const fetchInventory = async (Market: Market) => {

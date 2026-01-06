@@ -1,13 +1,13 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button, Card, Form, FormInstance, Input, message, Skeleton, Space } from 'antd'
 import React, { useEffect, useRef, useState } from 'react'
-import Subnav from './Subnav'
-import Description from './Description'
+import Subnav from '@/pages/Trade/Offer/Subnav'
+import Description from '@/pages/Trade/Offer/Description'
 import { ethers } from 'ethers'
-import { useContract } from 'hooks/useContract'
+import { useContract } from '@/hooks/useContract'
 import { useAccount, useChainId } from 'wagmi'
-import Offer from 'model/Offer.js'
-import { ERC20 } from '../../../types'
+import Offer from '@/model/Offer.js'
+import { ERC20 } from '@/types'
 
 export default function OfferPage() {
   const navigate = useNavigate()

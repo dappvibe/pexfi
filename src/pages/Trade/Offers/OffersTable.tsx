@@ -1,8 +1,8 @@
 import { Avatar, Button, Divider, Flex, Space, Table, Tag } from 'antd'
 import { Link, useParams } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import Username from 'components/Username'
-import { formatMoney } from 'utils'
+import Username from '@/components/Username'
+import { formatMoney } from '@/utils'
 import { useAccount } from 'wagmi'
 
 export default function OffersTable({ offers, loading, loadMore, totalOffers }) {

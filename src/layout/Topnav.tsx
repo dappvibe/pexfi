@@ -1,9 +1,9 @@
 import { Col, Menu, Row } from 'antd'
 import { generatePath, Link, useParams } from 'react-router-dom'
-import WalletMenu from 'components/WalletMenu'
-import NetworkSelector from 'components/NetworkSelector'
-import Notifications from 'components/Notifications'
-import logo from 'assets/images/logo.png'
+import WalletMenu from '@/components/WalletMenu'
+import NetworkSelector from '@/components/NetworkSelector'
+import Notifications from '@/components/Notifications'
+import logo from '@/assets/images/logo.png'
 
 export default function Topnav() {
   const params = useParams()

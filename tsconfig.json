@@ -7,10 +7,15 @@
     "strict": false,
     "skipLibCheck": true,
     "jsx": "react-jsx",
-    "baseUrl": "./src",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@contracts/*": ["contracts/*"]
+    },
     "rootDir": "./src",
     "moduleResolution": "bundler",
+    "allowJs": true,
     "types": ["vite/client"],
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "tests/**/*"],
 }

@@ -1,7 +1,7 @@
 import { Select, Space, Switch, Tooltip } from 'antd'
 import { useChainId, useSwitchChain } from 'wagmi'
 import { arbitrum, arbitrumSepolia } from 'wagmi/chains'
-import arbitrumLogo from 'assets/images/arbitrum_monochrome.svg'
+import arbitrumLogo from '@/assets/images/arbitrum_monochrome.svg'
 
 export default function NetworkSelector() {
   // so that devs and testers may choose coming networks

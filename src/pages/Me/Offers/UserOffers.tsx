@@ -1,4 +1,4 @@
-import Offers from 'pages/Trade/Offers/Offers'
+import Offers from '@/pages/Trade/Offers/Offers'
 import { useAccount } from 'wagmi'
 
 export default function UserOffers() {

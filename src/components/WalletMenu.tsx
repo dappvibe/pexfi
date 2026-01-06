@@ -1,6 +1,6 @@
 import { Avatar, Button, Col, Menu, Modal, Row, Space } from 'antd'
 import { useState } from 'react'
-import { formatAddress } from 'utils'
+import { formatAddress } from '@/utils'
 import { Link } from 'react-router-dom'
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
 
