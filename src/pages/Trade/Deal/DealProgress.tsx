@@ -1,4 +1,4 @@
-import { useDealContext } from './Deal'
+import { useDealContext } from '@/pages/Trade/Deal/Deal'
 import { Steps } from 'antd'
 import React from 'react'
 

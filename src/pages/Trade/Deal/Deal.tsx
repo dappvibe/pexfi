@@ -1,12 +1,12 @@
 import { useParams } from 'react-router-dom'
 import { Col, message, Row, Skeleton } from 'antd'
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import DealCard from './DealCard'
-import MessageBox from './MessageBox'
+import DealCard from '@/pages/Trade/Deal/DealCard'
+import MessageBox from '@/pages/Trade/Deal/MessageBox'
 import { useChainId, useWatchContractEvent } from 'wagmi'
-import { Deal } from 'model/Deal.js'
-import { useDeal } from 'hooks/useDeal'
-import { useContract } from 'hooks/useContract'
+import { Deal } from '@/model/Deal.js'
+import { useDeal } from '@/hooks/useDeal'
+import { useContract } from '@/hooks/useContract'
 import { Log, LogDescription } from 'ethers'
 
 export type DealContextValue = {

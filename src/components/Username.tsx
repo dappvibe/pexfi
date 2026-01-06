@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types'
-import { formatAddress } from 'utils'
+import { formatAddress } from '@/utils'
 import { Avatar, Space } from 'antd'
 import { Link } from 'react-router-dom'
 

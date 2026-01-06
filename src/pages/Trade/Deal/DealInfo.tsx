@@ -1,7 +1,7 @@
 import React, { useContext } from 'react'
-import { DealContext } from './Deal'
+import { DealContext } from '@/pages/Trade/Deal/Deal'
 import { Descriptions } from 'antd'
-import Username from 'components/Username'
+import Username from '@/components/Username'
 
 export default function DealInfo() {
   const { deal } = useContext(DealContext)
