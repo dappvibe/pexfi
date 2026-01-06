@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { ethers } from 'ethers'
 import { useContract } from 'hooks/useContract'
+import { Market } from 'types'
 import { useChainId } from 'wagmi'
 
-const fetchInventory = async (Market) => {
+const fetchInventory = async (Market: Market) => {
   const [tokensRes, fiatsRes, methodsRes] = await Promise.all([
     Market.getTokens(),
     Market.getFiats(),
