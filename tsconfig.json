@@ -15,7 +15,7 @@
     "rootDir": "./src",
     "moduleResolution": "bundler",
     "allowJs": true,
-    "types": ["vite/client"],
+    "types": ["vite/client", "vitest/globals"]
   },
-  "include": ["src/**/*", "tests/**/*"],
+  "include": ["src/**/*", "tests/**/*"]
 }
