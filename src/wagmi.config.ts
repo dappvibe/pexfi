@@ -20,7 +20,7 @@ export function getRpcUrl(chainId: number, https: boolean = false): string {
   // to match allowed bigint
   chainId = Number(chainId)
 
-  const proto = https ? 'https' : 'wss'
+  const proto = https ? 'wss' : 'ws'
   switch (chainId) {
     case 42161:
       return proto + '://arb-mainnet.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY
