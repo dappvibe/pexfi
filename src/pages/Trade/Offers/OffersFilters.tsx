@@ -1,7 +1,7 @@
 import React from 'react'
 import { Input, Select, Space } from 'antd'
 import { generatePath, useNavigate, useParams } from 'react-router-dom'
-import { useInventory } from 'hooks/useInventory'
+import { useInventory } from '@/hooks/useInventory'
 
 export default function OffersFilters({ setFilterAmount }) {
   const navigate = useNavigate()

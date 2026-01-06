@@ -3,11 +3,11 @@ import React, { useEffect, useState } from 'react'
 import { message } from 'antd'
 import { useChainId } from 'wagmi'
 import { useQuery } from '@tanstack/react-query'
-import { useContract } from 'hooks/useContract'
-import { useOffers } from 'hooks/useOffers'
-import OffersTable from './OffersTable'
-import OffersFilters from './OffersFilters'
-import TokenNav from './TokenNav'
+import { useContract } from '@/hooks/useContract'
+import { useOffers } from '@/hooks/useOffers'
+import OffersTable from '@/pages/Trade/Offers/OffersTable'
+import OffersFilters from '@/pages/Trade/Offers/OffersFilters'
+import TokenNav from '@/pages/Trade/Offers/TokenNav'
 
 export default function Offers({ filter: superFilter = null }) {
   const chainId = useChainId()

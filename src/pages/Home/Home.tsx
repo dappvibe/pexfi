@@ -1,5 +1,5 @@
 import { Card, Col, Row } from 'antd'
-import Faq from './Faq'
+import Faq from '@/pages/Home/Faq'
 
 export default function Home() {
   return (
