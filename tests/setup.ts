@@ -1,11 +1,15 @@
-
 // 1. Mock Wagmi (Viem integration)
 vi.mock('wagmi', async (importOriginal) => {
   const actual = await importOriginal<typeof import('wagmi')>()
   return {
     ...actual,
-    // Use vi.fn() so tests can override implementation via .mockReturnValue if needed
+    // Mock Provider to just render children, bypassing config validation
+    WagmiProvider: ({ children }: { children: React.ReactNode }) => children,
+    // Hooks
     useChainId: vi.fn(() => 31337),
+    useConfig: vi.fn(() => ({
+      chains: [{ id: 31337, name: 'Hardhat' }],
+    })),
     useClient: vi.fn(() => ({
       chain: { id: 31337, name: 'Hardhat' },
       transport: { type: 'http' },
@@ -15,7 +19,22 @@ vi.mock('wagmi', async (importOriginal) => {
     useAccount: vi.fn(() => ({
       address: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266', // Standard Hardhat Account #0
       isConnected: true,
+      chain: { id: 31337 },
     })),
+    useConnections: vi.fn(() => []),
+    useConnect: vi.fn(() => ({ connect: vi.fn() })),
+    useDisconnect: vi.fn(() => ({ disconnect: vi.fn() })),
+    useSwitchChain: vi.fn(() => ({
+      switchChain: vi.fn(),
+      chains: [{ id: 31337, name: 'Hardhat' }],
+    })),
+    useChains: vi.fn(() => [{ id: 31337, name: 'Hardhat' }]),
+    useBalance: vi.fn(() => ({ data: { formatted: '1.0', symbol: 'ETH' } })),
+    useEnsName: vi.fn(() => ({ data: null })),
+    useWaitForTransactionReceipt: vi.fn(() => ({ isLoading: false, isSuccess: true })),
+    useWriteContract: vi.fn(() => ({ writeContract: vi.fn(), isPending: false })),
+    useReadContract: vi.fn(() => ({ data: null })),
+    useSimulateContract: vi.fn(() => ({ data: null })),
   }
 })
 
@@ -46,9 +65,16 @@ vi.mock('ethers', async (importOriginal) => {
 })
 
 // 3. Mock Project Config (Adjust path as necessary relative to this file)
-// 3. Mock Project Config (Adjust path as necessary relative to this file)
 vi.mock('@/wagmi.config', () => ({
   getRpcUrl: vi.fn(() => 'http://localhost:8545'),
+  config: {
+    chains: [{ id: 31337, name: 'Hardhat' }],
+    connectors: [],
+    transports: { 31337: { type: 'http' } },
+    _internal: { mipd: undefined },
+    // Add other necessary config properties if Wagmi complains
+    // Or try to utilize real createConfig if possible, but mocking is safer for now to avoid side effects
+  },
 }))
 
 // 4. Mock Contract Addresses (Matches test expectations)
