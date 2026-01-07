@@ -3,9 +3,9 @@ import { useChainId, useSwitchChain } from 'wagmi'
 import { arbitrum, arbitrumSepolia } from 'wagmi/chains'
 import arbitrumLogo from '@/assets/images/arbitrum_monochrome.svg'
 
-export default function NetworkSelector() {
+export default function NetworkSelector({ mode = import.meta.env.MODE }: { mode?: string }) {
   // so that devs and testers may choose coming networks
-  if (import.meta.env.MODE !== 'production') {
+  if (mode !== 'production') {
     return NetworkSelectorAll()
   }
 
@@ -20,7 +20,7 @@ export default function NetworkSelector() {
   }
 
   return (
-    <Space direction="horizontal" style={{ display: 'flex', alignItems: 'center' }}>
+    <Space style={{ display: 'flex', alignItems: 'center' }}>
       <Tooltip title="Mainnet is not deployed yet.">
         <Switch
           checked={false}
