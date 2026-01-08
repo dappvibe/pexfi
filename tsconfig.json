@@ -13,7 +13,6 @@
       "@contracts/*": ["contracts/*"],
       "@tests/*": ["tests/*"]
     },
-    "rootDir": "./src",
     "moduleResolution": "bundler",
     "allowJs": true,
     "types": ["vite/client", "vitest/globals"]
