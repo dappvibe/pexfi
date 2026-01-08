@@ -25,7 +25,10 @@ export default function OfferPage() {
   useEffect(() => {
     Offer.fetch(OfferContract.attach(offerId))
       .then((offer) => {
-        return Market.getPrice(offer.token, offer.fiat).then((price) => offer.setPairPrice(price))
+        return Market.getPrice(offer.token, offer.fiat).then((price) => {
+          offer.setPairPrice(price)
+          return offer
+        })
       })
       .then((offer) => {
         if (account.address && !offer.isSell) {
