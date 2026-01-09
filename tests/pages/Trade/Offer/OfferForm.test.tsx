@@ -1,33 +1,28 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { vi } from 'vitest'
+import '@testing-library/jest-dom'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import OfferForm from '@/pages/Trade/Offer/OfferForm'
-import { useInventory } from '@/hooks/useInventory'
-import { useContract } from '@/hooks/useContract'
 
 // Mock Hooks
 vi.mock('@/hooks/useInventory', async () => {
-    const actual = await import('@/../tests/mocks/useInventory')
-    return { useInventory: actual.useInventory }
+  const actual = await import('@tests/mocks/useInventory')
+  return { useInventory: actual.useInventory }
 })
 
-// Mock Ant Design Select
-vi.mock('antd', async () => {
-    const antd = await vi.importActual('antd')
-    const Select = ({ children, onChange, value, ...props }: any) => {
-        return (
-            <select
-                data-testid="mock-select"
-                value={value || ''}
-                onChange={e => onChange && onChange(e.target.value)}
-                {...props}
-            >
-                {children}
-            </select>
-        )
-    }
-    Select.Option = ({ children, value }: any) => <option value={value}>{children}</option>
-    return { ...antd, Select }
+// Mock matchMedia for Ant Design (required for real components)
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation((query) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
 })
 
 const mockCreate = vi.fn().mockResolvedValue({ wait: vi.fn().mockResolvedValue({ logs: [] }) })
@@ -38,195 +33,199 @@ const mockSetDisabled = vi.fn().mockResolvedValue({ wait: vi.fn().mockResolvedVa
 
 // Mock Offer Contract Instance
 const mockOfferContract = {
-    setRate: mockSetRate,
-    setLimits: mockSetLimits,
-    setTerms: mockSetTerms,
-    setDisabled: mockSetDisabled,
-    connect: vi.fn().mockReturnThis()
+  setRate: mockSetRate,
+  setLimits: mockSetLimits,
+  setTerms: mockSetTerms,
+  setDisabled: mockSetDisabled,
+  connect: vi.fn().mockReturnThis(),
 }
 
 // Mock useContract
 vi.mock('@/hooks/useContract', () => {
-    return {
-        useContract: vi.fn(() => ({
-            signed: vi.fn((contract) => Promise.resolve(contract)),
-            OfferFactory: {
-                create: mockCreate,
-                connect: vi.fn().mockReturnThis()
-            },
-            Offer: {
-                attach: vi.fn(() => mockOfferContract)
-            },
-            Market: {
-                getPrice: vi.fn(() => Promise.resolve(50000000000n)), // 50000 * 10^6
-                interface: {
-                    parseLog: vi.fn()
-                }
-            }
-        }))
-    }
+  return {
+    useContract: vi.fn(() => ({
+      signed: vi.fn((contract) => Promise.resolve(contract)),
+      OfferFactory: {
+        create: mockCreate,
+        connect: vi.fn().mockReturnThis(),
+      },
+      Offer: {
+        attach: vi.fn(() => mockOfferContract),
+      },
+      Market: {
+        getPrice: vi.fn(() => Promise.resolve(50000000000n)), // 50000 * 10^6
+        interface: {
+          parseLog: vi.fn(),
+        },
+      },
+    })),
+  }
 })
 
 // Mock window.location.reload
 Object.defineProperty(window, 'location', {
-    configurable: true,
-    value: { reload: vi.fn() },
+  configurable: true,
+  value: { reload: vi.fn() },
 })
 
 describe('OfferForm', () => {
-    beforeEach(() => {
-        vi.clearAllMocks()
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  describe('New Offer Mode', () => {
+    it('renders all fields enabled and submits', async () => {
+      const user = userEvent.setup()
+      render(
+        <MemoryRouter>
+          <OfferForm />
+        </MemoryRouter>
+      )
+
+      // Verify fields are enabled (Antd Select input is the combobox)
+      expect(screen.getByLabelText('token')).toBeEnabled()
+      expect(screen.getByLabelText('for')).toBeEnabled()
+      expect(screen.getByLabelText('using')).toBeEnabled()
+
+      await user.click(screen.getByText('Sell'))
+
+      // Select Token (Click trigger -> Click Option)
+      await user.click(screen.getByLabelText('token'))
+      await user.click(screen.getByText('USDT'))
+
+      // Select Fiat
+      await user.click(screen.getByLabelText('for'))
+      await user.click(screen.getByText('USD'))
+
+      // Select Method
+      await user.click(screen.getByLabelText('using'))
+      await user.click(screen.getByText('Bank Transfer'))
+
+      // Inputs
+      await user.type(screen.getByLabelText('Margin'), '10')
+      await user.type(screen.getByLabelText('Limits'), '100')
+      await user.type(screen.getByLabelText('-'), '1000')
+
+      await user.click(screen.getByText('Deploy contract'))
+
+      await waitFor(() => {
+        expect(mockCreate).toHaveBeenCalled()
+      })
+
+      const expectedRate = 11000
+      expect(mockCreate).toHaveBeenCalledWith(true, 'USDT', 'USD', 'Bank Transfer', expectedRate, [100, 1000], '')
+    }, 30000)
+  })
+
+  describe('Edit Offer Mode', () => {
+    const mockOffer = {
+      address: '0xOfferAddress',
+      isSell: true,
+      token: 'WETH',
+      fiat: 'EUR',
+      method: 'Paypal',
+      rate: 1.05,
+      min: 500,
+      max: 5000,
+      terms: 'No refunds',
+      disabled: false,
+    }
+
+    it('renders with populated values and disabled core fields', () => {
+      render(
+        <MemoryRouter>
+          <OfferForm offer={mockOffer} />
+        </MemoryRouter>
+      )
+
+      // Antd Select displays the selected value in the trigger
+      expect(screen.getByText('WETH')).toBeInTheDocument()
+
+      expect(screen.getByText('EUR')).not.toBeNull()
+      expect(screen.getByDisplayValue('5.00')).not.toBeNull()
+      expect(screen.getByDisplayValue('500')).not.toBeNull()
+      expect(screen.getByDisplayValue('5000')).not.toBeNull()
+      expect(screen.getByDisplayValue('No refunds')).not.toBeNull()
+
+      expect(screen.queryByText('Deploy contract')).toBeNull()
+
+      expect(screen.getByLabelText('token')).toBeDisabled()
     })
 
-    describe('New Offer Mode', () => {
-        it('renders all fields enabled and submits', async () => {
-            render(
-                <MemoryRouter>
-                    <OfferForm />
-                </MemoryRouter>
-            )
+    it('updates Rate', async () => {
+      const user = userEvent.setup()
+      render(
+        <MemoryRouter>
+          <OfferForm offer={mockOffer} />
+        </MemoryRouter>
+      )
 
-            const selects = screen.getAllByTestId('mock-select')
-            selects.forEach(select => expect(select.hasAttribute('disabled')).toBe(false))
+      const rateInput = screen.getByLabelText('Margin')
+      await user.clear(rateInput)
+      await user.type(rateInput, '10')
 
-            fireEvent.click(screen.getByText('Sell'))
+      const updateBtn = screen.getAllByText('Update')[0]
+      await user.click(updateBtn)
 
-            // 0: Token, 1: Fiat, 2: Method
-            fireEvent.change(selects[0], { target: { value: 'USDT' } })
-            fireEvent.change(selects[1], { target: { value: 'USD' } })
-            fireEvent.change(selects[2], { target: { value: 'Bank Transfer' } })
-
-            const rateInput = screen.getByLabelText('Margin')
-            fireEvent.change(rateInput, { target: { value: '10' } })
-
-            const minInput = screen.getByLabelText('Limits')
-            fireEvent.change(minInput, { target: { value: '100' } })
-
-            const maxInput = screen.getByLabelText('-')
-            fireEvent.change(maxInput, { target: { value: '1000' } })
-
-            const submitBtn = screen.getByText('Deploy contract')
-            fireEvent.click(submitBtn)
-
-            await waitFor(() => {
-                expect(mockCreate).toHaveBeenCalled()
-            })
-
-            const expectedRate = 11000
-            expect(mockCreate).toHaveBeenCalledWith(
-                true,
-                'USDT',
-                'USD',
-                'Bank Transfer',
-                expectedRate,
-                [100, 1000],
-                ''
-            )
-        }, 30000)
+      await waitFor(() => {
+        expect(mockSetRate).toHaveBeenCalledWith(11000)
+      })
     })
 
-    describe('Edit Offer Mode', () => {
-        const mockOffer = {
-            address: '0xOfferAddress',
-            isSell: true,
-            token: 'WETH',
-            fiat: 'EUR',
-            method: 'Paypal',
-            rate: 1.05,
-            min: 500,
-            max: 5000,
-            terms: 'No refunds',
-            disabled: false
-        }
+    it('updates Limits', async () => {
+      const user = userEvent.setup()
+      render(
+        <MemoryRouter>
+          <OfferForm offer={mockOffer} />
+        </MemoryRouter>
+      )
 
-        it('renders with populated values and disabled core fields', () => {
-            render(
-                <MemoryRouter>
-                    <OfferForm offer={mockOffer} />
-                </MemoryRouter>
-            )
+      const minInput = screen.getByLabelText('Limits')
+      await user.clear(minInput)
+      await user.type(minInput, '200')
 
-            const selects = screen.getAllByTestId('mock-select')
-            expect(selects[0].value).toBe('WETH')
+      const updateBtn = screen.getAllByText('Update')[1]
+      await user.click(updateBtn)
 
-            expect(screen.getByText('EUR')).not.toBeNull()
-            expect(screen.getByDisplayValue('5.00')).not.toBeNull()
-            expect(screen.getByDisplayValue('500')).not.toBeNull()
-            expect(screen.getByDisplayValue('5000')).not.toBeNull()
-            expect(screen.getByDisplayValue('No refunds')).not.toBeNull()
-
-            expect(screen.queryByText('Deploy contract')).toBeNull()
-
-            expect(selects[0].hasAttribute('disabled')).toBe(true)
-        })
-
-        it('updates Rate', async () => {
-            render(
-                <MemoryRouter>
-                    <OfferForm offer={mockOffer} />
-                </MemoryRouter>
-            )
-
-            const rateInput = screen.getByLabelText('Margin')
-            fireEvent.change(rateInput, { target: { value: '10' } })
-
-            const updateBtn = screen.getAllByText('Update')[0]
-            fireEvent.click(updateBtn)
-
-            await waitFor(() => {
-                expect(mockSetRate).toHaveBeenCalledWith(11000)
-            })
-        })
-
-        it('updates Limits', async () => {
-            render(
-                <MemoryRouter>
-                    <OfferForm offer={mockOffer} />
-                </MemoryRouter>
-            )
-
-            const minInput = screen.getByLabelText('Limits')
-            fireEvent.change(minInput, { target: { value: '200' } })
-
-            const updateBtn = screen.getAllByText('Update')[1]
-            fireEvent.click(updateBtn)
-
-            await waitFor(() => {
-                expect(mockSetLimits).toHaveBeenCalledWith([200, 5000])
-            })
-        })
-
-        it('updates Terms', async () => {
-             render(
-                <MemoryRouter>
-                    <OfferForm offer={mockOffer} />
-                </MemoryRouter>
-            )
-
-            const termsInput = screen.getByLabelText('Terms')
-            fireEvent.change(termsInput, { target: { value: 'New terms' } })
-
-            const updateBtn = screen.getAllByText('Update')[2]
-            fireEvent.click(updateBtn)
-
-            await waitFor(() => {
-                expect(mockSetTerms).toHaveBeenCalledWith('New terms')
-            })
-        })
-
-        it('toggles Disable', async () => {
-             render(
-                <MemoryRouter>
-                    <OfferForm offer={mockOffer} />
-                </MemoryRouter>
-            )
-
-            const disableBtn = screen.getByText('Disable')
-            fireEvent.click(disableBtn)
-
-            await waitFor(() => {
-                expect(mockSetDisabled).toHaveBeenCalledWith(true)
-            })
-        })
+      await waitFor(() => {
+        expect(mockSetLimits).toHaveBeenCalledWith([200, 5000])
+      })
     })
+
+    it('updates Terms', async () => {
+      const user = userEvent.setup()
+      render(
+        <MemoryRouter>
+          <OfferForm offer={mockOffer} />
+        </MemoryRouter>
+      )
+
+      const termsInput = screen.getByLabelText('Terms')
+      await user.clear(termsInput)
+      await user.type(termsInput, 'New terms')
+
+      const updateBtn = screen.getAllByText('Update')[2]
+      await user.click(updateBtn)
+
+      await waitFor(() => {
+        expect(mockSetTerms).toHaveBeenCalledWith('New terms')
+      })
+    })
+
+    it('toggles Disable', async () => {
+      const user = userEvent.setup()
+      render(
+        <MemoryRouter>
+          <OfferForm offer={mockOffer} />
+        </MemoryRouter>
+      )
+
+      const disableBtn = screen.getByText('Disable')
+      await user.click(disableBtn)
+
+      await waitFor(() => {
+        expect(mockSetDisabled).toHaveBeenCalledWith(true)
+      })
+    })
+  })
 })
