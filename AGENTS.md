@@ -1,6 +1,8 @@
 # Code Style
+* Follow formatting in .editorconfig and .prettierrc
 * Always use configured @ aliases when importing modules
 * Never comment WHAT code does, only WHY if really necessary
+* Never comment your thinking process in the code
 
 # Testing
 * Tests are stored in tests/ mirroring src/ folders.
