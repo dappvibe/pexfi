@@ -13,6 +13,9 @@ import * as Types from '@/types'
 
 import { getRpcUrl } from '@/wagmi.config'
 
+/**
+ * @deprecated use wagmi generated hooks and useAddress()
+ */
 export function useContract() {
   const chainId = useChainId()
   const client = useClient({ chainId })
