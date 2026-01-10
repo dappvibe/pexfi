@@ -1,31 +1,33 @@
-import { describe, it, expect, vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { useInventory } from '@/hooks/useInventory'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ethers } from 'ethers'
+import { pad, stringToHex } from 'viem'
+import * as wagmi from 'wagmi'
 
-// Mock useContract
-const mockGetTokens = vi.fn()
-const mockGetFiats = vi.fn()
-const mockGetMethods = vi.fn()
-
-vi.mock('@/hooks/useContract', () => ({
-  useContract: () => ({
-    Market: {
-      getTokens: mockGetTokens,
-      getFiats: mockGetFiats,
-      getMethods: mockGetMethods,
-    },
-  }),
+// Mock generated abi
+vi.mock('@/wagmi', () => ({
+  marketAbi: [],
 }))
 
-// Mock wagmi useChainId
+// Mock addresses
+vi.mock('@contracts/addresses.json', () => ({
+  default: {
+    31337: {
+      'Market#Market': '0xMarketAddress',
+    },
+  },
+}))
+
+// Mock wagmi
 vi.mock('wagmi', async (importOriginal) => {
-    return {
-        ...(await importOriginal<typeof import('wagmi')>()),
-        useChainId: () => 31337
-    }
+  return {
+    ...(await importOriginal<typeof import('wagmi')>()),
+    useChainId: () => 31337,
+    useReadContracts: vi.fn(),
+  }
 })
+
+const mockReadContracts = vi.mocked(wagmi.useReadContracts)
 
 describe('useInventory', () => {
     let queryClient: QueryClient
@@ -39,9 +41,7 @@ describe('useInventory', () => {
                 },
             },
         })
-        mockGetTokens.mockClear()
-        mockGetFiats.mockClear()
-        mockGetMethods.mockClear()
+        mockReadContracts.mockClear()
     })
 
     const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -51,17 +51,19 @@ describe('useInventory', () => {
     it('fetches and transforms inventory data correctly', async () => {
         // Setup Mocks
         const mockTokens = [
-            ['0xTokenAddress', 'TEST', 'Test Token', 18n]
+            { address: '0xTokenAddress', symbol: 'TEST', name: 'Test Token', decimals: 18n }
         ]
         // USD bytes32
-        const mockFiats = [ethers.encodeBytes32String('USD')]
+        const mockFiats = [pad(stringToHex('USD'), { size: 32, dir: 'right' })]
         const mockMethods = [
-            ['Bank Transfer', 1n]
+            { name: 'Bank Transfer', group: 1n }
         ]
 
-        mockGetTokens.mockResolvedValue(mockTokens)
-        mockGetFiats.mockResolvedValue(mockFiats)
-        mockGetMethods.mockResolvedValue(mockMethods)
+        mockReadContracts.mockImplementation(({ query }: any) => {
+            const rawData = [mockTokens, mockFiats, mockMethods]
+            const data = query?.select ? query.select(rawData) : rawData
+            return { data, isLoading: false }
+        })
 
         const { result } = renderHook(() => useInventory(), { wrapper })
 
@@ -75,20 +77,22 @@ describe('useInventory', () => {
         expect(tokens['TEST']).toBeDefined()
         expect(tokens['TEST'].address).toBe('0xTokenAddress')
         expect(tokens['TEST'].symbol).toBe('TEST')
-        expect(tokens['TEST'].decimals).toBe(18) // Number conversion
+        expect(tokens['TEST'].decimals).toBe(18n)
 
         // Check Fiats (decoded)
         expect(fiats).toContain('USD')
 
         // Check Methods
         expect(methods['Bank Transfer']).toBeDefined()
-        expect(methods['Bank Transfer'].group).toBe(1)
+        expect(methods['Bank Transfer'].group).toBe(1n)
     })
 
     it('handles empty data gracefully', async () => {
-        mockGetTokens.mockResolvedValue([])
-        mockGetFiats.mockResolvedValue([])
-        mockGetMethods.mockResolvedValue([])
+        mockReadContracts.mockImplementation(({ query }: any) => {
+            const rawData = [[], [], []]
+            const data = query?.select ? query.select(rawData) : rawData
+            return { data, isLoading: false }
+        })
 
         const { result } = renderHook(() => useInventory(), { wrapper })
 
