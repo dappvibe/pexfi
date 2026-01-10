@@ -1,20 +1,9 @@
-import { createConfig, http, webSocket } from 'wagmi'
-import { arbitrum, arbitrumSepolia, Chain, hardhat } from 'wagmi/chains'
-
-let chains: [Chain, ...Chain[]]
-switch (import.meta.env.MODE) {
-  case 'staging':
-    chains = [arbitrumSepolia]
-    break
-  case 'production':
-    chains = [arbitrumSepolia]
-    break
-  default:
-    chains = [hardhat, arbitrum, arbitrumSepolia]
-}
+import { createConfig, fallback, http, webSocket } from 'wagmi'
+import { arbitrum, arbitrumSepolia, Chain, hardhat, mainnet, sepolia } from 'wagmi/chains'
 
 /**
  * To allow reuse in useContract() when building ethers provider from Wagmi Client.
+ * @deprecated ethers to be removed in 1.0
  */
 export function getRpcUrl(chainId: number, https: boolean = false): string {
   // to match allowed bigint
@@ -31,16 +20,36 @@ export function getRpcUrl(chainId: number, https: boolean = false): string {
   }
 }
 
+const chains: Chain[] = []
+switch (import.meta.env.MODE) {
+  default:
+    chains.push(hardhat)
+  // fallthrough
+  case 'staging':
+    chains.push(sepolia)
+  // fallthrough
+  case 'production':
+    chains.push(mainnet)
+}
+
+const transports = {
+  [mainnet.id]: fallback([
+    webSocket('wss://eth-mainnet.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY),
+    webSocket(), // built-in default
+  ]),
+  [sepolia.id]: fallback([
+    webSocket('wss://eth-sepolia.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY),
+    webSocket(),
+  ]),
+  [hardhat.id]: webSocket('http://localhost:8545'),
+}
+
 export const config = createConfig({
-  chains: chains,
+  chains: chains as [Chain, ...Chain[]],
+  transports: transports,
   connectors: [
     // autodetect
   ],
-  transports: {
-    [arbitrum.id]: webSocket(getRpcUrl(arbitrum.id)),
-    [arbitrumSepolia.id]: webSocket(getRpcUrl(arbitrumSepolia.id)),
-    [hardhat.id]: webSocket(getRpcUrl(hardhat.id)),
-  },
 })
 
 declare module 'wagmi' {
