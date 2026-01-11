@@ -1,5 +1,5 @@
-import { createConfig, fallback, http, webSocket } from 'wagmi'
-import { arbitrum, arbitrumSepolia, Chain, hardhat, mainnet, sepolia } from 'wagmi/chains'
+import { createConfig, fallback, webSocket } from 'wagmi'
+import { Chain, hardhat, mainnet, sepolia } from 'wagmi/chains'
 
 /**
  * To allow reuse in useContract() when building ethers provider from Wagmi Client.
