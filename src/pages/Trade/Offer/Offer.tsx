@@ -1,56 +1,29 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button, Card, Form, Input, message, Skeleton, Space } from 'antd'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useState } from 'react'
 import Subnav from '@/pages/Trade/Offer/Subnav'
 import Description from '@/pages/Trade/Offer/Description'
 import { ethers } from 'ethers'
 import { useContract } from '@/hooks/useContract'
-import { useAccount, useChainId } from 'wagmi'
-import Offer from '@/model/Offer.js'
-import { ERC20 } from '@/types'
+import { useAccount } from 'wagmi'
+import { useOffer } from './hooks/useOffer'
 
 export default function OfferPage() {
   const navigate = useNavigate()
-  const chainId = useChainId()
   const account = useAccount()
-  const { Market, Offer: OfferContract, Token, DealFactory, signed } = useContract()
+  const { Market, DealFactory, signed } = useContract()
 
   const { offerId } = useParams()
 
-  const [offer, setOffer] = useState(null)
-  const [allowance, setAllowance] = useState(0)
-
-  const token = useRef(null)
-
-  useEffect(() => {
-    Offer.fetch(OfferContract.attach(offerId))
-      .then((offer) => {
-        return Market.getPrice(offer.token, offer.fiat).then((price) => {
-          offer.setPairPrice(price)
-          return offer
-        })
-      })
-      .then((offer) => {
-        if (account.address && !offer.isSell) {
-          Market.token(offer.token).then(([address]) => {
-            token.current = Token.attach(address) as ERC20
-            token.current.allowance(account.address, Market).then((res) => {
-              setAllowance(res)
-            })
-          })
-        }
-        return offer
-      })
-      .then(setOffer)
-  }, [chainId, account?.address]) // TODO account switch
+  const { offer, allowance, setAllowance, token } = useOffer(offerId, { fetchPrice: true, fetchAllowance: true })
 
   async function approve() {
     if (allowance > 0 || offer.isSell) return Promise.resolve()
 
-    const t = await signed(token.current)
+    const t = await signed(token)
     return t.approve(Market.target, ethers.MaxUint256).then((tx) => {
       tx.wait().then(() => {
-        token.current.allowance(account.address, Market).then(setAllowance)
+        token.allowance(account.address, Market.target).then(setAllowance)
       })
     })
   }
@@ -75,9 +48,18 @@ export default function OfferPage() {
       })
       setLockButton(false)
     } catch (e) {
-      const error = token.current.interface.parseError(e.data)
-      if (error.name === 'ERC20InsufficientBalance') {
-        message.error(`Not enough ${offer.token}. You have ${error.args[1]}`)
+      if (token && e.data) {
+        try {
+          const error = token.interface.parseError(e.data)
+          if (error.name === 'ERC20InsufficientBalance') {
+            message.error(`Not enough ${offer.token}. You have ${error.args[1]}`)
+          } else {
+            message.error(e.shortMessage)
+          }
+        }
+        catch (e2) {
+          message.error(e.shortMessage)
+        }
       } else {
         message.error(e.shortMessage)
       }
