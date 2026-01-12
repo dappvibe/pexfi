@@ -1,9 +1,11 @@
 services:
-  hardhat:
-    image: node:18
+  anvil:
+    image: ghcr.io/foundry-rs/foundry
+    working_dir: /anvil
     volumes:
-      - ./:/srv
-    working_dir: /srv
+      - ./:/app
     ports:
         - "8545:8545"
-    command: npx hardhat node
+    environment:
+      ANVIL_IP_ADDR: "0.0.0.0"
+    command: anvil --gas-limit 100000000
