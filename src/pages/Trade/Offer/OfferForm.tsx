@@ -3,18 +3,20 @@ import { useNavigate } from 'react-router-dom'
 import React, { useRef } from 'react'
 import { useContract } from '@/hooks/useContract'
 import { useInventory } from '@/hooks/useInventory'
-import * as Types from '@/types'
 
 const { TextArea } = Input
 
 interface OfferFormProps {
   offer?: any
-  refetch?: () => void
+  setRate?: (rate: number) => Promise<void>
+  setLimits?: (min: number, max: number) => Promise<void>
+  setTerms?: (terms: string) => Promise<void>
+  toggleDisabled?: () => Promise<void>
 }
 
-export default function OfferForm({ offer = null, refetch = () => {} }: OfferFormProps) {
+export default function OfferForm({ offer = null, setRate, setLimits, setTerms, toggleDisabled }: OfferFormProps) {
   const navigate = useNavigate()
-  const { Market, OfferFactory, Offer, signed } = useContract()
+  const { Market, OfferFactory, signed } = useContract()
   const [lockSubmit, setLockSubmit] = React.useState(false)
   const { tokens, fiats, methods } = useInventory()
   const marketPrice = useRef(null)
@@ -22,50 +24,44 @@ export default function OfferForm({ offer = null, refetch = () => {} }: OfferFor
 
   if (fiats.length === 0) return <Skeleton active />
 
-  async function setRate(rate) {
-    if (!offer) return
-
-    rate = Math.floor((1 + rate / 100) * 10 ** 4)
-    if (offer.rate * 10 ** 4 == rate) return
-
-    const o = (await signed(Offer.attach(offer.address))) as Types.Offer
-    const tx = await o.setRate(rate)
-    tx.wait().then(() => {
+  async function handleSetRate() {
+    if (!setRate) return
+    try {
+      await setRate(form.getFieldValue('rate'))
       message.success('Updated')
-      refetch()
-    })
+    } catch (e: any) {
+      message.error(e.message || 'Failed to update rate')
+    }
   }
 
-  async function setLimits(min: number, max: number) {
-    if (!offer) return
-    min = Math.floor(min)
-    max = Math.ceil(max)
-    const o = (await signed(Offer.attach(offer.address))) as Types.Offer
-    // @ts-ignore generated LimitsStruct is wrong, an array works
-    const tx = await o.setLimits([min, max])
-    tx.wait().then(() => {
+  async function handleSetLimits() {
+    if (!setLimits) return
+    try {
+      await setLimits(form.getFieldValue('min'), form.getFieldValue('max'))
       message.success('Updated')
-      refetch()
-    })
+    } catch (e: any) {
+      message.error(e.message || 'Failed to update limits')
+    }
   }
 
-  async function setTerms(terms) {
-    if (!offer) return
-    const o = (await signed(Offer.attach(offer.address))) as Types.Offer
-    const tx = await o.setTerms(terms)
-    tx.wait().then(() => {
+  async function handleSetTerms() {
+    if (!setTerms) return
+    try {
+      await setTerms(form.getFieldValue('terms'))
       message.success('Updated')
-      refetch()
-    })
+    } catch (e: any) {
+      message.error(e.message || 'Failed to update terms')
+    }
   }
 
-  async function disable(offer) {
-    const o = (await signed(Offer.attach(offer.address))) as Types.Offer
-    const tx = await o.setDisabled(!offer.disabled)
-    tx.wait().then(() => {
+  async function handleToggleDisabled() {
+    if (!toggleDisabled) return
+    try {
+      await toggleDisabled()
       message.success('Updated')
-      refetch()
-    })
+    } catch (e: any) {
+      message.error(e.message || 'Failed to toggle state')
+    }
   }
 
   async function submit(val) {
@@ -197,7 +193,7 @@ export default function OfferForm({ offer = null, refetch = () => {} }: OfferFor
             </Form.Item>
             {offer && (
               <Form.Item>
-                <Button onClick={() => setRate(form.getFieldValue('rate'))}>Update</Button>
+                <Button onClick={handleSetRate}>Update</Button>
               </Form.Item>
             )}
           </Space>
@@ -214,7 +210,7 @@ export default function OfferForm({ offer = null, refetch = () => {} }: OfferFor
             </Form.Item>
             {offer && (
               <Form.Item>
-                <Button onClick={() => setLimits(form.getFieldValue('min'), form.getFieldValue('max'))}>Update</Button>
+                <Button onClick={handleSetLimits}>Update</Button>
               </Form.Item>
             )}
           </Space>
@@ -226,10 +222,10 @@ export default function OfferForm({ offer = null, refetch = () => {} }: OfferFor
       {offer && (
         <>
           <Form.Item>
-            <Button onClick={() => setTerms(form.getFieldValue('terms'))}>Update</Button>
+            <Button onClick={handleSetTerms}>Update</Button>
           </Form.Item>
           <Form.Item>
-            <Button onClick={() => disable(offer)}>{offer.disabled ? 'Enable' : 'Disable'}</Button>
+            <Button onClick={handleToggleDisabled}>{offer.disabled ? 'Enable' : 'Disable'}</Button>
           </Form.Item>
         </>
       )}

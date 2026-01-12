@@ -1,14 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAccount, useChainId } from 'wagmi'
 import { useContract } from '@/hooks/useContract'
-import Offer from '@/model/Offer.js'
-import { ERC20 } from '@/types'
+import OfferModel from '@/model/Offer.js'
+import { ERC20, Offer } from '@/types'
 
-export function useOffer(offerId, { fetchPrice = false, fetchAllowance = false } = {}) {
+interface UseOfferOptions {
+  fetchPrice?: boolean
+  fetchAllowance?: boolean
+}
+
+export function useOffer(offerId: string | undefined, { fetchPrice = false, fetchAllowance = false }: UseOfferOptions = {}) {
   const chainId = useChainId()
   const account = useAccount()
-  const { Market, Offer: OfferContract, Token } = useContract()
-  const [offer, setOffer] = useState(null)
+  const { Market, Offer: OfferContract, Token, signed } = useContract()
+  const [offer, setOffer] = useState<OfferModel | null>(null)
   const [allowance, setAllowance] = useState(0)
   const token = useRef<ERC20 | null>(null)
   const [refetchTrigger, setRefetchTrigger] = useState(0)
@@ -23,7 +28,7 @@ export function useOffer(offerId, { fetchPrice = false, fetchAllowance = false }
       return
     }
 
-    let promise = Offer.fetch(OfferContract.attach(offerId))
+    let promise = OfferModel.fetch(OfferContract.attach(offerId))
 
     if (fetchPrice) {
       promise = promise.then((offer) => {
@@ -52,5 +57,53 @@ export function useOffer(offerId, { fetchPrice = false, fetchAllowance = false }
     promise.then(setOffer)
   }, [offerId, chainId, account?.address, fetchPrice, fetchAllowance, Market, OfferContract, Token, refetchTrigger])
 
-  return { offer, allowance, setAllowance, token: token.current, refetch }
+  const setRate = useCallback(async (rate: number) => {
+    if (!offer) throw new Error('No offer')
+    const rateInt = Math.floor((1 + rate / 100) * 10 ** 4)
+    if (Math.floor(offer.rate * 10 ** 4) === rateInt) return
+
+    const o = (await signed(OfferContract.attach(offer.address))) as Offer
+    const tx = await o.setRate(rateInt)
+    await tx.wait()
+    refetch()
+  }, [offer, signed, OfferContract, refetch])
+
+  const setLimits = useCallback(async (min: number, max: number) => {
+    if (!offer) throw new Error('No offer')
+    const minInt = Math.floor(min)
+    const maxInt = Math.ceil(max)
+    const o = (await signed(OfferContract.attach(offer.address))) as Offer
+    // @ts-ignore generated LimitsStruct is wrong, an array works
+    const tx = await o.setLimits([minInt, maxInt])
+    await tx.wait()
+    refetch()
+  }, [offer, signed, OfferContract, refetch])
+
+  const setTerms = useCallback(async (terms: string) => {
+    if (!offer) throw new Error('No offer')
+    const o = (await signed(OfferContract.attach(offer.address))) as Offer
+    const tx = await o.setTerms(terms)
+    await tx.wait()
+    refetch()
+  }, [offer, signed, OfferContract, refetch])
+
+  const toggleDisabled = useCallback(async () => {
+    if (!offer) throw new Error('No offer')
+    const o = (await signed(OfferContract.attach(offer.address))) as Offer
+    const tx = await o.setDisabled(!offer.disabled)
+    await tx.wait()
+    refetch()
+  }, [offer, signed, OfferContract, refetch])
+
+  return {
+    offer,
+    allowance,
+    setAllowance,
+    token: token.current,
+    refetch,
+    setRate,
+    setLimits,
+    setTerms,
+    toggleDisabled
+  }
 }

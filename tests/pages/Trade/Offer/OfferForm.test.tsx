@@ -131,6 +131,18 @@ describe('OfferForm', () => {
       disabled: false,
     }
 
+    const mockSetRate = vi.fn().mockResolvedValue(undefined)
+    const mockSetLimits = vi.fn().mockResolvedValue(undefined)
+    const mockSetTerms = vi.fn().mockResolvedValue(undefined)
+    const mockToggleDisabled = vi.fn().mockResolvedValue(undefined)
+
+    beforeEach(() => {
+      mockSetRate.mockClear()
+      mockSetLimits.mockClear()
+      mockSetTerms.mockClear()
+      mockToggleDisabled.mockClear()
+    })
+
     it('renders with populated values and disabled core fields', () => {
       render(
         <MemoryRouter>
@@ -138,9 +150,7 @@ describe('OfferForm', () => {
         </MemoryRouter>
       )
 
-      // Antd Select displays the selected value in the trigger
       expect(screen.getByText('WETH')).toBeInTheDocument()
-
       expect(screen.getByText('EUR')).not.toBeNull()
       expect(screen.getByDisplayValue('5.00')).not.toBeNull()
       expect(screen.getByDisplayValue('500')).not.toBeNull()
@@ -148,7 +158,6 @@ describe('OfferForm', () => {
       expect(screen.getByDisplayValue('No refunds')).not.toBeNull()
 
       expect(screen.queryByText('Deploy contract')).toBeNull()
-
       expect(screen.getByLabelText('token')).toBeDisabled()
     })
 
@@ -156,7 +165,7 @@ describe('OfferForm', () => {
       const user = userEvent.setup()
       render(
         <MemoryRouter>
-          <OfferForm offer={mockOffer} />
+          <OfferForm offer={mockOffer} setRate={mockSetRate} setLimits={mockSetLimits} setTerms={mockSetTerms} toggleDisabled={mockToggleDisabled} />
         </MemoryRouter>
       )
 
@@ -168,7 +177,7 @@ describe('OfferForm', () => {
       await user.click(updateBtn)
 
       await waitFor(() => {
-        expect(mockSetRate).toHaveBeenCalledWith(11000)
+        expect(mockSetRate).toHaveBeenCalledWith(10)
       })
     })
 
@@ -176,7 +185,7 @@ describe('OfferForm', () => {
       const user = userEvent.setup()
       render(
         <MemoryRouter>
-          <OfferForm offer={mockOffer} />
+          <OfferForm offer={mockOffer} setRate={mockSetRate} setLimits={mockSetLimits} setTerms={mockSetTerms} toggleDisabled={mockToggleDisabled} />
         </MemoryRouter>
       )
 
@@ -188,7 +197,7 @@ describe('OfferForm', () => {
       await user.click(updateBtn)
 
       await waitFor(() => {
-        expect(mockSetLimits).toHaveBeenCalledWith([200, 5000])
+        expect(mockSetLimits).toHaveBeenCalledWith('200', 5000)
       })
     })
 
@@ -196,7 +205,7 @@ describe('OfferForm', () => {
       const user = userEvent.setup()
       render(
         <MemoryRouter>
-          <OfferForm offer={mockOffer} />
+          <OfferForm offer={mockOffer} setRate={mockSetRate} setLimits={mockSetLimits} setTerms={mockSetTerms} toggleDisabled={mockToggleDisabled} />
         </MemoryRouter>
       )
 
@@ -216,7 +225,7 @@ describe('OfferForm', () => {
       const user = userEvent.setup()
       render(
         <MemoryRouter>
-          <OfferForm offer={mockOffer} />
+          <OfferForm offer={mockOffer} setRate={mockSetRate} setLimits={mockSetLimits} setTerms={mockSetTerms} toggleDisabled={mockToggleDisabled} />
         </MemoryRouter>
       )
 
@@ -224,8 +233,9 @@ describe('OfferForm', () => {
       await user.click(disableBtn)
 
       await waitFor(() => {
-        expect(mockSetDisabled).toHaveBeenCalledWith(true)
+        expect(mockToggleDisabled).toHaveBeenCalled()
       })
     })
   })
 })
+
