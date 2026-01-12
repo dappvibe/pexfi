@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAccount, useChainId } from 'wagmi'
 import { useContract } from '@/hooks/useContract'
 import Offer from '@/model/Offer.js'
@@ -11,6 +11,11 @@ export function useOffer(offerId, { fetchPrice = false, fetchAllowance = false }
   const [offer, setOffer] = useState(null)
   const [allowance, setAllowance] = useState(0)
   const token = useRef<ERC20 | null>(null)
+  const [refetchTrigger, setRefetchTrigger] = useState(0)
+
+  const refetch = useCallback(() => {
+    setRefetchTrigger((n) => n + 1)
+  }, [])
 
   useEffect(() => {
     if (!offerId) {
@@ -45,7 +50,7 @@ export function useOffer(offerId, { fetchPrice = false, fetchAllowance = false }
     })
 
     promise.then(setOffer)
-  }, [offerId, chainId, account?.address, fetchPrice, fetchAllowance, Market, OfferContract, Token])
+  }, [offerId, chainId, account?.address, fetchPrice, fetchAllowance, Market, OfferContract, Token, refetchTrigger])
 
-  return { offer, allowance, setAllowance, token: token.current }
+  return { offer, allowance, setAllowance, token: token.current, refetch }
 }
