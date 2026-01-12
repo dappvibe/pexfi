@@ -7,10 +7,12 @@ import * as Types from '@/types'
 
 const { TextArea } = Input
 
-/**
- * @param offer     If given, we're editing certain fields of existing offer.
- */
-export default function OfferForm({ offer = null }) {
+interface OfferFormProps {
+  offer?: any
+  refetch?: () => void
+}
+
+export default function OfferForm({ offer = null, refetch = () => {} }: OfferFormProps) {
   const navigate = useNavigate()
   const { Market, OfferFactory, Offer, signed } = useContract()
   const [lockSubmit, setLockSubmit] = React.useState(false)
@@ -30,7 +32,7 @@ export default function OfferForm({ offer = null }) {
     const tx = await o.setRate(rate)
     tx.wait().then(() => {
       message.success('Updated')
-      window.location.reload()
+      refetch()
     })
   }
 
@@ -43,7 +45,7 @@ export default function OfferForm({ offer = null }) {
     const tx = await o.setLimits([min, max])
     tx.wait().then(() => {
       message.success('Updated')
-      window.location.reload()
+      refetch()
     })
   }
 
@@ -53,7 +55,7 @@ export default function OfferForm({ offer = null }) {
     const tx = await o.setTerms(terms)
     tx.wait().then(() => {
       message.success('Updated')
-      window.location.reload()
+      refetch()
     })
   }
 
@@ -62,7 +64,7 @@ export default function OfferForm({ offer = null }) {
     const tx = await o.setDisabled(!offer.disabled)
     tx.wait().then(() => {
       message.success('Updated')
-      window.location.reload()
+      refetch()
     })
   }
 
