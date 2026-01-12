@@ -1,10 +1,8 @@
 import { expect, test } from '@tests/e2e/setup'
 
 test('Offer CRUD', async ({ page }) => {
-  await page.goto('/#/trade/offer/new')
-
   // 1. Create an offer
-  await page.goto('http://localhost:5173/#/trade/offer/new')
+  await page.goto('/#/trade/offer/new')
   expect(page.getByText('Publish an Offer')).toBeDefined()
 
   await page.locator('#isSell').getByText('Buy').click()
