@@ -1,9 +1,11 @@
 import { expect, test } from '@tests/e2e/setup'
 
-test('Offer CRUD', async ({ page }) => {
+test('Offer CRUD', async ({ page, setAccount }) => {
   // 1. Create an offer
   await page.goto('/#/trade/offer/new')
   expect(page.getByText('Publish an Offer')).toBeDefined()
+
+  await setAccount(0)
 
   await page.locator('#isSell').getByText('Buy').click()
   expect(page.locator('#isSell > .ant-radio-button-checked')).toBeDefined()
@@ -11,8 +13,8 @@ test('Offer CRUD', async ({ page }) => {
   await page.getByLabel('token').click()
   await page.getByTitle('WETH').click()
 
-  await page.getByLabel('for').click();
-  await page.getByTitle('EUR').click();
+  await page.getByLabel('for').click()
+  await page.getByTitle('EUR').click()
 
   await page.getByLabel('using').click()
   await page.getByTitle('SEPA').click()
@@ -43,7 +45,7 @@ test('Offer CRUD', async ({ page }) => {
   await page.getByLabel('Limits').fill('101')
   await page.getByLabel('-', { exact: true }).fill('501')
   await page.getByRole('button', { name: 'Update' }).nth(1).click()
-  await expect(page.getByText('Updated', {exact: true})).toBeVisible()
+  await expect(page.getByText('Updated', { exact: true })).toBeVisible()
 
   await page.getByLabel('Terms').fill('updated e2e terms')
   await page.getByRole('button', { name: 'Update' }).nth(2).click()
