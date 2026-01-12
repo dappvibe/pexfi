@@ -3,6 +3,7 @@ import { Button, Card, Form, Input, message, Skeleton, Space } from 'antd'
 import React, { useState } from 'react'
 import Subnav from '@/pages/Trade/Offer/Subnav'
 import Description from '@/pages/Trade/Offer/Description'
+import OfferForm from '@/pages/Trade/Offer/OfferForm'
 import { ethers } from 'ethers'
 import { useContract } from '@/hooks/useContract'
 import { useAccount } from 'wagmi'
@@ -14,8 +15,8 @@ export default function OfferPage() {
   const { Market, DealFactory, signed } = useContract()
 
   const { offerId } = useParams()
-
   const { offer, allowance, setAllowance, token } = useOffer(offerId, { fetchPrice: true, fetchAllowance: true })
+  const isOwner = offer?.owner?.toLowerCase() === account.address?.toLowerCase()
 
   async function approve() {
     if (allowance > 0 || offer.isSell) return Promise.resolve()
@@ -102,6 +103,15 @@ export default function OfferPage() {
   }
 
   if (!offer) return <Skeleton active />
+
+  if (isOwner) {
+    return (
+      <Card title={'Update offer'}>
+        <OfferForm offer={offer} />
+      </Card>
+    )
+  }
+
   return (
     <>
       <Subnav offer={offer} />
