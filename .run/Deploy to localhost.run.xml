@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Deploy to Hardhat" type="ShConfigurationType">
+  <configuration default="false" name="Deploy to localhost" type="ShConfigurationType">
     <option name="SCRIPT_TEXT" value="npx hardhat run ignition/mocks.js --network localhost &amp;&amp; npx hardhat ignition deploy ignition/modules/Market.js --parameters ignition/parameters/hardhat.json --deployment-id hardhat --network localhost" />
     <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
     <option name="SCRIPT_PATH" value="" />
