@@ -1,6 +1,5 @@
 import { createConfig, fallback, webSocket } from 'wagmi'
 import { Chain, hardhat, mainnet, sepolia } from 'wagmi/chains'
-import { e2eConnector } from '@wonderland/walletless'
 
 /**
  * To allow reuse in useContract() when building ethers provider from Wagmi Client.
@@ -45,20 +44,13 @@ const transports = {
   [hardhat.id]: webSocket('http://localhost:8545'),
 }
 
-declare global {
-  interface Window {
-    E2E?: boolean
-  }
-}
-const e2e = import.meta.env.VITE_E2E === 'true' || window.E2E === true;
-const connectors = e2e ? [e2eConnector({
-  chains: [hardhat],
-  account: '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
-  debug: true
-})] : [];
+// E2E Testing Support: This is required to be here to automate provider in VITE env
+const connectors = window.E2E
+  ? [await import('@tests/e2e/wallet').then((m) => m.connector())]
+  : []
 
 export const config = createConfig({
   chains: chains as [Chain, ...Chain[]],
-  transports: transports,
-  connectors: connectors,
+  transports,
+  connectors,
 })

@@ -1,11 +1,5 @@
 import { test as base, expect } from '@playwright/test'
 
-/**
- * Custom test extension to set up E2E environment.
- * It injects a script into the page to set `window.E2E = true`
- * so that the application can detect it's running in an E2E test context.
- */
-
 export type OfferParams = {
   isSell?: boolean
   token?: string
@@ -23,13 +17,22 @@ export type OfferContext = {
 }
 
 export const test = base.extend<{
+  setAccount: (id: number) => Promise<void>
   createOffer: (params?: OfferParams) => Promise<OfferContext>
 }>({
-  page: async ({ page }, next) => {
+  page: async ({ page }, use) => {
     await page.addInitScript(() => {
       window.E2E = true
     })
-    await next(page)
+    await use(page)
+  },
+
+  setAccount: async ({ page }, use) => {
+    await use(async (id) => {
+      await page.evaluate((id) => {
+        window.setAccount(id)
+      }, id)
+    })
   },
 
   createOffer: async ({ page }, use) => {
