@@ -41,15 +41,18 @@ test('Offer CRUD', async ({ page, setAccount }) => {
   await page.getByLabel('Margin').fill('3')
   await page.getByRole('button', { name: 'Update' }).first().click()
   await expect(page.getByText('Updated', { exact: true })).toBeVisible()
+  await expect(page.getByText('Updated', { exact: true })).not.toBeVisible()
 
   await page.getByLabel('Limits').fill('101')
   await page.getByLabel('-', { exact: true }).fill('501')
   await page.getByRole('button', { name: 'Update' }).nth(1).click()
   await expect(page.getByText('Updated', { exact: true })).toBeVisible()
+  await expect(page.getByText('Updated', { exact: true })).not.toBeVisible()
 
   await page.getByLabel('Terms').fill('updated e2e terms')
   await page.getByRole('button', { name: 'Update' }).nth(2).click()
   await expect(page.getByText('Updated', { exact: true })).toBeVisible()
+  await expect(page.getByText('Updated', { exact: true })).not.toBeVisible()
 
   // 4. Disable the offer
   await page.getByRole('button', { name: 'Disable' }).click()
