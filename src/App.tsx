@@ -7,7 +7,6 @@ import UserDeals from '@/pages/Me/UserDeals'
 import Offers from '@/pages/Trade/Offers/Offers'
 import UserOffers from '@/pages/Me/Offers/UserOffers'
 import OfferPage from '@/pages/Trade/Offer/Offer'
-import OfferEdit from '@/pages/Trade/Offer/OfferEdit'
 import OfferNew from '@/pages/Trade/Offer/OfferNew'
 
 const router = createHashRouter(
@@ -19,7 +18,6 @@ const router = createHashRouter(
         <Route path=":side/:token?/:fiat?/:method?" element={<Offers />} />
         <Route path={'offer/:offerId'} element={<OfferPage />} />
         <Route path={'offer/new'} element={<OfferNew />} />
-        <Route path={'offer/edit/:offerId'} element={<OfferEdit />} />
         <Route path={'deal/:dealId'} element={<DealPage />} />
       </Route>
       <Route path={'/profile/:profile'} element={<Profile />} />

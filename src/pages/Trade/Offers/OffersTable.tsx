@@ -17,7 +17,7 @@ export default function OffersTable({ offers, loading, loadMore, totalOffers }) 
         if (address && offer.owner.toLowerCase() === address.toLowerCase()) {
           return (
             <Space>
-              <Link to={`/trade/offer/edit/${offer.id}`}>
+              <Link to={`/trade/offer/${offer.id}`}>
                 <Button type="primary">Edit</Button>
               </Link>
             </Space>
