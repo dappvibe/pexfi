@@ -15,7 +15,10 @@ export default function OfferPage() {
   const { Market, DealFactory, signed } = useContract()
 
   const { offerId } = useParams()
-  const { offer, allowance, setAllowance, token, refetch } = useOffer(offerId, { fetchPrice: true, fetchAllowance: true })
+  const { offer, allowance, setAllowance, token, setRate, setLimits, setTerms, toggleDisabled } = useOffer(offerId, {
+    fetchPrice: true,
+    fetchAllowance: true,
+  })
   const isOwner = offer?.owner?.toLowerCase() === account.address?.toLowerCase()
 
   async function approve() {
@@ -57,8 +60,7 @@ export default function OfferPage() {
           } else {
             message.error(e.shortMessage)
           }
-        }
-        catch (e2) {
+        } catch (e2) {
           message.error(e.shortMessage)
         }
       } else {
@@ -107,7 +109,13 @@ export default function OfferPage() {
   if (isOwner) {
     return (
       <Card title={'Update offer'}>
-        <OfferForm offer={offer} refetch={refetch} />
+        <OfferForm
+          offer={offer}
+          setRate={setRate}
+          setLimits={setLimits}
+          setTerms={setTerms}
+          toggleDisabled={toggleDisabled}
+        />
       </Card>
     )
   }
