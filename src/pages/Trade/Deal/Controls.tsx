@@ -6,7 +6,7 @@ import LoadingButton from '@/components/LoadingButton'
 import Feedback from '@/pages/Trade/Deal/Feedback'
 import { equal } from '@/utils'
 import { DealState } from '@/wagmi/contracts/useDeal'
-import { dealAbi, erc20Abi, marketAbi } from '@/wagmi'
+import { dealAbi, erc20Abi } from '@/wagmi'
 import { useAddress } from '@/hooks/useAddress'
 import { maxUint256 } from 'viem'
 
@@ -18,7 +18,7 @@ export default function Controls() {
 
   const tokenAddress = offer?.token?.address
 
-  const { data: allowance } = useReadContract({
+  const { data: allowance, refetch: refetchAllowance } = useReadContract({
     address: tokenAddress,
     abi: erc20Abi,
     functionName: 'allowance',
@@ -28,7 +28,10 @@ export default function Controls() {
 
   if (!address || !offer) return <Skeleton active />
 
-  async function callDeal(functionName: 'accept' | 'paid' | 'release' | 'dispute' | 'cancel', successMessage: string) {
+  async function callDeal(
+    functionName: 'accept' | 'fund' | 'paid' | 'release' | 'dispute' | 'cancel',
+    successMessage: string
+  ) {
     try {
       await writeContractAsync({
         address: deal.address,
@@ -43,7 +46,11 @@ export default function Controls() {
   }
 
   async function accept() {
-    if (offer.isSell && tokenAddress && marketAddress) {
+    return callDeal('accept', 'Accepted')
+  }
+
+  async function fund() {
+    if (tokenAddress && marketAddress) {
       if ((allowance ?? 0n) < deal.tokenAmount) {
         await writeContractAsync({
           address: tokenAddress,
@@ -51,9 +58,10 @@ export default function Controls() {
           functionName: 'approve',
           args: [marketAddress, maxUint256],
         })
+        await refetchAllowance()
       }
     }
-    return callDeal('accept', 'Accepted')
+    return callDeal('fund', 'Funded')
   }
 
   const isOwner = () => equal(address, offer.owner)
@@ -65,6 +73,11 @@ export default function Controls() {
     countAccept: (
       <span>
         Waiting for acceptance: <Statistic.Countdown value={deal.allowCancelUnacceptedAfter} />
+      </span>
+    ),
+    countFund: (
+      <span>
+        Waiting for funding: <Statistic.Countdown value={deal.allowCancelUnacceptedAfter} />
       </span>
     ),
     countPaid: (
@@ -80,6 +93,11 @@ export default function Controls() {
     accept: (
       <LoadingButton type={'primary'} onClick={accept}>
         Accept
+      </LoadingButton>
+    ),
+    fund: (
+      <LoadingButton type={'primary'} onClick={fund}>
+        Fund
       </LoadingButton>
     ),
     paid: (
@@ -122,7 +140,13 @@ export default function Controls() {
       break
 
     case DealState.Accepted:
-      console.error('Accepted but not funded.')
+      if (isSeller()) {
+        controls.push(action.fund)
+        controls.push(action.cancel)
+      }
+      if (isBuyer()) {
+        controls.push(action.countFund)
+      }
       break
 
     case DealState.Funded:
