@@ -91,11 +91,6 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
         deals.add(address(deal), address(offer));
         emit DealCreated(offer.owner(), deal.taker(), address(offer), address(deal));
 
-        if (!offer.isSell() && deal.hasRole('SELLER', deal.taker())) {
-            IERC20Metadata $token = token(offer.token()).api;
-            $token.safeTransferFrom(deal.taker(), address(deal), deal.tokenAmount());
-        }
-
         repToken.grantRole('DEAL_ROLE', address(deal));
     }
 
@@ -106,10 +101,11 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
         Deal $deal = Deal(msg.sender);
         require($deal.state() == Deal.State.Accepted, "not accepted");
 
-        require ($deal.offer().isSell(), "not selling offer");
+        Offer $offer = $deal.offer();
+        IERC20Metadata $token = token($offer.token()).api;
 
-        IERC20Metadata $token = token($deal.offer().token()).api;
-        $token.safeTransferFrom($deal.offer().owner(), address($deal), $deal.tokenAmount());
+        address seller = $offer.isSell() ? $offer.owner() : $deal.taker();
+        $token.safeTransferFrom(seller, address($deal), $deal.tokenAmount());
     }
 
     function setDealFactory(address dealFactory_) public onlyOwner { dealFactory = DealFactory(dealFactory_); }

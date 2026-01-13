@@ -236,14 +236,23 @@ describe('Taker sells', function() {
         deal = await ethers.getContractAt('Deal', deal);
     });
 
-    it ('USDT is deposited', async function() {
-        await expect(Tokens['USDT'].balanceOf(deal.target)).to.eventually.eq(5027135678);
+    it ('no deposit before accept', async function() {
+        await expect(Tokens['USDT'].balanceOf(deal.target)).to.eventually.eq(0);
     })
 
     it ('accepted by owner', async function() {
         deal = await deal.connect(buyer);
         await expect(deal.accept()).to.emit(deal, 'DealState').not.emit(Tokens['USDT'], 'Transfer');
     });
+
+    it ('funded by seller', async function() {
+        deal = await deal.connect(seller);
+        await expect(deal.fund()).to.emit(deal, 'DealState').emit(Tokens['USDT'], 'Transfer');
+    });
+
+    it ('USDT is deposited', async function() {
+        await expect(Tokens['USDT'].balanceOf(deal.target)).to.eventually.eq(5027135678);
+    })
 });
 
 describe('Buyer opens deal', function() {
@@ -257,7 +266,11 @@ describe('Buyer opens deal', function() {
 
     it ('accepted by owner', async function() {
         deal = await deal.connect(seller);
-        await expect(deal.accept()).to.emit(deal, 'DealState').emit(Tokens['WETH'], 'Transfer');
+        await expect(deal.accept()).to.emit(deal, 'DealState').not.emit(Tokens['WETH'], 'Transfer');
+    });
+
+    it ('funded by seller', async function() {
+        await expect(deal.fund()).to.emit(deal, 'DealState').emit(Tokens['WETH'], 'Transfer');
     });
 
     it ('tokens are deposited', async function() {
@@ -316,20 +329,22 @@ describe('Feedback', function() {
 });
 
 describe('Buyer cancels deal', function() {
-    it ('accepted by seller', async function() {
+    it ('accepted and funded by seller', async function() {
         deal = await openDeal(buyer, offers[2]);
         deal = await deal.connect(seller);
-        await expect(deal.accept()).to.emit(deal, 'DealState').emit(Tokens['WETH'], 'Transfer');
+        await expect(deal.accept()).to.emit(deal, 'DealState').not.emit(Tokens['WETH'], 'Transfer');
+        await expect(deal.fund()).to.emit(deal, 'DealState').emit(Tokens['WETH'], 'Transfer');
     });
     it('seller cannot cancel', async function() {
         deal = await deal.connect(seller);
         const response = deal.cancel().then((tx) => tx.wait());
         await expect(response).to.reverted;
     });
-    it('buyer can cancel after acceptance', async function() {
+    it('buyer can cancel after funding', async function() {
         deal = await openDeal(buyer, offers[2]);
         deal = await deal.connect(seller);
         await deal.accept();
+        await deal.fund();
         deal = await deal.connect(buyer);
         const response = deal.cancel().then((tx) => tx.wait());
         await expect(response).to
@@ -346,9 +361,10 @@ describe('buyer disputes deal', function() {
     it ('open another deal', async function() {
         deal = await openDeal(buyer, offers[2]);
     });
-    it ('accepted by seller', async function() {
+    it ('accepted and funded by seller', async function() {
         deal = await deal.connect(seller);
-        await expect(deal.accept()).to.emit(deal, 'DealState').emit(Tokens['WETH'], 'Transfer');
+        await expect(deal.accept()).to.emit(deal, 'DealState').not.emit(Tokens['WETH'], 'Transfer');
+        await expect(deal.fund()).to.emit(deal, 'DealState').emit(Tokens['WETH'], 'Transfer');
     });
     it ('deal disputed', async function() {
         deal = await deal.connect(buyer);

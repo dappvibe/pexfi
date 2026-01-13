@@ -106,12 +106,13 @@ contract Deal is AccessControl
         require(msg.sender == offer.owner(), UnauthorizedAccount(msg.sender));
 
         _state(State.Accepted);
-
-        if(offer.isSell()) {
-            market.fundDeal();
-            _state(State.Funded);
-        }
         allowCancelUnpaidAfter = block.timestamp + PAYMENT_WINDOW;
+    }
+
+    /// @notice Seller funds the deal with tokens
+    function fund() external onlyRole(SELLER) stateBetween(State.Accepted, State.Accepted) {
+        market.fundDeal();
+        _state(State.Funded);
     }
 
     function paid() external onlyRole(BUYER) stateBetween(State.Accepted, State.Funded) {
