@@ -198,7 +198,10 @@ export default function Controls() {
         ))}
       </Space>
     )
-  } else {
+  } else if (deal.state === DealState.Released || deal.state === DealState.Resolved) {
+    // Resolved also allows feedback so that users don't abuse disputes to not have feedback
     return <Feedback />
+  } else {
+    return null
   }
 }
