@@ -1,4 +1,5 @@
 import { test, expect } from '@tests/e2e/setup'
+import { accept, fund, markPaid, release, sendMessage, expectMessage, leaveFeedback } from './actions'
 
 test.describe('Deal flow', () => {
   test('maker is buying', async ({ createParty }) => {
@@ -11,7 +12,6 @@ test.describe('Deal flow', () => {
     const taker = await createParty(`/trade/offer/${offer.address}`)
     await taker.setAccount(1)
     await taker.page.getByPlaceholder('Crypto Amount').fill('0.1')
-    // Approve once per hardhat deployment or click 'Open Deal' when approved
     const openButton = taker.page.getByRole('button', { name: 'Open Deal' })
     const approveButton = taker.page.getByRole('button', { name: /Approve \w+/ })
     const actionButton = openButton.or(approveButton)
@@ -28,32 +28,21 @@ test.describe('Deal flow', () => {
     await maker.page.goto('/#/trade/deal/' + dealAddress)
 
     // Messaging
-    await taker.page.getByPlaceholder('Message').fill('ping')
-    await taker.page.getByRole('button', { name: 'Send' }).click()
-    await expect(maker.page.getByText(/.*ping/)).toBeVisible()
-    await maker.page.getByPlaceholder('Message').fill('pong')
-    await maker.page.getByRole('button', { name: 'Send' }).click()
-    await expect(taker.page.getByText(/.*pong/)).toBeVisible()
+    await sendMessage(taker, 'ping')
+    await expectMessage(maker, 'ping')
+    await sendMessage(maker, 'pong')
+    await expectMessage(taker, 'pong')
 
-    // Maker accept deal
-    await maker.page.getByRole('button', { name: 'Accept' }).click()
-    await expect(maker.page.locator('#root').getByText('Accepted')).toBeVisible()
-    await expect(taker.page.locator('#root').getByText('Accepted')).toBeVisible() // reactive update from logs
+    // Deal progression
+    await accept(maker)
+    await expect(taker.page.locator('#root').getByText('Accepted')).toBeVisible()
 
-    await taker.page.getByRole('button', { name: 'Fund' }).click()
-    await expect(taker.page.getByText('Funded')).toBeVisible()
-
-    await maker.page.getByRole('button', { name: 'Paid' }).click()
-    await taker.page.getByRole('button', { name: 'Release' }).click()
+    await fund(taker)
+    await markPaid(maker)
+    await release(taker)
 
     // Feedback
-    await taker.page.locator('label').filter({ hasText: 'Good' }).click()
-    await taker.page.getByPlaceholder('Comments').fill('great')
-    await taker.page.getByRole('button', { name: 'Submit' }).click()
-    await expect(taker.page.getByText('Feedback submitted!')).toBeVisible()
-    await maker.page.locator('label').filter({ hasText: 'Bad' }).click()
-    await maker.page.getByPlaceholder('Comments').fill('muhaha')
-    await maker.page.getByRole('button', { name: 'Submit' }).click()
-    await expect(maker.page.getByText('Feedback submitted!')).toBeVisible()
+    await leaveFeedback(taker, true, 'great')
+    await leaveFeedback(maker, false, 'muhaha')
   })
 })
