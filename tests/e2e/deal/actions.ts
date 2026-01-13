@@ -25,6 +25,11 @@ export async function dispute(party: PartyContext) {
 
 export async function cancel(party: PartyContext) {
   await party.page.getByRole('button', { name: 'Cancel' }).click()
+  await expectState(party, 'Cancelled')
+}
+
+export async function expectState(party: PartyContext, state: string) {
+  await expect(party.page.locator('.ant-steps').getByText(state)).toBeVisible()
 }
 
 export async function sendMessage(party: PartyContext, text: string) {
