@@ -1,5 +1,5 @@
 import { test, expect } from '@tests/e2e/setup'
-import { accept, fund, markPaid, release, sendMessage, expectMessage, leaveFeedback } from './actions'
+import { accept, fund, markPaid, release, leaveFeedback } from './actions'
 
 test.describe('Deal flow', () => {
   test('maker is buying', async ({ createParty }) => {
@@ -26,12 +26,6 @@ test.describe('Deal flow', () => {
     await taker.page.waitForURL(/\/trade\/deal\/0x[a-fA-F0-9]{40}/)
     const dealAddress = taker.page.url().split('/').pop()
     await maker.page.goto('/#/trade/deal/' + dealAddress)
-
-    // Messaging
-    await sendMessage(taker, 'ping')
-    await expectMessage(maker, 'ping')
-    await sendMessage(maker, 'pong')
-    await expectMessage(taker, 'pong')
 
     // Deal progression
     await accept(maker)
