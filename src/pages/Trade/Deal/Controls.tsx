@@ -1,74 +1,65 @@
 import React from 'react'
-import { useAccount } from 'wagmi'
-import { ethers } from 'ethers'
-import { message, Space, Statistic } from 'antd'
+import { useAccount, useWriteContract, useReadContract } from 'wagmi'
+import { message, Space, Statistic, Skeleton } from 'antd'
 import { useDealContext } from '@/pages/Trade/Deal/Deal'
 import LoadingButton from '@/components/LoadingButton'
-import { useContract } from '@/hooks/useContract'
 import Feedback from '@/pages/Trade/Deal/Feedback'
 import { equal } from '@/utils'
-import * as Types from '@/types'
+import { DealState } from '@/wagmi/contracts/useDeal'
+import { dealAbi, erc20Abi, marketAbi } from '@/wagmi'
+import { useAddress } from '@/hooks/useAddress'
+import { maxUint256 } from 'viem'
 
 export default function Controls() {
-  const { deal } = useDealContext()
+  const { deal, offer } = useDealContext()
   const { address } = useAccount()
-  const { Token, Market, signed } = useContract()
+  const marketAddress = useAddress('Market#Market')
+  const { writeContractAsync } = useWriteContract()
 
-  if (!address) return
+  const tokenAddress = offer?.token?.address
 
-  /**
-   * Call the given method on Deal contract without params. Show a success message if provided.
-   *
-   * @param methodName
-   * @param successMessage
-   */
-  async function call(methodName: string, successMessage: string = '') {
-    const contract = await signed(deal.contract)
+  const { data: allowance } = useReadContract({
+    address: tokenAddress,
+    abi: erc20Abi,
+    functionName: 'allowance',
+    args: address && marketAddress ? [address, marketAddress] : undefined,
+    query: { enabled: !!tokenAddress && !!address && !!marketAddress },
+  })
+
+  if (!address || !offer) return <Skeleton active />
+
+  async function callDeal(functionName: 'accept' | 'paid' | 'release' | 'dispute' | 'cancel', successMessage: string) {
     try {
-      const tx = await contract[methodName]()
-      await tx.wait()
+      await writeContractAsync({
+        address: deal.address,
+        abi: dealAbi,
+        functionName,
+      })
       if (successMessage) message.success(successMessage)
-    } catch (e) {
-      let parsed = deal.contract.interface.parseError(e.data)
-      if (!parsed) parsed = Token.interface.parseError(e.data)
-      if (parsed.name === 'ERC20InsufficientBalance') {
-        message.error(`Not enough ${deal.token.symbol}. You have ${parsed.args[1]}`) // FIXME divide by decimals
-      } else {
-        message.error(parsed.args[0])
-      }
+    } catch (e: any) {
+      message.error(e?.shortMessage || e?.message || 'Transaction failed')
       throw e
     }
   }
 
-  /**
-   * For sell deals owner funds contract before he can accept.
-   */
   async function accept() {
-    if (deal.offer.isSell) {
-      const t = (await signed(Token.attach(deal.offer.token.address))) as Types.ERC20
-      const allowance = await t.allowance(address, Market.target)
-      if (allowance < deal.tokenAmount) {
-        await t.approve(Market.target, ethers.MaxUint256)
+    if (offer.isSell && tokenAddress && marketAddress) {
+      if ((allowance ?? 0n) < deal.tokenAmount) {
+        await writeContractAsync({
+          address: tokenAddress,
+          abi: erc20Abi,
+          functionName: 'approve',
+          args: [marketAddress, maxUint256],
+        })
       }
     }
-    return call('accept', 'Accepted')
+    return callDeal('accept', 'Accepted')
   }
 
-  const isOwner = () => equal(address, deal.offer.owner)
+  const isOwner = () => equal(address, offer.owner)
   const isTaker = () => equal(address, deal.taker)
-  const isBuyer = () => (deal.offer.isSell && isTaker()) || (!deal.offer.isSell && isOwner())
-  const isSeller = () => (deal.offer.isSell && isOwner()) || (!deal.offer.isSell && isTaker())
-
-  const State = {
-    Initiated: 0,
-    Accepted: 1,
-    Funded: 2,
-    Paid: 3,
-    Disputed: 4,
-    Cancelled: 5,
-    Resolved: 6,
-    Completed: 7,
-  }
+  const isBuyer = () => (offer.isSell && isTaker()) || (!offer.isSell && isOwner())
+  const isSeller = () => (offer.isSell && isOwner()) || (!offer.isSell && isTaker())
 
   const action = {
     countAccept: (
@@ -92,36 +83,35 @@ export default function Controls() {
       </LoadingButton>
     ),
     paid: (
-      <LoadingButton type={'primary'} onClick={() => call('paid', 'Paid')}>
+      <LoadingButton type={'primary'} onClick={() => callDeal('paid', 'Paid')}>
         Paid
       </LoadingButton>
     ),
     release: (
-      <LoadingButton type={'primary'} onClick={() => call('release', 'Released')}>
+      <LoadingButton type={'primary'} onClick={() => callDeal('release', 'Released')}>
         Release
       </LoadingButton>
     ),
     dispute: (
-      <LoadingButton danger onClick={() => call('dispute', 'Disputed')}>
+      <LoadingButton danger onClick={() => callDeal('dispute', 'Disputed')}>
         Dispute
       </LoadingButton>
     ),
     cancel: (
-      <LoadingButton danger onClick={() => call('cancel', 'Canceled')}>
+      <LoadingButton danger onClick={() => callDeal('cancel', 'Canceled')}>
         Cancel
       </LoadingButton>
     ),
   }
-  const controls = []
 
-  // TODO dispute timings so that it can't be started right away
-  switch (true) {
-    case deal.state === State.Initiated:
+  const controls: React.ReactNode[] = []
+
+  switch (deal.state) {
+    case DealState.Created:
       if (isOwner()) {
         controls.push(action.accept)
         controls.push(action.cancel)
       }
-      // FIXME acceptance time in contract is now 6 hours!! somewhere is timezone shift I guess
       if (isTaker()) {
         if (deal.allowCancelUnacceptedAfter > new Date()) {
           controls.push(action.countAccept)
@@ -131,11 +121,11 @@ export default function Controls() {
       }
       break
 
-    case deal.state === State.Accepted:
-      console.error('Accepted but not funded.') // FIXME UI response
+    case DealState.Accepted:
+      console.error('Accepted but not funded.')
       break
 
-    case deal.state === State.Funded:
+    case DealState.Funded:
       if (isSeller()) {
         if (deal.allowCancelUnpaidAfter > new Date()) {
           controls.push(action.countPaid)
@@ -149,7 +139,7 @@ export default function Controls() {
       }
       break
 
-    case deal.state === State.Paid:
+    case DealState.Paid:
       if (isSeller()) {
         controls.push(action.release)
         controls.push(action.dispute)
@@ -160,7 +150,7 @@ export default function Controls() {
       }
       break
 
-    case deal.state === State.Disputed:
+    case DealState.Disputed:
       if (isSeller()) {
         controls.push(action.release)
         controls.push(action.cancel)
@@ -170,13 +160,13 @@ export default function Controls() {
       }
       break
 
-    case deal.state === State.Cancelled:
-    case deal.state === State.Resolved:
-    case deal.state === State.Completed:
+    case DealState.Cancelled:
+    case DealState.Resolved:
+    case DealState.Released:
       break
   }
 
-  if (deal.state < State.Completed) {
+  if (deal.state < DealState.Cancelled) {
     return (
       <Space>
         {controls.map((button, index) => (

@@ -1,35 +1,32 @@
-import { Button, Form, Input, Radio, Result } from 'antd'
+import { Button, Form, Input, Radio, Result, Skeleton } from 'antd'
 import { useDealContext } from '@/pages/Trade/Deal/Deal'
-import { useEffect, useState } from 'react'
-import { useContract } from '@/hooks/useContract'
-import { useAccount } from 'wagmi'
+import { useAccount, useWriteContract } from 'wagmi'
+import { dealAbi } from '@/wagmi'
+import { equal } from '@/utils'
 
 export default function Feedback() {
-  const { deal } = useDealContext()
+  const { deal, offer } = useDealContext()
   const { address: account } = useAccount()
-  const { signed } = useContract()
-  const [given, setGiven] = useState(false)
-
-  useEffect(() => {
-    if (!account) return
-
-    if (deal.taker.toLowerCase() === account.toLowerCase()) {
-      deal.contract.feedbackForOwner().then((res) => setGiven(res[0]))
-    }
-    if (deal.offer.owner.toLowerCase() === account.toLowerCase()) {
-      deal.contract.feedbackForTaker().then((res) => setGiven(res[0]))
-    }
-  }, [account])
-
+  const { writeContractAsync, isPending } = useWriteContract()
   const [form] = Form.useForm()
+
+  if (!account || !offer) return <Skeleton active />
+
+  const isOwner = equal(account, offer.owner)
+  const isTaker = equal(account, deal.taker)
+
+  const feedbackGiven = isOwner ? deal.feedbackForTaker?.given : isTaker ? deal.feedbackForOwner?.given : false
+
   async function submit() {
-    const contract = await signed(deal.contract)
-    await contract.feedback(form.getFieldValue('good'), form.getFieldValue('comments'))
-    setGiven(true)
+    await writeContractAsync({
+      address: deal.address,
+      abi: dealAbi,
+      functionName: 'feedback',
+      args: [form.getFieldValue('good'), form.getFieldValue('comments') || ''],
+    })
   }
 
-  if (!account) return
-  if (given) {
+  if (feedbackGiven) {
     return <Result status={'success'} title={'Feedback submitted!'} />
   }
 
@@ -37,15 +34,15 @@ export default function Feedback() {
     <Form form={form} onFinish={submit}>
       <Form.Item name={'good'} rules={[{ required: true, message: 'Required' }]}>
         <Radio.Group buttonStyle={'solid'}>
-          <Radio.Button value={1}>Good</Radio.Button>
-          <Radio.Button value={0}>Bad</Radio.Button>
+          <Radio.Button value={true}>Good</Radio.Button>
+          <Radio.Button value={false}>Bad</Radio.Button>
         </Radio.Group>
       </Form.Item>
       <Form.Item name={'comments'}>
         <Input.TextArea placeholder={'Comments'} />
       </Form.Item>
       <Form.Item>
-        <Button type={'primary'} htmlType="submit">
+        <Button type={'primary'} htmlType="submit" loading={isPending}>
           Submit
         </Button>
       </Form.Item>
