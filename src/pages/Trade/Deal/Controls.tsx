@@ -140,9 +140,9 @@ export default function Controls() {
       break
 
     case DealState.Accepted:
+      // Seller cannot cancel after accepting - must fund or wait for timeout
       if (isSeller()) {
         controls.push(action.fund)
-        controls.push(action.cancel)
       }
       if (isBuyer()) {
         controls.push(action.countFund)
