@@ -1,5 +1,6 @@
 import React from 'react'
 import { useAccount, useWriteContract, useReadContract } from 'wagmi'
+import { useReadMarketMediator } from '@/wagmi'
 import { message, Space, Statistic, Skeleton } from 'antd'
 import { useDealContext } from '@/pages/Trade/Deal/Deal'
 import LoadingButton from '@/components/LoadingButton'
@@ -15,6 +16,7 @@ export default function Controls() {
   const { address } = useAccount()
   const marketAddress = useAddress('Market#Market')
   const { writeContractAsync } = useWriteContract()
+  const { data: mediatorAddress } = useReadMarketMediator({ address: marketAddress })
 
   const tokenAddress = offer?.token?.address
 
@@ -68,6 +70,7 @@ export default function Controls() {
   const isTaker = () => equal(address, deal.taker)
   const isBuyer = () => (offer.isSell && isTaker()) || (!offer.isSell && isOwner())
   const isSeller = () => (offer.isSell && isOwner()) || (!offer.isSell && isTaker())
+  const isMediator = () => equal(address, mediatorAddress)
 
   const action = {
     countAccept: (
@@ -181,6 +184,10 @@ export default function Controls() {
       }
       if (isBuyer()) {
         controls.push(action.cancel)
+      }
+      if (isMediator()) {
+        controls.push(action.release) // resolve for buyer
+        controls.push(action.cancel) // resolve for seller
       }
       break
 
