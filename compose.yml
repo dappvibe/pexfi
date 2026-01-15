@@ -1,0 +1,100 @@
+services:
+  evm:
+    image: ghcr.io/foundry-rs/foundry
+    working_dir: /anvil
+    volumes:
+      - ./:/app
+    ports:
+      - '8545:8545'
+    environment:
+      ANVIL_IP_ADDR: '0.0.0.0'
+    command: anvil --gas-limit 100000000 --host 0.0.0.0
+    healthcheck:
+      test: ['CMD', 'nc', '-z', 'localhost', '8545']
+      interval: 5s
+      timeout: 2s
+      retries: 5
+
+  # Subgraph Stack
+  graph-node:
+    image: graphprotocol/graph-node:v0.35.0
+    ports:
+      - '8000:8000'
+      - '8001:8001'
+      - '8020:8020'
+      - '8030:8030'
+      - '8040:8040'
+    depends_on:
+      - ipfs
+      - postgres
+      - evm
+    environment:
+      postgres_host: postgres
+      postgres_user: graph-node
+      postgres_pass: let-me-in
+      postgres_db: graph-node
+      ipfs: 'ipfs:5001'
+      ethereum: 'arbitrum-one:http://evm:8545'
+      GRAPH_LOG: info
+
+  ipfs:
+    image: ipfs/kubo:v0.17.0
+    ports:
+      - '5001:5001'
+    volumes:
+      # IPFS uses /data/ipfs. Data will be stored in volume root under 'ipfs/'
+      - subgraph:/data
+
+  postgres:
+    image: postgres:14
+    ports:
+      - '5432:5432'
+    command: ['postgres', '-cshared_preload_libraries=pg_stat_statements', '-cmax_connections=200']
+    environment:
+      POSTGRES_USER: graph-node
+      POSTGRES_PASSWORD: let-me-in
+      POSTGRES_DB: graph-node
+      POSTGRES_INITDB_ARGS: '-E UTF8 --locale=C'
+    volumes:
+      # Postgres uses /var/lib/postgresql/data. Data will be stored in volume root under 'data/'
+      - subgraph:/var/lib/postgresql
+
+  subgraph-deploy:
+    image: node:20
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command:
+      - /bin/sh
+      - -c
+      - |
+        echo "Waiting for graph-node..."
+        while ! curl -s http://graph-node:8000 > /dev/null; do sleep 1; done
+        echo "Graph node is ready. Creating and deploying subgraph..."
+        # Create (ignore error if exists)
+        npx graph create -g http://graph-node:8020 sov || true
+        # Codegen
+        npm run subgraph:codegen
+        # Deploy
+        npx graph deploy -g http://graph-node:8020 --ipfs http://ipfs:5001 -l v0.0.1 sov subgraph/subgraph.yaml
+    depends_on:
+      - graph-node
+      - evm
+
+  # Frontend Dev Server
+  web:
+    image: node:20
+    working_dir: /app
+    volumes:
+      - ./:/app
+    ports:
+      - '5173:5173'
+    environment:
+      - HOST=0.0.0.0
+    command: npm run dev -- --host
+    depends_on:
+      - evm
+      - graph-node
+
+volumes:
+  subgraph:
