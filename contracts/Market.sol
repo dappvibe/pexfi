@@ -98,6 +98,12 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     function fundDeal() external {
         require(deals.has(msg.sender), UnauthorizedAccount(msg.sender));
 
+      // FIXME critical security flaw!
+      // buyer can't cancel after deal is accepted
+      // потому что как только продавец покажет даже в мемпуле фанд транзакцию, то покупатель фронтраном отменит, а это атака на пользователей.
+      // таким образом транзакция дойдёт до сделки и там зависнет
+      // ПРАВИЛЬНЫМ решением будет проверка статуса сделки при Market.fundDeal() перед отправкой
+      // отменять accepted сделку можно только по таймауту, или ещё лучше не фандить вообще и забить (но тогда будет висеть в UI)
         Deal $deal = Deal(msg.sender);
         require($deal.state() == Deal.State.Accepted, "not accepted");
 
