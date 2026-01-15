@@ -120,6 +120,7 @@ contract Deal is AccessControl
     }
 
     function release() external onlyRole(SELLER) stateBetween(State.Funded, State.Canceled) {
+        // TODO allow mediator to release() while filtering out BUYER. note onlyRole(SELLER)
         IERC20Metadata token = market.token(offer.token()).api;
         if (hasRole(BUYER, taker)) {
             token.transfer(taker, tokenAmount - (tokenAmount * FEE / 10000));
@@ -149,6 +150,7 @@ contract Deal is AccessControl
         if ((state < State.Accepted)
         ||  (hasRole(BUYER, msg.sender) && state < State.Canceled)
         || (hasRole(SELLER, msg.sender) && ((state < State.Paid && block.timestamp > allowCancelUnpaidAfter)))
+        || hasRole(MEDIATOR)
         )
         {
             IERC20Metadata token = market.token(offer.token()).api;
