@@ -1,0 +1,20 @@
+{
+  "Market": {
+    "uniswap": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+    "addTokens_0": [
+      "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+      "0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f"
+    ],
+    "addTokens_1": 500,
+    "fiats": [
+      ["USD", "0x0000000000000000000000000000000000000000"],
+      ["EUR", "0xA14d53bC1F1c0F31B4aA3BD109344E5009051a84"]
+    ],
+    "methods": [
+      ["Any National Bank", 0],
+      ["Specific Bank", 0],
+      ["Other online payment"],
+      ["SEPA", 0]
+    ]
+  }
+}
