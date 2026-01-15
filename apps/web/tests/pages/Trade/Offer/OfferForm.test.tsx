@@ -1,0 +1,241 @@
+import '@testing-library/jest-dom'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
+import OfferForm from '@/pages/Trade/Offer/OfferForm'
+
+// Mock Hooks
+vi.mock('@/hooks/useInventory', async () => {
+  const actual = await import('@tests/mocks/useInventory')
+  return { useInventory: actual.useInventory }
+})
+
+// Mock matchMedia for Ant Design (required for real components)
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation((query) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+})
+
+const mockCreate = vi.fn().mockResolvedValue({ wait: vi.fn().mockResolvedValue({ logs: [] }) })
+const mockSetRate = vi.fn().mockResolvedValue({ wait: vi.fn().mockResolvedValue({}) })
+const mockSetLimits = vi.fn().mockResolvedValue({ wait: vi.fn().mockResolvedValue({}) })
+const mockSetTerms = vi.fn().mockResolvedValue({ wait: vi.fn().mockResolvedValue({}) })
+const mockSetDisabled = vi.fn().mockResolvedValue({ wait: vi.fn().mockResolvedValue({}) })
+
+// Mock Offer Contract Instance
+const mockOfferContract = {
+  setRate: mockSetRate,
+  setLimits: mockSetLimits,
+  setTerms: mockSetTerms,
+  setDisabled: mockSetDisabled,
+  connect: vi.fn().mockReturnThis(),
+}
+
+// Mock useContract
+vi.mock('@/hooks/useContract', () => {
+  return {
+    useContract: vi.fn(() => ({
+      signed: vi.fn((contract) => Promise.resolve(contract)),
+      OfferFactory: {
+        create: mockCreate,
+        connect: vi.fn().mockReturnThis(),
+      },
+      Offer: {
+        attach: vi.fn(() => mockOfferContract),
+      },
+      Market: {
+        getPrice: vi.fn(() => Promise.resolve(50000000000n)), // 50000 * 10^6
+        interface: {
+          parseLog: vi.fn(),
+        },
+      },
+    })),
+  }
+})
+
+// Mock window.location.reload
+Object.defineProperty(window, 'location', {
+  configurable: true,
+  value: { reload: vi.fn() },
+})
+
+describe('OfferForm', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  describe('New Offer Mode', () => {
+    it('renders all fields enabled and submits', async () => {
+      const user = userEvent.setup()
+      render(
+        <MemoryRouter>
+          <OfferForm />
+        </MemoryRouter>
+      )
+
+      // Verify fields are enabled (Antd Select input is the combobox)
+      expect(screen.getByLabelText('token')).toBeEnabled()
+      expect(screen.getByLabelText('for')).toBeEnabled()
+      expect(screen.getByLabelText('using')).toBeEnabled()
+
+      await user.click(screen.getByText('Sell'))
+
+      // Select Token (Click trigger -> Click Option)
+      await user.click(screen.getByLabelText('token'))
+      await user.click(screen.getByText('USDT'))
+
+      // Select Fiat
+      await user.click(screen.getByLabelText('for'))
+      await user.click(screen.getByText('USD'))
+
+      // Select Method
+      await user.click(screen.getByLabelText('using'))
+      await user.click(screen.getByText('Bank Transfer'))
+
+      // Inputs
+      await user.type(screen.getByLabelText('Margin'), '10')
+      await user.type(screen.getByLabelText('Limits'), '100')
+      await user.type(screen.getByLabelText('-'), '1000')
+
+      await user.click(screen.getByText('Deploy contract'))
+
+      await waitFor(() => {
+        expect(mockCreate).toHaveBeenCalled()
+      })
+
+      const expectedRate = 11000
+      expect(mockCreate).toHaveBeenCalledWith(true, 'USDT', 'USD', 'Bank Transfer', expectedRate, [100, 1000], '')
+    }, 30000)
+  })
+
+  describe('Edit Offer Mode', () => {
+    const mockOffer = {
+      address: '0xOfferAddress',
+      isSell: true,
+      token: 'WETH',
+      fiat: 'EUR',
+      method: 'Paypal',
+      rate: 1.05,
+      min: 500,
+      max: 5000,
+      terms: 'No refunds',
+      disabled: false,
+    }
+
+    const mockSetRate = vi.fn().mockResolvedValue(undefined)
+    const mockSetLimits = vi.fn().mockResolvedValue(undefined)
+    const mockSetTerms = vi.fn().mockResolvedValue(undefined)
+    const mockToggleDisabled = vi.fn().mockResolvedValue(undefined)
+
+    beforeEach(() => {
+      mockSetRate.mockClear()
+      mockSetLimits.mockClear()
+      mockSetTerms.mockClear()
+      mockToggleDisabled.mockClear()
+    })
+
+    it('renders with populated values and disabled core fields', () => {
+      render(
+        <MemoryRouter>
+          <OfferForm offer={mockOffer} />
+        </MemoryRouter>
+      )
+
+      expect(screen.getByText('WETH')).toBeInTheDocument()
+      expect(screen.getByText('EUR')).not.toBeNull()
+      expect(screen.getByDisplayValue('5.00')).not.toBeNull()
+      expect(screen.getByDisplayValue('500')).not.toBeNull()
+      expect(screen.getByDisplayValue('5000')).not.toBeNull()
+      expect(screen.getByDisplayValue('No refunds')).not.toBeNull()
+
+      expect(screen.queryByText('Deploy contract')).toBeNull()
+      expect(screen.getByLabelText('token')).toBeDisabled()
+    })
+
+    it('updates Rate', async () => {
+      const user = userEvent.setup()
+      render(
+        <MemoryRouter>
+          <OfferForm offer={mockOffer} setRate={mockSetRate} setLimits={mockSetLimits} setTerms={mockSetTerms} toggleDisabled={mockToggleDisabled} />
+        </MemoryRouter>
+      )
+
+      const rateInput = screen.getByLabelText('Margin')
+      await user.clear(rateInput)
+      await user.type(rateInput, '10')
+
+      const updateBtn = screen.getAllByText('Update')[0]
+      await user.click(updateBtn)
+
+      await waitFor(() => {
+        expect(mockSetRate).toHaveBeenCalledWith(10)
+      })
+    })
+
+    it('updates Limits', async () => {
+      const user = userEvent.setup()
+      render(
+        <MemoryRouter>
+          <OfferForm offer={mockOffer} setRate={mockSetRate} setLimits={mockSetLimits} setTerms={mockSetTerms} toggleDisabled={mockToggleDisabled} />
+        </MemoryRouter>
+      )
+
+      const minInput = screen.getByLabelText('Limits')
+      await user.clear(minInput)
+      await user.type(minInput, '200')
+
+      const updateBtn = screen.getAllByText('Update')[1]
+      await user.click(updateBtn)
+
+      await waitFor(() => {
+        expect(mockSetLimits).toHaveBeenCalledWith('200', 5000)
+      })
+    })
+
+    it('updates Terms', async () => {
+      const user = userEvent.setup()
+      render(
+        <MemoryRouter>
+          <OfferForm offer={mockOffer} setRate={mockSetRate} setLimits={mockSetLimits} setTerms={mockSetTerms} toggleDisabled={mockToggleDisabled} />
+        </MemoryRouter>
+      )
+
+      const termsInput = screen.getByLabelText('Terms')
+      await user.clear(termsInput)
+      await user.type(termsInput, 'New terms')
+
+      const updateBtn = screen.getAllByText('Update')[2]
+      await user.click(updateBtn)
+
+      await waitFor(() => {
+        expect(mockSetTerms).toHaveBeenCalledWith('New terms')
+      })
+    })
+
+    it('toggles Disable', async () => {
+      const user = userEvent.setup()
+      render(
+        <MemoryRouter>
+          <OfferForm offer={mockOffer} setRate={mockSetRate} setLimits={mockSetLimits} setTerms={mockSetTerms} toggleDisabled={mockToggleDisabled} />
+        </MemoryRouter>
+      )
+
+      const disableBtn = screen.getByText('Disable')
+      await user.click(disableBtn)
+
+      await waitFor(() => {
+        expect(mockToggleDisabled).toHaveBeenCalled()
+      })
+    })
+  })
+})
+
