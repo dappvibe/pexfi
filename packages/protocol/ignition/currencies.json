@@ -1,0 +1,13 @@
+[
+  { "code": "AUD", "country": "Australia", "chainlink": "0x9854e9a850e7C354c1de177eA953a6b1fba8Fc22"},
+  { "code": "CAD", "country": "Canada", "chainlink": "0xf6DA27749484843c4F02f5Ad1378ceE723dD61d4" },
+  { "code": "CHF", "country": "Switzerland", "chainlink": "0xe32AccC8c4eC03F6E75bd3621BfC9Fbb234E1FC3" },
+  { "code": "EUR", "country": "European Union", "chainlink": "0xA14d53bC1F1c0F31B4aA3BD109344E5009051a84"},
+  { "code": "GBP", "country": "United Kingdom", "chainlink": "0x9C4424Fd84C6661F97D8d6b3fc3C1aAc2BeDd137" },
+  { "code": "JPY", "country": "Japan", "chainlink": "0x3dD6e51CB9caE717d5a8778CF79A04029f9cFDF8" },
+  { "code": "KRW", "country": "South Korea", "chainlink": "0x85bb02E0Ae286600d1c68Bb6Ce22Cc998d411916" },
+  { "code": "PHP", "country": "Philippines", "chainlink": "0xfF82AAF635645fD0bcc7b619C3F28004cDb58574" },
+  { "code": "SEK", "country": "Sweden", "chainlink": "0xdE89a55d04DEd40A410877ab87d4F567ee66a1f0" },
+  { "code": "SGD", "country": "Singapore", "chainlink": "0xF0d38324d1F86a176aC727A4b0c43c9F9d9c5EB1" },
+  { "code": "USD", "country": "United States" }
+]
