@@ -1,0 +1,77 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "MockUniswapV3Factory",
+  "sourceName": "evm/protocol/mocks/MockUniswapV3Factory.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "tokenA",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "tokenB",
+          "type": "address"
+        },
+        {
+          "internalType": "uint24",
+          "name": "fee",
+          "type": "uint24"
+        }
+      ],
+      "name": "getPool",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "pool",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "tokenA",
+          "type": "address"
+        }
+      ],
+      "name": "pools",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "pool",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "tokenA",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "pool",
+          "type": "address"
+        }
+      ],
+      "name": "setPool",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x6080806040523460155761018b908161001b8239f35b600080fdfe608080604052600436101561001357600080fd5b60003560e01c9081631698ee82146100d6575080634e847fc7146100875763a4063dbc1461004057600080fd5b34610082576020366003190112610082576001600160a01b03610061610129565b166000526000602052602060018060a01b0360406000205416604051908152f35b600080fd5b34610082576040366003190112610082576100a0610129565b6100a861013f565b6001600160a01b03918216600090815260208190526040902080546001600160a01b03191691909216179055005b34610082576060366003190112610082576100ef610129565b906100f861013f565b5060443562ffffff811603610082576001600160a01b03918216600090815260208181526040909120549092168152f35b600435906001600160a01b038216820361008257565b602435906001600160a01b03821682036100825756fea26469706673582212203263d1aed6897be846009ba27014743f366704f6d4a7f31e9fc6a0fede49e9ce64736f6c634300081a0033",
+  "deployedBytecode": "0x608080604052600436101561001357600080fd5b60003560e01c9081631698ee82146100d6575080634e847fc7146100875763a4063dbc1461004057600080fd5b34610082576020366003190112610082576001600160a01b03610061610129565b166000526000602052602060018060a01b0360406000205416604051908152f35b600080fd5b34610082576040366003190112610082576100a0610129565b6100a861013f565b6001600160a01b03918216600090815260208190526040902080546001600160a01b03191691909216179055005b34610082576060366003190112610082576100ef610129565b906100f861013f565b5060443562ffffff811603610082576001600160a01b03918216600090815260208181526040909120549092168152f35b600435906001600160a01b038216820361008257565b602435906001600160a01b03821682036100825756fea26469706673582212203263d1aed6897be846009ba27014743f366704f6d4a7f31e9fc6a0fede49e9ce64736f6c634300081a0033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
