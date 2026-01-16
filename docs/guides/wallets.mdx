@@ -1,0 +1,61 @@
+---
+title: 'Wallets & Access'
+description: 'Connecting to PEXFI: Self-Custody vs Smart Wallets'
+icon: 'id-card'
+---
+
+# Accessing PEXFI
+
+**PEXFI is a Web3-native protocol. Your wallet is your identity.**
+
+We prioritize **self-custody**, meaning you retain absolute control over your assets at all times. We do not store passwords, emails, or personal data.
+
+## Option 1: Self-Custody (Recommended)
+
+For maximum security and sovereignty, we recommend connecting directly with your own Web3 wallet.
+
+### Supported Wallets
+
+- **MetaMask** (Browser Extension & Mobile)
+- **Rabby** (Optimized for security)
+- **WalletConnect** (Connect any mobile wallet)
+- **Hardware Wallets** (Ledger/Trezor via generic interfaces)
+
+### How to Connect
+
+1.  Click the **Connect Wallet** button in the top right.
+2.  Select your provider.
+3.  Sign the secure prompt on your device.
+
+<Note>
+  **Security Tip**: PEXFI will *never* ask for your seed phrase. All transactions require your explicit approval.
+</Note>
+
+## Option 2: Smart Wallet (Ease of Use)
+
+For users who are new to crypto or prefer a simplified experience, PEXFI offers a **Smart Wallet** solution.
+
+**What is it?**
+A Smart Wallet is a contract-based account that abstracts away some complexities of key management while maintaining partial self-custody principles.
+
+**How it works:**
+
+- **Creation**: We deploy a smart contract wallet for you associated with your social login (email/Google).
+- **Funding**: To execute transactions, you must deposit a small amount of crypto (ETH or any supported token) to the wallet address to cover network gas fees.
+- **Routing**: You input commands via the UI, and the wallet executes them.
+- **Auto-Forwarding**: Configure automatic forwarding of settled funds to a "Cold Storage" address.
+
+<Warning>
+  While Smart Wallets offer convenience, they rely on account abstraction layers. For strictly sovereign usage, Option 1
+  is superior.
+</Warning>
+
+## Why No Username/Password?
+
+Traditional accounts are insecure.
+
+- Passwords are stolen.
+- Databases are hacked.
+- Admins can lock you out.
+
+By using cryptography (keys), **you are the only person on Earth** who can authorize a trade from your account. PEXFI cannot freeze you out because we do not hold your keys.
