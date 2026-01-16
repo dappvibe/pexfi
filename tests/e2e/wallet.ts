@@ -30,10 +30,12 @@ declare global {
     setChain: (id: number) => void
   }
 }
-window.provider = provider
-window.setAccount = (id: number) => {
-  return setSigningAccount(provider, id)
-}
-window.setChain = (id: number) => {
-  return _setChain(provider, id)
+export const install = () => {
+  window.provider = provider
+  window.setAccount = (id: number) => {
+    return setSigningAccount(provider, id)
+  }
+  window.setChain = (id: number) => {
+    return _setChain(provider, id)
+  }
 }
