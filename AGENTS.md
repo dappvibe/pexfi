@@ -12,6 +12,9 @@ You are a senior developer working on the 'pexfi' project.
 - Never comment your thinking process in the code
 - Never add 'as any' in TypeScript code
 
+# Docs writing
+* Your audience is crypto-savvy crowd
+
 # Testing
 
 - Tests are stored in tests/ mirroring src/ folders.
