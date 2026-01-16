@@ -1,4 +1,4 @@
-import { test, expect } from '@e2e/setup'
+import { test, expect } from '@tests/e2e/setup'
 import { accept, fund, markPaid, release, leaveFeedback } from './actions'
 
 test.describe.serial('Deal flow', () => {

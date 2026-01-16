@@ -5,12 +5,31 @@ import TokenNav from '@/pages/Trade/Offers/TokenNav'
 import { useInventory } from '@/hooks/useInventory'
 
 // Mock useInventory
-vi.mock('@/hooks/useInventory', async () => {
-    const actual = await import('@/../tests/mocks/useInventory')
-    return {
-        useInventory: actual.useInventory
-    }
-})
+// Mock useInventory
+const mockInventory = {
+  tokens: {
+    '0xTokenAddress': {
+      address: '0xTokenAddress',
+      symbol: 'USDT',
+      name: 'Tether USD',
+      decimals: 6,
+    },
+    '0xWETHAddress': {
+        address: '0xWETHAddress',
+        symbol: 'WETH',
+        name: 'Wrapped Ether',
+        decimals: 18,
+      },
+  },
+  fiats: ['USD', 'EUR', 'GBP'],
+  methods: {
+    'Bank Transfer': { name: 'Bank Transfer', group: 1 },
+    'Paypal': { name: 'Paypal', group: 2 },
+  },
+}
+vi.mock('@/hooks/useInventory', () => ({
+    useInventory: vi.fn(() => mockInventory)
+}))
 
 // Mock useParams
 vi.mock('react-router-dom', async (importOriginal) => {
