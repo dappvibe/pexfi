@@ -1,0 +1,96 @@
+---
+title: 'Security'
+description: 'Security model and fraud prevention'
+icon: 'shield-halved'
+---
+
+# Security & Trust
+
+PEXFI is designed with security as a core principle — from smart contract architecture to fraud prevention.
+
+## Security Model
+
+<CardGroup cols={2}>
+  <Card title="Open Source" icon="code-branch">
+    All smart contracts and frontend publicly verifiable
+  </Card>
+  <Card title="Non-Custodial" icon="key">
+    Users hold their own funds at all times
+  </Card>
+  <Card title="Auditable" icon="magnifying-glass">
+    On-chain transactions create permanent audit trail
+  </Card>
+  <Card title="Privacy by Design" icon="user-shield">
+    No user data collected or stored
+  </Card>
+</CardGroup>
+
+## Smart Contract Security
+
+- **Battle-tested patterns** — Built on OpenZeppelin contracts
+- **Minimal privilege** — Arbitrators can only route funds to participants
+- **Immutable escrow** — Contract logic cannot be changed after deployment
+- **Transparent operations** — All actions verifiable on-chain
+
+## Fraud Mitigation
+
+### Payment Fraud
+
+| Threat              | Mitigation                     |
+| ------------------- | ------------------------------ |
+| Fake payments       | Require proof before release   |
+| Reversible payments | Encourage irreversible methods |
+| Wrong amounts       | Verify exact amounts in chat   |
+
+### Non-Release Attacks
+
+| Threat              | Mitigation                      |
+| ------------------- | ------------------------------- |
+| Seller holds crypto | Escrow + arbitrator enforcement |
+| Buyer stalls        | Time-based dispute escalation   |
+
+### Platform Attacks
+
+| Threat               | Mitigation                                 |
+| -------------------- | ------------------------------------------ |
+| Arbitrator collusion | Manual vetting, future DAO slashing        |
+| Sybil attacks        | Volume-weighted reputation, graph analysis |
+| Spam/DoS             | Small fees to post, rate limits            |
+
+## Identity Protection
+
+<Warning>
+  PEXFI never collects personal information. This protects both users and the platform from data breach liability.
+</Warning>
+
+- **Wallet-only identity** — No accounts, just addresses
+- **No KYC data** — Nothing to leak or subpoena
+- **On-chain reputation** — Trust based on verifiable history
+- **In-app messaging** — No external communication required
+
+## Resilient Access
+
+The PEXFI interface is designed to resist censorship:
+
+- **IPFS hosting** — Decentralized content delivery
+- **Multiple gateways** — Fallback access points
+- **Direct contracts** — Users can interact directly with smart contracts
+- **Open frontend** — Anyone can host their own interface
+
+## Dispute Fairness
+
+The dispute system is designed for impartiality:
+
+1. **Evidence-based** — Decisions rely on documented proof
+2. **On-chain record** — All messages preserved
+3. **Limited powers** — Arbitrators cannot redirect funds elsewhere
+4. **Reputation stakes** — Arbitrators have skin in the game
+
+## Future Enhancements
+
+<Steps>
+  <Step title="Multi-sig Arbitration">Multiple arbitrators for high-value disputes</Step>
+  <Step title="DAO Oversight">Community governance over arbitrator pool</Step>
+  <Step title="Staking Slashing">Economic penalties for misbehavior</Step>
+  <Step title="Encrypted Messages">End-to-end encryption with zero-knowledge proofs</Step>
+</Steps>
