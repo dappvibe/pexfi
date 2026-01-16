@@ -6,7 +6,7 @@ import { abi as OfferFactoryAbi } from '@artifacts/evm/protocol/OfferFactory.sol
 import { abi as DealFactoryAbi } from '@artifacts/evm/protocol/DealFactory.sol/DealFactory.json'
 import { abi as ERC20Abi } from '@artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
 import { useChainId, useClient, useConnectorClient } from 'wagmi'
-import { BaseContract, BrowserProvider, ethers, WebSocketProvider, JsonRpcSigner, JsonRpcApiProvider } from 'ethers'
+import { BaseContract, BrowserProvider, ethers, JsonRpcApiProvider, JsonRpcSigner, WebSocketProvider } from 'ethers'
 import { useMemo } from 'react'
 import * as Types from '@/types'
 import { useAddress } from './useAddress'

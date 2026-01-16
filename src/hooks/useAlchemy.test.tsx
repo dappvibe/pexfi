@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { useAlchemy } from '@/hooks/useAlchemy'
 import { Alchemy, Network } from 'alchemy-sdk'
@@ -45,7 +45,7 @@ describe('useAlchemy', () => {
   // We skip the "missing key" test if we can't unset the env,
   // OR we try to define property.
   it.skip('returns null if API key is missing', () => {
-     // ... skipping because hard to unset import.meta.env in this setup
+    // ... skipping because hard to unset import.meta.env in this setup
 
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 

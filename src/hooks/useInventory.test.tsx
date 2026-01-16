@@ -30,76 +30,72 @@ vi.mock('wagmi', async (importOriginal) => {
 const mockReadContracts = vi.mocked(wagmi.useReadContracts)
 
 describe('useInventory', () => {
-    let queryClient: QueryClient
+  let queryClient: QueryClient
 
-    beforeEach(() => {
-        queryClient = new QueryClient({
-            defaultOptions: {
-                queries: {
-                    retry: false,
-                    gcTime: 0,
-                },
-            },
-        })
-        mockReadContracts.mockClear()
+  beforeEach(() => {
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+          gcTime: 0,
+        },
+      },
+    })
+    mockReadContracts.mockClear()
+  })
+
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  )
+
+  it('fetches and transforms inventory data correctly', async () => {
+    // Setup Mocks
+    const mockTokens = [{ address: '0xTokenAddress', symbol: 'TEST', name: 'Test Token', decimals: 18n }]
+    // USD bytes32
+    const mockFiats = [pad(stringToHex('USD'), { size: 32, dir: 'right' })]
+    const mockMethods = [{ name: 'Bank Transfer', group: 1n }]
+
+    mockReadContracts.mockImplementation(({ query }: any) => {
+      const rawData = [mockTokens, mockFiats, mockMethods]
+      const data = query?.select ? query.select(rawData) : rawData
+      return { data, isLoading: false }
     })
 
-    const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    )
+    const { result } = renderHook(() => useInventory(), { wrapper })
 
-    it('fetches and transforms inventory data correctly', async () => {
-        // Setup Mocks
-        const mockTokens = [
-            { address: '0xTokenAddress', symbol: 'TEST', name: 'Test Token', decimals: 18n }
-        ]
-        // USD bytes32
-        const mockFiats = [pad(stringToHex('USD'), { size: 32, dir: 'right' })]
-        const mockMethods = [
-            { name: 'Bank Transfer', group: 1n }
-        ]
+    // Wait for data to be loaded
+    await waitFor(() => expect(result.current.tokens).not.toEqual({}))
 
-        mockReadContracts.mockImplementation(({ query }: any) => {
-            const rawData = [mockTokens, mockFiats, mockMethods]
-            const data = query?.select ? query.select(rawData) : rawData
-            return { data, isLoading: false }
-        })
+    // Validation
+    const { tokens, fiats, methods } = result.current
 
-        const { result } = renderHook(() => useInventory(), { wrapper })
+    // Check Tokens
+    expect(tokens['TEST']).toBeDefined()
+    expect(tokens['TEST'].address).toBe('0xTokenAddress')
+    expect(tokens['TEST'].symbol).toBe('TEST')
+    expect(tokens['TEST'].decimals).toBe(18n)
 
-        // Wait for data to be loaded
-        await waitFor(() => expect(result.current.tokens).not.toEqual({}))
+    // Check Fiats (decoded)
+    expect(fiats).toContain('USD')
 
-        // Validation
-        const { tokens, fiats, methods } = result.current
+    // Check Methods
+    expect(methods['Bank Transfer']).toBeDefined()
+    expect(methods['Bank Transfer'].group).toBe(1n)
+  })
 
-        // Check Tokens
-        expect(tokens['TEST']).toBeDefined()
-        expect(tokens['TEST'].address).toBe('0xTokenAddress')
-        expect(tokens['TEST'].symbol).toBe('TEST')
-        expect(tokens['TEST'].decimals).toBe(18n)
-
-        // Check Fiats (decoded)
-        expect(fiats).toContain('USD')
-
-        // Check Methods
-        expect(methods['Bank Transfer']).toBeDefined()
-        expect(methods['Bank Transfer'].group).toBe(1n)
+  it('handles empty data gracefully', async () => {
+    mockReadContracts.mockImplementation(({ query }: any) => {
+      const rawData = [[], [], []]
+      const data = query?.select ? query.select(rawData) : rawData
+      return { data, isLoading: false }
     })
 
-    it('handles empty data gracefully', async () => {
-        mockReadContracts.mockImplementation(({ query }: any) => {
-            const rawData = [[], [], []]
-            const data = query?.select ? query.select(rawData) : rawData
-            return { data, isLoading: false }
-        })
+    const { result } = renderHook(() => useInventory(), { wrapper })
 
-        const { result } = renderHook(() => useInventory(), { wrapper })
+    await waitFor(() => expect(result.current).toBeDefined())
 
-        await waitFor(() => expect(result.current).toBeDefined())
-
-        expect(result.current.tokens).toEqual({})
-        expect(result.current.fiats).toEqual([])
-        expect(result.current.methods).toEqual({})
-    })
+    expect(result.current.tokens).toEqual({})
+    expect(result.current.fiats).toEqual([])
+    expect(result.current.methods).toEqual({})
+  })
 })

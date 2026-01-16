@@ -3,9 +3,9 @@ import { Col, message, Row, Skeleton } from 'antd'
 import React, { createContext, useContext, useEffect } from 'react'
 import DealCard from '@/pages/Trade/Deal/DealCard'
 import MessageBox from '@/pages/Trade/Deal/MessageBox'
-import { useDeal, Deal } from '@/wagmi/contracts/useDeal'
-import { useOffer, Offer } from '@/wagmi/contracts/useOffer'
-import { useProfile, Profile } from '@/wagmi/contracts/useProfile'
+import { Deal, useDeal } from '@/wagmi/contracts/useDeal'
+import { Offer, useOffer } from '@/wagmi/contracts/useOffer'
+import { Profile, useProfile } from '@/wagmi/contracts/useProfile'
 
 export type DealContextValue = {
   deal: Deal

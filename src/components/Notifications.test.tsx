@@ -1,12 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render } from '@testing-library/react'
 import Notifications from '@/components/Notifications'
 import { useAccount } from 'wagmi'
-import { useQuery } from '@apollo/client/react'
 
 // Mock wagmi
 vi.mock('wagmi', () => ({
-    useAccount: vi.fn(),
+  useAccount: vi.fn(),
 }))
 
 // Mock Apollo
@@ -15,104 +14,102 @@ const mockStopPolling = vi.fn()
 const mockUseQuery = vi.fn()
 
 vi.mock('@apollo/client/react', () => ({
-    useQuery: (...args) => mockUseQuery(...args),
-    gql: vi.fn(),
+  useQuery: (...args) => mockUseQuery(...args),
+  gql: vi.fn(),
 }))
 
 // Mock Antd notification
 const mockApiInfo = vi.fn()
 vi.mock('antd', () => ({
-    notification: {
-        useNotification: () => [
-            { info: mockApiInfo },
-            <div>ContextHolder</div>
-        ]
-    }
+  notification: {
+    useNotification: () => [{ info: mockApiInfo }, <div>ContextHolder</div>],
+  },
 }))
 
 // Mock react-router
 vi.mock('react-router-dom', () => ({
-    Link: ({ to, children }) => <a href={to}>{children}</a>
+  Link: ({ to, children }) => <a href={to}>{children}</a>,
 }))
 
-
 describe('Notifications', () => {
-    beforeEach(() => {
-        vi.clearAllMocks()
-        localStorage.clear()
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorage.clear()
+  })
+
+  it('starts polling when connected', () => {
+    vi.mocked(useAccount).mockReturnValue({ address: '0xAlice' } as any)
+    mockUseQuery.mockReturnValue({
+      data: undefined,
+      startPolling: mockStartPolling,
+      stopPolling: mockStopPolling,
     })
 
-    it('starts polling when connected', () => {
-        vi.mocked(useAccount).mockReturnValue({ address: '0xAlice' } as any)
-        mockUseQuery.mockReturnValue({
-            data: undefined,
-            startPolling: mockStartPolling,
-            stopPolling: mockStopPolling
-        })
+    render(<Notifications />)
 
-        render(<Notifications />)
+    expect(mockUseQuery).toHaveBeenCalled()
+    expect(mockStartPolling).toHaveBeenCalledWith(5000)
+  })
 
-        expect(mockUseQuery).toHaveBeenCalled()
-        expect(mockStartPolling).toHaveBeenCalledWith(5000)
+  it('stops polling when disconnected', () => {
+    vi.mocked(useAccount).mockReturnValue({ address: undefined } as any)
+    mockUseQuery.mockReturnValue({
+      data: undefined,
+      startPolling: mockStartPolling,
+      stopPolling: mockStopPolling,
     })
 
-    it('stops polling when disconnected', () => {
-        vi.mocked(useAccount).mockReturnValue({ address: undefined } as any)
-         mockUseQuery.mockReturnValue({
-            data: undefined,
-            startPolling: mockStartPolling,
-            stopPolling: mockStopPolling
-        })
+    render(<Notifications />)
+    expect(mockStopPolling).toHaveBeenCalled()
+  })
 
-        render(<Notifications />)
-        expect(mockStopPolling).toHaveBeenCalled()
+  it('displays new notification', () => {
+    vi.mocked(useAccount).mockReturnValue({ address: '0xAlice' } as any)
+
+    const mockNotification = {
+      id: 'notif-1',
+      createdAt: 12345,
+      deal: { id: 'deal-1' },
+      event: { name: 'DealState', arg0: '0' }, // New Deal
+    }
+
+    mockUseQuery.mockReturnValue({
+      data: { notifications: [mockNotification] },
+      startPolling: mockStartPolling,
+      stopPolling: mockStopPolling,
     })
 
-    it('displays new notification', () => {
-        vi.mocked(useAccount).mockReturnValue({ address: '0xAlice' } as any)
+    render(<Notifications />)
 
-        const mockNotification = {
-            id: 'notif-1',
-            createdAt: 12345,
-            deal: { id: 'deal-1' },
-            event: { name: 'DealState', arg0: '0' } // New Deal
-        }
+    expect(mockApiInfo).toHaveBeenCalledWith(
+      expect.objectContaining({
+        key: 'notif-1',
+        message: 'New Deal',
+      })
+    )
 
-        mockUseQuery.mockReturnValue({
-            data: { notifications: [mockNotification] },
-            startPolling: mockStartPolling,
-            stopPolling: mockStopPolling
-        })
+    expect(JSON.parse(localStorage.getItem('shownNotifications') || '[]')).toContain('notif-1')
+  })
 
-        render(<Notifications />)
+  it('does not display already shown notification', () => {
+    vi.mocked(useAccount).mockReturnValue({ address: '0xAlice' } as any)
+    localStorage.setItem('shownNotifications', JSON.stringify(['notif-1']))
 
-        expect(mockApiInfo).toHaveBeenCalledWith(expect.objectContaining({
-            key: 'notif-1',
-            message: 'New Deal',
-        }))
+    const mockNotification = {
+      id: 'notif-1',
+      createdAt: 12345,
+      deal: { id: 'deal-1' },
+      event: { name: 'DealState', arg0: '0' },
+    }
 
-        expect(JSON.parse(localStorage.getItem('shownNotifications') || '[]')).toContain('notif-1')
+    mockUseQuery.mockReturnValue({
+      data: { notifications: [mockNotification] },
+      startPolling: mockStartPolling,
+      stopPolling: mockStopPolling,
     })
 
-     it('does not display already shown notification', () => {
-        vi.mocked(useAccount).mockReturnValue({ address: '0xAlice' } as any)
-        localStorage.setItem('shownNotifications', JSON.stringify(['notif-1']))
+    render(<Notifications />)
 
-        const mockNotification = {
-            id: 'notif-1',
-            createdAt: 12345,
-            deal: { id: 'deal-1' },
-            event: { name: 'DealState', arg0: '0' }
-        }
-
-        mockUseQuery.mockReturnValue({
-            data: { notifications: [mockNotification] },
-            startPolling: mockStartPolling,
-            stopPolling: mockStopPolling
-        })
-
-        render(<Notifications />)
-
-        expect(mockApiInfo).not.toHaveBeenCalled()
-    })
+    expect(mockApiInfo).not.toHaveBeenCalled()
+  })
 })

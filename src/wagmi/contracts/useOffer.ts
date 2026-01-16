@@ -30,7 +30,12 @@ export function useOffer(address: Address | undefined) {
   const { tokens } = useInventory()
   const offerContract = address ? ({ address, abi: offerAbi } as const) : null
 
-  const { data: offerData, isLoading, error, refetch } = useReadContracts({
+  const {
+    data: offerData,
+    isLoading,
+    error,
+    refetch,
+  } = useReadContracts({
     contracts: offerContract
       ? [
           { ...offerContract, functionName: 'owner' },
