@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import OfferForm from '@/pages/Trade/Offer/OfferForm'
@@ -15,21 +15,21 @@ const mockInventory = {
       decimals: 6,
     },
     '0xWETHAddress': {
-        address: '0xWETHAddress',
-        symbol: 'WETH',
-        name: 'Wrapped Ether',
-        decimals: 18,
-      },
+      address: '0xWETHAddress',
+      symbol: 'WETH',
+      name: 'Wrapped Ether',
+      decimals: 18,
+    },
   },
   fiats: ['USD', 'EUR', 'GBP'],
   methods: {
     'Bank Transfer': { name: 'Bank Transfer', group: 1 },
-    'Paypal': { name: 'Paypal', group: 2 },
+    Paypal: { name: 'Paypal', group: 2 },
   },
 }
 
 vi.mock('@/hooks/useInventory', () => ({
-  useInventory: vi.fn(() => mockInventory)
+  useInventory: vi.fn(() => mockInventory),
 }))
 
 // Mock matchMedia for Ant Design (required for real components)
@@ -187,7 +187,13 @@ describe('OfferForm', () => {
       const user = userEvent.setup()
       render(
         <MemoryRouter>
-          <OfferForm offer={mockOffer} setRate={mockSetRate} setLimits={mockSetLimits} setTerms={mockSetTerms} toggleDisabled={mockToggleDisabled} />
+          <OfferForm
+            offer={mockOffer}
+            setRate={mockSetRate}
+            setLimits={mockSetLimits}
+            setTerms={mockSetTerms}
+            toggleDisabled={mockToggleDisabled}
+          />
         </MemoryRouter>
       )
 
@@ -207,7 +213,13 @@ describe('OfferForm', () => {
       const user = userEvent.setup()
       render(
         <MemoryRouter>
-          <OfferForm offer={mockOffer} setRate={mockSetRate} setLimits={mockSetLimits} setTerms={mockSetTerms} toggleDisabled={mockToggleDisabled} />
+          <OfferForm
+            offer={mockOffer}
+            setRate={mockSetRate}
+            setLimits={mockSetLimits}
+            setTerms={mockSetTerms}
+            toggleDisabled={mockToggleDisabled}
+          />
         </MemoryRouter>
       )
 
@@ -227,7 +239,13 @@ describe('OfferForm', () => {
       const user = userEvent.setup()
       render(
         <MemoryRouter>
-          <OfferForm offer={mockOffer} setRate={mockSetRate} setLimits={mockSetLimits} setTerms={mockSetTerms} toggleDisabled={mockToggleDisabled} />
+          <OfferForm
+            offer={mockOffer}
+            setRate={mockSetRate}
+            setLimits={mockSetLimits}
+            setTerms={mockSetTerms}
+            toggleDisabled={mockToggleDisabled}
+          />
         </MemoryRouter>
       )
 
@@ -247,7 +265,13 @@ describe('OfferForm', () => {
       const user = userEvent.setup()
       render(
         <MemoryRouter>
-          <OfferForm offer={mockOffer} setRate={mockSetRate} setLimits={mockSetLimits} setTerms={mockSetTerms} toggleDisabled={mockToggleDisabled} />
+          <OfferForm
+            offer={mockOffer}
+            setRate={mockSetRate}
+            setLimits={mockSetLimits}
+            setTerms={mockSetTerms}
+            toggleDisabled={mockToggleDisabled}
+          />
         </MemoryRouter>
       )
 
@@ -260,4 +284,3 @@ describe('OfferForm', () => {
     })
   })
 })
-
