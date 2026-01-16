@@ -82,6 +82,7 @@ export const test = base.extend<{
 
   setAccount: async ({ page }, use) => {
     await use(async (id) => {
+      await page.waitForFunction(() => window.setAccount)
       await page.evaluate((id) => {
         window.setAccount(id)
       }, id)
