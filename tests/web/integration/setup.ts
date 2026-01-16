@@ -21,14 +21,22 @@ export const bob = new Wallet(BOB_PK, provider)
 
 // Load Artifacts via FS to avoid mocking or resolve issues
 const loadAbi = (name: string) => {
-  const p = path.resolve(__dirname, `../../contracts/artifacts/${name}.json`)
+  // Map common names to file paths
+  // Note: hardcoded for now as directory structure varies
+  let abiPath = ''
+  if (name === 'ERC20') {
+    abiPath = '../../../evm/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
+  } else {
+    abiPath = `../../../evm/artifacts/evm/protocol/${name}.sol/${name}.json`
+  }
+  const p = path.resolve(__dirname, abiPath)
   return JSON.parse(fs.readFileSync(p, 'utf-8')).abi
 }
 
 // Load Addresses
-const addressesPath = path.resolve(__dirname, '../../contracts/addresses.json')
+const addressesPath = path.resolve(__dirname, '../../../evm/ignition/deployments/chain-31337/deployed_addresses.json')
 const deployedData = JSON.parse(fs.readFileSync(addressesPath, 'utf-8'))
-export const addresses = deployedData[chainId] || deployedData['31337']
+export const addresses = deployedData
 
 if (!addresses) {
   console.warn('No addresses found for chain 31337.')
