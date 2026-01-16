@@ -1,0 +1,67 @@
+---
+title: 'Offers'
+description: 'Creating and managing trade offers'
+icon: 'tag'
+---
+
+# Offers
+
+An offer is your public listing on the PEXFI marketplace. It defines what you want to trade, at what price, and under what conditions.
+
+## What is an Offer?
+
+When you create an offer, you deploy a smart contract that:
+
+- Specifies the **token** you're trading (e.g., USDT, USDC)
+- Sets your **price** in fiat currency
+- Defines **trade limits** (minimum and maximum amounts)
+- Lists accepted **payment methods**
+
+<Note>Each offer is a separate smart contract owned by you. Only you can modify or delete it.</Note>
+
+## Offer Types
+
+<CardGroup cols={2}>
+  <Card title="Sell Offer" icon="arrow-up-from-bracket">
+    You have crypto and want to receive fiat payment
+  </Card>
+  <Card title="Buy Offer" icon="arrow-down-to-bracket">
+    You have fiat and want to purchase crypto
+  </Card>
+</CardGroup>
+
+## Offer Parameters
+
+| Parameter           | Description                                          |
+| ------------------- | ---------------------------------------------------- |
+| **Token**           | The cryptocurrency you're trading                    |
+| **Fiat Currency**   | The local currency for pricing (USD, EUR, RUB, etc.) |
+| **Price**           | Your exchange rate (fixed or margin-based)           |
+| **Limits**          | Minimum and maximum trade amounts                    |
+| **Payment Methods** | Bank transfer, cash, mobile payment, etc.            |
+| **Terms**           | Your trading conditions and requirements             |
+
+## Creating an Offer
+
+1. Connect your wallet
+2. Navigate to **My Offers** → **Create Offer**
+3. Select token and fiat currency
+4. Set your price and limits
+5. Add accepted payment methods
+6. Review and deploy
+
+<Warning>Creating an offer requires a blockchain transaction. Ensure you have enough ETH for gas fees.</Warning>
+
+## Managing Offers
+
+- **Pause/Resume** — Temporarily hide your offer without deleting
+- **Edit** — Update price, limits, or payment methods
+- **Delete** — Remove the offer permanently
+
+## Visibility
+
+Your offers appear in the marketplace catalog. Factors affecting visibility:
+
+- **Reputation score** — Higher rated traders appear first
+- **Trade history** — Active traders get priority
+- **Response time** — Quick responders rank higher
