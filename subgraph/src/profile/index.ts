@@ -1,6 +1,6 @@
-import {RepToken as RepTokenContract} from "../../generated/Market/RepToken";
+import {RepToken as RepTokenContract} from "../../../.cache/subgraph/generated/Market/RepToken";
 import {Address, BigInt} from "@graphprotocol/graph-ts";
-import {Profile as ProfileEntity} from "../../generated/schema";
+import {Profile as ProfileEntity} from "../../../.cache/subgraph/generated/schema";
 
 // lower than that will be drowned in the offers list
 const PROFILE_GOODSTANDING_RATING = 75;
