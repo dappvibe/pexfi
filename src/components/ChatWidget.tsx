@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react'
-import * as process from 'node:process'
 
 const ChatWidget: React.FC = () => {
   useEffect(() => {
