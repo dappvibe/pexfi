@@ -1,4 +1,6 @@
 {
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
   "name": "PEXFI",
   "colors": {
     "primary": "#7C3AED",
@@ -9,7 +11,7 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Documentation",
+        "tab": "Users",
         "groups": [
           {
             "group": "Overview",
@@ -46,6 +48,28 @@
               "vision/tokenomics",
               "vision/roadmap",
               "vision/security"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Stakers",
+        "groups": [
+          {
+            "group": "Governance",
+            "pages": [
+              "stakers/stake-to-mediate"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Developers",
+        "groups": [
+          {
+            "group": "System",
+            "pages": [
+              "developers/architecture"
             ]
           }
         ]
