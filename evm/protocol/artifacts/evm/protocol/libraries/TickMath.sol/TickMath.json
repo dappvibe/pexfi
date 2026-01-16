@@ -1,0 +1,10 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "TickMath",
+  "sourceName": "evm/protocol/libraries/TickMath.sol",
+  "abi": [],
+  "bytecode": "0x60808060405234601757603a9081601d823930815050f35b600080fdfe600080fdfea2646970667358221220cc37f32f4cccf1c508b8e5607d4dda60f5a3196b825d35a8e15a4c8217b42f0864736f6c634300081a0033",
+  "deployedBytecode": "0x600080fdfea2646970667358221220cc37f32f4cccf1c508b8e5607d4dda60f5a3196b825d35a8e15a4c8217b42f0864736f6c634300081a0033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
