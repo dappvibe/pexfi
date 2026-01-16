@@ -24,6 +24,12 @@ You are a senior developer working on the 'pexfi' project.
 - For end to end tests we inject a wallet into app's global window.
   This wallet signs any tx. It is required to pass code between server and cli running tests.
 
+# DevOps
+
+## YouTrack
+* Source of Truth for all tasks, tickets and statuses.
+* Agents are only allowed to interact with project: pexfi (id: PEX)
+
 # Definition of Done
 
 - New functionality is covered by tests
