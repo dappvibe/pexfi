@@ -1,47 +1,48 @@
 ---
-title: 'Technical Architecture'
-description: 'Secure, non-custodial infrastructure'
+title: 'Secure P2P Trading Infrastructure'
+sidebarTitle: 'Technology'
+description: 'How PEXFI uses non-custodial smart contracts and IPFS to facilitate secure, censorship-resistant peer-to-peer crypto trading.'
 icon: 'circle-nodes'
 ---
 
-# Built for Security
+# Secure, Non-Custodial Trading Technology
 
-**The safest way to trade is to remove the need for trust.**
+**PEXFI uses advanced blockchain infrastructure to ensure your crypto trading is secure, private, and unstoppable.**
 
-PEXFI replaces the "trusted intermediary" model of CEXs with a verified cryptographic protocol. We don't ask you to trust our company; we invite you to verify our code.
+We replace trusted intermediaries with verified code. Our architecture is built on **Ethereum Layer 2 (Arbitrum)** for speed and security, using **multisig smart contracts** for escrow.
 
-## The Escrow Mechanism
+## The Smart Contract Escrow Mechanism
 
-At the core of PEXFI is a non-custodial multisignature smart contract. This contract acts as an impartial robotic escrow agent that executes trades strictly according to pre-defined rules.
+The core of our platform is the **Non-Custodial Escrow**. This smart contract acts as an impartial robotic intermediary.
 
 ```mermaid
 sequenceDiagram
     participant Buyer
-    participant Protocol(Escrow)
+    participant EscrowContract
     participant Seller
 
-    Buyer->>Protocol(Escrow): "I initiate trade."
-    Protocol(Escrow)->>Seller: "Please fund escrow."
-    Seller->>Protocol(Escrow): *Deposits Assets*
-    Protocol(Escrow)->>Protocol(Escrow): [ASSETS LOCKED]
-    Protocol(Escrow)->>Buyer: "Funds verified. Send fiat."
-    Buyer->>Seller: *Direct Off-Chain Payment*
-    Seller->>Protocol(Escrow): "Payment received."
-    Protocol(Escrow)->>Buyer: [ASSETS RELEASED]
+    Buyer->>EscrowContract: Buyer initiates trade
+    EscrowContract->>Seller: Request fund deposit
+    Seller->>EscrowContract: Seller verifies & deposits crypto
+    EscrowContract->>EscrowContract: [CRYPTO LOCKED SECURELY]
+    EscrowContract->>Buyer: Notify: Funds verified
+    Buyer->>Seller: Buyer sends direct fiat payment
+    Seller->>EscrowContract: Seller confirms receipt
+    EscrowContract->>Buyer: [CRYPTO RELEASED INSTANTLY]
 ```
 
-### Why This is Superior to CEXs
+### Advantages of On-Chain Escrow
 
-1.  **No Commingling**: Your funds are never mixed with other users' funds or corporate assets.
-2.  **No Insolvency Risk**: The contract cannot lend out your money or invest it elsewhere. It simply holds it until the trade is done.
-3.  **Atomic Settlement**: Once conditions the are met, settlement is instant and guaranteed by the blockchain.
+1.  **Trustless Security**: Funds are locked in a public contract, not a private corporate wallet.
+2.  **No Insolvency Risk**: The protocol cannot lend, invest, or misuse your funds.
+3.  **Atomic Settlement**: Transactions settle instantly on the blockchain once conditions are met.
 
-## Decentralized Infrastructure
+## Decentralized Infrastructure Stack
 
-To avoid the single points of failure that plague centralized changes, PEXFI utilizes distributed technologies:
+To ensure **censorship resistance** and **high availability**, PEXFI utilizes a fully distributed technology stack:
 
-- **On-Chain Messaging**: Trade communications are recorded on the blockchain, creating an immutable audit trail for dispute resolution.
-- **IPFS Hosting**: The frontend interface is hosted on the InterPlanetary File System, ensuring access even if traditional servers go offline.
-- **EVM Foundation**: Built on Ethereum Layer 2 to combine the security of the world's most robust blockchain with the speed required for modern trading.
+- **Arbitrum (L2)**: Provides Ethereum-grade security with low gas fees and fast transaction confirmation.
+- **IPFS Hosting**: Our frontend runs on the InterPlanetary File System, making it resistant to server takedowns or DNS blocks.
+- **On-Chain Messaging**: Trade chats are encrypted and stored on-chain (logs), ensuring an immutable record for dispute resolution.
 
-**PEXFI is infrastructure that respects your sovereignty.**
+**Trade with confidence on the most robust P2P exchange infrastructure.**
