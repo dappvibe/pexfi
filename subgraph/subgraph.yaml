@@ -10,7 +10,7 @@ dataSources:
     name: Market
     network: arbitrum-one
     source:
-      address: "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318"
+      address: '0x8A791620dd6260079BF849Dc5567aDC3F2FdC318'
       abi: Market
       startBlock: 0
     mapping:
@@ -23,15 +23,15 @@ dataSources:
         - Token
       abis:
         - name: Market
-          file: ./abis/Market.json
+          file: ../evm/artifacts/evm/protocol/Market.sol/Market.json
         - name: Offer
-          file: ./abis/Offer.json
+          file: ../evm/artifacts/evm/protocol/Offer.sol/Offer.json
         - name: Token
-          file: ./abis/ERC20.json
+          file: ../evm/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json
         - name: RepToken
-          file: ./abis/RepToken.json
+          file: ../evm/artifacts/evm/protocol/RepToken.sol/RepToken.json
         - name: Deal
-          file: ./abis/Deal.json
+          file: ../evm/artifacts/evm/protocol/Deal.sol/Deal.json
       eventHandlers:
         - event: OfferCreated(indexed address,indexed string,indexed string,address)
           handler: handleOfferCreated
@@ -52,13 +52,13 @@ templates:
         - Offer
       abis:
         - name: Offer
-          file: ./abis/Offer.json
+          file: ../evm/artifacts/evm/protocol/Offer.sol/Offer.json
         - name: Market
-          file: ./abis/Market.json
+          file: ../evm/artifacts/evm/protocol/Market.sol/Market.json
         - name: RepToken
-          file: ./abis/RepToken.json
+          file: ../evm/artifacts/evm/protocol/RepToken.sol/RepToken.json
         - name: Deal
-          file: ./abis/Deal.json
+          file: ../evm/artifacts/evm/protocol/Deal.sol/Deal.json
       eventHandlers:
         - event: OfferUpdated()
           handler: handleOfferUpdated
@@ -77,13 +77,13 @@ templates:
         - Deal
       abis:
         - name: Offer
-          file: ./abis/Offer.json
+          file: ../evm/artifacts/evm/protocol/Offer.sol/Offer.json
         - name: Market
-          file: ./abis/Market.json
+          file: ../evm/artifacts/evm/protocol/Market.sol/Market.json
         - name: RepToken
-          file: ./abis/RepToken.json
+          file: ../evm/artifacts/evm/protocol/RepToken.sol/RepToken.json
         - name: Deal
-          file: ./abis/Deal.json
+          file: ../evm/artifacts/evm/protocol/Deal.sol/Deal.json
       eventHandlers:
         - event: DealState(uint8,address)
           handler: handleDealState

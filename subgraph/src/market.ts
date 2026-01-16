@@ -1,6 +1,7 @@
-import {DealCreated, OfferCreated as OfferCreatedEvent} from "../generated/Market/Market"
+import {DealCreated, OfferCreated as OfferCreatedEvent} from "../../.cache/subgraph/generated/Market/Market"
+import {Offer, Profile} from "../../.cache/subgraph/generated/schema";
 import {DataSourceContext} from "@graphprotocol/graph-ts"
-import {Deal as DealTemplate, Offer as OfferTemplate} from "../generated/templates";
+import {Deal as DealTemplate, Offer as OfferTemplate} from "../../.cache/subgraph/generated/templates";
 import {fetchAndSaveOffer} from "./offer";
 import {fetchDeal} from "./deal";
 
