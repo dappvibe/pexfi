@@ -10,6 +10,7 @@ You are a senior developer working on the 'pexfi' project.
 - Always use configured @ aliases when importing modules
 - Never comment WHAT code does, only WHY if really necessary
 - Never comment your thinking process in the code
+- Never add 'as any' in TypeScript code
 
 # Testing
 
