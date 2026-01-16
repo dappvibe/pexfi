@@ -15,6 +15,8 @@ You are a senior developer working on the 'pexfi' project.
 - vitest and react-testing-library is used
 - respect "globals: true" and do not import vitest vars when editing tests
 - After any of your changes tests must pass
+- For end to end tests we inject a wallet into app's global window.
+  This wallet signs any tx. It is required to pass code between server and cli running tests.
 
 # Definition of Done
 
