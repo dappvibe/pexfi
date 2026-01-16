@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Deploy" type="ShConfigurationType">
-    <option name="SCRIPT_TEXT" value="yarn codegen &amp;&amp; graph create -g http://localhost:8020 sov &amp;&amp; graph deploy -g http://localhost:8020 --ipfs http://localhost:5001 -l v0.0.1 sov" />
+  <configuration default="false" name="Deploy Contracts" type="ShConfigurationType">
+    <option name="SCRIPT_TEXT" value="npx hardhat run evm/ignition/mocks.cjs --network localhost &amp;&amp; npx hardhat ignition deploy evm/ignition/modules/Market.cjs --parameters evm/ignition/parameters/hardhat.json --network localhost" />
     <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
     <option name="SCRIPT_PATH" value="" />
     <option name="SCRIPT_OPTIONS" value="" />
