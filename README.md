@@ -1,3 +1,5 @@
+![Tests](https://github.com/dappvibe/pexfi/actions/workflows/test.yml/badge.svg)
+
 # Summary
 
 The platform enables users to trade ERC20 tokens on EVM-compatible chains, operating fully on-chain.
