@@ -1,4 +1,4 @@
-import { test } from '@tests/e2e/setup'
+import { test } from '@e2e/setup'
 import { cancel, expectState } from './actions'
 
 test.describe.serial('Deal cancellation', () => {
