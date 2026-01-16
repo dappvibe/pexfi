@@ -1,8 +1,8 @@
-import {OfferUpdated} from "../generated/templates/Offer/Offer";
-import {Offer as OfferEntity, Offer, Token} from "../generated/schema";
-import {Offer as OfferContract} from "../generated/Market/Offer"
+import {OfferUpdated} from "../../.cache/subgraph/generated/templates/Offer/Offer";
+import {Offer as OfferEntity, Offer, Token} from "../../.cache/subgraph/generated/schema";
+import {Offer as OfferContract} from "../../.cache/subgraph/generated/Market/Offer"
 import {Address, dataSource, log} from '@graphprotocol/graph-ts';
-import {Market as MarketContract} from "../generated/Market/Market";
+import {Market as MarketContract} from "../../.cache/subgraph/generated/Market/Market";
 import {getRangingModifier, updateProfileFor} from "./profile";
 
 export function fetchAndSaveOffer(target: Address, market: Address): Offer {
