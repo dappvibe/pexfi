@@ -3,9 +3,6 @@
 
 # Build Outputs
 .cache/
-evm/artifacts/
-evm/ignition/deployments/
-evm/ignition/parameters/hardhat.json
 
 # Solidity Submodules
 evm/lib/
