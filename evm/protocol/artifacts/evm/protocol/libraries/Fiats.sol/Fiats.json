@@ -1,0 +1,10 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "Fiats",
+  "sourceName": "evm/protocol/libraries/Fiats.sol",
+  "abi": [],
+  "bytecode": "0x60808060405234601757603a9081601d823930815050f35b600080fdfe600080fdfea2646970667358221220bd5aae77d58320f826153bb077bd1bbecadac6629f3bcfaa8989f1674150ea6164736f6c634300081a0033",
+  "deployedBytecode": "0x600080fdfea2646970667358221220bd5aae77d58320f826153bb077bd1bbecadac6629f3bcfaa8989f1674150ea6164736f6c634300081a0033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
