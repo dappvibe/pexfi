@@ -46,7 +46,7 @@ const transports = {
 
 // E2E Testing Support: This is required to be here to automate provider in VITE env
 const connectors = window.E2E
-  ? [await import('@e2e/wallet').then((m) => {
+  ? [await import('@tests/e2e/wallet').then((m) => {
       m.install()
       return m.connector()
     })]

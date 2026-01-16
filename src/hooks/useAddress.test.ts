@@ -17,7 +17,7 @@ describe('useAddress', () => {
 
     const { result } = renderHook(() => useAddress('DealFactory#DealFactory'))
 
-    expect(result.current).toBe((addresses as any)['DealFactory#DealFactory'])
+    expect(result.current).toBe((addresses)['DealFactory#DealFactory'])
   })
 
   it('returns undefined and warns when chain addresses are missing', () => {
@@ -27,6 +27,6 @@ describe('useAddress', () => {
     const { result } = renderHook(() => useAddress('DealFactory#DealFactory'))
 
     expect(result.current).toBeUndefined()
-    expect(consoleWarnSpy).toHaveBeenCalledWith('No addresses found for chain 12345')
+    expect(consoleWarnSpy).toHaveBeenCalledWith('No deployments found for chain 12345')
   })
 })
