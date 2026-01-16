@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "esnext",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@contracts/*": ["evm/protocol/*"],
+      "@deployments/*": ["evm/ignition/deployments/*"],
+      "@artifacts/*": ["evm/artifacts/*"],
+      "@tests/*": ["tests/web/*"],
+      "@e2e/*": ["tests/e2e/*"]
+    },
+    "moduleResolution": "bundler",
+    "allowJs": true,
+    "types": ["vite/client", "vitest/globals"],
+    "noEmit": true
+  },
+  "include": ["src/**/*", "tests/web/**/*", "tests/e2e/**/*", "evm/**/*", "tests/evm/**/*", "hardhat.config.cjs"]
+}
