@@ -25,3 +25,4 @@ You are a senior developer working on the 'pexfi' project.
 
 - New functionality is covered by tests
 - All tests pass with no errors
+- Documentation and comments added to code are always in english regardless of prompt input. You may answer in any language.
