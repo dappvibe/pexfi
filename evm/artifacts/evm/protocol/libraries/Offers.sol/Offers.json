@@ -1,0 +1,10 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "Offers",
+  "sourceName": "evm/protocol/libraries/Offers.sol",
+  "abi": [],
+  "bytecode": "0x60808060405234601757603a9081601d823930815050f35b600080fdfe600080fdfea26469706673582212205177eff1e772b1922f22231bd5764e7e014c55ee3aadf9fa8aa420609188b10764736f6c634300081a0033",
+  "deployedBytecode": "0x600080fdfea26469706673582212205177eff1e772b1922f22231bd5764e7e014c55ee3aadf9fa8aa420609188b10764736f6c634300081a0033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
