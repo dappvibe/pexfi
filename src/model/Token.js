@@ -1,7 +1,5 @@
 import { ethers } from 'ethers'
 
-import { abi } from 'contracts/artifacts/ERC20.json'
-
 export default class Token {
   constructor(contract) {
     this.contract = contract

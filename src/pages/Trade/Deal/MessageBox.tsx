@@ -1,8 +1,8 @@
-import { Button, Form, Input, List, Upload, message } from 'antd'
+import { Button, Form, Input, List, message, Upload } from 'antd'
 import React, { useState } from 'react'
 import { useDealContext } from '@/pages/Trade/Deal/Deal'
 import { useForm } from 'antd/lib/form/Form.js'
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { useAccount, useWriteContract } from 'wagmi'
 import { equal } from '@/utils'
 import { dealAbi } from '@/wagmi'
 
