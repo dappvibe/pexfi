@@ -26,7 +26,11 @@ You are a senior developer working on the 'pexfi' project.
 
 # DevOps
 
+* All issues, tasks, comments, requests, commits are in English only regardless of input prompt.
+
 ## YouTrack
+* For tasks, issues and contexts agents are only allowed to use YouTrack. Stop processing if not available. State the error.
+* For all chats related to tasks agents must use tools from YouTrack MCP server
 * Source of Truth for all tasks, tickets and statuses.
 * Agents are only allowed to interact with project: pexfi (id: PEX)
 
