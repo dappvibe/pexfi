@@ -1,14 +1,13 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { Announcement } from '@/components/Announcement'
+import { useChainId, useChains } from 'wagmi'
 
 // Mock wagmi
 vi.mock('wagmi', () => ({
   useChainId: vi.fn(),
   useChains: vi.fn(),
 }))
-
-import { useChainId, useChains } from 'wagmi'
 
 describe('Announcement', () => {
   it('renders MVP welcome message always', () => {
