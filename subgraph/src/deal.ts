@@ -1,10 +1,10 @@
-import {Deal as DealContract, DealState as DealStateEvent, Message} from "../generated/templates/Deal/Deal"
-import {Offer as OfferContract} from "../generated/templates/Offer/Offer"
-import {Deal as DealEntity, DealMessage, Feedback, Notification, NotificationEvent, Offer} from "../generated/schema"
+import {Deal as DealContract, DealState as DealStateEvent, Message} from "../../.cache/subgraph/generated/templates/Deal/Deal"
+import {Offer as OfferContract} from "../../.cache/subgraph/generated/templates/Offer/Offer"
+import {Deal as DealEntity, DealMessage, Feedback, Notification, NotificationEvent, Offer} from "../../.cache/subgraph/generated/schema"
 import {Address, Bytes, dataSource, log} from "@graphprotocol/graph-ts"
-import {Market as MarketContract} from "../generated/Market/Market";
+import {Market as MarketContract} from "../../.cache/subgraph/generated/Market/Market";
 import {updateProfileFor} from "./profile";
-import {FeedbackGiven} from "../generated/Market/Deal";
+import {FeedbackGiven} from "../../.cache/subgraph/generated/Market/Deal";
 
 export function fetchDeal(dealAddress: Address): DealEntity {
   let dealContract = DealContract.bind(dealAddress)
