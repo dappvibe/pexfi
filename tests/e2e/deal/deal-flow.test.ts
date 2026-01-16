@@ -1,7 +1,7 @@
 import { test, expect } from '@e2e/setup'
 import { accept, fund, markPaid, release, leaveFeedback } from './actions'
 
-test.describe('Deal flow', () => {
+test.describe.serial('Deal flow', () => {
   test('maker is buying', async ({ createParty }) => {
     // Create Offer
     const maker = await createParty()
