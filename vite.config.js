@@ -23,9 +23,5 @@ export default defineConfig({
     testTimeout: 120000,
     include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     exclude: ['node_modules'],
-    define: {
-      'import.meta.env.VITE_ALCHEMY_KEY': JSON.stringify('test-key'),
-      'import.meta.env.VITE_CRISP_ID': JSON.stringify('test-crisp-id'),
-    },
   },
 })
