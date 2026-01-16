@@ -77,15 +77,7 @@ vi.mock('@/wagmi.config', () => ({
   },
 }))
 
-// 4. Mock Contract Addresses (Matches test expectations)
-vi.mock('@contracts/addresses.json', () => ({
-  default: {
-    31337: {
-      'Market#Market': '0xMarketAddress',
-      'RepToken#RepToken': '0xRepTokenAddress',
-    },
-  },
-}))
+// 4. Mock Contract Addresses (removed as now using dynamic import)
 // Mock ResizeObserver
 global.ResizeObserver = class ResizeObserver {
   observe() {}
