@@ -1,0 +1,10 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "FullMath",
+  "sourceName": "evm/protocol/libraries/FullMath.sol",
+  "abi": [],
+  "bytecode": "0x60808060405234601757603a9081601d823930815050f35b600080fdfe600080fdfea2646970667358221220faac78bc116707da401c1ccc3b710db85aa3866d25686ecf1d814424ddca5b3064736f6c634300081a0033",
+  "deployedBytecode": "0x600080fdfea2646970667358221220faac78bc116707da401c1ccc3b710db85aa3866d25686ecf1d814424ddca5b3064736f6c634300081a0033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
