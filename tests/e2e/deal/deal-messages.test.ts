@@ -1,4 +1,4 @@
-import { test, expect } from '@e2e/setup'
+import { test, expect } from '@tests/e2e/setup'
 import { sendMessage, expectMessage } from './actions'
 import { fileURLToPath } from 'url'
 import path from 'path'

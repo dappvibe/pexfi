@@ -13,13 +13,12 @@
       "@contracts/*": ["evm/protocol/*"],
       "@deployments/*": ["evm/ignition/deployments/*"],
       "@artifacts/*": ["evm/artifacts/*"],
-      "@tests/*": ["tests/web/*"],
-      "@e2e/*": ["tests/e2e/*"]
+      "@tests/*": ["tests/*"]
     },
     "moduleResolution": "bundler",
     "allowJs": true,
     "types": ["vite/client", "vitest/globals"],
     "noEmit": true
   },
-  "include": ["src/**/*", "tests/web/**/*", "tests/e2e/**/*", "evm/**/*", "tests/evm/**/*", "hardhat.config.cjs"]
+  "include": ["src/**/*", "tests/e2e/**/*", "evm/**/*", "tests/evm/**/*", "hardhat.config.cjs"]
 }

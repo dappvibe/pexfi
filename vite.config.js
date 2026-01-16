@@ -13,14 +13,19 @@ export default defineConfig({
       '@contracts': path.resolve(__dirname, './evm/protocol'),
       '@deployments': path.resolve(__dirname, './evm/ignition/deployments'),
       '@artifacts': path.resolve(__dirname, './evm/artifacts'),
-      '@tests': path.resolve(__dirname, './tests/web'),
-      '@e2e': path.resolve(__dirname, './tests/e2e'),
+      '@tests': path.resolve(__dirname, './tests'),
     },
   },
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: './tests/web/setup.ts',
+    setupFiles: './src/tests.config.ts',
     testTimeout: 120000,
+    include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    exclude: ['node_modules'],
+  },
+  define: {
+    'import.meta.env.VITE_ALCHEMY_KEY': JSON.stringify('test-key'),
+    'import.meta.env.VITE_CRISP_ID': JSON.stringify('test-crisp-id'),
   },
 })
