@@ -5,7 +5,7 @@ import path from 'path'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-test.describe('Deal messaging', () => {
+test.describe.serial('Deal messaging', () => {
   test('parties can exchange messages and images', async ({ createParty }) => {
     const maker = await createParty()
     await maker.setAccount(0)
