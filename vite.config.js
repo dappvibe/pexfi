@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite'
+import { viteSingleFile } from 'vite-plugin-singlefile'
 import react from '@vitejs/plugin-react'
 import tsconfigPaths from 'vite-tsconfig-paths'
 import path from 'path'
@@ -6,7 +7,17 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   cacheDir: './.cache/vite',
-  plugins: [react(), tsconfigPaths()],
+  plugins: [
+    react(),
+    tsconfigPaths({
+      projects: [path.resolve(__dirname, 'tsconfig.json')],
+    }),
+    viteSingleFile(),
+  ],
+  base: './',
+  build: {
+    outDir: './.cache/dist',
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
