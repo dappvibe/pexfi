@@ -1,58 +1,47 @@
 ---
-title: 'How It Works'
-description: 'Architecture and flow of decentralized P2P trading'
+title: 'Technical Architecture'
+description: 'Secure, non-custodial infrastructure'
 icon: 'circle-nodes'
 ---
 
-# How PEXFI Works
+# Built for Security
 
-PEXFI is built on a fully decentralized architecture where every trade is secured by smart contracts. No central party ever holds your funds.
+**The safest way to trade is to remove the need for trust.**
 
-## Trade Flow
+PEXFI replaces the "trusted intermediary" model of CEXs with a verified cryptographic protocol. We don't ask you to trust our company; we invite you to verify our code.
+
+## The Escrow Mechanism
+
+At the core of PEXFI is a non-custodial multisignature smart contract. This contract acts as an impartial robotic escrow agent that executes trades strictly according to pre-defined rules.
 
 ```mermaid
 sequenceDiagram
-    participant Seller
-    participant Offer Contract
     participant Buyer
-    participant Escrow
-    participant Arbitrator
+    participant Protocol(Escrow)
+    participant Seller
 
-    Seller->>Offer Contract: Create offer (token, price, limits)
-    Buyer->>Offer Contract: Accept offer
-    Offer Contract->>Escrow: Deploy Deal contract
-    Seller->>Escrow: Deposit tokens
-    Buyer->>Seller: Send fiat payment (off-chain)
-    Buyer->>Escrow: Confirm payment sent
-    Seller->>Escrow: Release tokens
-    Escrow->>Buyer: Transfer tokens
+    Buyer->>Protocol(Escrow): "I initiate trade."
+    Protocol(Escrow)->>Seller: "Please fund escrow."
+    Seller->>Protocol(Escrow): *Deposits Assets*
+    Protocol(Escrow)->>Protocol(Escrow): [ASSETS LOCKED]
+    Protocol(Escrow)->>Buyer: "Funds verified. Send fiat."
+    Buyer->>Seller: *Direct Off-Chain Payment*
+    Seller->>Protocol(Escrow): "Payment received."
+    Protocol(Escrow)->>Buyer: [ASSETS RELEASED]
 ```
 
-## Key Components
+### Why This is Superior to CEXs
 
-### Smart Contract Escrow
+1.  **No Commingling**: Your funds are never mixed with other users' funds or corporate assets.
+2.  **No Insolvency Risk**: The contract cannot lend out your money or invest it elsewhere. It simply holds it until the trade is done.
+3.  **Atomic Settlement**: Once conditions the are met, settlement is instant and guaranteed by the blockchain.
 
-Funds are locked in a **multisignature escrow** smart contract until both parties agree. The escrow system:
+## Decentralized Infrastructure
 
-- Holds tokens securely until trade completion
-- Supports multiple parties: buyer, seller, and arbitrator
-- Only releases funds when conditions are met or dispute is resolved
-- Fully auditable and open-source
+To avoid the single points of failure that plague centralized changes, PEXFI utilizes distributed technologies:
 
-<Note>Arbitrators can only direct funds to either the buyer or seller — never to themselves or third parties.</Note>
+- **On-Chain Messaging**: Trade communications are recorded on the blockchain, creating an immutable audit trail for dispute resolution.
+- **IPFS Hosting**: The frontend interface is hosted on the InterPlanetary File System, ensuring access even if traditional servers go offline.
+- **EVM Foundation**: Built on Ethereum Layer 2 to combine the security of the world's most robust blockchain with the speed required for modern trading.
 
-### On-Chain Messaging
-
-All trade-related communication happens on the blockchain:
-
-- No external chat systems required
-- Complete transparency for dispute resolution
-- Future: end-to-end encryption with zero-knowledge proofs
-
-### Decentralized Frontend
-
-The PEXFI interface is designed for censorship resistance:
-
-- Hosted on IPFS for decentralized access
-- Direct browser-to-peer connections via WebRTC
-- No single point of failure
+**PEXFI is infrastructure that respects your sovereignty.**
