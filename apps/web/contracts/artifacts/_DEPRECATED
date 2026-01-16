@@ -1,5 +1,0 @@
-ABIs are now generated in src/wagmi directly from contracts-evm/
-so that we don't have to manually copy and can use reactive hooks from wagmi.
-Reactive hooks simplify app code by reducing useEffect() and logs parsing.
-
-This folder will be removed when app migrates to the hooks in full.

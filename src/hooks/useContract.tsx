@@ -1,15 +1,15 @@
-import deployed from '@contracts/addresses.json'
-import { abi as MarketAbi } from '@contracts/artifacts/Market.json'
-import { abi as RepTokenAbi } from '@contracts/artifacts/RepToken.json'
-import { abi as DealAbi } from '@contracts/artifacts/Deal.json'
-import { abi as OfferAbi } from '@contracts/artifacts/Offer.json'
-import { abi as OfferFactoryAbi } from '@contracts/artifacts/OfferFactory.json'
-import { abi as DealFactoryAbi } from '@contracts/artifacts/DealFactory.json'
-import { abi as ERC20Abi } from '@contracts/artifacts/ERC20.json'
+import { abi as MarketAbi } from '@artifacts/evm/protocol/Market.sol/Market.json'
+import { abi as RepTokenAbi } from '@artifacts/evm/protocol/RepToken.sol/RepToken.json'
+import { abi as DealAbi } from '@artifacts/evm/protocol/Deal.sol/Deal.json'
+import { abi as OfferAbi } from '@artifacts/evm/protocol/Offer.sol/Offer.json'
+import { abi as OfferFactoryAbi } from '@artifacts/evm/protocol/OfferFactory.sol/OfferFactory.json'
+import { abi as DealFactoryAbi } from '@artifacts/evm/protocol/DealFactory.sol/DealFactory.json'
+import { abi as ERC20Abi } from '@artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
 import { useChainId, useClient, useConnectorClient } from 'wagmi'
 import { BaseContract, BrowserProvider, ethers, WebSocketProvider, JsonRpcSigner, JsonRpcApiProvider } from 'ethers'
 import { useMemo } from 'react'
 import * as Types from '@/types'
+import { useAddress } from './useAddress'
 
 import { getRpcUrl } from '@/wagmi.config'
 
@@ -49,7 +49,10 @@ export function useContract() {
   }
   const { data: connector } = useConnectorClient({ chainId })
 
-  const addresses = deployed[chainId]
+  const marketAddress = useAddress('Market#Market')
+  const offerFactoryAddress = useAddress('OfferFactory#OfferFactory')
+  const dealFactoryAddress = useAddress('DealFactory#DealFactory')
+  const repTokenAddress = useAddress('RepToken#RepToken')
 
   const provider = useMemo(() => (client ? clientToProvider(client) : undefined), [client, chainId])
 
@@ -58,25 +61,25 @@ export function useContract() {
     return contract.connect(signer) as T
   }
 
-  const Market = new ethers.Contract(addresses['Market#Market'], MarketAbi, provider) as unknown as Types.Market
+  const Market = new ethers.Contract(marketAddress || ethers.ZeroAddress, MarketAbi, provider) as unknown as Types.Market
   const OfferFactory = new ethers.Contract(
-    addresses['OfferFactory#OfferFactory'],
+    offerFactoryAddress || ethers.ZeroAddress,
     OfferFactoryAbi,
     provider
   ) as unknown as Types.OfferFactory
   const DealFactory = new ethers.Contract(
-    addresses['DealFactory#DealFactory'],
+    dealFactoryAddress || ethers.ZeroAddress,
     DealFactoryAbi,
     provider
   ) as unknown as Types.DealFactory
   const RepToken = new ethers.Contract(
-    addresses['RepToken#RepToken'],
+    repTokenAddress || ethers.ZeroAddress,
     RepTokenAbi,
     provider
   ) as unknown as Types.RepToken
-  const Deal = new ethers.Contract('0x', DealAbi, provider) as unknown as Types.Deal
-  const Offer = new ethers.Contract('0x', OfferAbi, provider) as unknown as Types.Offer
-  const Token = new ethers.Contract('0x', ERC20Abi, provider) as unknown as Types.ERC20
+  const Deal = new ethers.Contract(ethers.ZeroAddress, DealAbi, provider) as unknown as Types.Deal
+  const Offer = new ethers.Contract(ethers.ZeroAddress, OfferAbi, provider) as unknown as Types.Offer
+  const Token = new ethers.Contract(ethers.ZeroAddress, ERC20Abi, provider) as unknown as Types.ERC20
 
   return {
     signed,
