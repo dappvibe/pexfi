@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
-import { useDeal, DealState } from '@/wagmi/contracts/useDeal'
+import { DealState, useDeal } from '@/wagmi/contracts/useDeal'
 
 const mockUseReadContracts = vi.fn()
 const mockUseReadContract = vi.fn()

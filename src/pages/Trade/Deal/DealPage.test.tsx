@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import DealPage, { useDealContext } from '@/pages/Trade/Deal/Deal'
-import { DealState } from '@/wagmi/contracts/useDeal'
+import { DealState, useDeal } from '@/wagmi/contracts/useDeal'
 
 vi.mock('@/wagmi/contracts/useDeal', () => ({
   useDeal: vi.fn(),
@@ -44,8 +44,6 @@ vi.mock('@/pages/Trade/Deal/DealCard', () => ({
 vi.mock('@/pages/Trade/Deal/MessageBox', () => ({
   default: () => <div data-testid="message-box">Message Box</div>,
 }))
-
-import { useDeal } from '@/wagmi/contracts/useDeal'
 
 describe('DealPage', () => {
   const mockRefetch = vi.fn()

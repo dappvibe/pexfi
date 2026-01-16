@@ -17,7 +17,7 @@ describe('useAddress', () => {
 
     const { result } = renderHook(() => useAddress('DealFactory#DealFactory'))
 
-    expect(result.current).toBe((addresses)['DealFactory#DealFactory'])
+    expect(result.current).toBe(addresses['DealFactory#DealFactory'])
   })
 
   it('returns undefined and warns when chain addresses are missing', () => {

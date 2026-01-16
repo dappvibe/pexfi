@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import LoadingButton from '@/components/LoadingButton'
 
 describe('LoadingButton', () => {
@@ -11,9 +11,9 @@ describe('LoadingButton', () => {
   it('handles async click and shows loading state', async () => {
     let resolvePromise: () => void
     const mockOnClick = vi.fn().mockImplementation(() => {
-        return new Promise<void>((resolve) => {
-            resolvePromise = resolve
-        })
+      return new Promise<void>((resolve) => {
+        resolvePromise = resolve
+      })
     })
 
     const { container } = render(<LoadingButton onClick={mockOnClick}>Async Action</LoadingButton>)
@@ -34,7 +34,7 @@ describe('LoadingButton', () => {
     resolvePromise()
 
     await waitFor(() => {
-        expect(button.className).not.toContain('ant-btn-loading')
+      expect(button.className).not.toContain('ant-btn-loading')
     })
   })
 
