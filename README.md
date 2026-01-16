@@ -1,4 +1,4 @@
-![Tests](https://github.com/dappvibe/pexfi/actions/workflows/test.yml/badge.svg)
+[![Status](https://github.com/dappvibe/pexfi/actions/workflows/test.yml/badge.svg)](https://github.com/dappvibe/pexfi/actions/workflows/test.yml)
 
 # Summary
 
