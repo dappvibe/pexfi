@@ -1,4 +1,4 @@
-import { expect, test } from '@e2e/setup'
+import { expect, test } from '@tests/e2e/setup'
 
 test('Offer CRUD', async ({ page, setAccount }) => {
   // 1. Create an offer
