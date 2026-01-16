@@ -1,7 +1,8 @@
 import '@testing-library/jest-dom'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
+import { ConfigProvider } from 'antd'
 import OfferForm from '@/pages/Trade/Offer/OfferForm'
 
 // Mock Hooks
@@ -63,14 +64,16 @@ const mockOfferContract = {
 }
 
 // Mock useContract
+const mockOfferFactoryInstance = {
+  create: mockCreate,
+  connect: vi.fn().mockReturnThis(),
+}
+
 vi.mock('@/hooks/useContract', () => {
   return {
     useContract: vi.fn(() => ({
-      signed: vi.fn((contract) => Promise.resolve(contract)),
-      OfferFactory: {
-        create: mockCreate,
-        connect: vi.fn().mockReturnThis(),
-      },
+      signed: vi.fn(() => Promise.resolve(mockOfferFactoryInstance)),
+      OfferFactory: mockOfferFactoryInstance,
       Offer: {
         attach: vi.fn(() => mockOfferContract),
       },
@@ -99,32 +102,49 @@ describe('OfferForm', () => {
     it('renders all fields enabled and submits', async () => {
       const user = userEvent.setup()
       render(
-        <MemoryRouter>
-          <OfferForm />
-        </MemoryRouter>
+        <ConfigProvider getPopupContainer={() => document.body}>
+          <MemoryRouter>
+            <OfferForm />
+          </MemoryRouter>
+        </ConfigProvider>
       )
 
-      // Verify fields are enabled (Antd Select input is the combobox)
+      // Verify fields are enabled
       expect(screen.getByLabelText('token')).toBeEnabled()
       expect(screen.getByLabelText('for')).toBeEnabled()
       expect(screen.getByLabelText('using')).toBeEnabled()
 
       await user.click(screen.getByText('Sell'))
 
-      // Select Token (Click trigger -> Click Option)
-      await user.click(screen.getByLabelText('token'))
-      await user.click(screen.getByText('USDT'))
+      // Get all comboboxes - Ant Design Select with showSearch renders as combobox
+      const comboboxes = screen.getAllByRole('combobox')
+      // Order: token, fiat, method (based on DOM order)
+      const [tokenCombobox, fiatCombobox, methodCombobox] = comboboxes
+
+      // Select Token - type to search, then select from filtered options
+      await user.click(tokenCombobox)
+      await user.type(tokenCombobox, 'USDT')
+      const usdtOption = await screen.findByTitle('USDT')
+      await user.click(usdtOption)
 
       // Select Fiat
-      await user.click(screen.getByLabelText('for'))
-      await user.click(screen.getByText('USD'))
+      await user.click(fiatCombobox)
+      await user.type(fiatCombobox, 'USD')
+      const usdOption = await screen.findByTitle('USD')
+      await user.click(usdOption)
 
       // Select Method
-      await user.click(screen.getByLabelText('using'))
-      await user.click(screen.getByText('Bank Transfer'))
+      await user.click(methodCombobox)
+      await user.type(methodCombobox, 'Bank Transfer')
+      const bankOption = await screen.findByTitle('Bank Transfer')
+      await user.click(bankOption)
 
-      // Inputs
-      await user.type(screen.getByLabelText('Margin'), '10')
+      // Input Margin
+      const marginInput = screen.getByRole('spinbutton')
+      await user.clear(marginInput)
+      await user.type(marginInput, '10')
+
+      // Limits
       await user.type(screen.getByLabelText('Limits'), '100')
       await user.type(screen.getByLabelText('-'), '1000')
 
