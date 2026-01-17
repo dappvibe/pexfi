@@ -32,15 +32,15 @@
  * -------------------------------------------------------------------------------------
  */
 
-const entities = require('@jetbrains/youtrack-scripting-api/entities')
-const workflow = require('@jetbrains/youtrack-scripting-api/workflow')
-const http = require('@jetbrains/youtrack-scripting-api/http')
+const entities = require('@jetbrains/youtrack-scripting-api/entities');
+const workflow = require('@jetbrains/youtrack-scripting-api/workflow');
+const http = require('@jetbrains/youtrack-scripting-api/http');
 
 // Configuration
-const JULES_BASE_URL = 'https://jules.googleapis.com/v1alpha'
-const TARGET_STATE = 'Shaping' // State that triggers the automated session
-const TARGET_SOURCE = 'sources/github/dappvibe/pexfi'
-const TARGET_BRANCH = 'develop'
+const JULES_BASE_URL = 'https://jules.googleapis.com/v1alpha';
+const TARGET_STATE = 'Shaping'; // State that triggers the automated session
+const TARGET_SOURCE = 'sources/github/dappvibe/pexfi';
+const TARGET_BRANCH = 'develop';
 
 // Persona Definitions
 const PERSONAS = {
@@ -61,13 +61,13 @@ const PERSONAS = {
   default: `You are a Senior Software Engineer.
     Your goal is to help refine this task, clarify requirements, and suggest implementation details.
     Write professional, concise, and technically accurate responses.`,
-}
+};
 
 exports.rule = entities.Issue.onChange({
   title: 'Create session and save ID to field.',
   guard: (ctx) => {
     // Trigger when State changes to 'Consult AI' AND we don't already have a session
-    return ctx.issue.fields.Stage.name === TARGET_STATE && !ctx.issue.fields['Jules Session']
+    return ctx.issue.fields.Stage.name === TARGET_STATE && !ctx.issue.fields['Jules Session'];
   },
   requirements: {
     ImportantPerson: {
@@ -78,28 +78,33 @@ exports.rule = entities.Issue.onChange({
       type: entities.Field.stringType,
       name: 'Jules Session',
     },
+    julesLastSync: {
+      type: entities.Field.stringType,
+      name: 'Jules Last Sync',
+    },
   },
   action: (ctx) => {
-    const apikey = entities.User.findByLogin('jules').getAttribute('apikey')
+    const julesUser = entities.User.findByLogin('jules');
+    const apikey = julesUser.getAttribute('apikey');
     if (!apikey) {
-      workflow.message('Jules API Key is missing. Set it "apikey" attribute of user "jules".')
-      return
+      workflow.message('Jules API Key is missing. Set it "apikey" attribute of user "jules".');
+      return;
     }
 
-    const issue = ctx.issue
+    const issue = ctx.issue;
 
     // 1. Select Persona based on Tags
-    let selectedPersona = PERSONAS.default
-    let personaName = 'Default Engineer'
+    let selectedPersona = PERSONAS.default;
+    let personaName = 'Default Engineer';
 
     if (issue.tags) {
       issue.tags.forEach((tag) => {
-        const tagName = tag.name.toLowerCase()
+        const tagName = tag.name.toLowerCase();
         if (PERSONAS[tagName]) {
-          selectedPersona = PERSONAS[tagName]
-          personaName = tagName
+          selectedPersona = PERSONAS[tagName];
+          personaName = tagName;
         }
-      })
+      });
     }
 
     // 2. Prepare Session Payload
@@ -108,7 +113,7 @@ exports.rule = entities.Issue.onChange({
       `${selectedPersona}\n\n` +
       `CONTEXT FROM YOUTRACK ISSUE ${issue.id}:\n` +
       `Summary: ${issue.summary}\n` +
-      `Description: ${issue.description || 'No description provided.'}`
+      `Description: ${issue.description || 'No description provided.'}`;
 
     const payload = {
       prompt: sessionPrompt,
@@ -119,48 +124,46 @@ exports.rule = entities.Issue.onChange({
           startingBranch: TARGET_BRANCH,
         },
       },
-      // automationMode is undefined to prevent auto-PR creation (Consultation only)
-    }
+      //requirePlanApproval: true,
+      //automationMode: 'AUTO_CREATE_PR',
+    };
 
     // 3. Call Jules API
-    const connection = new http.Connection(JULES_BASE_URL, null, 20000)
-    connection.addHeader('Content-Type', 'application/json')
-    connection.addHeader('x-goog-api-key', apikey)
+    const connection = new http.Connection(JULES_BASE_URL, null, 20000);
+    connection.addHeader('Content-Type', 'application/json');
+    connection.addHeader('x-goog-api-key', apikey);
 
     try {
-      const response = connection.postSync('/sessions', null, JSON.stringify(payload))
+      const response = connection.postSync('/sessions', null, JSON.stringify(payload));
 
       if ((response && response.code === 201) || response.code === 200) {
-        const sessionData = JSON.parse(response.response)
-        const sessionId = sessionData.name // "sessions/123..."
-        const sessionUrl = sessionData.url
+        const sessionData = JSON.parse(response.response);
+        const resourceName = sessionData.name; // "sessions/123..."
+        const simpleId = resourceName.split('/').pop(); // "123..."
+        const sessionUrl = sessionData.url;
 
-        if (!sessionId) {
-          workflow.message('Jules Session created but ID missing. Response: ' + response.response)
-          return
+        if (!simpleId) {
+          workflow.message('Jules Session created but ID missing. Response: ' + response.response);
+          return;
         }
 
         // 4. Update Issue Fields
-        issue.fields['Jules Session'] = 'https://jules.google.com/session/' + sessionId
+        issue.fields['Jules Session'] = 'https://jules.google.com/session/' + simpleId;
+        issue.fields['Jules Last Sync'] = new Date().getTime().toString();
 
         // 5. Post Comment
-        issue.addComment(
-          `🤖 **Jules AI Session Started**\n` +
-            `**Persona:** ${personaName}\n` +
-            `**Session ID:** ${sessionId}\n` +
-            `**Session:** [Open in Jules](${sessionUrl})\n\n` +
-            `Jules is analyzing this issue. Replies will be posted here.`
-        )
+        const comment = `🤖 **Jules AI Session Started**\n` + `**Persona:** ${personaName}`;
+        issue.addComment(comment, julesUser);
 
-        workflow.message(`Jules Session created: ${sessionId}`)
+        workflow.message(`Jules Session created: ${simpleId}`);
       } else {
-        const errorMsg = 'Jules API Error: ' + response.code + ' ' + response.response
-        workflow.message(errorMsg)
-        console.error(errorMsg)
+        const errorMsg = 'Jules API Error: ' + response.code + ' ' + response.response;
+        workflow.message(errorMsg);
+        console.error(errorMsg);
       }
     } catch (err) {
-      console.error(err)
-      workflow.message(`Failed to create Jules session: ${err}`)
+      console.error(err);
+      workflow.message(`Failed to create Jules session: ${err}`);
     }
   },
-})
+});
