@@ -67,7 +67,7 @@ exports.rule = entities.Issue.onChange({
   title: 'Create session and save ID to field.',
   guard: (ctx) => {
     // Trigger when State changes to 'Consult AI' AND we don't already have a session
-    return ctx.issue.fields.Stage.name === TARGET_STATE && !ctx.issue.fields['jules-sid']
+    return ctx.issue.fields.Stage.name === TARGET_STATE && !ctx.issue.fields['Jules Session']
   },
   requirements: {
     ImportantPerson: {
@@ -76,7 +76,7 @@ exports.rule = entities.Issue.onChange({
     },
     julesSessionId: {
       type: entities.Field.stringType,
-      name: 'jules-sid',
+      name: 'Jules Session',
     },
   },
   action: (ctx) => {
@@ -130,9 +130,6 @@ exports.rule = entities.Issue.onChange({
     try {
       const response = connection.postSync('/sessions', null, JSON.stringify(payload))
 
-      console.log('Jules API Response Code: ' + response.code)
-      console.log('Jules API Response Body: ' + response.response)
-
       if ((response && response.code === 201) || response.code === 200) {
         const sessionData = JSON.parse(response.response)
         const sessionId = sessionData.name // "sessions/123..."
@@ -144,7 +141,7 @@ exports.rule = entities.Issue.onChange({
         }
 
         // 4. Update Issue Fields
-        issue.fields['jules-sid'] = 'https://jules.google.com/session/' + sessionId
+        issue.fields['Jules Session'] = 'https://jules.google.com/session/' + sessionId
 
         // 5. Post Comment
         issue.addComment(
@@ -164,7 +161,6 @@ exports.rule = entities.Issue.onChange({
     } catch (err) {
       console.error(err)
       workflow.message(`Failed to create Jules session: ${err}`)
-      // Revert state if needed, or just log
     }
   },
 })
