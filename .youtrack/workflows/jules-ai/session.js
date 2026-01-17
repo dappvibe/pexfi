@@ -39,7 +39,6 @@ const http = require('@jetbrains/youtrack-scripting-api/http');
 const api = require('./api');
 
 // Configuration
-// const JULES_BASE_URL = 'https://jules.googleapis.com/v1alpha'; // Moved to api.js
 const TARGET_STATE = 'Shaping'; // State that triggers the automated session
 const TARGET_SOURCE = 'sources/github/dappvibe/pexfi';
 const TARGET_BRANCH = 'develop';
@@ -86,8 +85,7 @@ exports.rule = entities.Issue.onChange({
     },
   },
   action: (ctx) => {
-    const julesUser = entities.User.findByLogin('jules');
-    const apikey = julesUser.getAttribute('apikey');
+    const apikey = api.getApiKey('jules');
     if (!apikey) {
       workflow.message('Jules API Key is missing. Set it "apikey" attribute of user "jules".');
       return;
@@ -131,7 +129,7 @@ exports.rule = entities.Issue.onChange({
     };
 
     // 3. Call Jules API
-    const connection = api.createConnection(apikey);
+    const connection = api.createConnection(apikey, 'jules');
 
     try {
       const response = connection.postSync('/sessions', null, JSON.stringify(payload));
