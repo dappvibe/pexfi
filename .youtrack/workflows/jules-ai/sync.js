@@ -8,28 +8,25 @@ const entities = require('@jetbrains/youtrack-scripting-api/entities');
 const workflow = require('@jetbrains/youtrack-scripting-api/workflow');
 const http = require('@jetbrains/youtrack-scripting-api/http');
 
-const JULES_BASE_URL = 'https://jules.googleapis.com/v1alpha';
+const api = require('./api');
+
+// const JULES_BASE_URL = 'https://jules.googleapis.com/v1alpha'; // Moved to api.js
 
 exports.rule = entities.Issue.onSchedule({
   title: 'Sync Jules responses',
   cron: '0 * * * * ?',
-  search: 'Stage: Shaping has: {Jules Session}', // Only poll relevant issues
+  search: `Stage: Shaping has: {${api.FIELD_SESSION_ID}}`, // Only poll relevant issues
   action: (ctx) => {
     const issue = ctx.issue;
-    const sessionUrl = issue.fields['Jules Session'];
-    if (!sessionUrl) return;
+    const sessionUrl = issue.fields[api.FIELD_SESSION_ID];
 
-    // Extract Session ID
-    const parts = sessionUrl.split('/session/');
-    if (parts.length < 2) return;
-    const sessionId = parts[1];
+    const sessionId = api.getSessionIdFromUrl(sessionUrl);
+    if (!sessionId) return;
 
-    const apikey = entities.User.findByLogin('jules').getAttribute('apikey');
+    const apikey = api.getApiKey();
     if (!apikey) return;
 
-    const connection = new http.Connection(JULES_BASE_URL, null, 20000);
-    connection.addHeader('Content-Type', 'application/json');
-    connection.addHeader('x-goog-api-key', apikey);
+    const connection = api.createConnection(apikey);
 
     try {
       // Get Activities (messages, plan updates, etc.)
@@ -41,7 +38,7 @@ exports.rule = entities.Issue.onSchedule({
         const data = JSON.parse(response.response);
         if (!data.activities) return;
 
-        let lastSync = issue.fields['Jules Last Sync'];
+        let lastSync = issue.fields[api.FIELD_LAST_SYNC];
         // Treat lastSync as a timestamp (number)
         let lastSyncTime = lastSync ? parseInt(lastSync) : 0;
         let newMaxTime = lastSyncTime;
@@ -66,13 +63,13 @@ exports.rule = entities.Issue.onSchedule({
 
         // Update Last Sync
         if (newMaxTime > lastSyncTime) {
-          issue.fields['Jules Last Sync'] = newMaxTime.toString();
+          issue.fields[api.FIELD_LAST_SYNC] = newMaxTime.toString();
         }
       } else if (response.code === 404) {
         // Session deleted or not found
         console.warn('Jules Session not found (404). Clearing session fields.');
-        issue.fields['Jules Session'] = null;
-        issue.fields['Jules Last Sync'] = null;
+        issue.fields[api.FIELD_SESSION_ID] = null;
+        issue.fields[api.FIELD_LAST_SYNC] = null;
         issue.addComment(
           '⚠️ **Jules Session Disconnected**\n\nThe session was not found (404). It may have been deleted or expired.'
         );
@@ -86,11 +83,11 @@ exports.rule = entities.Issue.onSchedule({
   requirements: {
     julesSessionId: {
       type: entities.Field.stringType,
-      name: 'Jules Session',
+      name: api.FIELD_SESSION_ID,
     },
     julesLastSync: {
       type: entities.Field.stringType,
-      name: 'Jules Last Sync',
+      name: api.FIELD_LAST_SYNC,
     },
   },
 });
