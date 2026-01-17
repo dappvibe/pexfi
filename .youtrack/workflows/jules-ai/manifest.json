@@ -1,9 +1,9 @@
 {
-  "name" : "jules-ai",
-  "title" : "jules-ai",
-  "version" : "0.0.1",
-  "vendor" : {
-    "name" : "Max",
-    "email" : "max@dappvibe.com"
+  "name": "jules-ai",
+  "title": "jules-ai",
+  "version": "0.0.1",
+  "vendor": {
+    "name": "Max",
+    "email": "max@dappvibe.com"
   }
 }
