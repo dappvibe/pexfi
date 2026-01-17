@@ -36,8 +36,10 @@ const entities = require('@jetbrains/youtrack-scripting-api/entities');
 const workflow = require('@jetbrains/youtrack-scripting-api/workflow');
 const http = require('@jetbrains/youtrack-scripting-api/http');
 
+const api = require('./api');
+
 // Configuration
-const JULES_BASE_URL = 'https://jules.googleapis.com/v1alpha';
+// const JULES_BASE_URL = 'https://jules.googleapis.com/v1alpha'; // Moved to api.js
 const TARGET_STATE = 'Shaping'; // State that triggers the automated session
 const TARGET_SOURCE = 'sources/github/dappvibe/pexfi';
 const TARGET_BRANCH = 'develop';
@@ -67,7 +69,7 @@ exports.rule = entities.Issue.onChange({
   title: 'Create session and save ID to field.',
   guard: (ctx) => {
     // Trigger when State changes to 'Consult AI' AND we don't already have a session
-    return ctx.issue.fields.Stage.name === TARGET_STATE && !ctx.issue.fields['Jules Session'];
+    return ctx.issue.fields.Stage.name === TARGET_STATE && !ctx.issue.fields[api.FIELD_SESSION_ID];
   },
   requirements: {
     ImportantPerson: {
@@ -76,11 +78,11 @@ exports.rule = entities.Issue.onChange({
     },
     julesSessionId: {
       type: entities.Field.stringType,
-      name: 'Jules Session',
+      name: api.FIELD_SESSION_ID,
     },
     julesLastSync: {
       type: entities.Field.stringType,
-      name: 'Jules Last Sync',
+      name: api.FIELD_LAST_SYNC,
     },
   },
   action: (ctx) => {
@@ -129,9 +131,7 @@ exports.rule = entities.Issue.onChange({
     };
 
     // 3. Call Jules API
-    const connection = new http.Connection(JULES_BASE_URL, null, 20000);
-    connection.addHeader('Content-Type', 'application/json');
-    connection.addHeader('x-goog-api-key', apikey);
+    const connection = api.createConnection(apikey);
 
     try {
       const response = connection.postSync('/sessions', null, JSON.stringify(payload));
@@ -140,7 +140,6 @@ exports.rule = entities.Issue.onChange({
         const sessionData = JSON.parse(response.response);
         const resourceName = sessionData.name; // "sessions/123..."
         const simpleId = resourceName.split('/').pop(); // "123..."
-        const sessionUrl = sessionData.url;
 
         if (!simpleId) {
           workflow.message('Jules Session created but ID missing. Response: ' + response.response);
@@ -148,8 +147,8 @@ exports.rule = entities.Issue.onChange({
         }
 
         // 4. Update Issue Fields
-        issue.fields['Jules Session'] = 'https://jules.google.com/session/' + simpleId;
-        issue.fields['Jules Last Sync'] = new Date().getTime().toString();
+        issue.fields[api.FIELD_SESSION_ID] = 'https://jules.google.com/session/' + simpleId;
+        issue.fields[api.FIELD_LAST_SYNC] = new Date().getTime().toString();
 
         // 5. Post Comment
         const comment = `🤖 **Jules AI Session Started**\n` + `**Persona:** ${personaName}`;
