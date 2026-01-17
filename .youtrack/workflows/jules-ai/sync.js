@@ -10,8 +10,6 @@ const http = require('@jetbrains/youtrack-scripting-api/http');
 
 const api = require('./api');
 
-// const JULES_BASE_URL = 'https://jules.googleapis.com/v1alpha'; // Moved to api.js
-
 exports.rule = entities.Issue.onSchedule({
   title: 'Sync Jules responses',
   cron: '0 * * * * ?',
@@ -23,10 +21,10 @@ exports.rule = entities.Issue.onSchedule({
     const sessionId = api.getSessionIdFromUrl(sessionUrl);
     if (!sessionId) return;
 
-    const apikey = api.getApiKey();
+    const apikey = api.getApiKey('jules');
     if (!apikey) return;
 
-    const connection = api.createConnection(apikey);
+    const connection = api.createConnection(apikey, 'jules');
 
     try {
       // Get Activities (messages, plan updates, etc.)
