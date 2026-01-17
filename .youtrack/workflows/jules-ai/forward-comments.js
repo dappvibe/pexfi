@@ -10,8 +10,6 @@ const http = require('@jetbrains/youtrack-scripting-api/http');
 
 const api = require('./api');
 
-// const JULES_BASE_URL = 'https://jules.googleapis.com/v1alpha'; // Moved to api.js
-
 exports.rule = entities.Issue.onChange({
   title: 'Forward comments to Jules',
   guard: (ctx) => {
