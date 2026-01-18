@@ -78,6 +78,7 @@ Description: ${this.issue.description || 'No description provided.'}`;
           startingBranch: 'develop',
         },
       },
+      requirePlanApproval: true,
       // Explicitly ensuring no PR is created and no auto plan approval
       // Default behavior assumed to be manual if not specified, but we rely on absence of explicit 'AUTO_CREATE_PR' mode.
     };
@@ -98,8 +99,8 @@ Description: ${this.issue.description || 'No description provided.'}`;
           this.issue.fields[api.FIELD_SESSION_ID] = 'https://jules.google.com/session/' + simpleId;
           this.issue.fields[api.FIELD_LAST_SYNC] = new Date().getTime().toString();
 
-          // Add comment
-          this.issue.addComment(`🤖 **Jules Session Started**\nID: ${simpleId}`);
+          // Notify user via workflow message
+          workflow.message(`Jules Session Started`);
         } else {
            console.warn('Jules Session created but ID extraction failed.');
         }
