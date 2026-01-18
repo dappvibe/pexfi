@@ -12,7 +12,7 @@ const api = require('./api');
 
 exports.rule = entities.Issue.onSchedule({
   title: 'Sync Jules responses',
-  cron: '0/15 * * * * ?',
+  cron: '0 * * * * ?',
   search: `Assignee: jules State: None,Thinking,Waiting has: {${api.FIELD_SESSION_ID}}`, // Only poll relevant issues
   action: (ctx) => {
     const issue = ctx.issue;
