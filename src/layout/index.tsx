@@ -1,6 +1,6 @@
 import { Layout as AntLayout } from 'antd'
 import Topnav from '@/layout/Topnav'
-import { Outlet } from 'react-router-dom'
+import { Link, Outlet } from 'react-router-dom'
 import { Footer } from 'antd/es/layout/layout.js'
 import { Announcement } from '@/components/Announcement'
 import ChatWidget from '@/components/ChatWidget'
@@ -25,7 +25,9 @@ export default function Layout() {
           <Outlet />
         </div>
       </Content>
-      <Footer />
+      <Footer style={{ textAlign: 'center' }}>
+        <Link to="/terms-of-use">Terms of Use</Link>
+      </Footer>
       <ChatWidget />
     </AntLayout>
   )

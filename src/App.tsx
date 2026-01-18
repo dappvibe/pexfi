@@ -8,11 +8,13 @@ import Offers from '@/pages/Trade/Offers/Offers'
 import UserOffers from '@/pages/Me/Offers/UserOffers'
 import OfferPage from '@/pages/Trade/Offer/Offer'
 import OfferNew from '@/pages/Trade/Offer/OfferNew'
+import Terms from '@/pages/Terms/Terms'
 
 const router = createHashRouter(
   createRoutesFromElements(
     <Route element={<Layout />}>
       <Route index element={<Home />} />
+      <Route path={'/terms-of-use'} element={<Terms />} />
       <Route path={'/trade'}>
         <Route index element={<Navigate to={'/trade/sell'} />} />
         <Route path=":side/:token?/:fiat?/:method?" element={<Offers />} />
