@@ -13,7 +13,7 @@ We replace trusted intermediaries with verified code. Our architecture is built 
 
 ## The Smart Contract Escrow Mechanism
 
-The core of our platform is the **Non-Custodial Escrow**. This smart contract acts as an impartial robotic intermediary.
+The core of our platform is the **Non-Custodial Escrow**. This smart contract acts as an impartial robotic intermediary, ensuring that neither party can cheat.
 
 ```mermaid
 sequenceDiagram
@@ -37,12 +37,20 @@ sequenceDiagram
 2.  **No Insolvency Risk**: The protocol cannot lend, invest, or misuse your funds.
 3.  **Atomic Settlement**: Transactions settle instantly on the blockchain once conditions are met.
 
+## Privacy & Anonymity
+
+PEXFI is designed to respect your privacy.
+
+- **No KYC/AML Checks**: We do not collect passports or ID cards.
+- **Wallet-Based Identity**: Your reputation is tied to your wallet address, not your real-world identity.
+- **Encrypted Messaging**: Trade chats are stored on-chain but can be encrypted (feature roadmap), ensuring communication privacy.
+
 ## Decentralized Infrastructure Stack
 
 To ensure **censorship resistance** and **high availability**, PEXFI utilizes a fully distributed technology stack:
 
 - **Arbitrum (L2)**: Provides Ethereum-grade security with low gas fees and fast transaction confirmation.
 - **IPFS Hosting**: Our frontend runs on the InterPlanetary File System, making it resistant to server takedowns or DNS blocks.
-- **On-Chain Messaging**: Trade chats are encrypted and stored on-chain (logs), ensuring an immutable record for dispute resolution.
+- **On-Chain Logs**: Important trade actions are recorded as events on the blockchain, creating an immutable history for dispute resolution.
 
 **Trade with confidence on the most robust P2P exchange infrastructure.**

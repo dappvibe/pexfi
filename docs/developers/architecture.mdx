@@ -6,70 +6,76 @@ icon: 'sitemap'
 
 # PEXFI Protocol Architecture
 
-PEXFI is built as a decentralized application (dApp) that interacts directly with EVM-compatible blockchains. The system consists of three main layers: the User Interface, the Indexing Layer, and the On-Chain Protocol.
+PEXFI is a decentralized application (dApp) designed for resilience, security, and censorship resistance. It interacts directly with EVM-compatible blockchains to facilitate trustless trading.
 
-## High-Level Diagram
+The system is composed of three primary layers:
+1. **Frontend Layer**: The user interface.
+2. **On-Chain Protocol**: The smart contracts (EVM).
+3. **Indexing Layer**: Data aggregation (The Graph).
 
-The following diagram illustrates the data flow and interaction between components.
+## High-Level Data Flow
+
+The following diagram illustrates how these components interact to provide a seamless user experience.
 
 ```mermaid
 graph TD
     User[User]
 
-    subgraph Frontend [Frontend Application]
-        UI[React/Vite UI]
-        Wagmi[Wagmi/Viem Client]
-        Apollo[Apollo GraphQL Client]
+    subgraph Client [Client Side]
+        UI[React/Vite App]
+        Wagmi[Wagmi/Viem Lib]
+        Apollo[Apollo GraphQL]
     end
 
-    subgraph Blockchain [EVM Layer]
-        Market[Market Contract]
+    subgraph Blockchain [Arbitrum One]
+        Market[Market Registry]
         Offer[Offer Contract]
-        Deal[Deal Contract]
-        Rep[RepToken Contract]
+        Deal[Deal Escrow]
+        Rep[Reputation Token]
     end
 
-    subgraph Indexer [Data Layer]
-        GraphNode[The Graph Node]
+    subgraph Indexer [The Graph]
+        GraphNode[Graph Node]
         Subgraph[PEXFI Subgraph]
     end
 
     User -->|Interacts| UI
-    UI -->|Uses| Wagmi
-    UI -->|Uses| Apollo
+    UI -->|Reads/Writes| Wagmi
+    UI -->|Queries| Apollo
 
-    Wagmi -->|Writes Transactions/Reads State| Blockchain
+    Wagmi -->|Transactions| Blockchain
 
-    Market -->|Emits Events| GraphNode
-    Offer -->|Emits Events| GraphNode
-    Deal -->|Emits Events| GraphNode
-    Rep -->|Emits Events| GraphNode
+    Market -.->|Events| GraphNode
+    Offer -.->|Events| GraphNode
+    Deal -.->|Events| GraphNode
+    Rep -.->|Events| GraphNode
 
-    GraphNode -->|Indexes| Subgraph
-    Apollo -->|Queries Data| Subgraph
+    GraphNode -->|Updates| Subgraph
+    Apollo -->|Fetches Data| Subgraph
 ```
 
 ## Component Breakdown
 
 ### 1. Frontend Layer (`/src`)
 
-- **Tech Stack:** React, Vite, TypeScript, TailwindCSS.
-- **Role:** The primary interface for users. It manages wallet connections, displays marketplace data, and constructs transactions.
-- **Interaction:**
-  - **Writes:** Uses `wagmi` and `viem` to propose trades, fund escrows, and disputes directly to the smart contracts.
-  - **Reads:** Fetches complex data aggregations/filtering from The Graph and reads real-time contract state (e.g., balances) directly from RPC.
+- **Technology**: React, Vite, TypeScript, TailwindCSS.
+- **Function**: Serves as the gateway for users to interact with the protocol. It is responsible for:
+  - **Wallet Connection**: Managing sessions via `wagmi` and `RainbowKit` (or similar).
+  - **Transaction Construction**: Formatting data to call smart contract functions.
+  - **Data Display**: Merging real-time blockchain data (via RPC) with indexed historical data (via The Graph).
 
 ### 2. On-Chain Protocol (`/evm`)
 
-- **Tech Stack:** Solidity, Hardhat.
-- **Role:** The "backend" logic of the system. Immutably handles all value transfers and state changes.
-- **Key Contracts:**
-  - **Market:** Registry for offers and fee management.
-  - **Deal:** Individual escrow capabilities for each trade.
-  - **RepToken:** Soulbound NFT logic for reputation tracking.
+- **Technology**: Solidity, Hardhat.
+- **Function**: The immutable logic layer that enforces rules and holds funds.
+- **Key Contracts**:
+  - **`Market.sol`**: The central registry for all offers and global configuration.
+  - **`Offer.sol`**: Represents a user's intent to trade. Stores parameters like price, limits, and payment methods.
+  - **`Deal.sol`**: A unique escrow contract deployed for every single trade. It holds the crypto assets until the trade is finalized or disputed.
+  - **`Reputation.sol`**: A soulbound token (SBT) system that tracks user history and ratings on-chain.
 
 ### 3. Indexing Layer (`/subgraph`)
 
-- **Tech Stack:** The Graph Protocol (AssemblyScript).
-- **Role:** An indexing middleware that listens to blockchain events and organizes them into queriable schemas.
-- **Purpose:** Allows the frontend to efficiently query things like "All offers for BTC" or "My trade history" without scanning the entire blockchain on every page load.
+- **Technology**: The Graph Protocol (AssemblyScript).
+- **Function**: An indexing middleware that organizes blockchain data for efficient querying.
+- **Why it's needed**: Reading data directly from the blockchain is slow and limited (e.g., "Show me all offers selling USDT for EUR"). The subgraph listens for events (like `OfferCreated`, `DealFinalized`) and stores them in a schema that the frontend can query instantly via GraphQL.

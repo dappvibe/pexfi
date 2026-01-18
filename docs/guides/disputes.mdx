@@ -6,106 +6,91 @@ icon: 'scale-balanced'
 
 # Dispute Resolution
 
-When trades don't go as planned, PEXFI's dispute system helps resolve conflicts fairly.
+In an ideal world, every trade goes smoothly. However, when conflicts arise, PEXFI's decentralized dispute system helps resolve them fairly.
 
 ## When to Open a Dispute
 
-Open a dispute if:
+You should open a dispute if:
 
-- Buyer claims payment was sent but seller disagrees
-- Seller claims payment wasn't received
-- Payment amount doesn't match
-- One party is unresponsive
-- Suspected fraud or scam attempt
+- **Buyer**: You sent payment, but the seller is refusing to release the crypto.
+- **Seller**: The buyer marked the trade as "Paid," but you haven't received the money.
+- **Mismatch**: The payment amount received is incorrect.
+- **Unresponsive**: The counterparty stopped replying after the trade started.
+- **Fraud**: You suspect the counterparty is attempting to scam you.
 
-<Warning>Don't open disputes for minor delays. Allow reasonable time for responses and payment processing.</Warning>
+<Warning>
+  **Do not open disputes for minor delays.** Bank transfers can take time. Communicate with your trading partner first.
+</Warning>
 
-## How Disputes Work
+## How the Process Works
 
 ```mermaid
 flowchart TD
-    A[Trade Conflict] --> B[Open Dispute]
-    B --> C[Submit Evidence]
-    C --> D[Arbitrator Reviews]
-    D --> E{Decision}
-    E -->|Buyer Wins| F[Tokens to Buyer]
-    E -->|Seller Wins| G[Tokens to Seller]
+    A[Trade Conflict Arises] --> B[Party Opens Dispute]
+    B --> C[Trade is Frozen]
+    C --> D[Both Parties Submit Evidence]
+    D --> E[Arbitrator Reviews Case]
+    E --> F{Decision Made}
+    F -->|Buyer Wins| G[Crypto Released to Buyer]
+    F -->|Seller Wins| G[Crypto Returned to Seller]
 ```
 
 ### Step 1: Open Dispute
 
-Either party can initiate a dispute from the deal page. This:
-
-- Pauses the trade
-- Notifies both parties
-- Assigns an arbitrator
+Either party can click the **Dispute** button on the deal page.
+- This action **locks the funds** in the smart contract. Neither party can withdraw them without an arbitrator's ruling.
+- An arbitrator is assigned to the case.
 
 ### Step 2: Submit Evidence
 
-Provide documentation to support your case:
+You must provide clear proof to support your claim. This is done directly in the chat or via a designated evidence form.
 
 | Evidence Type   | Examples                              |
 | --------------- | ------------------------------------- |
-| Payment Proof   | Transaction receipts, bank statements |
-| Communication   | Screenshots of messages               |
-| Timestamps      | When actions were taken               |
-| Account Details | Matching payment information          |
+| **Payment Proof**   | Bank transfer receipts, transaction hash, PDF statements. |
+| **Chat Logs**   | The on-chain chat history is automatically available to the arbitrator.               |
+| **Timestamps**      | Proof of when actions were taken.               |
+| **Account Details** | Showing that the sender/receiver names match the trade details.          |
 
-<Tip>The more evidence you provide, the easier it is for the arbitrator to decide.</Tip>
+<Tip>The burden of proof is on you. Provide as much detail as possible to ensure a fair outcome.</Tip>
 
 ### Step 3: Arbitrator Review
 
-An arbitrator examines:
-
-- On-chain deal messages
-- Submitted evidence
-- Transaction history
-- Reputation of both parties
+The arbitrator reviews:
+1. The **contract state** (was money escrowed? was "Mark as Paid" clicked?).
+2. The **encrypted chat logs** (if access is granted).
+3. The **external evidence** submitted by both parties.
+4. The **reputation history** of both traders.
 
 ### Step 4: Resolution
 
-The arbitrator can only:
+The arbitrator has the power to:
+- **Release funds to the Buyer** (if payment is proven).
+- **Return funds to the Seller** (if no payment was made).
 
-- Release tokens to the **buyer**
-- Return tokens to the **seller**
+<Note>Arbitrators **cannot** take the funds for themselves or send them to a third party. They can only direct funds to one of the two participants.</Note>
 
-<Note>Arbitrators cannot take funds for themselves or send them elsewhere.</Note>
+## Fraud Prevention Strategies
 
-## Fraud Prevention
-
-PEXFI employs multiple fraud mitigation strategies:
+PEXFI is designed to minimize fraud, but you should stay vigilant.
 
 ### Payment Fraud
+- **Sellers**: Always verify the money is *actually* in your account. Do not trust emails claiming "funds are on hold."
+- **Buyers**: Use payment methods that provide a receipt.
 
-- Use irreversible payment methods when possible
-- Verify payment sender matches deal participant
-- Wait for payment to fully clear before releasing
+### Triangle Scams
+- Ensure the name on the bank account matches the name of the user you are trading with.
+- Be wary of users asking you to pay a third party.
 
-### Non-Release Scams
+### Impersonation
+- Only communicate through the PEXFI chat.
+- PEXFI support will **never** ask for your private keys or seed phrase.
 
-- Escrow ensures funds are locked
-- Arbitrator can force release with evidence
-
-### Identity Fraud
-
-- Trade only through the platform
-- Verify wallet addresses match
-- Trust reputation, not display names
-
-## Avoiding Disputes
+## Best Practices to Avoid Disputes
 
 <Steps>
-  <Step title="Clear Communication">Discuss terms before starting</Step>
-  <Step title="Follow Instructions">Use correct payment details</Step>
-  <Step title="Be Patient">Allow time for payment processing</Step>
-  <Step title="Document Everything">Keep records in the deal chat</Step>
+  <Step title="Clarify Terms">Agree on exact amounts and timing before starting.</Step>
+  <Step title="Use Correct Details">Double-check bank account numbers and references.</Step>
+  <Step title="Be Patient">Allow reasonable time for banking systems to process transfers.</Step>
+  <Step title="Keep Records">Save all receipts and screenshots until the trade is finalized.</Step>
 </Steps>
-
-## Arbitrator Selection
-
-Currently, arbitrators are vetted by the platform. Future plans include:
-
-- Decentralized arbitrator pool
-- Staking requirements for arbitrators
-- Community governance over dispute policies
-- Multi-arbitrator consensus for large disputes

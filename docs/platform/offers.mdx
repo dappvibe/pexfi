@@ -6,62 +6,67 @@ icon: 'tag'
 
 # Offers
 
-An offer is your public listing on the PEXFI marketplace. It defines what you want to trade, at what price, and under what conditions.
+An offer is your public advertisement on the PEXFI marketplace. It defines what you want to trade, at what price, and under what conditions.
 
 ## What is an Offer?
 
-When you create an offer, you deploy a smart contract that:
+When you create an offer, you are essentially deploying a smart contract interaction that:
 
 - Specifies the **token** you're trading (e.g., USDT, USDC)
 - Sets your **price** in fiat currency
 - Defines **trade limits** (minimum and maximum amounts)
 - Lists accepted **payment methods**
 
-<Note>Each offer is a separate smart contract owned by you. Only you can modify or delete it.</Note>
+<Note>Each offer is managed by you. You have full control to modify or remove it at any time.</Note>
 
 ## Offer Types
 
 <CardGroup cols={2}>
   <Card title="Sell Offer" icon="arrow-up-from-bracket">
-    You have crypto and want to receive fiat payment
+    **You have crypto** and want to receive fiat payment. You are the "maker" selling digital assets.
   </Card>
   <Card title="Buy Offer" icon="arrow-down-to-bracket">
-    You have fiat and want to purchase crypto
+    **You have fiat** and want to purchase crypto. You are the "maker" looking to buy digital assets.
   </Card>
 </CardGroup>
 
 ## Offer Parameters
 
-| Parameter           | Description                                          |
-| ------------------- | ---------------------------------------------------- |
-| **Token**           | The cryptocurrency you're trading                    |
-| **Fiat Currency**   | The local currency for pricing (USD, EUR, RUB, etc.) |
-| **Price**           | Your exchange rate (fixed or margin-based)           |
-| **Limits**          | Minimum and maximum trade amounts                    |
-| **Payment Methods** | Bank transfer, cash, mobile payment, etc.            |
-| **Terms**           | Your trading conditions and requirements             |
+When creating an offer, you will configure the following:
+
+| Parameter           | Description                                                                 |
+| ------------------- | --------------------------------------------------------------------------- |
+| **Token**           | The cryptocurrency you are looking to buy or sell (e.g., USDT).             |
+| **Fiat Currency**   | The local currency you want to use for the trade (e.g., USD, EUR, INR).     |
+| **Price**           | Your exchange rate. Can be fixed or dynamic based on market price.          |
+| **Limits**          | The minimum and maximum amount of fiat you are willing to trade per deal.   |
+| **Payment Methods** | How you want to pay or get paid (e.g., Bank Transfer, Wise, Revolut).       |
+| **Terms**           | Any specific instructions or requirements for the counterparty.             |
 
 ## Creating an Offer
 
-1. Connect your wallet
-2. Navigate to **My Offers** → **Create Offer**
-3. Select token and fiat currency
-4. Set your price and limits
-5. Add accepted payment methods
-6. Review and deploy
+1. **Connect your wallet** to PEXFI.
+2. Navigate to **My Offers** and click **Create Offer**.
+3. **Select the token** and **fiat currency**.
+4. **Set your price** and **trading limits**.
+5. **Add accepted payment methods**.
+6. **Review details** and confirm the transaction in your wallet.
 
-<Warning>Creating an offer requires a blockchain transaction. Ensure you have enough ETH for gas fees.</Warning>
+<Warning>Creating an offer involves a blockchain transaction. Ensure you have a small amount of ETH (on Arbitrum) to cover gas fees.</Warning>
 
 ## Managing Offers
 
-- **Pause/Resume** — Temporarily hide your offer without deleting
-- **Edit** — Update price, limits, or payment methods
-- **Delete** — Remove the offer permanently
+Once your offer is live, you can manage it from the dashboard:
 
-## Visibility
+- **Pause/Resume**: Temporarily hide your offer from the marketplace without deleting it. Useful if you're away.
+- **Edit**: Update price, limits, or payment methods to stay competitive.
+- **Delete**: Remove the offer permanently from the registry.
 
-Your offers appear in the marketplace catalog. Factors affecting visibility:
+## Maximizing Visibility
 
-- **Reputation score** — Higher rated traders appear first
-- **Trade history** — Active traders get priority
-- **Response time** — Quick responders rank higher
+Your offers compete with others in the marketplace. To get more trades:
+
+- **Competitive Pricing**: Ensure your rates are in line with or better than the market.
+- **High Reputation**: Complete trades successfully to build your score. Higher rated traders rank first.
+- **Fast Response**: Be active and respond quickly to trade requests.
+- **Clear Terms**: detailed and friendly terms attract more users.
