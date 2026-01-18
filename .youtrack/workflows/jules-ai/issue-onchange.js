@@ -151,6 +151,7 @@ Description: ${this.issue.description || 'No description provided.'}`;
 
           // Notify user via workflow message
           workflow.message(`Jules Session Started`);
+          this.issue.fields.State = this.ctx.State.Thinking;
         } else {
            console.warn('Jules Session created but ID extraction failed.');
         }
@@ -209,6 +210,7 @@ Description: ${this.issue.description || 'No description provided.'}`;
 
         if (response.code === 200) {
           api.addReaction('jules', this.issue, comment, 'eyes');
+          this.issue.fields.State = this.ctx.State.Thinking;
         } else {
           console.error('Failed to forward message to Jules. Code: ' + response.code);
         }
@@ -245,7 +247,8 @@ exports.rule = entities.Issue.onChange({
       multi: true
     },
     State: {
-      type: entities.State.fieldType
+      type: entities.State.fieldType,
+      Thinking: {}
     },
     julesSessionId: {
       type: entities.Field.stringType,
