@@ -118,7 +118,12 @@ class JulesWorkflow {
 
     const sessionPrompt = `CONTEXT FROM YOUTRACK ISSUE ${this.issue.id}:
 Summary: ${this.issue.summary}
-Description: ${this.issue.description || 'No description provided.'}`;
+Description: ${this.issue.description || 'No description provided.'}
+
+GIT CONFIGURATION:
+- Branch Name: feature/${this.issue.id}-<slug>-<session-id>
+- PR Title: [${this.issue.id}] ${this.issue.summary}
+- Commit Messages: MUST start with "[${this.issue.id}] ". You MUST also include the command "${this.issue.id} ^Done" in the commit message body to change the issue status in YouTrack.`;
 
     const payload = {
       prompt: sessionPrompt,
