@@ -7,6 +7,21 @@ const entities = require('@jetbrains/youtrack-scripting-api/entities');
 const workflow = require('@jetbrains/youtrack-scripting-api/workflow');
 const api = require('./api');
 
+/**
+ * Generates the prompt used to create a new Jules session.
+ * @param {object} issue - The YouTrack issue object.
+ * @returns {string} The prompt string.
+ */
+function generateSessionPrompt(issue) {
+  return `
+Apply relevant skills from .agent/skills to assist with this issue.
+Choose relevant personas from .agent/personas as defined in task's user story.
+You are working on an issue with id: ${issue.id}
+
+Task: ${issue.summary}
+${issue.description || ''}`;
+}
+
 class JulesWorkflow {
   constructor(ctx) {
     this.ctx = ctx;
@@ -116,7 +131,7 @@ class JulesWorkflow {
       return;
     }
 
-    const sessionPrompt = JulesWorkflow.generateSessionPrompt(this.issue);
+    const sessionPrompt = generateSessionPrompt(this.issue);
 
     const payload = {
       prompt: sessionPrompt,
