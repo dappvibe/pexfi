@@ -13,7 +13,7 @@ const api = require('./api');
 exports.rule = entities.Issue.onSchedule({
   title: 'Sync Jules responses',
   cron: '0 * * * * ?',
-  search: `Assignee: jules State: None,Thinking,Waiting has: {${api.FIELD_SESSION_ID}}`, // Only poll relevant issues
+  search: `Assignee: jules State: {No State},Thinking,Waiting has: {${api.FIELD_SESSION_ID}}`, // Only poll relevant issues
   action: (ctx) => {
     const issue = ctx.issue;
     const sessionUrl = issue.fields[api.FIELD_SESSION_ID];
@@ -59,51 +59,56 @@ exports.rule = entities.Issue.onSchedule({
             const message = activity.agentMessaged.agentMessage;
             // Post with permtoken
             api.postComment('jules', issue, `🤖 **Jules:**\n\n${message}`);
-          }
-          else if (activity.agentMessage) {
-              // Fallback for some API versions
-              api.postComment('jules', issue, `🤖 **Jules:**\n\n${activity.agentMessage}`);
+          } else if (activity.agentMessage) {
+            // Fallback for some API versions
+            api.postComment('jules', issue, `🤖 **Jules:**\n\n${activity.agentMessage}`);
           }
 
           // Handle Plans
           // Structure based on client.ts: activity.planGenerated.plan.steps
           if (activity.planGenerated && activity.planGenerated.plan) {
-             const steps = activity.planGenerated.plan.steps;
-             let planMarkdown = '';
+            const steps = activity.planGenerated.plan.steps;
+            let planMarkdown = '';
 
-             if (steps && steps.length > 0) {
-                 // Sort steps by index just in case
-                 steps.sort((a, b) => a.index - b.index);
+            if (steps && steps.length > 0) {
+              // Sort steps by index just in case
+              steps.sort((a, b) => a.index - b.index);
 
-                 planMarkdown = '<hr>\n\n' + steps.map((step, index) => {
-                     return step.description ? `### ${index + 1}. ${step.title}\n${step.description}` : `### ${index + 1}. ${step.title}`;
-                 }).join('\n\n');
-             } else {
-                 planMarkdown = '_Empty Plan_';
-             }
+              planMarkdown =
+                '<hr>\n\n' +
+                steps
+                  .map((step, index) => {
+                    return step.description
+                      ? `### ${index + 1}. ${step.title}\n${step.description}`
+                      : `### ${index + 1}. ${step.title}`;
+                  })
+                  .join('\n\n');
+            } else {
+              planMarkdown = '_Empty Plan_';
+            }
 
-             issue.fields[api.FIELD_PLAN] = planMarkdown;
-             workflow.message(`${issue.id}: Plan Updated`);
+            issue.fields[api.FIELD_PLAN] = planMarkdown;
+            workflow.message(`${issue.id}: Plan Updated`);
           }
         });
 
         // Sync Issue State with Session State
         const sessionResponse = connection.getSync('/sessions/' + sessionId);
         if (sessionResponse && sessionResponse.code === 200) {
-           const sessionData = JSON.parse(sessionResponse.response);
-           const julesState = sessionData.state;
+          const sessionData = JSON.parse(sessionResponse.response);
+          const julesState = sessionData.state;
 
-           if (['QUEUED', 'PLANNING', 'IN_PROGRESS'].indexOf(julesState) !== -1) {
-             issue.fields.State = ctx.State.Thinking;
-           } else if (['AWAITING_PLAN_APPROVAL', 'AWAITING_USER_FEEDBACK'].indexOf(julesState) !== -1) {
-             issue.fields.State = ctx.State.Waiting;
-           } else if (julesState === 'PAUSED') {
-             issue.fields.State = ctx.State.Paused;
-           } else if (julesState === 'COMPLETED') {
-             issue.fields.State = ctx.State.Finished;
-           } else if (julesState === 'FAILED') {
-             issue.fields.State = ctx.State.Blocked;
-           }
+          if (['QUEUED', 'PLANNING', 'IN_PROGRESS'].indexOf(julesState) !== -1) {
+            issue.fields.State = ctx.State.Thinking;
+          } else if (['AWAITING_PLAN_APPROVAL', 'AWAITING_USER_FEEDBACK'].indexOf(julesState) !== -1) {
+            issue.fields.State = ctx.State.Waiting;
+          } else if (julesState === 'PAUSED') {
+            issue.fields.State = ctx.State.Paused;
+          } else if (julesState === 'COMPLETED') {
+            issue.fields.State = ctx.State.Finished;
+          } else if (julesState === 'FAILED') {
+            issue.fields.State = ctx.State.Blocked;
+          }
         }
 
         // Update Last Sync
@@ -135,16 +140,16 @@ exports.rule = entities.Issue.onSchedule({
       name: api.FIELD_LAST_SYNC,
     },
     julesPlan: {
-       type: entities.Field.textType, // Assuming text type for Plan
-       name: api.FIELD_PLAN
+      type: entities.Field.textType, // Assuming text type for Plan
+      name: api.FIELD_PLAN,
     },
     State: {
-       type: entities.State.fieldType,
-       Waiting: {},
-       Thinking: {},
-       Finished: {},
-       Paused: {},
-       Blocked: {}
-    }
+      type: entities.State.fieldType,
+      Waiting: {},
+      Thinking: {},
+      Finished: {},
+      Paused: {},
+      Blocked: {},
+    },
   },
 });
