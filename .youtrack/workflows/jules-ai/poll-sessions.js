@@ -67,7 +67,7 @@ exports.rule = entities.Issue.onSchedule({
 
           // Set Custom Fields
           newIssue.fields[api.FIELD_SESSION_ID] = session.url;
-          newIssue.fields[api.FIELD_LAST_SYNC] = new Date().getTime().toString();
+          newIssue.fields[api.FIELD_LAST_SYNC] = new Date().getTime();
           newIssue.fields.Priority = ctx.Priority.Minor;
 
           if (julesUser) {
@@ -94,7 +94,7 @@ exports.rule = entities.Issue.onSchedule({
       name: api.FIELD_SESSION_ID,
     },
     julesLastSync: {
-      type: entities.Field.stringType,
+      type: entities.Field.dateTimeType,
       name: api.FIELD_LAST_SYNC,
     },
     jules: {

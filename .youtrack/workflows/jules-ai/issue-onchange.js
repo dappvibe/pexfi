@@ -160,7 +160,7 @@ class JulesWorkflow {
         if (simpleId) {
           // Update issue fields
           this.issue.fields[api.FIELD_SESSION_ID] = 'https://jules.google.com/session/' + simpleId;
-          this.issue.fields[api.FIELD_LAST_SYNC] = new Date().getTime().toString();
+          this.issue.fields[api.FIELD_LAST_SYNC] = new Date().getTime();
 
           // Notify user via workflow message
           workflow.message(`Jules Session Started`);
@@ -243,7 +243,7 @@ exports.rule = entities.Issue.onChange({
       name: api.FIELD_SESSION_ID
     },
     julesLastSync: {
-      type: entities.Field.stringType,
+      type: entities.Field.dateTimeType,
       name: api.FIELD_LAST_SYNC
     }
   }
