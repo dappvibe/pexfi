@@ -149,8 +149,9 @@ Description: ${this.issue.description || 'No description provided.'}`;
       if (comment.author.login === 'jules') return;
       if (comment.text.indexOf('@jules') === -1) return;
 
+      const cleanText = comment.text.replace(/@jules/gi, '').trim();
       const payload = {
-        prompt: comment.text
+        prompt: cleanText
       };
 
       try {
