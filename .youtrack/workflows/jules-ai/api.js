@@ -157,6 +157,33 @@ function postComment(agentLogin, issue, text) {
   }
 }
 
+/**
+ * Deletes a session in Jules.
+ * @param {string} agentLogin - The login of the agent user.
+ * @param {string} simpleId - The simple session ID.
+ */
+function deleteSession(agentLogin, simpleId) {
+  const token = getApiKey(agentLogin); // Use API Key for delete as per delete-session.ts source (it uses julesFetch which uses API Key)
+  if (!token) {
+    console.error('No API key found for user ' + agentLogin);
+    return;
+  }
+
+  const connection = createConnection(token, agentLogin);
+  if (!connection) return;
+
+  const endpoint = '/sessions/' + simpleId;
+
+  try {
+    const response = connection.deleteSync(endpoint);
+    if (response.code !== 200 && response.code !== 204) {
+      console.error('Failed to delete session ' + simpleId + '. Code: ' + response.code);
+    }
+  } catch (ex) {
+    console.error('Exception deleting session: ' + ex);
+  }
+}
+
 exports.JULES_BASE_URL = JULES_BASE_URL;
 exports.FIELD_SESSION_ID = FIELD_SESSION_ID;
 exports.FIELD_LAST_SYNC = FIELD_LAST_SYNC;
@@ -168,3 +195,4 @@ exports.getSessionIdFromUrl = getSessionIdFromUrl;
 exports.createConnection = createConnection;
 exports.addReaction = addReaction;
 exports.postComment = postComment;
+exports.deleteSession = deleteSession;
