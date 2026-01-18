@@ -8,6 +8,7 @@ const http = require('@jetbrains/youtrack-scripting-api/http');
 const JULES_BASE_URL = 'https://jules.googleapis.com/v1alpha';
 const FIELD_SESSION_ID = 'Jules Session';
 const FIELD_LAST_SYNC = 'Jules Last Sync';
+const JULES_SOURCE = 'sources/github/dappvibe/pexfi';
 
 /**
  * Retrieves the API key for the specified agent user.
@@ -159,6 +160,7 @@ function postComment(agentLogin, issue, text) {
 exports.JULES_BASE_URL = JULES_BASE_URL;
 exports.FIELD_SESSION_ID = FIELD_SESSION_ID;
 exports.FIELD_LAST_SYNC = FIELD_LAST_SYNC;
+exports.JULES_SOURCE = JULES_SOURCE;
 exports.FIELD_PLAN = 'Plan';
 exports.getApiKey = getApiKey;
 exports.getPermToken = getPermToken;
