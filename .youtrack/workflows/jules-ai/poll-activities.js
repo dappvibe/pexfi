@@ -36,7 +36,7 @@ exports.rule = entities.Issue.onSchedule({
         if (!data.activities) return;
 
         let lastSync = issue.fields[api.FIELD_LAST_SYNC];
-        let lastSyncTime = lastSync ? parseInt(lastSync) : 0;
+        let lastSyncTime = lastSync || 0;
         let newMaxTime = lastSyncTime;
 
         // Process activities
@@ -108,7 +108,7 @@ exports.rule = entities.Issue.onSchedule({
 
         // Update Last Sync
         if (newMaxTime > lastSyncTime) {
-          issue.fields[api.FIELD_LAST_SYNC] = newMaxTime.toString();
+          issue.fields[api.FIELD_LAST_SYNC] = newMaxTime;
         }
       } else if (response.code === 404) {
         // Session deleted or not found
@@ -131,7 +131,7 @@ exports.rule = entities.Issue.onSchedule({
       name: api.FIELD_SESSION_ID,
     },
     julesLastSync: {
-      type: entities.Field.stringType,
+      type: entities.Field.dateTimeType,
       name: api.FIELD_LAST_SYNC,
     },
     julesPlan: {
