@@ -43,8 +43,6 @@ exports.rule = entities.Issue.onSchedule({
             return;
           }
 
-
-
           // 4. Check if issue exists
           // We search for an issue that has the 'Jules Session' field set to this session's URL
           // Note: session.url is the full URL e.g. https://jules.google.com/session/123
