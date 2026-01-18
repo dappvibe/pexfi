@@ -26,30 +26,35 @@ exports.rule = entities.Issue.onChange({
     },
   },
   action: (ctx) => {
-    const apikey = api.getApiKey();
-    if (!apikey) return; // Should log error, but keep it silent to avoid user spam
+    const apikey = api.getApiKey('jules');
+    if (!apikey) return;
 
     const issue = ctx.issue;
-    const comment = issue.comments.added.first();
-    const sessionUrl = issue.fields[api.FIELD_SESSION_ID]; // "https://jules.google.com/session/123..."
-
+    const sessionUrl = issue.fields[api.FIELD_SESSION_ID];
     const simpleId = api.getSessionIdFromUrl(sessionUrl);
     if (!simpleId) return;
 
     const connection = api.createConnection(apikey);
 
-    const payload = {
-      prompt: comment.text,
-    };
+    ctx.issue.comments.added.forEach((comment) => {
+      // Skip comments made by Jules
+      if (comment.author.login === 'jules') return;
 
-    try {
-      // Using :sendMessage custom verb. Re-attach 'sessions/' prefix for API.
-      const response = connection.postSync('/sessions/' + simpleId + ':sendMessage', null, JSON.stringify(payload));
-      if (response.code !== 200) {
-        console.error('Failed to forward comment to Jules: ' + response.response);
+      const payload = {
+        prompt: comment.text,
+      };
+
+      try {
+        const response = connection.postSync('/sessions/' + simpleId + ':sendMessage', null, JSON.stringify(payload));
+        if (response.code !== 200) {
+          console.error('Failed to forward comment to Jules: ' + response.response);
+        } else {
+          // Forwarding successful, add reaction
+          api.addReaction('jules', issue, comment, 'eyes');
+        }
+      } catch (err) {
+        console.error('Exception forwarding comment to Jules: ' + err);
       }
-    } catch (err) {
-      console.error('Exception forwarding comment to Jules: ' + err);
-    }
+    });
   },
 });
