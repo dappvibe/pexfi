@@ -14,10 +14,14 @@ const api = require('./api');
  */
 function generateSessionPrompt(issue) {
   return `
-Apply relevant skills from .agent/skills to assist with this issue.
-Choose relevant personas from .agent/personas as defined in task's user story.
-You are working on an issue with id: ${issue.id}
+Issue id: ${issue.id}
+Apply relevant skills from .agent/skills to assist with this user story.
 
+When creating pull request you MUST start branch name with issue id, e.g., ${issue.id}-my-feature
+ALWAYS refer issue id in pull request title, e.g., ${issue.id}: My PR Title
+In commit messages you MUST reference the issue id, e.g., "my commit message #${issue.id}".
+NEVER report for duty in pull request comments.
+--------
 Task: ${issue.summary}
 ${issue.description || ''}`;
 }
