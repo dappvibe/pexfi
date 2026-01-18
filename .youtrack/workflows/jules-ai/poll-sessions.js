@@ -74,6 +74,7 @@ exports.rule = entities.Issue.onSchedule({
           // Set Custom Fields
           newIssue.fields[api.FIELD_SESSION_ID] = session.url;
           newIssue.fields[api.FIELD_LAST_SYNC] = new Date().getTime().toString();
+          newIssue.fields.Priority = ctx.Priority.Minor;
 
           if (julesUser) {
             const maxUser = entities.User.findByLogin('max');
@@ -105,6 +106,11 @@ exports.rule = entities.Issue.onSchedule({
     jules: {
       type: entities.User,
       login: 'jules',
+    },
+    Priority: {
+      type: entities.EnumField.fieldType,
+      name: 'Priority',
+      Minor: {},
     },
   },
 });
