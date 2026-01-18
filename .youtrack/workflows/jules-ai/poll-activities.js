@@ -14,7 +14,7 @@ const api = require('./api');
 exports.rule = entities.Issue.onSchedule({
   title: 'Sync Jules responses',
   cron: '0/15 * * * * ?',
-  search: `Assignee: jules State: Approved, Submitted, Thinking, {In Progress} has: {${api.FIELD_SESSION_ID}}`, // Only poll relevant issues
+  search: `Assignee: jules State: Approved, Submitted, Thinking, {In Progress}, Standby has: {${api.FIELD_SESSION_ID}}`, // Only poll relevant issues
   action: (ctx) => {
     const issue = ctx.issue;
     const sessionUrl = issue.fields[api.FIELD_SESSION_ID];
@@ -88,6 +88,11 @@ exports.rule = entities.Issue.onSchedule({
           }
         });
 
+        // Transition to Standby if activities were processed (newMaxTime > lastSyncTime)
+        if (newMaxTime > lastSyncTime && newActivities.length > 0) {
+           issue.fields.State = ctx.State.Standby;
+        }
+
         // Update Last Sync
         if (newMaxTime > lastSyncTime) {
           issue.fields[api.FIELD_LAST_SYNC] = newMaxTime.toString();
@@ -119,6 +124,10 @@ exports.rule = entities.Issue.onSchedule({
     julesPlan: {
        type: entities.Field.textType, // Assuming text type for Plan
        name: api.FIELD_PLAN
+    },
+    State: {
+       type: entities.State.fieldType,
+       Standby: {}
     }
   },
 });
