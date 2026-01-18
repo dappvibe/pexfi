@@ -86,8 +86,8 @@ class JulesWorkflow {
    */
   shouldApprovePlan() {
     return this.hasSession() &&
-           this.issue.isChanged('State') &&
-           this.issue.fields.State.name === 'Approved';
+           this.issue.isChanged('Stage') &&
+           this.issue.fields.Stage.name === 'Approved';
   }
 
   /**
@@ -219,14 +219,7 @@ class JulesWorkflow {
 exports.rule = entities.Issue.onChange({
   title: 'Jules AI Workflow',
   guard: (ctx) => {
-    const issue = ctx.issue;
-    // Guard: issue.State !== 'Draft' AND issue.draftId is null
-    // Assuming 'Draft' is a value in the State field.
-    const isNotDraftState = issue.fields.State && issue.fields.State.name !== 'Draft';
-    // Assuming draftId is a property on the issue object as requested
-    const isNotDraftId = !issue.draftId;
-
-    return isNotDraftState && isNotDraftId;
+    return !ctx.issue.draftId;
   },
   action: (ctx) => {
     const workflowInstance = new JulesWorkflow(ctx);
