@@ -43,11 +43,7 @@ exports.rule = entities.Issue.onSchedule({
             return;
           }
 
-          // 3. Filter by State
-          const interestingStates = ['AWAITING_PLAN_APPROVAL', 'AWAITING_USER_FEEDBACK'];
-          if (interestingStates.indexOf(session.state) === -1) {
-            return;
-          }
+
 
           // 4. Check if issue exists
           // We search for an issue that has the 'Jules Session' field set to this session's URL
