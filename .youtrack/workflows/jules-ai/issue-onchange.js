@@ -169,24 +169,6 @@ GIT CONFIGURATION:
   }
 
   /**
-   * Determine if we should forward comments
-   */
-  shouldForwardComments() {
-    if (!this.hasSession()) return false;
-    if (this.issue.comments.added.isEmpty()) return false;
-
-    let shouldForward = false;
-    this.issue.comments.added.forEach(comment => {
-      // Check if comment is NOT from jules AND mentions @jules
-      if (comment.author.login !== 'jules' && comment.text.indexOf('@jules') !== -1) {
-        shouldForward = true;
-      }
-    });
-
-    return shouldForward;
-  }
-
-  /**
    * Forward valid comments to the active Jules session
    */
   forwardComments() {
