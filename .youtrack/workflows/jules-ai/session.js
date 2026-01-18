@@ -85,6 +85,7 @@ exports.rule = entities.Issue.onChange({
     },
   },
   action: (ctx) => {
+    const julesUser = entities.User.findByLogin('jules');
     const apikey = api.getApiKey('jules');
     if (!apikey) {
       workflow.message('Jules API Key is missing. Set it "apikey" attribute of user "jules".');
