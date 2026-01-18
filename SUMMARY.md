@@ -1,30 +1,36 @@
-# Code Architecture Summary
+# Codebase Architecture Summary
 
-The **pexfi** project is a decentralized peer-to-peer exchange platform for ERC20 tokens and fiat currency. The architecture is composed of three main layers:
+This document provides a technical overview of the **pexfi** architecture, spanning the EVM protocol, Frontend, and Indexing layers.
 
-## 1. Smart Contracts (EVM)
-Located in the `evm/` directory, this layer contains the core business logic deployed on EVM-compatible blockchains.
-- **Framework**: Hardhat
-- **Key Contracts**:
-  - `Market.sol`: Central entry point for the protocol.
-  - `Offer.sol` / `OfferFactory.sol`: Manages buy/sell offers.
-  - `Deal.sol` / `DealFactory.sol`: Handles active trades and escrow.
-  - `RepToken.sol`: Implements the reputation system (NFT).
-  - `PriceFeed.sol`: Integrates with Chainlink for price data.
+## 1. Protocol Layer (EVM)
+The core logic resides in `evm/`, built with Hardhat. It implements a non-custodial peer-to-peer exchange using a factory-based architecture.
 
-## 2. Frontend
-Located in the `src/` directory, this is the client-facing React application.
-- **Framework**: React with Vite
-- **Blockchain Interaction**: Uses `wagmi` and `viem` for writing to contracts (sending transactions).
-- **Data Fetching**: Queries the Subgraph via Apollo/GraphQL for reading indexed data.
+*   **Architecture Pattern**: A central `Market` contract acts as the protocol entry point, registry, and access controller.
+*   **Factory Model**:
+    *   **Isolation**: Uses `OfferFactory` and `DealFactory` to deploy separate contracts for each `Offer` (maker advertisement) and `Deal` (active trade).
+    *   **Security**: Each trade has its own escrow contract (`Deal`), isolating risk.
+*   **Storage Strategy**: To bypass contract size limits (Spurious Dragon), the `Market` contract delegates storage logic to internal libraries (`Deals`, `Offers`, `Tokens`, `Fiats`, `Methods`).
+*   **Upgradeability**: The system uses the **UUPS (Universal Upgradeable Proxy Standard)** pattern for the `Market` contract.
+*   **Price Feeds**: Integrates with Chainlink for major currencies and uses a custom `PriceFeed` contract for assets not supported by Chainlink.
+*   **Reputation**: `RepToken` is a Soulbound Token (SBT) used to track user reputation and mediator standing.
 
-## 3. Subgraph
-Located in the `subgraph/` directory, this layer indexes on-chain events to provide efficient data querying for the frontend.
-- **Framework**: The Graph
-- **Function**: Listens to events emitted by the smart contracts (e.g., offer creation, deal updates) and maps them to a GraphQL schema.
+## 2. Interface Layer (Frontend)
+The client application in `src/` is a Single Page Application (SPA) built for performance and direct blockchain interaction.
 
-## Interaction Flow
-1. **User Actions**: The frontend initiates transactions using Wagmi.
-2. **On-Chain Logic**: Smart contracts execute the logic and emit events.
-3. **Indexing**: The Graph Node captures these events and updates the Subgraph.
-4. **Data Retrieval**: The frontend queries the Subgraph to display updated state to the user.
+*   **Stack**: React, Vite, TypeScript.
+*   **Web3 Integration**:
+    *   **Wagmi / Viem**: Handles wallet connection, message signing, and transaction lifecycle.
+    *   **Contract Interaction**: Writes are executed directly against the contracts via RPC.
+*   **Data Strategy**:
+    *   **Indexing**: Uses Apollo Client to query The Graph for aggregated data (e.g., "List all Sell offers").
+    *   **Real-time**: Critical state (e.g., User Balance, Allowance) is fetched directly from the blockchain to ensure 100% accuracy during trade execution.
+
+## 3. Indexing Layer (Subgraph)
+Located in `subgraph/`, this layer ensures efficient data retrieval for the frontend.
+
+*   **Dynamic Data Sources**: The subgraph uses **Data Source Templates** (`Offer`, `Deal`) to dynamically instantiate indexers for new contracts as they are created by the factories.
+*   **Event Handling**:
+    *   `Market`: Listens for `OfferCreated` and `DealCreated`.
+    *   `Offer`: Tracks updates to offer parameters.
+    *   `Deal`: Tracks state changes (`Accepted`, `Completed`, `Disputed`) and chat messages (`Message`, `FeedbackGiven`).
+*   **Entities**: Maps on-chain events to rich GraphQL entities (`Offer`, `Deal`, `Profile`) for easy filtering and sorting in the UI.
