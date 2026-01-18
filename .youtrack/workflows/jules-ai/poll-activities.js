@@ -14,7 +14,7 @@ const api = require('./api');
 exports.rule = entities.Issue.onSchedule({
   title: 'Sync Jules responses',
   cron: '0/15 * * * * ?',
-  search: `Assignee: jules State: Approved, Submitted, Planning, {In Progress} has: {${api.FIELD_SESSION_ID}}`, // Only poll relevant issues
+  search: `Assignee: jules State: Approved, Submitted, Thinking, {In Progress} has: {${api.FIELD_SESSION_ID}}`, // Only poll relevant issues
   action: (ctx) => {
     const issue = ctx.issue;
     const sessionUrl = issue.fields[api.FIELD_SESSION_ID];
