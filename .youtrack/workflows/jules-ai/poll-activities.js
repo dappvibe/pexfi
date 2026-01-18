@@ -77,7 +77,7 @@ exports.rule = entities.Issue.onSchedule({
                  steps.sort((a, b) => a.index - b.index);
 
                  planMarkdown = '<hr>\n\n' + steps.map((step, index) => {
-                     return `### ${index + 1}. ${step.title}\n${step.description}`;
+                     return step.description ? `### ${index + 1}. ${step.title}\n${step.description}` : `### ${index + 1}. ${step.title}`;
                  }).join('\n\n');
              } else {
                  planMarkdown = '_Empty Plan_';
