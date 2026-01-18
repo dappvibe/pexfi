@@ -7,14 +7,13 @@
 
 const entities = require('@jetbrains/youtrack-scripting-api/entities');
 const workflow = require('@jetbrains/youtrack-scripting-api/workflow');
-const http = require('@jetbrains/youtrack-scripting-api/http');
 
 const api = require('./api');
 
 exports.rule = entities.Issue.onSchedule({
   title: 'Sync Jules responses',
   cron: '0/15 * * * * ?',
-  search: `Assignee: jules State: Approved, Thinking has: {${api.FIELD_SESSION_ID}}`, // Only poll relevant issues
+  search: `Assignee: jules State: None,Thinking,Waiting has: {${api.FIELD_SESSION_ID}}`, // Only poll relevant issues
   action: (ctx) => {
     const issue = ctx.issue;
     const sessionUrl = issue.fields[api.FIELD_SESSION_ID];
@@ -30,7 +29,7 @@ exports.rule = entities.Issue.onSchedule({
 
     try {
       // Get Activities (messages, plan updates, etc.)
-      const response = connection.getSync('/sessions/' + sessionId + '/activities?pageSize=50');
+      const response = connection.getSync('/sessions/' + sessionId + '/activities?pageSize=100');
 
       if (response && response.code === 200) {
         const data = JSON.parse(response.response);
@@ -88,9 +87,23 @@ exports.rule = entities.Issue.onSchedule({
           }
         });
 
-        // Transition to Standby if activities were processed (newMaxTime > lastSyncTime)
-        if (newMaxTime > lastSyncTime && newActivities.length > 0) {
-           issue.fields.State = ctx.State.Standby;
+        // Sync Issue State with Session State
+        const sessionResponse = connection.getSync('/sessions/' + sessionId);
+        if (sessionResponse && sessionResponse.code === 200) {
+           const sessionData = JSON.parse(sessionResponse.response);
+           const julesState = sessionData.state;
+
+           if (['QUEUED', 'PLANNING', 'IN_PROGRESS'].indexOf(julesState) !== -1) {
+             issue.fields.State = ctx.State.Thinking;
+           } else if (['AWAITING_PLAN_APPROVAL', 'AWAITING_USER_FEEDBACK'].indexOf(julesState) !== -1) {
+             issue.fields.State = ctx.State.Waiting;
+           } else if (julesState === 'PAUSED') {
+             issue.fields.State = ctx.State.Paused;
+           } else if (julesState === 'COMPLETED') {
+             issue.fields.State = ctx.State.Finished;
+           } else if (julesState === 'FAILED') {
+             issue.fields.State = ctx.State.Blocked;
+           }
         }
 
         // Update Last Sync
@@ -127,7 +140,11 @@ exports.rule = entities.Issue.onSchedule({
     },
     State: {
        type: entities.State.fieldType,
-       Standby: {}
+       Waiting: {},
+       Thinking: {},
+       Finished: {},
+       Paused: {},
+       Blocked: {}
     }
   },
 });
