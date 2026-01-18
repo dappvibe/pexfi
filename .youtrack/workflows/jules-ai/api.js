@@ -121,11 +121,48 @@ function addReaction(agentLogin, issue, comment, reaction) {
   }
 }
 
+/**
+ * Posts a comment to an issue as the specified agent using permtoken.
+ * @param {string} agentLogin - The login of the agent user.
+ * @param {object} issue - The issue object.
+ * @param {string} text - The comment text.
+ */
+function postComment(agentLogin, issue, text) {
+  const token = getPermToken(agentLogin);
+  if (!token) {
+    console.error('No permtoken found for user ' + agentLogin);
+    return;
+  }
+
+  // Base URL extraction (duplicated logic, could be helper)
+  const baseUrlMatches = issue.url.match(/^(https?:\/\/[^\/]+)/);
+  if (!baseUrlMatches) {
+      console.error('Could not parse base URL from issue.url: ' + issue.url);
+      return;
+  }
+  const baseUrl = baseUrlMatches[1];
+
+  const connection = new http.Connection(baseUrl, null, 20000);
+  connection.addHeader('Content-Type', 'application/json');
+  connection.addHeader('Authorization', 'Bearer ' + token);
+  connection.addHeader('Accept', 'application/json');
+
+  const endpoint = '/api/issues/' + issue.id + '/comments';
+  const payload = { text: text };
+
+  const response = connection.postSync(endpoint, null, JSON.stringify(payload));
+  if (response.code !== 200 && response.code !== 201) {
+      console.error('Failed to post comment. Code: ' + response.code + ', Body: ' + response.response);
+  }
+}
+
 exports.JULES_BASE_URL = JULES_BASE_URL;
 exports.FIELD_SESSION_ID = FIELD_SESSION_ID;
 exports.FIELD_LAST_SYNC = FIELD_LAST_SYNC;
+exports.FIELD_PLAN = 'Plan';
 exports.getApiKey = getApiKey;
 exports.getPermToken = getPermToken;
 exports.getSessionIdFromUrl = getSessionIdFromUrl;
 exports.createConnection = createConnection;
 exports.addReaction = addReaction;
+exports.postComment = postComment;
