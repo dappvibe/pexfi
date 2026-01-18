@@ -67,22 +67,24 @@ exports.rule = entities.Issue.onSchedule({
           }
 
           // Handle Plans
-          if (activity.agentPlanUpdated) {
-            const plan = activity.agentPlanUpdated.currentPlan; // Assuming structure
-            // If plan is a string or object, format it.
-            // Usually 'currentPlan' might be a complex object.
-            // If we can't be sure of structure, we dump JSON or check for 'steps'.
-            // For now, let's assume it has a text representation or we stringify it.
-            // If the user said "saved to Plan custom field", we assume string field.
-             const planText = typeof plan === 'string' ? plan : JSON.stringify(plan, null, 2);
-             issue.fields[api.FIELD_PLAN] = planText;
-             issue.addComment(`📋 **Jules Plan Updated**`);
-          }
-          // Alternative field check if API differs
-          else if (activity.plan) {
-             const planText = typeof activity.plan === 'string' ? activity.plan : JSON.stringify(activity.plan, null, 2);
-             issue.fields[api.FIELD_PLAN] = planText;
-             issue.addComment(`📋 **Jules Plan Updated**`);
+          // Structure based on client.ts: activity.planGenerated.plan.steps
+          if (activity.planGenerated && activity.planGenerated.plan) {
+             const steps = activity.planGenerated.plan.steps;
+             let planMarkdown = '';
+
+             if (steps && steps.length > 0) {
+                 // Sort steps by index just in case
+                 steps.sort((a, b) => a.index - b.index);
+
+                 planMarkdown = steps.map(step => {
+                     return `- [ ] **${step.title}**: ${step.description}`;
+                 }).join('\n');
+             } else {
+                 planMarkdown = '_Empty Plan_';
+             }
+
+             issue.fields[api.FIELD_PLAN] = planMarkdown;
+             workflow.message(`${issue.id}: Plan Updated`);
           }
         });
 
