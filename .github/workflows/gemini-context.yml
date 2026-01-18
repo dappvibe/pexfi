@@ -1,0 +1,29 @@
+name: Gemini Context Cache
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  update-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm install @google/generative-ai glob node-fetch
+
+      - name: Update Gemini Cache
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          YOUTRACK_HOST: ${{ secrets.YOUTRACK_HOST }}
+          YOUTRACK_GEMINI_PERMTOKEN: ${{ secrets.YOUTRACK_GEMINI_PERMTOKEN }}
+        run: node .github/workflows/update-gemini-context.cjs
