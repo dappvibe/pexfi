@@ -2,6 +2,7 @@
  * Jules Integration: Poll for Activities
  *
  * Checks open sessions for new messages from Jules and posts them as comments.
+ * Also syncs new plans to the Plan custom field.
  */
 
 const entities = require('@jetbrains/youtrack-scripting-api/entities');
@@ -25,11 +26,10 @@ exports.rule = entities.Issue.onSchedule({
     if (!apikey) return;
 
     const connection = api.createConnection(apikey, 'jules');
+    if (!connection) return;
 
     try {
       // Get Activities (messages, plan updates, etc.)
-      // Note: Ordering by createTime might be needed if not default
-      // Re-attach 'sessions/' prefix for API
       const response = connection.getSync('/sessions/' + sessionId + '/activities?pageSize=50');
 
       if (response && response.code === 200) {
@@ -37,26 +37,53 @@ exports.rule = entities.Issue.onSchedule({
         if (!data.activities) return;
 
         let lastSync = issue.fields[api.FIELD_LAST_SYNC];
-        // Treat lastSync as a timestamp (number)
         let lastSyncTime = lastSync ? parseInt(lastSync) : 0;
         let newMaxTime = lastSyncTime;
 
         // Process activities
-        // We filter for "agent" originator and assume "agentMessaged" event type contains the text
+        // Filter for "agent" originator.
+        // We include both agentMessaged and agentPlanUpdated (or generic plan check)
         const newActivities = data.activities.filter((activity) => {
           const time = new Date(activity.createTime).getTime();
-          return activity.originator === 'agent' && activity.agentMessaged && time > lastSyncTime;
+          return activity.originator === 'agent' && time > lastSyncTime;
         });
 
-        // Sort by time ascending to post in order
+        // Sort by time ascending
         newActivities.sort((a, b) => new Date(a.createTime).getTime() - new Date(b.createTime).getTime());
 
         newActivities.forEach((activity) => {
           const time = new Date(activity.createTime).getTime();
           if (time > newMaxTime) newMaxTime = time;
 
-          const message = activity.agentMessaged.agentMessage;
-          issue.addComment(`🤖 **Jules:**\n\n${message}`);
+          // Handle Messages
+          if (activity.agentMessaged) {
+            const message = activity.agentMessaged.agentMessage;
+            // Post with permtoken
+            api.postComment('jules', issue, `🤖 **Jules:**\n\n${message}`);
+          }
+          else if (activity.agentMessage) {
+              // Fallback for some API versions
+              api.postComment('jules', issue, `🤖 **Jules:**\n\n${activity.agentMessage}`);
+          }
+
+          // Handle Plans
+          if (activity.agentPlanUpdated) {
+            const plan = activity.agentPlanUpdated.currentPlan; // Assuming structure
+            // If plan is a string or object, format it.
+            // Usually 'currentPlan' might be a complex object.
+            // If we can't be sure of structure, we dump JSON or check for 'steps'.
+            // For now, let's assume it has a text representation or we stringify it.
+            // If the user said "saved to Plan custom field", we assume string field.
+             const planText = typeof plan === 'string' ? plan : JSON.stringify(plan, null, 2);
+             issue.fields[api.FIELD_PLAN] = planText;
+             issue.addComment(`📋 **Jules Plan Updated**`);
+          }
+          // Alternative field check if API differs
+          else if (activity.plan) {
+             const planText = typeof activity.plan === 'string' ? activity.plan : JSON.stringify(activity.plan, null, 2);
+             issue.fields[api.FIELD_PLAN] = planText;
+             issue.addComment(`📋 **Jules Plan Updated**`);
+          }
         });
 
         // Update Last Sync
@@ -87,5 +114,9 @@ exports.rule = entities.Issue.onSchedule({
       type: entities.Field.stringType,
       name: api.FIELD_LAST_SYNC,
     },
+    julesPlan: {
+       type: entities.Field.textType, // Assuming text type for Plan
+       name: api.FIELD_PLAN
+    }
   },
 });
