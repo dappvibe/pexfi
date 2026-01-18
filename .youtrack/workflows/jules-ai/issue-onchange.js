@@ -21,8 +21,12 @@ class JulesWorkflow {
       this.createSession();
     }
 
-    if (this.shouldForwardComments()) {
+    if (this.shouldForwardComment()) {
       this.forwardComments();
+    }
+
+    if (this.shouldApprovePlan()) {
+      this.approvePlan();
     }
   }
 
@@ -56,6 +60,53 @@ class JulesWorkflow {
   }
 
   /**
+   * Check if we should forward a comment
+   */
+  shouldForwardComment() {
+    return this.hasSession() && this.issue.comments.added.isNotEmpty();
+  }
+
+  /**
+   * Check if we should approve the plan
+   */
+  shouldApprovePlan() {
+    return this.hasSession() &&
+           this.issue.isChanged('State') &&
+           this.issue.fields.State.name === 'Approved';
+  }
+
+  /**
+   * Approve the plan in Jules
+   */
+  approvePlan() {
+    const sessionUrl = this.issue.fields[api.FIELD_SESSION_ID];
+    const simpleId = api.getSessionIdFromUrl(sessionUrl);
+    if (!simpleId) return;
+
+    const apikey = api.getApiKey('jules');
+    if (!apikey) return;
+
+    const connection = api.createConnection(apikey, 'jules');
+    if (!connection) return;
+
+    // Endpoint: sessions/{id}:approvePlan
+    const endpoint = '/sessions/' + simpleId + ':approvePlan';
+
+    try {
+      const response = connection.postSync(endpoint, null, '{}');
+
+      if (response && (response.code === 200 || response.code === 204)) {
+         workflow.message('✅ Jules Plan Approved');
+      } else {
+         console.error('Failed to approve plan. Code: ' + response.code + ', Body: ' + response.response);
+         workflow.message('❌ Failed to approve Jules plan');
+      }
+    } catch (ex) {
+      console.error('Exception approving plan: ' + ex);
+    }
+  }
+
+  /**
    * Create a new Jules session using the API
    */
   createSession() {
@@ -79,8 +130,7 @@ Description: ${this.issue.description || 'No description provided.'}`;
         },
       },
       requirePlanApproval: true,
-      // Explicitly ensuring no PR is created and no auto plan approval
-      // Default behavior assumed to be manual if not specified, but we rely on absence of explicit 'AUTO_CREATE_PR' mode.
+      automationMode: 'AUTO_CREATE_PR',
     };
 
     const connection = api.createConnection(apikey, 'jules');
