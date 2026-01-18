@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom'
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { ConfigProvider } from 'antd'
@@ -140,7 +140,7 @@ describe('OfferForm', () => {
       await user.click(bankOption)
 
       // Input Margin
-      const marginInput = screen.getByRole('spinbutton')
+      const marginInput = screen.getByLabelText('Margin')
       await user.clear(marginInput)
       await user.type(marginInput, '10')
 
@@ -251,7 +251,7 @@ describe('OfferForm', () => {
       await user.click(updateBtn)
 
       await waitFor(() => {
-        expect(mockSetLimits).toHaveBeenCalledWith('200', 5000)
+        expect(mockSetLimits).toHaveBeenCalledWith(200, 5000)
       })
     })
 

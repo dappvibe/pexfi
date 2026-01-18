@@ -203,10 +203,10 @@ export default function OfferForm({ offer = null, setRate, setLimits, setTerms, 
         <Col>
           <Space>
             <Form.Item name="min" label="Limits" rules={required} initialValue={offer ? offer.min : undefined}>
-              <Input style={{ width: 120 }} />
+              <InputNumber style={{ width: 120 }} min={0} />
             </Form.Item>
             <Form.Item name={'max'} label={'-'} rules={required} initialValue={offer ? offer.max : undefined}>
-              <Input style={{ width: 120 }} />
+              <InputNumber style={{ width: 120 }} min={0} />
             </Form.Item>
             {offer && (
               <Form.Item>
@@ -217,7 +217,12 @@ export default function OfferForm({ offer = null, setRate, setLimits, setTerms, 
         </Col>
       </Row>
       <Form.Item name="terms" label="Terms" initialValue={offer ? offer.terms : undefined}>
-        <TextArea rows={4} placeholder={'Written in blockchain. Keep it short.'} />
+        <TextArea
+          rows={4}
+          placeholder={'Written in blockchain. Keep it short.'}
+          showCount
+          maxLength={140}
+        />
       </Form.Item>
       {offer && (
         <>
