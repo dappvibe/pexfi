@@ -3,7 +3,6 @@
 # Summary
 
 The platform enables users to trade ERC20 tokens on EVM-compatible chains, operating fully on-chain.
-With the adoption of L2 networks like Arbitrum, it's now possible to run entire websites on-chain.
 
 This is a non-custodial platform — we do not hold any funds or tokens.
 Mediators involved in dispute resolution can only direct tokens to one of the trade participants.
