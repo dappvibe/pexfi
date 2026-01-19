@@ -14,43 +14,31 @@
         "tab": "Users",
         "groups": [
           {
-            "group": "Overview",
-            "icon": "house",
+            "group": " ",
             "pages": [
-              "index"
+               "users/overview",
+               "users/getting-started",
+               "users/trading",
+               "users/security",
+               "users/faq"
             ]
           },
           {
             "group": "Platform",
-            "icon": "puzzle-piece",
             "pages": [
-              "platform/how-it-works",
-              "platform/offers",
-              "platform/deals",
-              "platform/reputation"
+              "users/platform/wallets",
+              "users/platform/offers",
+              "users/platform/deals",
+              "users/platform/reputation",
+              "users/platform/disputes"
             ]
           },
           {
-            "group": "Guides",
-            "icon": "compass",
+            "group": "Troubleshooting",
             "pages": [
-              "guides/wallets",
-              "guides/getting-started",
-              "guides/trading",
-              "guides/disputes",
-              "guides/troubleshooting",
-              "guides/faq"
-            ]
-          },
-          {
-            "group": "Vision & Roadmap",
-            "icon": "lightbulb",
-            "pages": [
-              "vision/overview",
-              "vision/market",
-              "vision/tokenomics",
-              "vision/roadmap",
-              "vision/security"
+              "users/troubleshooting/connection-issues",
+              "users/troubleshooting/trading-issues",
+              "users/troubleshooting/payment-escrow"
             ]
           }
         ]
@@ -59,9 +47,13 @@
         "tab": "Stakers",
         "groups": [
           {
-            "group": "Governance",
+            "group": " ",
             "pages": [
-              "stakers/stake-to-mediate"
+              "stakers/why-pexfi",
+              "stakers/stake-to-mediate",
+              "stakers/market",
+              "stakers/tokenomics",
+              "stakers/roadmap"
             ]
           }
         ]
@@ -70,8 +62,9 @@
         "tab": "Developers",
         "groups": [
           {
-            "group": "System",
+            "group": " ",
             "pages": [
+              "developers/overview",
               "developers/architecture"
             ]
           }
