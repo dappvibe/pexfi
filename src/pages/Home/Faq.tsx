@@ -44,17 +44,7 @@ export default function Faq() {
       key: '6',
       label: 'Where are token prices come from?',
       children: <p>Market prices of crypto are fetched from Uniswap at real-time.</p>,
-    },
-    {
-      key: '7',
-      label: 'Why Arbitrum?',
-      children: (
-        <p>
-          Arbitrum is a Layer 2 solution that provides low fees and fast transactions. Because of low fees it is now
-          possible to build fully decentralized website like this.
-        </p>
-      ),
-    },
+    }
   ]
 
   return (
