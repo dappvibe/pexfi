@@ -37,7 +37,9 @@
               "guides/wallets",
               "guides/getting-started",
               "guides/trading",
-              "guides/disputes"
+              "guides/disputes",
+              "guides/troubleshooting",
+              "guides/faq"
             ]
           },
           {
