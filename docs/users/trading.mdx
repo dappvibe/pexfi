@@ -1,130 +1,75 @@
 ---
-title: 'Trading'
-description: 'Step-by-step trading guide'
+title: 'Trading Guide'
+description: 'Two ways to trade: Browse existing offers or create your own.'
 icon: 'arrow-right-arrow-left'
 ---
 
 # Trading Guide
 
-This guide walks you through the complete trading process on PEXFI.
+On PEXFI, you can trade in two ways:
 
-## Buying Crypto
+1.  **Browse Offers**: Find an existing ad and reply to it (Fastest).
+2.  **Create Offer**: Post your own ad with your specific price and terms (Custom).
 
-### Step 1: Find an Offer
-
-Browse the marketplace and filter by:
-
-- Token you want to buy
-- Your fiat currency
-- Preferred payment method
-- Trade amount within your range
-
-### Step 2: Review the Seller
-
-Before accepting, check:
-
-| Factor          | What to Look For              |
-| --------------- | ----------------------------- |
-| Trade Count     | More trades = more experience |
-| Completion Rate | Should be 95%+ ideally        |
-| Response Time   | Fast responders are reliable  |
-| Terms           | Read their trading conditions |
-
-### Step 3: Accept the Offer
-
-1. Enter your desired amount
-2. Review the exchange rate
-3. Click **Accept**
-4. Approve the transaction in your wallet
-
-A new deal contract is created on-chain.
-
-### Step 4: Wait for Funding
-
-The seller must deposit tokens into escrow. You'll see the status change to **Funded**.
-
-<Note>If the seller doesn't fund within a reasonable time, you can cancel the deal.</Note>
-
-### Step 5: Send Payment
-
-1. Use the payment method specified in the offer
-2. Follow any instructions from the seller
-3. Send the exact fiat amount agreed
-
-### Step 6: Mark as Paid
-
-Once you've sent payment:
-
-1. Click **Payment Sent**
-2. Confirm the transaction
-
-This notifies the seller to check their account.
-
-### Step 7: Receive Tokens
-
-When the seller confirms receipt of payment, they release the tokens. You'll see them in your wallet.
+Regardless of how you start, **every deal is secured by a Smart Contract.**
 
 ---
 
-## Selling Crypto
+## Scenario A: Browse Offers (Taker)
 
-### Step 1: Create an Offer
+Use this method if you want to complete a trade immediately.
 
-Go to **My Offers** → **Create Offer**:
+### 1. Find a Match
 
-1. Select the token you're selling
-2. Choose the fiat currency
-3. Set your price (fixed or with margin)
-4. Define minimum and maximum limits
-5. List accepted payment methods
-6. Add your trading terms
+Go to the **Marketplace** and use filters:
 
-### Step 2: Wait for Buyers
+- **I want to**: Buy or Sell.
+- **Currency**: USD, EUR, etc.
+- **Method**: Bank Transfer, Wise, etc.
 
-Your offer appears in the marketplace. Buyers can accept it at any time.
+### 2. Check Reputation
 
-### Step 3: Fund the Escrow
+Before clicking accept, look at the trader's history. High completion rates (95%+) indicate reliability.
 
-When someone accepts your offer:
+### 3. Accept Offer
 
-1. Review the deal details
-2. Click **Fund Escrow**
-3. Approve the token transfer
-
-Your tokens are now locked until the trade completes.
-
-### Step 4: Receive Payment
-
-The buyer sends fiat to your account. Verify:
-
-- Correct amount received
-- Payment from the expected sender
-- No pending or reversible status
-
-### Step 5: Release Tokens
-
-Once payment is confirmed in your account:
-
-1. Click **Release Tokens**
-2. Confirm the transaction
-
-The buyer receives their crypto.
+Enter the amount you want to trade and click **Start Deal**. This deploys the Smart Contract.
 
 ---
 
-## Best Practices
+## Scenario B: Post an Offer (Maker)
 
-<AccordionGroup>
-  <Accordion title="Start with Small Amounts" icon="seedling">
-    Test new trading partners with smaller trades first
-  </Accordion>
-  <Accordion title="Be Responsive" icon="clock">
-    Quick responses build reputation and trust
-  </Accordion>
-  <Accordion title="Document Everything" icon="message">
-    Use in-deal messaging for all communication
-  </Accordion>
-  <Accordion title="Verify Before Releasing" icon="magnifying-glass">
-    Double-check payment status before releasing tokens
-  </Accordion>
-</AccordionGroup>
+Use this method if you want to set your own price (e.g., 2% above market) or use a specific payment method not listed.
+
+### 1. Create Offer
+
+Go to **My Deals** > **Create Offer**.
+
+- **Set Price**: Fixed or Dynamic (e.g., Market Price + 2%).
+- **Set Limits**: Minimum and maximum trade sizes.
+
+### 2. Publish
+
+Your offer is now live. **You do not need to deposit funds yet.**
+
+- You keep custody of your funds until someone accepts your offer.
+
+---
+
+## Executing the Deal
+
+Once a deal is matched (via Scenario A or B), follow these 3 secure steps:
+
+<Steps>
+  <Step title="1. Funding the Escrow">
+    **If you are the Seller**: You must deposit crypto into the **Smart Contract Escrow**. **If you are the Buyer**:
+    Wait until the status says **Funded**. Never send money before this.
+  </Step>
+  <Step title="2. Making Payment">
+    **Buyer**: Send fiat directly to the seller (e.g., via Bank App). Mark as "Paid" in PEXFI only after sending.
+  </Step>
+  <Step title="3. Releasing Funds">
+    **Seller**: Check your bank account. Once confirmed, click **Release**. The Smart Contract sends crypto to the
+    Buyer.
+  </Step>
+</Steps>
