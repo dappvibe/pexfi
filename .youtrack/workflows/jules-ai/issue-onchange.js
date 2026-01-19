@@ -21,6 +21,9 @@ When creating pull request you MUST start branch name with issue id, e.g., ${iss
 ALWAYS refer issue id in pull request title, e.g., ${issue.id}: My PR Title
 In commit messages you MUST reference the issue id, e.g., "my commit message #${issue.id}".
 NEVER report for duty in pull request comments.
+
+When affecting frontend always attach screenshots of the changes made to the pull request comments.
+Screenshots MUST highlight the changes made in a way that is easy to compare with existing version.
 --------
 Task: ${issue.summary}
 ${issue.description || ''}`;
