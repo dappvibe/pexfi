@@ -13,9 +13,16 @@ const api = require('./api');
  * @returns {string} The prompt string.
  */
 function generateSessionPrompt(issue) {
+  let tagNames = [];
+  if (issue.tags && issue.tags.isNotEmpty()) {
+    issue.tags.forEach(tag => tagNames.push(tag.name));
+  }
+  const tagsLine = tagNames.length > 0 ? `Issue Tags: ${tagNames.join(', ')}` : '';
+
   return `
 Issue id: ${issue.id}
-Apply relevant skills from .agent/skills to assist with this user story.
+${tagsLine}
+Apply relevant skills from .agent/skills to assist with this user story, guided by the issue tags above.
 
 When creating pull request you MUST start branch name with issue id, e.g., ${issue.id}-my-feature
 ALWAYS refer issue id in pull request title, e.g., ${issue.id}: My PR Title
