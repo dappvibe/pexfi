@@ -10,6 +10,7 @@
     "build:web:staging": "vite build --mode staging",
     "build:web:prod": "vite build --mode production",
     "build:evm": "hardhat compile --config hardhat.config.cjs",
+    "docs:dev": "cd docs && npx mint dev --no-open",
     "wagmi:generate": "wagmi generate",
     "test": "vitest",
     "test:web": "vitest run",
