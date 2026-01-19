@@ -6,8 +6,6 @@ import { useAccount } from 'wagmi'
 import { useContract } from '@/hooks/useContract'
 import Offer from '@/model/Offer.js'
 
-// TODO GraphQL for user deals
-
 function StateTag(args) {
   const index = ['Initiated', 'Accepted', 'Funded', 'Paid', 'Disputed', 'Canceled', 'Resolved', 'Completed']
   return <Tag color={args.state === 7 ? 'green' : 'blue'}>{index[args.state]}</Tag>
