@@ -88,6 +88,9 @@ exports.rule = entities.Issue.onSchedule({
             }
 
             issue.fields[api.FIELD_PLAN] = planMarkdown;
+            if (issue.fields.Stage) {
+              issue.fields.Stage = ctx.Stage.Shaping;
+            }
             workflow.message(`${issue.id}: Plan Updated`);
           }
         });
@@ -151,5 +154,10 @@ exports.rule = entities.Issue.onSchedule({
       Paused: {},
       Blocked: {},
     },
+    Stage: {
+      type: entities.EnumField.fieldType,
+      Shaping: {},
+      Approved: {}
+    }
   },
 });

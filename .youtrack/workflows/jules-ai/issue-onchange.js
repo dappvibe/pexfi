@@ -53,6 +53,10 @@ class JulesWorkflow {
     if (this.shouldForwardComment()) {
       this.forwardComments();
     }
+
+    if (this.shouldApprovePlan()) {
+      this.approvePlan();
+    }
   }
 
   /**
@@ -89,6 +93,15 @@ class JulesWorkflow {
    */
   shouldForwardComment() {
     return this.hasSession() && this.issue.comments.added.isNotEmpty();
+  }
+
+  /**
+   * Check if we should approve the plan
+   */
+  shouldApprovePlan() {
+    return this.hasSession() &&
+           this.issue.isChanged('Stage') &&
+           this.issue.fields.Stage.name === 'Approved';
   }
 
   /**
@@ -197,15 +210,6 @@ class JulesWorkflow {
       if (comment.text.indexOf('@jules') === -1) return;
 
       const cleanText = comment.text.replace(/@jules/gi, '').trim();
-
-      // Check for approval command
-      const lowerText = cleanText.toLowerCase();
-      if (lowerText === 'approve' || lowerText === 'approve plan') {
-        this.approvePlan();
-        api.addReaction('jules', this.issue, comment, 'thumbs_up');
-        return;
-      }
-
       const payload = {
         prompt: cleanText
       };
