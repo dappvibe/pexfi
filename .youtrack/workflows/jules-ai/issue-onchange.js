@@ -92,6 +92,37 @@ class JulesWorkflow {
   }
 
   /**
+   * Approve the plan in Jules
+   */
+  approvePlan() {
+    const sessionUrl = this.issue.fields[api.FIELD_SESSION_ID];
+    const simpleId = api.getSessionIdFromUrl(sessionUrl);
+    if (!simpleId) return;
+
+    const apikey = api.getApiKey('jules');
+    if (!apikey) return;
+
+    const connection = api.createConnection(apikey, 'jules');
+    if (!connection) return;
+
+    // Endpoint: sessions/{id}:approvePlan
+    const endpoint = '/sessions/' + simpleId + ':approvePlan';
+
+    try {
+      const response = connection.postSync(endpoint, null, '{}');
+
+      if (response && (response.code === 200 || response.code === 204)) {
+         workflow.message('✅ Jules Plan Approved');
+      } else {
+         console.error('Failed to approve plan. Code: ' + response.code + ', Body: ' + response.response);
+         workflow.message('❌ Failed to approve Jules plan');
+      }
+    } catch (ex) {
+      console.error('Exception approving plan: ' + ex);
+    }
+  }
+
+  /**
    * Create a new Jules session using the API
    */
   createSession() {
@@ -166,6 +197,15 @@ class JulesWorkflow {
       if (comment.text.indexOf('@jules') === -1) return;
 
       const cleanText = comment.text.replace(/@jules/gi, '').trim();
+
+      // Check for approval command
+      const lowerText = cleanText.toLowerCase();
+      if (lowerText === 'approve' || lowerText === 'approve plan') {
+        this.approvePlan();
+        api.addReaction('jules', this.issue, comment, 'thumbs_up');
+        return;
+      }
+
       const payload = {
         prompt: cleanText
       };
