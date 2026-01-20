@@ -53,10 +53,6 @@ class JulesWorkflow {
     if (this.shouldForwardComment()) {
       this.forwardComments();
     }
-
-    if (this.shouldApprovePlan()) {
-      this.approvePlan();
-    }
   }
 
   /**
@@ -93,46 +89,6 @@ class JulesWorkflow {
    */
   shouldForwardComment() {
     return this.hasSession() && this.issue.comments.added.isNotEmpty();
-  }
-
-  /**
-   * Check if we should approve the plan
-   */
-  shouldApprovePlan() {
-    return this.hasSession() &&
-           this.issue.isChanged('Stage') &&
-           this.issue.fields.Stage.name === 'Approved';
-  }
-
-  /**
-   * Approve the plan in Jules
-   */
-  approvePlan() {
-    const sessionUrl = this.issue.fields[api.FIELD_SESSION_ID];
-    const simpleId = api.getSessionIdFromUrl(sessionUrl);
-    if (!simpleId) return;
-
-    const apikey = api.getApiKey('jules');
-    if (!apikey) return;
-
-    const connection = api.createConnection(apikey, 'jules');
-    if (!connection) return;
-
-    // Endpoint: sessions/{id}:approvePlan
-    const endpoint = '/sessions/' + simpleId + ':approvePlan';
-
-    try {
-      const response = connection.postSync(endpoint, null, '{}');
-
-      if (response && (response.code === 200 || response.code === 204)) {
-         workflow.message('✅ Jules Plan Approved');
-      } else {
-         console.error('Failed to approve plan. Code: ' + response.code + ', Body: ' + response.response);
-         workflow.message('❌ Failed to approve Jules plan');
-      }
-    } catch (ex) {
-      console.error('Exception approving plan: ' + ex);
-    }
   }
 
   /**
