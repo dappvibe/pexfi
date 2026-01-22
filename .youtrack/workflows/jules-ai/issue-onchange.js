@@ -126,6 +126,7 @@ class JulesWorkflow {
 
       if (response && (response.code === 200 || response.code === 204)) {
          workflow.message('✅ Jules Plan Approved');
+         this.issue.fields.State = this.ctx.State.Thinking;
       } else {
          console.error('Failed to approve plan. Code: ' + response.code + ', Body: ' + response.response);
          workflow.message('❌ Failed to approve Jules plan');
