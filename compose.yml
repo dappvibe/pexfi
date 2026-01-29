@@ -97,7 +97,8 @@ services:
       - graph-node
 
   gemini:
-    image: node:20
+    build:
+      context: ./.youtrack/gemini-api
     working_dir: /app
     volumes:
       - ./.youtrack/gemini-api:/app
