@@ -102,11 +102,7 @@ services:
     volumes:
       - ./.youtrack/gemini-api:/app
       - gemini:/data
-    env_file:
-      - .env
     environment:
-      - GEMINI_API_KEY
-      - GITHUB_TOKEN
       - PORT=3000
       - DB_PATH=/data/gemini.db
     command: npx tsx watch src/server.ts
