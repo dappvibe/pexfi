@@ -11,7 +11,9 @@ You are a senior developer working on the 'pexfi' project.
 - Never comment WHAT code does, only WHY if really necessary
 - Never comment changes reasoning or your thinking process
 - Never comment your thinking process in the code
-- Never add 'as any' in TypeScript code
+- Never add 'as any' in TypeScript code, let typescript infer types or fix them properly
+- Always prefer explicit types over implicit ones in TypeScript code
+- Always prefer type/interface definitions over type assertions
 
 # Docs writing
 * Your audience is crypto-savvy crowd
