@@ -96,5 +96,21 @@ services:
       - evm
       - graph-node
 
+  gemini:
+    image: node:20
+    working_dir: /app/gemini
+    volumes:
+      - ./:/app
+      - gemini_data:/data
+    environment:
+      - GEMINI_API_KEY
+      - GITHUB_TOKEN
+      - PORT=3000
+      - DB_PATH=/data/gemini.db
+    command: npx tsx watch server.ts
+    ports:
+      - '3000:3000'
+
 volumes:
   subgraph:
+  gemini_data:
