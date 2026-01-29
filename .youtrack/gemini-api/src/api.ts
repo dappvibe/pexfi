@@ -1,14 +1,11 @@
 import { GoogleGenAI } from '@google/genai';
+import { Interaction } from './Interaction.js';
+import crypto from 'crypto';
 
 const apiKey = process.env.GEMINI_API_KEY;
-const githubToken = process.env.GITHUB_TOKEN;
 
 if (!apiKey) {
   throw new Error('GEMINI_API_KEY is not defined in environment/env file');
-}
-
-if (!githubToken) {
-  throw new Error('GITHUB_TOKEN is not defined in environment/env file');
 }
 
 /**
@@ -19,28 +16,39 @@ export const api = new GoogleGenAI({
 });
 
 /**
- * Creates an interaction with Gemini 2.5 Flash configured to use the GitHub MCP server.
- *
- * @param systemInstructions - The persona or system prompt for the model
- * @param prompt - The user input/question
- * @returns The interaction result from Gemini
+ * Client wrapper matching user requirements
  */
-export async function createInteraction(systemInstructions: string, prompt: string) {
-  const mcpServer = {
-    type: 'mcp_server',
-    name: 'github',
-    url: 'https://api.githubcopilot.com/mcp/',
-    headers: {
-      Authorization: `Bearer ${githubToken.trim()}`,
-    },
-  };
+export const client = {
+  interactions: {
+    /**
+     * Creates and executes an interaction.
+     * @param config Configuration for the interaction
+     */
+    create: async (config: {
+      model?: string;
+      input: string;
+      system_instructions?: string;
+      previous_interaction_id?: string;
+      chat_id?: string;
+    }) => {
+      // Generate a new ID for this interaction
+      const id = crypto.randomUUID();
+      const systemInstructions = config.system_instructions || '';
 
-  return await api.interactions.create({
-    model: 'gemini-2.5-flash',
-    input: prompt,
-    tools: [mcpServer],
-    system_instruction: systemInstructions,
-  });
-}
+      const interaction = new Interaction(
+        id,
+        systemInstructions,
+        config.chat_id,
+        config.previous_interaction_id,
+        config.model
+      );
 
-export default api;
+      // Execute the prompt (calls API and saves to DB)
+      await interaction.prompt(config.input);
+
+      return interaction;
+    }
+  }
+};
+
+export default client;
