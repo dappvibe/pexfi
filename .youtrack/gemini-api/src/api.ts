@@ -1,19 +1,5 @@
-import { GoogleGenAI } from '@google/genai';
 import { Interaction } from './Interaction.js';
 import crypto from 'crypto';
-
-const apiKey = process.env.GEMINI_API_KEY;
-
-if (!apiKey) {
-  throw new Error('GEMINI_API_KEY is not defined in environment/env file');
-}
-
-/**
- * Configure the Google GenAI client
- */
-export const api = new GoogleGenAI({
-  apiKey: apiKey,
-});
 
 /**
  * Client wrapper matching user requirements
@@ -25,6 +11,8 @@ export const client = {
      * @param config Configuration for the interaction
      */
     create: async (config: {
+      apiKey: string;
+      githubToken?: string;
       model?: string;
       input: string;
       system_instructions?: string;
@@ -44,7 +32,7 @@ export const client = {
       );
 
       // Execute the prompt (calls API and saves to DB)
-      await interaction.prompt(config.input);
+      await interaction.prompt(config.input, config.apiKey, config.githubToken);
 
       return interaction;
     }

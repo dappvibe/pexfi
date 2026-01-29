@@ -13,11 +13,23 @@ app.use(express.json());
 
 // Routes
 
-// POST /chat/:chatId - Continue or start a chat
+/**
+ * POST /chat/:chatId - Continue or start a chat
+ * Requires GEMINI-API-KEY header.
+ * Optional GITHUB-TOKEN header.
+ */
 app.post('/chat/:chatId', async (req, res) => {
   try {
     const { chatId } = req.params;
     const { prompt, system_instruction } = req.body;
+
+    const apiKey = req.headers['gemini-api-key'] as string;
+    const githubToken = req.headers['github-token'] as string;
+
+    // Requirement: If keys are not set return 503 error
+    if (!apiKey) {
+      return res.status(503).json({ error: 'GEMINI-API-KEY header is required' });
+    }
 
     // Validation: alphanumeric and dash, up to 36 chars (UUID support)
     const idRegex = /^[a-zA-Z0-9-]{1,36}$/;
@@ -36,6 +48,8 @@ app.post('/chat/:chatId', async (req, res) => {
 
     // Create new interaction
     const interaction = await client.interactions.create({
+        apiKey,
+        githubToken,
         input: prompt,
         system_instructions: system_instruction,
         chat_id: chatId,
