@@ -98,19 +98,21 @@ services:
 
   gemini:
     image: node:20
-    working_dir: /app/gemini
+    working_dir: /app
     volumes:
-      - ./:/app
-      - gemini_data:/data
+      - ./.youtrack/gemini-api:/app
+      - gemini:/data
+    env_file:
+      - .env
     environment:
       - GEMINI_API_KEY
       - GITHUB_TOKEN
       - PORT=3000
       - DB_PATH=/data/gemini.db
-    command: npx tsx watch server.ts
+    command: npx tsx watch src/server.ts
     ports:
       - '3000:3000'
 
 volumes:
   subgraph:
-  gemini_data:
+  gemini:
