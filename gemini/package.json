@@ -1,9 +1,0 @@
-{
-  "name": "gemini-boilerplate",
-  "version": "1.0.0",
-  "type": "module",
-  "dependencies": {
-    "@google/genai": "latest",
-    "dotenv": "^16.4.7"
-  }
-}

@@ -1,4 +1,4 @@
-import { createInteraction } from '../client.js';
+import { createInteraction } from '../src/api.js';
 
 /**
  * Runs a simple test interaction with Gemini after configuring it as 'Monthy python'

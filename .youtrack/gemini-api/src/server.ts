@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import Database from 'better-sqlite3';
-import { createInteraction } from './client.js';
+import { createInteraction } from './api.js';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -36,7 +36,7 @@ try {
 // Routes
 
 // POST /api/:id - Create a new interaction
-app.post('/api/:id', async (req, res) => {
+app.post('/chat/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { prompt, system_instruction } = req.body;
@@ -73,7 +73,7 @@ app.post('/api/:id', async (req, res) => {
 });
 
 // GET /api/chat/:id - Get interaction logs
-app.get('/api/chat/:id', (req, res) => {
+app.get('/chat/:id', (req, res) => {
   try {
     const { id } = req.params;
     const stmt = db.prepare('SELECT * FROM interactions WHERE id = ?');

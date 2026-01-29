@@ -26,9 +26,9 @@ fi
 echo ""
 if [ ! -z "$ID" ]; then
     echo "Extracted ID: $ID"
-    echo "2. Retrieving Interaction Log via GET /api/chat/$ID"
+    echo "2. Retrieving Interaction Log via GET /chat/$ID"
 
-    LOG=$(curl -s http://localhost:3000/api/chat/$ID)
+    LOG=$(curl -s http://localhost:3000/chat/$ID)
     echo "Log Response:"
     echo "$LOG"
 else
