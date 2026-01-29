@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
 
-const dbPath = process.env.DB_PATH || 'gemini.db';
+const dbPath = '/data/gemini.db';
 
 export const db = new Database(dbPath);
 db.pragma('journal_mode = WAL');
