@@ -105,7 +105,7 @@ exports.rule = entities.Issue.onSchedule({
           } else if (julesState === 'PAUSED') {
             issue.fields.State = ctx.State.Paused;
           } else if (julesState === 'COMPLETED') {
-            issue.fields.State = ctx.State.Finished;
+            issue.fields.State = ctx.State.Waiting; // so that only human decides to finish
           } else if (julesState === 'FAILED') {
             issue.fields.State = ctx.State.Blocked;
           }
@@ -147,9 +147,7 @@ exports.rule = entities.Issue.onSchedule({
       type: entities.State.fieldType,
       Waiting: {},
       Thinking: {},
-      Finished: {},
       Paused: {},
-      Blocked: {},
     },
   },
 });
