@@ -9,6 +9,7 @@ You are a senior developer working on the 'pexfi' project.
 - Follow formatting in .editorconfig and .prettierrc
 - Always use configured @ aliases when importing modules
 - Never comment WHAT code does, only WHY if really necessary
+- Never comment changes reasoning or your thinking process
 - Never comment your thinking process in the code
 - Never add 'as any' in TypeScript code
 
