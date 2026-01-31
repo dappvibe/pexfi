@@ -1,6 +1,6 @@
 import { Button, Col, Form, Input, InputNumber, message, Radio, Row, Select, Skeleton, Space } from 'antd'
 import { useNavigate } from 'react-router-dom'
-import React, { useRef } from 'react'
+import React, { forwardRef, useImperativeHandle, useRef } from 'react'
 import { useContract } from '@/hooks/useContract'
 import { useInventory } from '@/hooks/useInventory'
 
@@ -14,10 +14,30 @@ interface OfferFormProps {
   toggleDisabled?: () => Promise<void>
 }
 
+interface SubmitButtonRef {
+  setLoading: (loading: boolean) => void
+}
+
+const SubmitButton = forwardRef<SubmitButtonRef, {}>((_, ref) => {
+  const [loading, setLoading] = React.useState(false)
+
+  useImperativeHandle(ref, () => ({
+    setLoading,
+  }))
+
+  return (
+    <Form.Item>
+      <Button loading={loading} type="primary" htmlType="submit">
+        Deploy contract
+      </Button>
+    </Form.Item>
+  )
+})
+
 export default function OfferForm({ offer = null, setRate, setLimits, setTerms, toggleDisabled }: OfferFormProps) {
   const navigate = useNavigate()
   const { Market, OfferFactory, signed } = useContract()
-  const [lockSubmit, setLockSubmit] = React.useState(false)
+  const submitBtnRef = useRef<SubmitButtonRef>(null)
   const { tokens, fiats, methods } = useInventory()
   const marketPrice = useRef(null)
   const [form] = Form.useForm()
@@ -66,7 +86,7 @@ export default function OfferForm({ offer = null, setRate, setLimits, setTerms, 
 
   async function submit(val) {
     // FIXME this causes rerender all form and selects flicker
-    setLockSubmit(true)
+    submitBtnRef.current?.setLoading(true)
 
     val.min = Math.floor(val.min)
     val.max = Math.ceil(val.max)
@@ -90,7 +110,7 @@ export default function OfferForm({ offer = null, setRate, setLimits, setTerms, 
         }
       })
     } finally {
-      setLockSubmit(false)
+      submitBtnRef.current?.setLoading(false)
     }
   }
 
@@ -229,13 +249,7 @@ export default function OfferForm({ offer = null, setRate, setLimits, setTerms, 
           </Form.Item>
         </>
       )}
-      {!offer && (
-        <Form.Item>
-          <Button loading={lockSubmit} type="primary" htmlType="submit">
-            Deploy contract
-          </Button>
-        </Form.Item>
-      )}
+      {!offer && <SubmitButton ref={submitBtnRef} />}
     </Form>
   )
 }
