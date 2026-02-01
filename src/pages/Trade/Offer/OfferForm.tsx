@@ -20,6 +20,7 @@ export default function OfferForm({ offer = null, setRate, setLimits, setTerms, 
   const [lockSubmit, setLockSubmit] = React.useState(false)
   const { tokens, fiats, methods } = useInventory()
   const marketPrice = useRef(null)
+  const priceCache = useRef<Record<string, number | string>>({})
   const [form] = Form.useForm()
 
   if (fiats.length === 0) return <Skeleton active />
@@ -98,10 +99,16 @@ export default function OfferForm({ offer = null, setRate, setLimits, setTerms, 
     const token = form.getFieldValue('token')
     const fiat = form.getFieldValue('fiat')
     if (token && fiat) {
-      // FIXME store market rate somewhere, not from current
+      const key = `${token}-${fiat}`
+      if (priceCache.current[key]) {
+        marketPrice.current = priceCache.current[key]
+        previewPrice()
+        return
+      }
       let price: number | string = Number(await Market.getPrice(token, fiat))
       price = (price / 10 ** 6).toFixed(2)
       marketPrice.current = price
+      priceCache.current[key] = price
       previewPrice()
     }
   }
