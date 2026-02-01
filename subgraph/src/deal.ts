@@ -77,14 +77,20 @@ export function indexDealAndProfile(address: Address): void {
 
 function doUpdateProfile(deal: DealEntity): void {
   let context = dataSource.context();
-  let marketAddress = context.getString('marketAddress')
-  let marketContract = MarketContract.bind(Address.fromString(marketAddress))
-  let repTokenAddressResult = marketContract.try_repToken()
-  if (repTokenAddressResult.reverted) {
-    return
-  }
+  let repTokenAddress: Address;
 
-  let repTokenAddress = repTokenAddressResult.value
+  let repTokenAddressValue = context.get('repTokenAddress');
+  if (repTokenAddressValue != null) {
+    repTokenAddress = repTokenAddressValue.toAddress();
+  } else {
+    let marketAddress = context.getString('marketAddress')
+    let marketContract = MarketContract.bind(Address.fromString(marketAddress))
+    let repTokenAddressResult = marketContract.try_repToken()
+    if (repTokenAddressResult.reverted) {
+      return
+    }
+    repTokenAddress = repTokenAddressResult.value
+  }
 
   let offer = Offer.load(deal.offer)
   if (offer == null) {

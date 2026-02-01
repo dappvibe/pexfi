@@ -1,4 +1,4 @@
-import {DealCreated, OfferCreated as OfferCreatedEvent} from "../../.cache/subgraph/generated/Market/Market"
+import {DealCreated, OfferCreated as OfferCreatedEvent, Market as MarketContract} from "../../.cache/subgraph/generated/Market/Market"
 import {Offer, Profile} from "../../.cache/subgraph/generated/schema";
 import {DataSourceContext} from "@graphprotocol/graph-ts"
 import {Deal as DealTemplate, Offer as OfferTemplate} from "../../.cache/subgraph/generated/templates";
@@ -22,5 +22,12 @@ export function handleDealCreated(event: DealCreated): void {
   // start listening to events from the new Deal contract
   let context = new DataSourceContext()
   context.setString('marketAddress', event.address.toHexString())
+
+  let marketContract = MarketContract.bind(event.address)
+  let repTokenResult = marketContract.try_repToken()
+  if (!repTokenResult.reverted) {
+    context.setBytes('repTokenAddress', repTokenResult.value)
+  }
+
   DealTemplate.createWithContext(event.params.deal, context)
 }
