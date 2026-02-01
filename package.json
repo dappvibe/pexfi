@@ -16,7 +16,7 @@
     "test:web": "vitest run",
     "test:evm": "hardhat test --config hardhat.config.cjs",
     "lint": "eslint . --ext js,jsx,ts,tsx",
-    "subgraph:codegen": "graph codegen subgraph/subgraph.yaml -o subgraph/generated",
+    "subgraph:codegen": "graph codegen subgraph/subgraph.yaml -o .cache/subgraph/generated",
     "subgraph:build": "graph build subgraph/subgraph.yaml -o subgraph/build"
   },
   "dependencies": {
