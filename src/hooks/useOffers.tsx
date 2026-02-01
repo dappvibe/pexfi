@@ -1,6 +1,6 @@
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 export type OffersFilter = {
   disabled?: boolean
@@ -91,9 +91,14 @@ export function useOffers(params: OffersRequestParams): UseOffersResult {
   })
 
   const [totalCount, setTotalCount] = useState<number | null>(null)
-  useEffect(() => {
+
+  // Reset totalCount when filter changes
+  const filterJson = JSON.stringify(params.filter)
+  const [prevFilterJson, setPrevFilterJson] = useState(filterJson)
+  if (filterJson !== prevFilterJson) {
+    setPrevFilterJson(filterJson)
     setTotalCount(null)
-  }, [...Object.values(params.filter)])
+  }
 
   function loadMore() {
     return fetchMore({
