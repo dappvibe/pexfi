@@ -1,0 +1,80 @@
+{
+  "_format": "hh3-artifact-1",
+  "contractName": "MockUniswapV3Factory",
+  "sourceName": "evm/protocol/mocks/MockUniswapV3Factory.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "tokenA",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "tokenB",
+          "type": "address"
+        },
+        {
+          "internalType": "uint24",
+          "name": "fee",
+          "type": "uint24"
+        }
+      ],
+      "name": "getPool",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "pool",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "tokenA",
+          "type": "address"
+        }
+      ],
+      "name": "pools",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "pool",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "tokenA",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "pool",
+          "type": "address"
+        }
+      ],
+      "name": "setPool",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x60808060405234601557610182908161001a8239f35b5f80fdfe6080806040526004361015610012575f80fd5b5f3560e01c9081631698ee82146100ce575080634e847fc7146100805763a4063dbc1461003d575f80fd5b3461007c57602036600319011261007c576001600160a01b0361005e610120565b165f525f602052602060018060a01b0360405f205416604051908152f35b5f80fd5b3461007c57604036600319011261007c57610099610120565b6100a1610136565b6001600160a01b039182165f90815260208190526040902080546001600160a01b03191691909216179055005b3461007c57606036600319011261007c576100e7610120565b906100f0610136565b5060443562ffffff81160361007c576001600160a01b039182165f90815260208181526040909120549092168152f35b600435906001600160a01b038216820361007c57565b602435906001600160a01b038216820361007c5756fea2646970667358221220ad80ed5a495d75f1f4754a63edd902a352870d7406c5a84f318138a76f4281ff64736f6c634300081a0033",
+  "deployedBytecode": "0x6080806040526004361015610012575f80fd5b5f3560e01c9081631698ee82146100ce575080634e847fc7146100805763a4063dbc1461003d575f80fd5b3461007c57602036600319011261007c576001600160a01b0361005e610120565b165f525f602052602060018060a01b0360405f205416604051908152f35b5f80fd5b3461007c57604036600319011261007c57610099610120565b6100a1610136565b6001600160a01b039182165f90815260208190526040902080546001600160a01b03191691909216179055005b3461007c57606036600319011261007c576100e7610120565b906100f0610136565b5060443562ffffff81160361007c576001600160a01b039182165f90815260208181526040909120549092168152f35b600435906001600160a01b038216820361007c57565b602435906001600160a01b038216820361007c5756fea2646970667358221220ad80ed5a495d75f1f4754a63edd902a352870d7406c5a84f318138a76f4281ff64736f6c634300081a0033",
+  "linkReferences": {},
+  "deployedLinkReferences": {},
+  "immutableReferences": {},
+  "inputSourceName": "project/evm/protocol/mocks/MockUniswapV3Factory.sol",
+  "buildInfoId": "solc-0_8_26-7fb96dc4d6ad55c28d032b65c9558ca60a213082"
+}

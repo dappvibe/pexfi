@@ -1,0 +1,13 @@
+{
+  "_format": "hh3-artifact-1",
+  "contractName": "Methods",
+  "sourceName": "evm/protocol/libraries/Methods.sol",
+  "abi": [],
+  "bytecode": "0x6080806040523460175760399081601c823930815050f35b5f80fdfe5f80fdfea2646970667358221220cd4e2cccba11dba4700a5162913c740ac6f3fe02f324f3c96f27f73637d6900064736f6c634300081a0033",
+  "deployedBytecode": "0x5f80fdfea2646970667358221220cd4e2cccba11dba4700a5162913c740ac6f3fe02f324f3c96f27f73637d6900064736f6c634300081a0033",
+  "linkReferences": {},
+  "deployedLinkReferences": {},
+  "immutableReferences": {},
+  "inputSourceName": "project/evm/protocol/libraries/Methods.sol",
+  "buildInfoId": "solc-0_8_26-7fb96dc4d6ad55c28d032b65c9558ca60a213082"
+}
