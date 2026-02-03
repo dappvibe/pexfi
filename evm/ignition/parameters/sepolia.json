@@ -1,0 +1,18 @@
+{
+  "Market": {
+    "uniswap": "0x0227628f3F023bb0B980b67D528571c95c6DaC1c",
+    "addTokens_0": [
+      "0xC558DBdd856501FCd9aaF1E62eae57A9F0629a3c",
+      "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"
+    ],
+    "addTokens_1": 500,
+    "fiats": [
+        ["USD", "0x0000000000000000000000000000000000000000"],
+        ["EUR", "0x1a81afB8146aeFfCFc5E50e8479e826E7D55b910"],
+        ["GBP", "0x91FAB41F5f3bE955963a986366edAcff1aaeaa83"]
+    ],
+    "methods": [
+      ["Bank Transfer", 0]
+    ]
+  }
+}
