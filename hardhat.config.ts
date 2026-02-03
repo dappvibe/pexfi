@@ -1,19 +1,13 @@
-require('@nomicfoundation/hardhat-ignition-ethers')
-require('@nomicfoundation/hardhat-chai-matchers')
-require('@nomicfoundation/hardhat-ethers')
-require('@nomicfoundation/hardhat-network-helpers')
-require('@openzeppelin/hardhat-upgrades')
-require('hardhat-ignore-warnings')
-require('hardhat-contract-sizer')
-require('hardhat-dependency-compiler')
-require('@nomicfoundation/hardhat-verify')
-require('hardhat-gas-reporter')
-require('solidity-docgen')
+import hardhatToolboxMochaEthersPlugin from '@nomicfoundation/hardhat-toolbox-mocha-ethers'
+import ignoreWarnings from 'hardhat-ignore-warnings';
+import { defineConfig } from 'hardhat/config'
 
-require('dotenv').config()
+import * as dotenv from 'dotenv'
 
-/** @type import('hardhat/config').HardhatUserConfig */
-module.exports = {
+dotenv.config()
+
+export default defineConfig({
+  plugins: [hardhatToolboxMochaEthersPlugin, ignoreWarnings],
   paths: {
     sources: './evm/protocol',
     tests: './tests/evm',
@@ -22,15 +16,23 @@ module.exports = {
     ignition: './evm/ignition',
   },
   networks: {
+    hardhat: {
+      type: 'edr-simulated',
+    },
     arbitrum: {
+      type: 'http',
       url: process.env.ARBITRUM_URL ? process.env.ARBITRUM_URL : 'https://arb-mainnet.g.alchemy.com/v2/demo',
-      accounts: process.env.DEPLOYER_KEY ? [process.env.DEPLOYER_KEY] : 'remote',
+      accounts: process.env.DEPLOYER_KEY ? [process.env.DEPLOYER_KEY] : [],
+      chainType: 'op',
     },
     'arbitrum-sepolia': {
+      type: 'http',
       url: 'https://sepolia-rollup.arbitrum.io/rpc',
-      accounts: process.env.DEPLOYER_KEY ? [process.env.DEPLOYER_KEY] : 'remote',
+      accounts: process.env.DEPLOYER_KEY ? [process.env.DEPLOYER_KEY] : [],
+      chainType: 'op',
     },
     sepolia: {
+      type: 'http',
       url: 'https://eth-sepolia.g.alchemy.com/v2/-pIVMYm22LgfrPb32FWlPaKWjXNmH2id',
       accounts: [process.env.DEPLOYER_SEPOLIA],
     },
@@ -54,10 +56,6 @@ module.exports = {
       },
     ],
   },
-  sourcify: {
-    enabled: false,
-  },
-
   solidity: {
     version: '0.8.26',
     settings: {
@@ -84,12 +82,4 @@ module.exports = {
     L2Etherscan: process.env.GASREPORTER_ETHERSCAN,
     excludeContracts: ['MockWBTC'],
   },
-  defender: {
-    useDefenderDeploy: true,
-    apiKey: process.env.DEFENDER_API_KEY,
-    apiSecret: process.env.DEFENDER_API_SECRET,
-  },
-  docgen: {
-    pages: 'items',
-  },
-}
+})
