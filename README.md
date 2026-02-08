@@ -51,7 +51,7 @@ Ethereum backend: the core of the platform.
    - `docker compose up -d hardhat`
 
 2. Deploy tokens/currencies mocks to default local node
-   - `npx hardhat run evm/ignition/mocks.js --network localhost > evm/ignition/parameters/hardhat.json`
+   - `npx hardhat run evm/ignition/mocks.ts --network localhost`
 
 NOTE: dotenv lib writes "tips" there. Remove manually from the generated JSON.
 
@@ -61,9 +61,8 @@ Use parameters file that holds uniswap, tokens, chainlink oracles addresses. For
 Use `--network` to select blockchain. Networks are in evm/ignition/parameters/
 
 ```shell
-npx hardhat ignition deploy evm/ignition/modules/Market.cjs \
+npx hardhat ignition deploy evm/ignition/modules/Market.ts \
     --parameters evm/ignition/parameters/hardhat.json \
-    --deployment-id hardhat \
     --network localhost \
     --verify
 ```

@@ -1,6 +1,6 @@
-const {buildModule} = require("@nomicfoundation/hardhat-ignition/modules");
+import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
-module.exports = buildModule("Mock", (m) =>
+export default buildModule("Mock", (m) =>
 {
     const tokens = {};
     for (const token of [ ['WBTC', 8], ['WETH', 18], ['USDT', 6] ]) {
