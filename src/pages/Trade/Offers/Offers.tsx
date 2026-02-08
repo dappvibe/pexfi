@@ -41,9 +41,7 @@ export default function Offers({ filter: superFilter = null }) {
       message.error('Failed to load offers')
     }
   }, [error])
-  useEffect(() => {
-    refetch() // FIXME update Apollo URI for the new network
-  }, [chainId])
+
 
   /**
    * Fetch market price of token in fiat and apply to offer rates.
