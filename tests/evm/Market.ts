@@ -1,20 +1,26 @@
-const {expect} = require("chai");
-const {ethers, upgrades, ignition, config} = require("hardhat");
-const MarketModule = require("../../evm/ignition/modules/Market.cjs");
+import MarketModule from '../../evm/ignition/modules/Market.ts';
+import {expect} from 'chai';
 
 let Uniswap, Tokens = {},
     PriceFeeds = {}, RepToken, Market, DealFactory, OfferFactory,
     deployer, buyer, seller, mediator,
     offers = [], deal;
 
+let hre, ethers, ignition, config, network;
 before(async function() {
-    [deployer, seller, buyer, mediator] = await ethers.getSigners();
+  const hardhat = await import('hardhat');
+  hre = hardhat.default;
+  console.log('HRE keys:', Object.keys(hre.network));
+  network = await hre.network.connect();
+  ({ ethers, ignition } = network);
+  config = hre.config;
+  [deployer, seller, buyer, mediator] = await ethers.getSigners();
 });
 
 after(async function() {
     // delete deployment folder so that next run doesn't fail with a reconciliation error
     const fs = require('fs');
-    fs.rmSync(config.paths.root + '/evm/ignition/deployments/test', {recursive: true, force: true});
+    fs.rmSync(config.paths.ignition + '/deployments/test', {recursive: true, force: true});
 });
 
 async function openDeal(provider, offer) {
@@ -170,7 +176,7 @@ describe('Users post offers', function()
         });
     });
 
-    describe('Get an offer', async function() {
+    it('Get an offer', async function() {
         await expect(Market.getOffer(offers[0])).to.eventually.have.length(9);
     });
 

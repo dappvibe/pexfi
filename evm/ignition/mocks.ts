@@ -1,9 +1,12 @@
-const {ethers} = require("hardhat");
-const fs = require('fs');
-const path = require('path');
-require('./modules/Market.cjs');
+import { network } from "hardhat";
+import fs from 'fs';
+import path from 'path';
+import './modules/Market.ts';
+import currencies from './currencies.json';
 
 (async () => {
+    const { ethers } = await network.connect();
+
     let Uniswap, PriceFeeds = {}, Tokens = {};
 
     const signers = await ethers.getSigners();
@@ -30,7 +33,6 @@ require('./modules/Market.cjs');
     let rates = await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json');
     rates = await rates.json();
     rates = rates.usd;
-    const currencies = require('./currencies.json');
     const factory = await ethers.getContractFactory("PriceFeed", signers[0]);
     for (let currency of currencies) {
         const contract = PriceFeeds[currency.code] = await factory.deploy(currency.code);
@@ -58,7 +60,7 @@ require('./modules/Market.cjs');
     }
 
     // Use this to deploy Market
-    const outputPath = path.join(__dirname, 'parameters', 'hardhat.json');
+    const outputPath = path.join(process.cwd(), 'evm', 'ignition', 'parameters', 'hardhat.json');
     fs.mkdirSync(path.dirname(outputPath), { recursive: true });
     fs.writeFileSync(outputPath, JSON.stringify({"Market": params}, null, 2));
     process.stderr.write('Done\n');

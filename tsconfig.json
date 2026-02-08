@@ -20,5 +20,5 @@
     "types": ["vite/client", "vitest/globals"],
     "noEmit": true
   },
-  "include": ["src/**/*", "tests/e2e/**/*", "evm/**/*", "tests/evm/**/*", "hardhat.config.cjs"]
+  "include": ["src/**/*", "tests/e2e/**/*", "evm/**/*", "tests/evm/**/*", "hardhat.config.ts"]
 }
