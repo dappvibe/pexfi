@@ -65,9 +65,7 @@ export default defineConfig({
       },
       viaIR: true,
     },
-  },
-  dependencyCompiler: {
-    paths: ['@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol'],
+    npmFilesToBuild: ['@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol'],
   },
   warnings: {
     'evm/protocol/mocks/**/*': {
