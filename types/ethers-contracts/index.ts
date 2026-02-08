@@ -8,6 +8,8 @@ export type { evm };
 export * as factories from './factories/index.js';
 export type { ERC1967Proxy } from './@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.js';
 export { ERC1967Proxy__factory } from './factories/@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy__factory.js';
+export type { ERC20 } from './@openzeppelin/contracts/token/ERC20/ERC20.js';
+export { ERC20__factory } from './factories/@openzeppelin/contracts/token/ERC20/ERC20__factory.js';
 export type { Deal } from './evm/protocol/Deal.js';
 export { Deal__factory } from './factories/evm/protocol/Deal__factory.js';
 export type { DealFactory } from './evm/protocol/DealFactory.js';

@@ -3,3 +3,5 @@
 /* eslint-disable */
 import type * as proxy from './proxy/index.js';
 export type { proxy };
+import type * as token from './token/index.js';
+export type { token };

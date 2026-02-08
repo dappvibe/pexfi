@@ -11,6 +11,7 @@ import * as Contracts from "./index.js";
 declare module "@nomicfoundation/hardhat-ethers/types" {
   interface HardhatEthersHelpers extends HardhatEthersHelpersBase {
   getContractFactory(name: 'ERC1967Proxy', signerOrOptions?: ethers.Signer | FactoryOptions): Promise<Contracts.ERC1967Proxy__factory>
+getContractFactory(name: 'ERC20', signerOrOptions?: ethers.Signer | FactoryOptions): Promise<Contracts.ERC20__factory>
 getContractFactory(name: 'Deal', signerOrOptions?: ethers.Signer | FactoryOptions): Promise<Contracts.Deal__factory>
 getContractFactory(name: 'DealFactory', signerOrOptions?: ethers.Signer | FactoryOptions): Promise<Contracts.DealFactory__factory>
 getContractFactory(name: 'Market', signerOrOptions?: ethers.Signer | FactoryOptions): Promise<Contracts.Market__factory>
@@ -25,6 +26,7 @@ getContractFactory(name: 'PoolBTC', signerOrOptions?: ethers.Signer | FactoryOpt
 getContractFactory(name: 'PoolETH', signerOrOptions?: ethers.Signer | FactoryOptions): Promise<Contracts.PoolETH__factory>
 
   getContractAt(name: 'ERC1967Proxy', address: string | ethers.Addressable, signer?: ethers.Signer): Promise<Contracts.ERC1967Proxy>
+getContractAt(name: 'ERC20', address: string | ethers.Addressable, signer?: ethers.Signer): Promise<Contracts.ERC20>
 getContractAt(name: 'Deal', address: string | ethers.Addressable, signer?: ethers.Signer): Promise<Contracts.Deal>
 getContractAt(name: 'DealFactory', address: string | ethers.Addressable, signer?: ethers.Signer): Promise<Contracts.DealFactory>
 getContractAt(name: 'Market', address: string | ethers.Addressable, signer?: ethers.Signer): Promise<Contracts.Market>
@@ -39,6 +41,7 @@ getContractAt(name: 'PoolBTC', address: string | ethers.Addressable, signer?: et
 getContractAt(name: 'PoolETH', address: string | ethers.Addressable, signer?: ethers.Signer): Promise<Contracts.PoolETH>
 
   deployContract(name: 'ERC1967Proxy', signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<Contracts.ERC1967Proxy>
+deployContract(name: 'ERC20', signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<Contracts.ERC20>
 deployContract(name: 'Deal', signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<Contracts.Deal>
 deployContract(name: 'DealFactory', signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<Contracts.DealFactory>
 deployContract(name: 'Market', signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<Contracts.Market>
@@ -53,6 +56,7 @@ deployContract(name: 'PoolBTC', signerOrOptions?: ethers.Signer | DeployContract
 deployContract(name: 'PoolETH', signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<Contracts.PoolETH>
 
   deployContract(name: 'ERC1967Proxy', args: any[], signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<Contracts.ERC1967Proxy>
+deployContract(name: 'ERC20', args: any[], signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<Contracts.ERC20>
 deployContract(name: 'Deal', args: any[], signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<Contracts.Deal>
 deployContract(name: 'DealFactory', args: any[], signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<Contracts.DealFactory>
 deployContract(name: 'Market', args: any[], signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<Contracts.Market>
