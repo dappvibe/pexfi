@@ -1,56 +1,56 @@
 {
   "Market": {
-    "uniswap": "0xC0E2EE50690ACF7fE4979fb44ac50EDa91f99697",
+    "uniswap": "0x343AAf0aE4657a5c7015F05866A12431B1c6C765",
     "addTokens_0": [
-      "0x75D5Cf9864d2b26077C3726507FD9D2a4e38afec",
-      "0xe98587C08e712Bf491F545ecA42A4ab36A18650a",
-      "0xEa2FC63Eac9b21A83996186e3B36b141e0172a3E"
+      "0xE3FB3F714852B66Bf09fc546D4A0A4E438dDEAD0",
+      "0xc98700FD665c8895FF5241c13c12ac9092932Ac6",
+      "0x350267976F153C620d5897aFfd6f0f3bbeaB3E99"
     ],
     "addTokens_1": 500,
     "fiats": [
       [
         "AUD",
-        "0xc57E2052Cd788af8573C2472dcCaB09E6140f684"
+        "0xe98587C08e712Bf491F545ecA42A4ab36A18650a"
       ],
       [
         "CAD",
-        "0xdF582304420A499372e6442043621914511426Fe"
+        "0xE9E8acbBFbd8B268c88fE5709e93887606af501a"
       ],
       [
         "CHF",
-        "0x13fCEB7078734997CD22e5CeFd89558c97e18638"
+        "0xa6359c744E4b76195986f7F928cF4bA21064C16F"
       ],
       [
         "EUR",
-        "0x2d7C3eA2d5bBD164098268c63ECE58405BDeaa4A"
+        "0x0C97C5366ed8A79F72174861F31Fd3729858E0e5"
       ],
       [
         "GBP",
-        "0x1f7241cDDE12AE87CC030d5da7A9f385Dff367E8"
+        "0x72a49d0fb5D8D3C80fbde48B253CFe4D37938d0e"
       ],
       [
         "JPY",
-        "0x628A5BDfEfbdf0dD98066bF80e36F2c2F9Bb8F00"
+        "0xEa2FC63Eac9b21A83996186e3B36b141e0172a3E"
       ],
       [
         "KRW",
-        "0x486C49116158D70791029DaF76AE227B175380C9"
+        "0xBdC25F602A25E3E515a0f44861b9Dd333C3e942e"
       ],
       [
         "PHP",
-        "0x2A4316A3a0df7D32D888abBEF8d71eb3A1922B80"
+        "0xc95E07AC97CB6af09aC0e5A982D42021ceFCf622"
       ],
       [
         "SEK",
-        "0x32404D738f62f08308a1306e74F0C37A4aF5DC89"
+        "0x42B1d621236dB1142048E545dAbc886e5235788a"
       ],
       [
         "SGD",
-        "0x27Fc3F7Badb6065d27aa48602f5CE6F6F966fF5E"
+        "0x053eE368b6369eA294F126e56C67eC969e52ba3f"
       ],
       [
         "USD",
-        "0xdb2B7704C506Cc8D54A6a3c823b2F2f44E793391"
+        "0xC0E2EE50690ACF7fE4979fb44ac50EDa91f99697"
       ]
     ],
     "methods": [

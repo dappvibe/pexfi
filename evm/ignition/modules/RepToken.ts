@@ -1,6 +1,6 @@
-const {buildModule} = require("@nomicfoundation/hardhat-ignition/modules");
+import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
-module.exports = buildModule("RepToken", (m) => {
+export default buildModule("RepToken", (m) => {
     const impl = m.contract('RepToken', [], {id: 'V0'});
     const proxy = m.contract('ERC1967Proxy', [
         impl,
