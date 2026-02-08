@@ -96,20 +96,5 @@ services:
       - evm
       - graph-node
 
-  gemini:
-    build:
-      context: ./.youtrack/gemini-api
-    working_dir: /app
-    volumes:
-      - ./.youtrack/gemini-api:/app
-      - gemini:/data
-    environment:
-      - PORT=3000
-      - DB_PATH=/data/gemini.db
-    command: npx tsx watch src/server.ts
-    ports:
-      - '3000:3000'
-
 volumes:
   subgraph:
-  gemini:
