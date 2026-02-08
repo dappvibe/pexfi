@@ -9,13 +9,13 @@ export interface TickMath$Type {
   readonly contractName: "TickMath";
   readonly sourceName: "evm/protocol/libraries/TickMath.sol";
   readonly abi: [];
-  readonly bytecode: "0x6080806040523460175760399081601c823930815050f35b5f80fdfe5f80fdfea26469706673582212205791ff3cabbe0937190181282e5a85b1646c70a5b2a91fc4e07de849c570f3cc64736f6c634300081a0033";
-  readonly deployedBytecode: "0x5f80fdfea26469706673582212205791ff3cabbe0937190181282e5a85b1646c70a5b2a91fc4e07de849c570f3cc64736f6c634300081a0033";
+  readonly bytecode: "0x6080806040523460175760399081601c823930815050f35b5f80fdfe5f80fdfea264697066735822122034273c93f6b2e880594ac926ce4d44b7ac1e1f7a0667c619efc8c59cb4ea4d0664736f6c634300081a0033";
+  readonly deployedBytecode: "0x5f80fdfea264697066735822122034273c93f6b2e880594ac926ce4d44b7ac1e1f7a0667c619efc8c59cb4ea4d0664736f6c634300081a0033";
   readonly linkReferences: {};
   readonly deployedLinkReferences: {};
   readonly immutableReferences: {};
   readonly inputSourceName: "project/evm/protocol/libraries/TickMath.sol";
-  readonly buildInfoId: "solc-0_8_26-1737df5eb94312cf2458bb21908a35a4528ad07d";
+  readonly buildInfoId: "solc-0_8_26-98d7f34ac90c429598174ff08d948dc55cca2d4b";
 };
 
 import "hardhat/types/artifacts";
