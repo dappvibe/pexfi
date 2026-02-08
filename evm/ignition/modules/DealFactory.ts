@@ -1,6 +1,6 @@
-const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
+import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
-const DealFactoryModule = buildModule('DealFactory', m => {
+export default buildModule('DealFactory', m => {
     const impl = m.contract('DealFactory', [], {id: 'V0'});
     const proxy = m.contract('ERC1967Proxy', [
         impl,
@@ -10,5 +10,3 @@ const DealFactoryModule = buildModule('DealFactory', m => {
 
     return { DealFactory };
 });
-
-module.exports = DealFactoryModule
