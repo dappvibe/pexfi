@@ -9,13 +9,13 @@ export interface Deals$Type {
   readonly contractName: "Deals";
   readonly sourceName: "evm/protocol/libraries/Deals.sol";
   readonly abi: [];
-  readonly bytecode: "0x6080806040523460175760399081601c823930815050f35b5f80fdfe5f80fdfea26469706673582212206e22a19f05491787688046cdf1ce3f25d04d848b3bcb9b694dd41af7f354632164736f6c634300081a0033";
-  readonly deployedBytecode: "0x5f80fdfea26469706673582212206e22a19f05491787688046cdf1ce3f25d04d848b3bcb9b694dd41af7f354632164736f6c634300081a0033";
+  readonly bytecode: "0x6080806040523460175760399081601c823930815050f35b5f80fdfe5f80fdfea2646970667358221220443574741c08f0fc19e7c1cc81aa761afaa2e093bc89510aa891fbf853ddd95c64736f6c634300081a0033";
+  readonly deployedBytecode: "0x5f80fdfea2646970667358221220443574741c08f0fc19e7c1cc81aa761afaa2e093bc89510aa891fbf853ddd95c64736f6c634300081a0033";
   readonly linkReferences: {};
   readonly deployedLinkReferences: {};
   readonly immutableReferences: {};
   readonly inputSourceName: "project/evm/protocol/libraries/Deals.sol";
-  readonly buildInfoId: "solc-0_8_26-4ddf1cd2ca392b5d8ae7e1f969cafb79095bd4ac";
+  readonly buildInfoId: "solc-0_8_26-498cf4de8f98e3f32f5701ac44f6820a2f3455d6";
 };
 
 import "hardhat/types/artifacts";

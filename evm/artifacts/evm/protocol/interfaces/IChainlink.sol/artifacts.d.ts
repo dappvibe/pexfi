@@ -15,7 +15,7 @@ export interface IChainlink$Type {
   readonly deployedLinkReferences: {};
   readonly immutableReferences: {};
   readonly inputSourceName: "project/evm/protocol/interfaces/IChainlink.sol";
-  readonly buildInfoId: "solc-0_8_26-3c28616680676863befe5023793d166bf34cf867";
+  readonly buildInfoId: "solc-0_8_26-498cf4de8f98e3f32f5701ac44f6820a2f3455d6";
 };
 
 import "hardhat/types/artifacts";
