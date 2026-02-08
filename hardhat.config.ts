@@ -32,6 +32,7 @@ export default defineConfig({
       chainType: 'op',
     },
     sepolia: {
+      chainId: 11155111,
       type: 'http',
       url: 'https://eth-sepolia.g.alchemy.com/v2/-pIVMYm22LgfrPb32FWlPaKWjXNmH2id',
       accounts: [process.env.DEPLOYER_SEPOLIA],
