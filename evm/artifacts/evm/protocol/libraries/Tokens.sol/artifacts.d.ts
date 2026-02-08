@@ -9,13 +9,13 @@ export interface Tokens$Type {
   readonly contractName: "Tokens";
   readonly sourceName: "evm/protocol/libraries/Tokens.sol";
   readonly abi: [];
-  readonly bytecode: "0x6080806040523460175760399081601c823930815050f35b5f80fdfe5f80fdfea26469706673582212209b21cb5252ceae9c89e96aa21a8bb70745e34a3f4d1b85244daafd4bd3915b6664736f6c634300081a0033";
-  readonly deployedBytecode: "0x5f80fdfea26469706673582212209b21cb5252ceae9c89e96aa21a8bb70745e34a3f4d1b85244daafd4bd3915b6664736f6c634300081a0033";
+  readonly bytecode: "0x6080806040523460175760399081601c823930815050f35b5f80fdfe5f80fdfea26469706673582212201493bdea33f7ad284f310d62bd5588dc226d271752e3686be41a5682d9de58e764736f6c634300081a0033";
+  readonly deployedBytecode: "0x5f80fdfea26469706673582212201493bdea33f7ad284f310d62bd5588dc226d271752e3686be41a5682d9de58e764736f6c634300081a0033";
   readonly linkReferences: {};
   readonly deployedLinkReferences: {};
   readonly immutableReferences: {};
   readonly inputSourceName: "project/evm/protocol/libraries/Tokens.sol";
-  readonly buildInfoId: "solc-0_8_26-1737df5eb94312cf2458bb21908a35a4528ad07d";
+  readonly buildInfoId: "solc-0_8_26-dadc40e98479a2f65a645405c962b3a16d35f502";
 };
 
 import "hardhat/types/artifacts";
