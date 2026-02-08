@@ -1,10 +1,10 @@
+import * as dotenv from 'dotenv'
+dotenv.config()
+
 import hardhatToolboxMochaEthersPlugin from '@nomicfoundation/hardhat-toolbox-mocha-ethers'
 import ignoreWarnings from 'hardhat-ignore-warnings';
+
 import { defineConfig } from 'hardhat/config'
-
-import * as dotenv from 'dotenv'
-
-dotenv.config()
 
 export default defineConfig({
   plugins: [hardhatToolboxMochaEthersPlugin, ignoreWarnings],
@@ -38,24 +38,13 @@ export default defineConfig({
     },
   },
 
-  // For contracts source verification on local blockscout
-  etherscan: {
-    apiKey: {
-      // Is not required by blockscout. Can be any non-empty string
-      localhost: 'abc',
-      sepolia: process.env.ETHERSCAN_KEY,
+  // For contracts source verification
+  verify: {
+    etherscan: {
+      apiKey: process.env.ETHERSCAN_KEY
     },
-    customChains: [
-      {
-        network: 'localhost',
-        chainId: 31337,
-        urls: {
-          apiURL: 'http://localhost/api',
-          browserURL: 'http://localhost/',
-        },
-      },
-    ],
   },
+
   solidity: {
     profiles: {
       default: {
