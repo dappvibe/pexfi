@@ -57,13 +57,21 @@ export default defineConfig({
     ],
   },
   solidity: {
-    version: '0.8.26',
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 200,
+    profiles: {
+      default: {
+        version: '0.8.26',
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+          viaIR: true,
+        },
       },
-      viaIR: true,
+      production: {
+        version: '0.8.26',
+        settings: { optimizer: { enabled: true, runs: 1000 }, viaIR: true },
+      },
     },
     npmFilesToBuild: ['@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol'],
   },
