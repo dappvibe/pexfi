@@ -15,7 +15,7 @@ export interface RepToken$Type {
   readonly deployedLinkReferences: {};
   readonly immutableReferences: {"847":[{"length":32,"start":4297},{"length":32,"start":4442}]};
   readonly inputSourceName: "project/evm/protocol/RepToken.sol";
-  readonly buildInfoId: "solc-0_8_26-7fb96dc4d6ad55c28d032b65c9558ca60a213082";
+  readonly buildInfoId: "solc-0_8_26-1737df5eb94312cf2458bb21908a35a4528ad07d";
 };
 
 import "hardhat/types/artifacts";
