@@ -1,4 +1,5 @@
 {
+  "buildCommand": "npm run build:web:staging",
   "rewrites": [
     {
       "source": "/docs",
