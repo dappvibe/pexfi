@@ -66,3 +66,9 @@ npx hardhat ignition deploy evm/ignition/modules/Market.ts \
     --network localhost \
     --verify
 ```
+
+```shell
+cd subgraph/
+graph build --network sepolia
+graph deploy pexfi --network sepolia
+```
