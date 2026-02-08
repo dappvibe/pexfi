@@ -6,6 +6,7 @@ import { persistQueryClient } from '@tanstack/react-query-persist-client'
 import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client'
 import { ApolloProvider } from '@apollo/client/react'
 import { config } from '@/wagmi.config'
+import { SUBGRAPH_URLS } from '@/subgraph.config'
 import { HelmetProvider } from '@dr.pogodin/react-helmet'
 
 const localStoragePersister = createSyncStoragePersister({
@@ -26,12 +27,13 @@ persistQueryClient({
   maxAge: 1000 * 60 * 60 * 24, // 24 hours
 })
 
+
+
 const getApolloClient = (chainId: number) => {
-  let uri: string = ''
-  if (chainId === 31337) {
-    uri = 'http://localhost:8000/subgraphs/name/sov'
-  } else if (import.meta.env.VITE_GRAPH_ENDPOINT) {
-    uri = import.meta.env.VITE_GRAPH_ENDPOINT.replace('CHAINID', `${chainId}`)
+  const uri = SUBGRAPH_URLS[chainId] || ''
+
+  if (!uri && import.meta.env.DEV) {
+    console.warn(`No subgraph URL configured for chain ID: ${chainId}`)
   }
 
   return new ApolloClient({
