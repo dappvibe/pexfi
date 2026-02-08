@@ -63,7 +63,10 @@ export default defineConfig({
         settings: { optimizer: { enabled: true, runs: 1000 }, viaIR: true },
       },
     },
-    npmFilesToBuild: ['@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol'],
+    npmFilesToBuild: [
+      '@openzeppelin/contracts/token/ERC20/ERC20.sol',
+      '@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol'
+    ],
   },
   warnings: {
     'evm/protocol/mocks/**/*': {

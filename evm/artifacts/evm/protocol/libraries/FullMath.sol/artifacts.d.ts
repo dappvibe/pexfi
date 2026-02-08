@@ -9,13 +9,13 @@ export interface FullMath$Type {
   readonly contractName: "FullMath";
   readonly sourceName: "evm/protocol/libraries/FullMath.sol";
   readonly abi: [];
-  readonly bytecode: "0x6080806040523460175760399081601c823930815050f35b5f80fdfe5f80fdfea26469706673582212207c6eced9d5822fd3d84b47631d636740ccbb218f6dbfb82b2c51f234dc6929e964736f6c634300081a0033";
-  readonly deployedBytecode: "0x5f80fdfea26469706673582212207c6eced9d5822fd3d84b47631d636740ccbb218f6dbfb82b2c51f234dc6929e964736f6c634300081a0033";
+  readonly bytecode: "0x6080806040523460175760399081601c823930815050f35b5f80fdfe5f80fdfea26469706673582212209706d8dc2dc09c701291a19b548414d8d7cbeb23c8e8f794fb21ad7e9fea963664736f6c634300081a0033";
+  readonly deployedBytecode: "0x5f80fdfea26469706673582212209706d8dc2dc09c701291a19b548414d8d7cbeb23c8e8f794fb21ad7e9fea963664736f6c634300081a0033";
   readonly linkReferences: {};
   readonly deployedLinkReferences: {};
   readonly immutableReferences: {};
   readonly inputSourceName: "project/evm/protocol/libraries/FullMath.sol";
-  readonly buildInfoId: "solc-0_8_26-96e639af8cdfc0e6d2c310f7ace3d1f55e5943fa";
+  readonly buildInfoId: "solc-0_8_26-498cf4de8f98e3f32f5701ac44f6820a2f3455d6";
 };
 
 import "hardhat/types/artifacts";
