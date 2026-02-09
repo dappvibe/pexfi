@@ -1,4 +1,4 @@
-import { createConfig, fallback, webSocket } from 'wagmi'
+import { createConfig, fallback, http, webSocket } from 'wagmi'
 import { Chain, hardhat, mainnet, sepolia } from 'wagmi/chains'
 
 const chains: Chain[] = []
@@ -16,11 +16,11 @@ switch (import.meta.env.MODE) {
 const transports = {
   [mainnet.id]: fallback([
     webSocket('wss://eth-mainnet.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY),
-    webSocket(), // built-in default
+    http()
   ]),
   [sepolia.id]: fallback([
     webSocket('wss://eth-sepolia.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY),
-    webSocket(),
+    http()
   ]),
   [hardhat.id]: webSocket('http://localhost:8545'),
 }
