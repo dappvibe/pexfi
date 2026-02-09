@@ -13,7 +13,7 @@ contract OfferFactory is UUPSUpgradeable, OwnableUpgradeable
     using Strings for *;
 
     Market public market;
-    uint private constant MIN_USDT_VOLUME = 20;
+    uint private constant MIN_USD_VOLUME = 20;
 
     function initialize(address market_) public initializer {
         __Ownable_init(msg.sender);
@@ -37,7 +37,7 @@ contract OfferFactory is UUPSUpgradeable, OwnableUpgradeable
         require(rate_ > 0, "rate");
         require(limits_.min < limits_.max, 'minmax');
         market.getPrice(token_, fiat_); // this validates both token and fiat
-        require(market.convert(limits_.min, fiat_, 'USDT', 10000) > MIN_USDT_VOLUME, 'min too low');
+        require(market.convert(limits_.min, fiat_, 'USDC', 10000) > MIN_USD_VOLUME, 'min too low');
         market.method(method_);         // validate method
 
         Offer offer = new Offer(
