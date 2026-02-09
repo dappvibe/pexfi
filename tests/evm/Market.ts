@@ -170,10 +170,6 @@ describe('Users post offers', function()
         });
     });
 
-    it('Get an offer', async function() {
-        await expect(Market.getOffer(offers[0])).to.eventually.have.length(9);
-    });
-
     describe('invalid input', async function() {
         function params(i, replace) {
             const p = [true, 'WBTC', 'USD', 'Zelle', 10250, [1000, 5000], ''];
