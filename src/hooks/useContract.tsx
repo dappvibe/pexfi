@@ -11,7 +11,24 @@ import { useMemo } from 'react'
 import * as Types from '@/types'
 import { useAddress } from './useAddress'
 
-import { getRpcUrl } from '@/wagmi.config'
+/**
+ * To allow reuse in useContract() when building ethers provider from Wagmi Client.
+ * @deprecated ethers to be removed in 1.0
+ */
+function getRpcUrl(chainId: number, https: boolean = false): string {
+  // to match allowed bigint
+  chainId = Number(chainId)
+
+  const proto = https ? 'wss' : 'ws'
+  switch (chainId) {
+    case 42161:
+      return proto + '://arb-mainnet.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY
+    case 421614:
+      return proto + '://arb-sepolia.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY
+    default:
+      return proto + '://localhost:8545'
+  }
+}
 
 /**
  * @deprecated use wagmi generated hooks and useAddress()
