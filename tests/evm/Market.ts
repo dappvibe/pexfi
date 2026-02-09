@@ -17,12 +17,6 @@ before(async function() {
   [deployer, seller, buyer, mediator] = await ethers.getSigners();
 });
 
-after(async function() {
-    // delete deployment folder so that next run doesn't fail with a reconciliation error
-    const fs = require('fs');
-    fs.rmSync(config.paths.ignition + '/deployments/test', {recursive: true, force: true});
-});
-
 async function openDeal(provider, offer) {
     DealFactory = await DealFactory.connect(provider);
     const response = DealFactory.create(offer.target, 1234_500000, 'IBAN:DE89370400440532013000', )
