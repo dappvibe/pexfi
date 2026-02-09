@@ -1,4 +1,4 @@
-import { createConfig, fallback, webSocket } from 'wagmi'
+import { createConfig, fallback, http } from 'wagmi'
 import { Chain, hardhat, mainnet, sepolia } from 'wagmi/chains'
 
 const chains: Chain[] = []
@@ -13,24 +13,21 @@ switch (import.meta.env.MODE) {
     chains.push(mainnet)
 }
 
+const alchemyKey = import.meta.env.VITE_ALCHEMY_KEY
 const transports = {
-  [mainnet.id]: fallback([
-    webSocket('wss://eth-mainnet.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY),
-    webSocket(), // built-in default
-  ]),
-  [sepolia.id]: fallback([
-    webSocket('wss://eth-sepolia.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY),
-    webSocket(),
-  ]),
-  [hardhat.id]: webSocket('http://localhost:8545'),
+  [mainnet.id]: fallback([http(`https://eth-mainnet.g.alchemy.com/v2/${alchemyKey}`), http()]),
+  [sepolia.id]: fallback([http(`https://eth-sepolia.g.alchemy.com/v2/${alchemyKey}`), http()]),
+  [hardhat.id]: http('http://127.0.0.1:8545'),
 }
 
 // E2E Testing Support: This is required to be here to automate provider in VITE env
 const connectors = window.E2E
-  ? [await import('@tests/e2e/wallet').then((m) => {
-      m.install()
-      return m.connector()
-    })]
+  ? [
+      await import('@tests/e2e/wallet').then((m) => {
+        m.install()
+        return m.connector()
+      }),
+    ]
   : []
 
 export const config = createConfig({
