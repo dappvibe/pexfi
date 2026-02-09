@@ -125,7 +125,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     public view
     returns (uint256 amount)
     {
-        if (fromFiat_.equal("USD") && toToken_.equal("USDT")) return FullMath.mulDiv(amount_, 10**4, denominator);
+        if (fromFiat_.equal("USD") && toToken_.equal("USDC")) return FullMath.mulDiv(amount_, 10**4, denominator);
 
         uint decimals = tokens.get(toToken_).decimals;
         amount = FullMath.mulDiv(amount_, 10**decimals, getPrice(toToken_, fromFiat_));
@@ -134,8 +134,8 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
 
     /// @return price with 6 decimals
     function getPrice(string memory token_, string memory fiat_) public view returns (uint256 price) {
-        if (!token_.equal('USDT')) {
-            price = _uniswapRateForUSDT(tokens.get(token_));
+        if (!token_.equal('USDC')) {
+            price = _uniswapRateForUSD(tokens.get(token_));
         }
         else price = 10**6;
 
@@ -184,12 +184,12 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
         }
     }
 
-    /// @return price of token_ in USDT (6 decimals)
-    function _uniswapRateForUSDT(Tokens.Token storage token_) internal view returns (uint)
+    /// @return price of token_ in USDC (6 decimals)
+    function _uniswapRateForUSD(Tokens.Token storage token_) internal view returns (uint)
     {
         IUniswapV3Pool pool = IUniswapV3Pool(uniswap.getPool(
             address(token_.api),
-            address(tokens.get("USDT").api),
+            address(tokens.get("USDC").api),
             token_.uniswapPoolFee
         ));
 
@@ -200,7 +200,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
         int56 tickCumulativesDelta = tickCumulatives[1] - tickCumulatives[0];
         uint160 sqrtPriceX96 = TickMath.getSqrtPriceAtTick(int24(tickCumulativesDelta / 300));
 
-        // return in USDT (tokenB) precision
+        // return in USDC (tokenB) precision
         return FullMath.mulDiv(uint256(sqrtPriceX96) * uint256(sqrtPriceX96), 10**token_.decimals, 1 << 192);
     }
 }
