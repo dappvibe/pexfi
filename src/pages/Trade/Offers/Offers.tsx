@@ -1,17 +1,16 @@
+
 import { useParams } from 'react-router-dom'
 import React, { useEffect, useState } from 'react'
 import { message } from 'antd'
-import { useChainId } from 'wagmi'
-import { useQuery } from '@tanstack/react-query'
-import { useContract } from '@/hooks/useContract'
 import { useOffers } from '@/hooks/useOffers'
 import OffersTable from '@/pages/Trade/Offers/OffersTable'
 import OffersFilters from '@/pages/Trade/Offers/OffersFilters'
 import TokenNav from '@/pages/Trade/Offers/TokenNav'
+import { useAddress } from '@/hooks/useAddress'
+import { useReadMarketGetPrice } from '@/wagmi'
 
 export default function Offers({ filter: superFilter = null }) {
-  const chainId = useChainId()
-  const { Market } = useContract()
+  const marketAddress = useAddress('Market#Market')
 
   /**
    * Fetch offers from the GraphQL. It then must calculate price and be filtered by amount.
@@ -47,11 +46,26 @@ export default function Offers({ filter: superFilter = null }) {
    * Fetch market price of token in fiat and apply to offer rates.
    */
   const [allOffers, setAllOffers] = useState(null)
-  const { data: marketPrice, isLoading: priceLoading } = useQuery({
-    queryKey: ['marketPrice' + chainId, { token, fiat }],
-    queryFn: () => Market.getPrice(token, fiat).then((price) => Number(price / 10000n) / 100),
-    staleTime: 30000,
+  const {
+    data: marketPrice,
+    isLoading: priceLoading,
+    error: priceError,
+  } = useReadMarketGetPrice({
+    address: marketAddress,
+    args: [token, fiat],
+    query: {
+      enabled: !!marketAddress,
+      staleTime: 30000,
+      select: (data) => Number(data) / 10000 / 100,
+    },
   })
+  useEffect(() => {
+    if (priceError) {
+      console.error(priceError)
+      // noinspection JSIgnoredPromiseFromCall
+      message.error('Failed to load price')
+    }
+  }, [priceError])
   useEffect(() => {
     if (!rawOffers || !marketPrice) return
     const offers = rawOffers.map((offer) => {
@@ -85,7 +99,7 @@ export default function Offers({ filter: superFilter = null }) {
       <OffersFilters setFilterAmount={setFilterAmount} />
       <OffersTable
         offers={offers || []}
-        loading={offers === null || listLoading || priceLoading}
+        loading={!error && !priceError && (offers === null || listLoading || priceLoading)}
         loadMore={loadMore}
         totalOffers={totalCount}
       />
