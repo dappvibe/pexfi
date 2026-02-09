@@ -1,25 +1,6 @@
 import { createConfig, fallback, webSocket } from 'wagmi'
 import { Chain, hardhat, mainnet, sepolia } from 'wagmi/chains'
 
-/**
- * To allow reuse in useContract() when building ethers provider from Wagmi Client.
- * @deprecated ethers to be removed in 1.0
- */
-export function getRpcUrl(chainId: number, https: boolean = false): string {
-  // to match allowed bigint
-  chainId = Number(chainId)
-
-  const proto = https ? 'wss' : 'ws'
-  switch (chainId) {
-    case 42161:
-      return proto + '://arb-mainnet.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY
-    case 421614:
-      return proto + '://arb-sepolia.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY
-    default:
-      return proto + '://localhost:8545'
-  }
-}
-
 const chains: Chain[] = []
 switch (import.meta.env.MODE) {
   default:
