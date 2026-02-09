@@ -10,23 +10,21 @@ import { BaseContract, BrowserProvider, ethers, JsonRpcApiProvider, JsonRpcSigne
 import { useMemo } from 'react'
 import * as Types from '@/types'
 import { useAddress } from './useAddress'
+import { mainnet, sepolia } from 'wagmi/chains'
 
 /**
  * To allow reuse in useContract() when building ethers provider from Wagmi Client.
  * @deprecated ethers to be removed in 1.0
  */
-function getRpcUrl(chainId: number, https: boolean = false): string {
-  // to match allowed bigint
+function getRpcUrl(chainId: number): string {
   chainId = Number(chainId)
-
-  const proto = https ? 'wss' : 'ws'
   switch (chainId) {
-    case 42161:
-      return proto + '://arb-mainnet.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY
-    case 421614:
-      return proto + '://arb-sepolia.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY
+    case mainnet.id:
+      return 'wss://eth-mainnet.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY
+    case sepolia.id:
+      return 'wss://eth-sepolia.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY
     default:
-      return proto + '://localhost:8545'
+      return 'ws://localhost:8545'
   }
 }
 
@@ -45,7 +43,7 @@ export function useContract() {
       ensAddress: chain.contracts?.ensRegistry?.address,
     }
 
-    const url = getRpcUrl(chainId, chain.id !== 31337)
+    const url = getRpcUrl(chainId)
     return new WebSocketProvider(url, network)
   }
 
