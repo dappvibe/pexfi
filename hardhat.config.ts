@@ -3,11 +3,12 @@ dotenv.config()
 
 import hardhatToolboxMochaEthersPlugin from '@nomicfoundation/hardhat-toolbox-mocha-ethers'
 import ignoreWarnings from 'hardhat-ignore-warnings';
+import hardhatVerify from '@nomicfoundation/hardhat-verify';
 
 import { defineConfig } from 'hardhat/config'
 
 export default defineConfig({
-  plugins: [hardhatToolboxMochaEthersPlugin, ignoreWarnings],
+  plugins: [hardhatToolboxMochaEthersPlugin, ignoreWarnings, hardhatVerify],
   paths: {
     sources: './evm/protocol',
     tests: './tests/evm',
@@ -42,8 +43,11 @@ export default defineConfig({
   // For contracts source verification
   verify: {
     etherscan: {
-      apiKey: process.env.ETHERSCAN_KEY
+      apiKey: process.env.ETHERSCAN_KEY,
     },
+    blockscout: {
+      enabled: true
+    }
   },
 
   solidity: {
