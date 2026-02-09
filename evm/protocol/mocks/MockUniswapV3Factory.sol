@@ -5,7 +5,7 @@ contract PoolBTC {
     function observe(uint32[] calldata secondsAgos) external view
     returns (int56[] memory tickCumulatives, uint160[] memory secondsPerLiquidityCumulativeX128s)
     {
-        // BTC / USDT pool
+        // BTC / USDC pool
         int56[] memory tickCumulatives = new int56[](2);
         tickCumulatives[0] = -9040098714235;
         tickCumulatives[1] = -9040079462965;
@@ -20,7 +20,7 @@ contract PoolETH {
     function observe(uint32[] calldata secondsAgos) external view
     returns (int56[] memory tickCumulatives, uint160[] memory secondsPerLiquidityCumulativeX128s)
     {
-        // WETH / USDT pool
+        // WETH / USDC pool
         int56[] memory tickCumulatives = new int56[](2);
         tickCumulatives[0] = -17595288323282;
         tickCumulatives[1] = -17595346759502;
