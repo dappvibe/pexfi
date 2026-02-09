@@ -1,19 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import Offers from '@/pages/Trade/Offers/Offers'
-import { useChainId } from 'wagmi'
-import { useQuery } from '@tanstack/react-query'
 import { useOffers } from '@/hooks/useOffers'
 import { useParams } from 'react-router-dom'
-import { useContract } from '@/hooks/useContract'
+import { useAddress } from '@/hooks/useAddress'
+import { useReadMarketGetPrice } from '@/wagmi'
 
 // Mock third-party hooks
 vi.mock('wagmi', () => ({
   useChainId: vi.fn(() => 31337),
 }))
 
-vi.mock('@tanstack/react-query', () => ({
-  useQuery: vi.fn(),
+vi.mock('@/wagmi', () => ({
+  useReadMarketGetPrice: vi.fn(),
 }))
 
 vi.mock('react-router-dom', () => ({
@@ -21,8 +20,8 @@ vi.mock('react-router-dom', () => ({
 }))
 
 // Mock custom hooks
-vi.mock('@/hooks/useContract', () => ({
-  useContract: vi.fn(),
+vi.mock('@/hooks/useAddress', () => ({
+  useAddress: vi.fn(),
 }))
 
 vi.mock('@/hooks/useOffers', () => ({
@@ -50,14 +49,9 @@ vi.mock('@/pages/Trade/Offers/TokenNav', () => ({
 }))
 
 describe('Offers Page', () => {
-  const mockMarket = {
-    getPrice: vi.fn(),
-  }
-
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(useChainId).mockReturnValue(31337)
-    vi.mocked(useContract).mockReturnValue({ Market: mockMarket } as any)
+    vi.mocked(useAddress).mockReturnValue('0xMarketAddress')
     vi.mocked(useParams).mockReturnValue({ side: 'buy', token: 'WBTC', fiat: 'USD' })
   })
 
@@ -77,7 +71,7 @@ describe('Offers Page', () => {
 
     // Mock Market Price Query
     // Price Loading
-    vi.mocked(useQuery).mockReturnValue({
+    vi.mocked(useReadMarketGetPrice).mockReturnValue({
       data: 100, // 100 USD per Token
       isLoading: false,
     } as any)
@@ -108,7 +102,7 @@ describe('Offers Page', () => {
       refetch: vi.fn(),
     } as any)
 
-    vi.mocked(useQuery).mockReturnValue({
+    vi.mocked(useReadMarketGetPrice).mockReturnValue({
       data: null,
       isLoading: true, // Price loading
     } as any)
