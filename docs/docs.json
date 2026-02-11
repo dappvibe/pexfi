@@ -73,11 +73,6 @@
     ],
     "global": {
       "anchors": [
-        {
-          "anchor": "Launch App",
-          "href": "https://pexfi.com",
-          "icon": "rocket"
-        }
       ]
     }
   },
@@ -88,7 +83,7 @@
   "navbar": {
     "primary": {
       "type": "button",
-      "label": "Launch App",
+      "label": "To Marketplace",
       "href": "https://pexfi.com"
     }
   },
