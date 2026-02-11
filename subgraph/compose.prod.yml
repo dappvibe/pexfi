@@ -21,12 +21,12 @@ services:
       - ipfs
       - postgres
     image: graphprotocol/graph-node:v0.35.0
-    expose:
-      - '8000'
-      - '8001'
-      - '8020'
-      - '8030'
-      - '8040'
+    ports:
+      - '8000:8000'
+      - '8001:8001'
+      - '8020:8020'
+      - '8030:8030'
+      - '8040:8040'
     environment:
       node_id: default
       ipfs: 'ipfs:5001'
@@ -38,8 +38,8 @@ services:
   postgres:
     restart: unless-stopped
     image: postgres:14
-    expose:
-      - '5432'
+    ports:
+      - '5432:5432'
     command: ['postgres', '-cshared_preload_libraries=pg_stat_statements', '-cmax_connections=200']
     environment:
       POSTGRES_USER: graph-node
@@ -53,8 +53,8 @@ services:
   ipfs:
     restart: unless-stopped
     image: ipfs/kubo:v0.17.0
-    expose:
-      - '5001'
+    ports:
+      - '5001:5001'
     volumes:
       # IPFS uses /data/ipfs. Data will be stored in volume root under 'ipfs/'
       - subgraph:/data
