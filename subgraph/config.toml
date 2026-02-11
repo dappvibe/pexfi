@@ -4,7 +4,7 @@ connection = "postgresql://graph-node:let-me-in@postgres:5432/graph-node"
 pool_size = 10
 
 [chains]
-ingestor = "block_ingestor_node"
+ingestor = "default"
 
 [chains.sepolia]
 shard = "primary"
