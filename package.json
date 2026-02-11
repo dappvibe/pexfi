@@ -10,14 +10,14 @@
     "build:web:staging": "vite build --mode staging",
     "build:web:prod": "vite build --mode production",
     "build:evm": "hardhat compile --no-typechain",
+    "build:subgraph": "npx graph build subgraph/subgraph.yaml -o .cache/subgraph/build --network-file subgraph/networks.json --network",
     "docs:dev": "cd docs && npx mint dev --no-open",
     "wagmi:generate": "wagmi generate",
     "test": "vitest",
     "test:web": "vitest run",
     "test:evm": "hardhat test",
     "lint": "eslint . --ext js,jsx,ts,tsx",
-    "subgraph:codegen": "graph codegen subgraph/subgraph.yaml -o subgraph/generated",
-    "subgraph:build": "graph build subgraph/subgraph.yaml -o subgraph/build"
+    "subgraph:codegen": "npx graph codegen subgraph/subgraph.yaml -o .cache/subgraph/generated"
   },
   "dependencies": {
     "@apollo/client": "^4.0.11",

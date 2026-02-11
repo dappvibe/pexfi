@@ -67,8 +67,4 @@ npx hardhat ignition deploy evm/ignition/modules/Market.ts \
     --verify
 ```
 
-```shell
-cd subgraph/
-graph build --network sepolia
-graph deploy pexfi --network sepolia
-```
+See subgraph/README.md to deploy indexer.
