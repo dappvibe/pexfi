@@ -1,0 +1,3 @@
+graph.pexfi.com {
+    reverse_proxy graph-node:8000
+}
