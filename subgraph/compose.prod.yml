@@ -1,0 +1,44 @@
+volumes:
+  subgraph:
+
+services:
+  graph-node:
+    depends_on:
+      - ipfs
+      - postgres
+    image: graphprotocol/graph-node:v0.35.0
+    ports:
+      - '8000:8000'
+      - '8001:8001'
+      - '8020:8020'
+      - '8030:8030'
+      - '8040:8040'
+    environment:
+      node_id: default
+      ipfs: 'ipfs:5001'
+      GRAPH_LOG: info
+      GRAPH_NODE_CONFIG: /config.toml
+    volumes:
+      - ./config.toml:/config.toml
+
+  postgres:
+    image: postgres:14
+    ports:
+      - '5432:5432'
+    command: ['postgres', '-cshared_preload_libraries=pg_stat_statements', '-cmax_connections=200']
+    environment:
+      POSTGRES_USER: graph-node
+      POSTGRES_PASSWORD: let-me-in
+      POSTGRES_DB: graph-node
+      POSTGRES_INITDB_ARGS: '-E UTF8 --locale=C'
+    volumes:
+      # Postgres uses /var/lib/postgresql/data. Data will be stored in volume root under 'data/'
+      - subgraph:/var/lib/postgresql
+
+  ipfs:
+    image: ipfs/kubo:v0.17.0
+    ports:
+      - '5001:5001'
+    volumes:
+      # IPFS uses /data/ipfs. Data will be stored in volume root under 'ipfs/'
+      - subgraph:/data
