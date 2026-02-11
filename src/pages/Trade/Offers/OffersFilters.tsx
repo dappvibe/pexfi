@@ -6,7 +6,7 @@ import { useInventory } from '@/hooks/useInventory'
 export default function OffersFilters({ setFilterAmount }) {
   const navigate = useNavigate()
   const { fiats, methods } = useInventory()
-  const { side = 'sell', token = 'WBTC', fiat = 'USD', method = undefined } = useParams()
+  const { side = 'sell', token = 'WETH', fiat = 'USD', method = undefined } = useParams()
 
   return (
     <Space style={{ margin: '10px 0 0 10px' }}>

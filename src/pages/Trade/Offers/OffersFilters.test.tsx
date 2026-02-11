@@ -39,7 +39,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
     useNavigate: () => mockNavigate,
     useParams: vi.fn(() => ({
       side: 'sell',
-      token: 'WBTC', // Matches URL param expectation
+      token: 'WETH', // Matches URL param expectation
       fiat: 'USD',
       method: 'Bank Transfer',
     })),
@@ -99,7 +99,7 @@ describe('OffersFilters', () => {
     const euroOption = euroOptions[euroOptions.length - 1]
     fireEvent.click(euroOption)
 
-    expect(mockNavigate).toHaveBeenCalledWith('/trade/sell/WBTC/EUR/Bank%20Transfer')
+    expect(mockNavigate).toHaveBeenCalledWith('/trade/sell/WETH/EUR/Bank%20Transfer')
   })
 
   it('navigates on method change', async () => {
@@ -124,6 +124,6 @@ describe('OffersFilters', () => {
     const paypalOption = paypalOptions[paypalOptions.length - 1]
     fireEvent.click(paypalOption)
 
-    expect(mockNavigate).toHaveBeenCalledWith('/trade/sell/WBTC/USD/Paypal')
+    expect(mockNavigate).toHaveBeenCalledWith('/trade/sell/WETH/USD/Paypal')
   })
 })

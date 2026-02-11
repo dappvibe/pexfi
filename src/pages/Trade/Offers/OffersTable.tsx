@@ -7,7 +7,7 @@ import { useAccount } from 'wagmi'
 
 export default function OffersTable({ offers, loading, loadMore, totalOffers }) {
   const { address } = useAccount()
-  let { side = 'sell', token = 'WBTC', fiat = 'USD', method = null } = useParams()
+  let { side = 'sell', token = 'WETH', fiat = 'USD', method = null } = useParams()
 
   const columns: any = [
     {
