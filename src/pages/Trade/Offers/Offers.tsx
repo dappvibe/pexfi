@@ -15,7 +15,7 @@ export default function Offers({ filter: superFilter = null }) {
   /**
    * Fetch offers from the GraphQL. It then must calculate price and be filtered by amount.
    */
-  const { side = 'sell', token = 'WBTC', fiat = 'USD', method = undefined } = useParams()
+  const { side = 'sell', token = 'WETH', fiat = 'USD', method = undefined } = useParams()
   const {
     offers: rawOffers,
     totalCount,

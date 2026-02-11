@@ -13,7 +13,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
     ...actual,
     useParams: vi.fn(() => ({
       side: 'sell',
-      token: 'WBTC',
+      token: 'WETH',
       fiat: 'USD',
       method: null,
     })),

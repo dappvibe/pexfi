@@ -3,7 +3,7 @@ import { generatePath, Link, useParams } from 'react-router-dom'
 import { useInventory } from '@/hooks/useInventory'
 
 export default function TokenNav() {
-  let { side = 'sell', token = 'WBTC', fiat = 'USD', method = null } = useParams()
+  let { side = 'sell', token = 'WETH', fiat = 'USD', method = null } = useParams()
   const { tokens } = useInventory()
 
   const tokensMenu = Object.keys(tokens).map((token) => {

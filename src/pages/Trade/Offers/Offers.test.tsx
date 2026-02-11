@@ -52,7 +52,7 @@ describe('Offers Page', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(useAddress).mockReturnValue('0xMarketAddress')
-    vi.mocked(useParams).mockReturnValue({ side: 'buy', token: 'WBTC', fiat: 'USD' })
+    vi.mocked(useParams).mockReturnValue({ side: 'buy', token: 'WETH', fiat: 'USD' })
   })
 
   it('renders subcomponents and calculates prices', async () => {
