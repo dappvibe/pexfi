@@ -17,6 +17,10 @@ export default function Topnav() {
       key: 'buy',
       label: <Link to={generatePath('/trade/buy/:token?/:fiat?/:method?', useParams() as any)}>Buy</Link>,
     },
+    {
+      key: 'docs',
+      label: <a href={'/docs'}>Learn</a>
+    }
   ]
 
   return (
