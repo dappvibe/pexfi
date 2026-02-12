@@ -13,7 +13,7 @@ const mockStartPolling = vi.fn()
 const mockStopPolling = vi.fn()
 const mockUseQuery = vi.fn()
 
-vi.mock('@apollo/client/react', () => ({
+vi.mock('@apollo/client', () => ({
   useQuery: (...args) => mockUseQuery(...args),
   gql: vi.fn(),
 }))

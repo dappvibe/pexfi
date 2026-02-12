@@ -4,9 +4,9 @@ import { OffersRequestParams, useOffers } from '@/hooks/useOffers'
 
 // Mock useQuery
 const mockUseQuery = vi.fn()
-vi.mock('@apollo/client/react', () => ({
+vi.mock('@apollo/client', () => ({
   useQuery: (...args) => mockUseQuery(...args),
-  gql: vi.fn(),
+  gql: vi.fn((q) => q),
 }))
 
 // Mock data

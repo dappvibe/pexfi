@@ -1,5 +1,4 @@
-import { gql } from '@apollo/client'
-import { useQuery } from '@apollo/client/react'
+import { gql, useQuery } from '@apollo/client'
 import { useEffect, useState } from 'react'
 
 export type OffersFilter = {

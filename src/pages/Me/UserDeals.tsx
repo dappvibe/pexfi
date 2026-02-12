@@ -1,26 +1,70 @@
 import { Link } from 'react-router-dom'
 import { Empty, List, Skeleton, Tag } from 'antd'
-import React, { useEffect, useState } from 'react'
-import Deal from '@/model/Deal.js'
+import React from 'react'
 import { useAccount } from 'wagmi'
-import { useContract } from '@/hooks/useContract'
-import Offer from '@/model/Offer.js'
+import { gql, useQuery } from '@apollo/client'
 
-function StateTag(args) {
+const USER_DEALS_QUERY = gql`
+  query UserDeals($user: Bytes!) {
+    asMaker: deals(where: { offer_: { owner: $user } }, orderBy: createdAt, orderDirection: desc) {
+      id
+      createdAt
+      state
+      tokenAmount
+      fiatAmount
+      offer {
+        id
+        token {
+          id
+          decimals
+          symbol
+        }
+        fiat
+        method
+        owner
+        isSell
+      }
+      taker
+    }
+    asTaker: deals(where: { taker: $user }, orderBy: createdAt, orderDirection: desc) {
+      id
+      createdAt
+      state
+      tokenAmount
+      fiatAmount
+      offer {
+        id
+        token {
+          id
+          decimals
+          symbol
+        }
+        fiat
+        method
+        owner
+        isSell
+      }
+      taker
+    }
+  }
+`
+
+function StateTag({ state }) {
   const index = ['Initiated', 'Accepted', 'Funded', 'Paid', 'Disputed', 'Canceled', 'Resolved', 'Completed']
-  return <Tag color={args.state === 7 ? 'green' : 'blue'}>{index[args.state]}</Tag>
+  return <Tag color={state === 7 ? 'green' : 'blue'}>{index[state]}</Tag>
 }
 
 function DealItem({ deal }) {
   const { address } = useAccount()
 
   function title(deal) {
-    const href = '/trade/deal/' + deal.contract.target
-    let title = deal.seller === address ? 'Sell ' : 'Buy '
+    const href = '/trade/deal/' + deal.id
+    const isSeller = deal.seller.toLowerCase() === address?.toLowerCase()
+    let title = isSeller ? 'Sell ' : 'Buy '
     title +=
       deal.tokenAmount +
       ' ' +
-      deal.offer.token +
+      deal.offer.token.symbol +
       ' for ' +
       deal.fiatAmount +
       ' ' +
@@ -30,8 +74,8 @@ function DealItem({ deal }) {
     return <Link to={href}>{title}</Link>
   }
 
-  function time(block) {
-    return new Date(block.timestamp * 1000).toLocaleString()
+  function time(timestamp) {
+    return new Date(timestamp * 1000).toLocaleString()
   }
 
   return (
@@ -48,55 +92,42 @@ function DealItem({ deal }) {
     </List.Item>
   )
 }
-DealItem.propTypes = {
-  deal: Deal,
-}
 
 export default function UserDeals() {
   const { address } = useAccount()
-  const { Market, Deal: DealContract, Offer: OfferContract } = useContract()
-  const [deals, setDeals] = useState()
+  const { data, loading, error } = useQuery(USER_DEALS_QUERY, {
+    variables: { user: address },
+    skip: !address,
+  })
 
-  useEffect(() => {
-    if (address) {
-      Promise.all([
-        Market.queryFilter(Market.filters.DealCreated(address)), // as owner (maker)
-        Market.queryFilter(Market.filters.DealCreated(null, address)), // as taker
-      ]).then(([asOwner, asTaker]) => {
-        const fetching = asOwner.concat(asTaker).map((log) =>
-          new Deal(DealContract.attach(log.args[3])).fetch().then((deal) => {
-            return Market.runner
-              .getBlock(log.blockHash)
-              .then((block) => {
-                deal.createdAt = block
-                return deal
-              })
-              .then((deal) => {
-                return Offer.fetch(OfferContract.attach(deal.offer)).then((offer) => {
-                  deal.offer = offer
-                  return Market.token(offer.token).then((token) => {
-                    deal.tokenAmount /= 10 ** Number(token.decimals)
-                    return deal
-                  })
-                })
-              })
-          })
-        )
-        Promise.all(fetching).then(setDeals)
-      })
-    }
-  }, [address])
-
-  if (deals === undefined) {
+  if (loading || !address) {
     return <Skeleton active />
-  } else {
-    if (deals.length === 0) return <Empty />
-    return (
-      <List itemLayout={'vertical'} bordered={true}>
-        {deals.reverse().map((deal, i) => {
-          return <DealItem key={i} deal={deal} />
-        })}
-      </List>
-    )
   }
+
+  if (error) {
+    console.error('Error loading deals:', error)
+    return <Empty description="Error loading deals" />
+  }
+
+  const deals = [...(data?.asMaker || []), ...(data?.asTaker || [])]
+    .map((deal) => {
+      const decimals = deal.offer.token.decimals
+      return {
+        ...deal,
+        tokenAmount: Number(deal.tokenAmount) / 10 ** decimals,
+        fiatAmount: Number(deal.fiatAmount) / 10 ** 6,
+        seller: deal.offer.isSell ? deal.offer.owner : deal.taker,
+      }
+    })
+    .sort((a, b) => b.createdAt - a.createdAt)
+
+  if (deals.length === 0) return <Empty />
+
+  return (
+    <List itemLayout={'vertical'} bordered={true}>
+      {deals.map((deal) => (
+        <DealItem key={deal.id} deal={deal} />
+      ))}
+    </List>
+  )
 }
