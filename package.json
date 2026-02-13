@@ -63,6 +63,7 @@
     "@typescript-eslint/eslint-plugin": "^8.52.0",
     "@typescript-eslint/parser": "^8.52.0",
     "@uma/core": "^2.62.2",
+    "@uniswap/v4-core": "^1.0.2",
     "@vitejs/plugin-react": "^5.1.2",
     "@wagmi/cli": "^2.8.0",
     "@wonderland/walletless": "^1.0.0",
