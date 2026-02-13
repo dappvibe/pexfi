@@ -50,6 +50,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     IUniswapV3Factory private uniswap;
 
     address public mediator;
+    address public feeCollector;
 
     function initialize(
         address offerFactory_,
@@ -61,6 +62,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     {
         __Ownable_init(msg.sender);
         mediator = msg.sender;
+        feeCollector = msg.sender;
         offerFactory = OfferFactory(offerFactory_);
         dealFactory = DealFactory(dealFactory_);
         repToken = RepToken(repToken_);
@@ -117,6 +119,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     function setDealFactory(address dealFactory_) public onlyOwner { dealFactory = DealFactory(dealFactory_); }
     function setOfferFactory(address offerFactory_) public onlyOwner { offerFactory = OfferFactory(offerFactory_); }
     function setMediator(address mediator_) public onlyOwner { mediator = mediator_; }
+    function setFeeCollector(address feeCollector_) public onlyOwner { feeCollector = feeCollector_; }
 
     /// @param amount_ must have 6 decimals as a fiat amount
     /// @param denominator ratio (4 decimal) to apply to resulting amount
