@@ -18,5 +18,9 @@
   "UpgradeMarket": {
     "marketAddress": "0x195Cb604d9d2BA0074Cc3299b44aDc2a61e32D62"
   },
+  "FeeCollector": {
+    "uniswapUniversalRouter": "0x3A9D48AB9751398BbFa63ad67599Bb04e4BdF98b",
+    "weth": "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14",
+    "marketAddress": "0x195Cb604d9d2BA0074Cc3299b44aDc2a61e32D62"
   }
 }
