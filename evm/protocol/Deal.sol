@@ -129,7 +129,7 @@ contract Deal is AccessControl
             token.transfer(offer.owner(), tokenAmount - (tokenAmount * FEE / 10000));
         }
         else revert('no buyer');
-        token.transfer(market.mediator(), token.balanceOf(address(this)));
+        token.transfer(market.feeCollector(), token.balanceOf(address(this)));
 
         _state(State.Completed);
 
