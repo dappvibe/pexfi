@@ -4,6 +4,8 @@
 # Build Outputs
 .cache/
 
+evm/types/
+
 # Solidity Submodules
 evm/lib/
 

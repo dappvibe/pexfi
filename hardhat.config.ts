@@ -16,6 +16,9 @@ export default defineConfig({
     artifacts: './evm/artifacts',
     ignition: './evm/ignition',
   },
+  typechain: {
+    outDir: "./evm/types"
+  },
   networks: {
     hardhat: {
       type: 'edr-simulated',

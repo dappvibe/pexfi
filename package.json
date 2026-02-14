@@ -9,7 +9,7 @@
     "build:web": "vite build",
     "build:web:staging": "vite build --mode staging",
     "build:web:prod": "vite build --mode production",
-    "build:evm": "hardhat compile --no-typechain",
+    "build:evm": "hardhat compile",
     "build:subgraph": "npx graph build subgraph/subgraph.yaml -o .cache/subgraph/build --network-file subgraph/networks.json --network",
     "docs:dev": "cd docs && npx mint dev --no-open",
     "wagmi:generate": "wagmi generate",
