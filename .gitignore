@@ -4,6 +4,7 @@
 # Build Outputs
 .cache/
 
+evm/ignition/deployments/chain-31337/
 evm/types/
 
 # Solidity Submodules
