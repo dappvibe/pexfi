@@ -765,7 +765,7 @@
       "name": "repToken",
       "outputs": [
         {
-          "internalType": "contract RepToken",
+          "internalType": "contract Profile",
           "name": "",
           "type": "address"
         }

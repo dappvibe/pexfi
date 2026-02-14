@@ -21,7 +21,7 @@ vi.mock('react-router-dom', () => ({
 }))
 
 describe('Profile Page', () => {
-  const mockRepToken = {
+  const mockProfile = {
     ownerToTokenId: vi.fn(),
     stats: vi.fn(),
     register: vi.fn(),
@@ -32,14 +32,14 @@ describe('Profile Page', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(useContract).mockReturnValue({
-      RepToken: mockRepToken,
+      Profile: mockProfile,
       signed: mockSigned,
     } as any)
   })
 
   it('renders "Mint" when user has no profile token', async () => {
     vi.mocked(useAccount).mockReturnValue({ address: '0xAlice' } as any)
-    mockRepToken.ownerToTokenId.mockResolvedValue(null) // No token
+    mockProfile.ownerToTokenId.mockResolvedValue(null) // No token
 
     render(<Profile />)
 
@@ -51,8 +51,8 @@ describe('Profile Page', () => {
 
   it('renders stats when user has profile token', async () => {
     vi.mocked(useAccount).mockReturnValue({ address: '0xAlice' } as any)
-    mockRepToken.ownerToTokenId.mockResolvedValue(123)
-    mockRepToken.stats.mockResolvedValue([
+    mockProfile.ownerToTokenId.mockResolvedValue(123)
+    mockProfile.stats.mockResolvedValue([
       1672531200, // createdAt (timestamp)
       10, // upvotes
       1, // downvotes
@@ -75,15 +75,15 @@ describe('Profile Page', () => {
 
   it('handles minting flow', async () => {
     vi.mocked(useAccount).mockReturnValue({ address: '0xAlice' } as any)
-    mockRepToken.ownerToTokenId.mockResolvedValue(null)
+    mockProfile.ownerToTokenId.mockResolvedValue(null)
 
     const mockTx = { wait: vi.fn().mockResolvedValue({ logs: [{}] }) }
     const mockRepSigned = { register: vi.fn().mockResolvedValue(mockTx) }
     mockSigned.mockResolvedValue(mockRepSigned)
 
     // Mock log parsing for new ID
-    mockRepToken.interface.parseLog.mockReturnValue({ args: [null, null, 456] }) // args[2] is tokenId
-    mockRepToken.stats.mockResolvedValue([0, 0, 0, 0, 0, 0, 0, 0, 0])
+    mockProfile.interface.parseLog.mockReturnValue({ args: [null, null, 456] }) // args[2] is tokenId
+    mockProfile.stats.mockResolvedValue([0, 0, 0, 0, 0, 0, 0, 0, 0])
 
     // Wait for initial render
     render(<Profile />)
@@ -93,7 +93,7 @@ describe('Profile Page', () => {
     fireEvent.click(screen.getByText('Mint'))
 
     await waitFor(() => {
-      expect(mockSigned).toHaveBeenCalledWith(mockRepToken)
+      expect(mockSigned).toHaveBeenCalledWith(mockProfile)
       expect(mockRepSigned.register).toHaveBeenCalled()
       // Should update to stats view eventually
       expect(screen.getByText('Profile token ID: 456')).toBeDefined()

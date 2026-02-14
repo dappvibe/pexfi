@@ -1,5 +1,5 @@
 import { abi as MarketAbi } from '@artifacts/evm/protocol/Market.sol/Market.json'
-import { abi as RepTokenAbi } from '@artifacts/evm/protocol/RepToken.sol/RepToken.json'
+import { abi as ProfileAbi } from '@artifacts/evm/protocol/Profile.sol/Profile.json'
 import { abi as DealAbi } from '@artifacts/evm/protocol/Deal.sol/Deal.json'
 import { abi as OfferAbi } from '@artifacts/evm/protocol/Offer.sol/Offer.json'
 import { abi as OfferFactoryAbi } from '@artifacts/evm/protocol/OfferFactory.sol/OfferFactory.json'
@@ -67,7 +67,7 @@ export function useContract() {
   const marketAddress = useAddress('Market#Market')
   const offerFactoryAddress = useAddress('OfferFactory#OfferFactory')
   const dealFactoryAddress = useAddress('DealFactory#DealFactory')
-  const repTokenAddress = useAddress('RepToken#RepToken')
+  const profileAddress = useAddress('Profile#Profile')
 
   const provider = useMemo(() => (client ? clientToProvider(client) : undefined), [client, chainId])
 
@@ -87,11 +87,11 @@ export function useContract() {
     DealFactoryAbi,
     provider
   ) as unknown as Types.DealFactory
-  const RepToken = new ethers.Contract(
-    repTokenAddress || ethers.ZeroAddress,
-    RepTokenAbi,
+  const Profile = new ethers.Contract(
+    profileAddress || ethers.ZeroAddress,
+    ProfileAbi,
     provider
-  ) as unknown as Types.RepToken
+  ) as unknown as Types.Profile
   const Deal = new ethers.Contract(ethers.ZeroAddress, DealAbi, provider) as unknown as Types.Deal
   const Offer = new ethers.Contract(ethers.ZeroAddress, OfferAbi, provider) as unknown as Types.Offer
   const Token = new ethers.Contract(ethers.ZeroAddress, ERC20Abi, provider) as unknown as Types.ERC20
@@ -101,7 +101,7 @@ export function useContract() {
     Market,
     OfferFactory,
     DealFactory,
-    RepToken,
+    Profile,
     Deal,
     Offer,
     Token,

@@ -6,7 +6,7 @@ import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Market} from "./Market.sol";
 import {Offer} from "./Offer.sol";
-import {RepToken} from "./RepToken.sol";
+import {Profile} from "./Profile.sol";
 import "./libraries/Errors.sol";
 
 uint8 constant FEE = 100; // 1%
@@ -133,14 +133,14 @@ contract Deal is AccessControl
 
         _state(State.Completed);
 
-        RepToken repToken = RepToken(market.repToken());
-        uint $tokenId = repToken.ownerToTokenId(offer.owner());
+        Profile _profile = Profile(market.profile());
+        uint $tokenId = _profile.ownerToTokenId(offer.owner());
         if ($tokenId != 0) {
-            repToken.statsDealCompleted($tokenId);
+            _profile.statsDealCompleted($tokenId);
         }
-        $tokenId = repToken.ownerToTokenId(taker);
+        $tokenId = _profile.ownerToTokenId(taker);
         if ($tokenId != 0) {
-            repToken.statsDealCompleted($tokenId);
+            _profile.statsDealCompleted($tokenId);
         }
     }
 
@@ -165,10 +165,10 @@ contract Deal is AccessControl
 
             // canceled after acceptance window
             if (state == State.Initiated && msg.sender != offer.owner()) {
-                RepToken repToken = RepToken(market.repToken());
-                uint $tokenId = repToken.ownerToTokenId(msg.sender);
+                Profile _profile = Profile(market.profile());
+                uint $tokenId = _profile.ownerToTokenId(msg.sender);
                 if ($tokenId != 0) {
-                    repToken.statsDealExpired($tokenId);
+                    _profile.statsDealExpired($tokenId);
                 }
             }
 
@@ -198,15 +198,15 @@ contract Deal is AccessControl
     external
     stateBetween(State.Resolved, State.Completed)
     {
-        RepToken repToken = RepToken(market.repToken());
+        Profile _profile = Profile(market.profile());
         if (msg.sender == offer.owner()) {
             require(!feedbackForTaker.given, "already");
             feedbackForTaker.given = true;
             feedbackForTaker.upvote = upvote;
             feedbackForTaker.message = message_;
-            uint $tokenId = repToken.ownerToTokenId(taker);
+            uint $tokenId = _profile.ownerToTokenId(taker);
             if ($tokenId != 0) {
-                repToken.statsVote($tokenId, upvote);
+                _profile.statsVote($tokenId, upvote);
             }
             emit FeedbackGiven(taker, upvote, message_);
         }
@@ -215,9 +215,9 @@ contract Deal is AccessControl
             feedbackForOwner.given = true;
             feedbackForOwner.upvote = upvote;
             feedbackForOwner.message = message_;
-            uint $tokenId = repToken.ownerToTokenId(offer.owner());
+            uint $tokenId = _profile.ownerToTokenId(offer.owner());
             if ($tokenId != 0) {
-                repToken.statsVote($tokenId, upvote);
+                _profile.statsVote($tokenId, upvote);
             }
             emit FeedbackGiven(offer.owner(), upvote, message_);
         }

@@ -55,7 +55,7 @@ describe('useContract', () => {
     expect(result.current.Market).toBeDefined()
     expect(result.current.OfferFactory).toBeDefined()
     expect(result.current.DealFactory).toBeDefined()
-    expect(result.current.RepToken).toBeDefined()
+    expect(result.current.Profile).toBeDefined()
     expect(result.current.Deal).toBeDefined()
 
     // precise checks

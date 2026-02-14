@@ -9,7 +9,7 @@ dataSources:
     network: sepolia
     source:
       abi: Market
-      address: "0x195Cb604d9d2BA0074Cc3299b44aDc2a61e32D62"
+      address: '0x195Cb604d9d2BA0074Cc3299b44aDc2a61e32D62'
       startBlock: 10216537
     mapping:
       kind: ethereum/events
@@ -26,8 +26,8 @@ dataSources:
           file: ../evm/artifacts/evm/protocol/Offer.sol/Offer.json
         - name: Token
           file: ../evm/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json
-        - name: RepToken
-          file: ../evm/artifacts/evm/protocol/RepToken.sol/RepToken.json
+        - name: Profile
+          file: ../evm/artifacts/evm/protocol/Profile.sol/Profile.json
         - name: Deal
           file: ../evm/artifacts/evm/protocol/Deal.sol/Deal.json
       eventHandlers:
@@ -53,8 +53,8 @@ templates:
           file: ../evm/artifacts/evm/protocol/Offer.sol/Offer.json
         - name: Market
           file: ../evm/artifacts/evm/protocol/Market.sol/Market.json
-        - name: RepToken
-          file: ../evm/artifacts/evm/protocol/RepToken.sol/RepToken.json
+        - name: Profile
+          file: ../evm/artifacts/evm/protocol/Profile.sol/Profile.json
         - name: Deal
           file: ../evm/artifacts/evm/protocol/Deal.sol/Deal.json
       eventHandlers:
@@ -77,8 +77,8 @@ templates:
           file: ../evm/artifacts/evm/protocol/Offer.sol/Offer.json
         - name: Market
           file: ../evm/artifacts/evm/protocol/Market.sol/Market.json
-        - name: RepToken
-          file: ../evm/artifacts/evm/protocol/RepToken.sol/RepToken.json
+        - name: Profile
+          file: ../evm/artifacts/evm/protocol/Profile.sol/Profile.json
         - name: Deal
           file: ../evm/artifacts/evm/protocol/Deal.sol/Deal.json
       eventHandlers:

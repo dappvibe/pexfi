@@ -21,7 +21,7 @@ type Stats = {
 
 export default function Profile() {
   let { address } = useAccount()
-  const { RepToken, signed } = useContract()
+  const { Profile: ProfileContract, signed } = useContract()
   const [tokenId, setTokenId] = useState(null)
   const [stats, setStats] = useState<Stats | null>(null)
 
@@ -30,7 +30,7 @@ export default function Profile() {
 
   useEffect(() => {
     if (address) {
-      RepToken.ownerToTokenId(address).then((tokenId) => {
+      ProfileContract.ownerToTokenId(address).then((tokenId) => {
         if (!tokenId) return
         setTokenId(tokenId)
         refreshStats(tokenId)
@@ -43,10 +43,10 @@ export default function Profile() {
   }, [address])
 
   async function create() {
-    const rep = await signed(RepToken)
+    const rep = await signed(ProfileContract)
     return rep.register().then((tx: ContractTransactionResponse) => {
       tx.wait().then((receipt) => {
-        const { args } = RepToken.interface.parseLog(receipt.logs[0])
+        const { args } = ProfileContract.interface.parseLog(receipt.logs[0])
         setTokenId(args[2])
         refreshStats(args[2])
       })
@@ -54,7 +54,7 @@ export default function Profile() {
   }
 
   async function refreshStats(tokenId: BigNumberish) {
-    let result: any = await RepToken.stats(tokenId)
+    let result: any = await ProfileContract.stats(tokenId)
     result = result.map(Number)
     result = {
       createdAt: new Date(result[0] * 1000),

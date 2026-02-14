@@ -1,4 +1,4 @@
-import {RepToken as RepTokenContract} from "../../../.cache/subgraph/generated/Market/RepToken";
+import {Profile as ProfileContract} from "../../../.cache/subgraph/generated/Market/Profile";
 import {Address, BigInt} from "@graphprotocol/graph-ts";
 import {Profile as ProfileEntity} from "../../../.cache/subgraph/generated/schema";
 
@@ -12,14 +12,14 @@ export function getRangingModifier(profile: ProfileEntity | null) : i32 {
 }
 
 export function updateProfileFor(repTokenAddress: Address, ownerAddress: Address) : ProfileEntity | null {
-    // Fetch tokenId from RepToken contract using ownerToTokenId
-    let repTokenContract = RepTokenContract.bind(repTokenAddress)
-    let tokenIdResult = repTokenContract.try_ownerToTokenId(ownerAddress)
+    // Fetch tokenId from Profile contract using ownerToTokenId
+    let profileContract = ProfileContract.bind(repTokenAddress)
+    let tokenIdResult = profileContract.try_ownerToTokenId(ownerAddress)
     if (!tokenIdResult.reverted) {
         let tokenId = tokenIdResult.value
         if (tokenId != BigInt.fromI32(0)) {
             let profile = new ProfileEntity(tokenId.toString())
-            let stats = repTokenContract.try_stats(tokenId)
+            let stats = profileContract.try_stats(tokenId)
             if (!stats.reverted) {
                 profile.createdAt = stats.value.value0.toI32()
                 profile.upvotes = stats.value.value1.toI32()
