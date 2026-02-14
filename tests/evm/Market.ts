@@ -1,4 +1,4 @@
-import MarketModule from '../../evm/ignition/modules/Market.ts';
+import MarketModule from '../../evm/modules/Market.ts';
 import {expect} from 'chai';
 
 let Uniswap, Tokens = {},
