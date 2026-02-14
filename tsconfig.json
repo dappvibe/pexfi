@@ -10,8 +10,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@contracts/*": ["evm/protocol/*"],
-      "@deployments/*": ["evm/ignition/deployments/*"],
+      "@deployments/*": ["evm/deployments/*"],
       "@artifacts/*": [".cache/artifacts/*"],
       "@tests/*": ["tests/*"]
     },

@@ -6,7 +6,8 @@ src/wagmi/index.ts
 # Build Outputs
 .cache/
 
-evm/ignition/deployments/chain-31337/
+evm/deployments/chain-31337/
+evm/ignition/parameters/hardhat.json
 evm/types/
 
 # Solidity Submodules

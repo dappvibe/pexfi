@@ -1,7 +1,7 @@
 import { network } from "hardhat";
 import fs from 'fs';
 import path from 'path';
-import './modules/Market.ts';
+import '../modules/Market.ts';
 import currencies from './currencies.json';
 
 (async () => {

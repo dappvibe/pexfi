@@ -61,7 +61,7 @@ Use parameters file that holds uniswap, tokens, chainlink oracles addresses. For
 Use `--network` to select blockchain. Networks are in evm/ignition/parameters/
 
 ```shell
-npx hardhat ignition deploy evm/ignition/modules/Market.ts \
+npx hardhat ignition deploy evm/modules/Market.ts \
     --parameters evm/ignition/parameters/hardhat.json \
     --network localhost \
     --verify

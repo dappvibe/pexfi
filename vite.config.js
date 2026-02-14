@@ -21,8 +21,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@contracts': path.resolve(__dirname, './evm/protocol'),
-      '@deployments': path.resolve(__dirname, './evm/ignition/deployments'),
+      '@deployments': path.resolve(__dirname, './evm/deployments'),
       '@artifacts': path.resolve(__dirname, './.cache/artifacts'),
       '@tests': path.resolve(__dirname, './tests'),
     },
