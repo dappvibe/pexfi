@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run wagmi:generate && npm run build:evm && npm run build:web",
+    "build": "npm run build:evm && npm run wagmi:generate && npm run build:web",
     "build:web": "vite build",
     "build:web:staging": "vite build --mode staging",
     "build:web:prod": "vite build --mode production",
