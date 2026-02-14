@@ -44,14 +44,14 @@ export default defineConfig({
       chainId: 11155111,
       type: 'http',
       url: 'https://eth-sepolia.g.alchemy.com/v2/-pIVMYm22LgfrPb32FWlPaKWjXNmH2id',
-      accounts: [process.env.DEPLOYER_SEPOLIA],
+      accounts: process.env.DEPLOYER_SEPOLIA ? [process.env.DEPLOYER_SEPOLIA] : [],
     },
   },
 
   // For contracts source verification
   verify: {
     etherscan: {
-      apiKey: process.env.ETHERSCAN_KEY,
+      apiKey: process.env.ETHERSCAN_KEY || '',
     },
     blockscout: {
       enabled: true,
