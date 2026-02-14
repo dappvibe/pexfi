@@ -13,7 +13,7 @@ export default defineConfig({
     sources: './evm/protocol',
     tests: './tests/evm',
     cache: './.cache/hardhat',
-    artifacts: './evm/artifacts',
+    artifacts: './.cache/artifacts',
     ignition: './evm/ignition',
   },
   typechain: {
