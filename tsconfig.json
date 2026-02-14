@@ -12,7 +12,7 @@
       "@/*": ["src/*"],
       "@contracts/*": ["evm/protocol/*"],
       "@deployments/*": ["evm/ignition/deployments/*"],
-      "@artifacts/*": ["evm/artifacts/*"],
+      "@artifacts/*": [".cache/artifacts/*"],
       "@tests/*": ["tests/*"]
     },
     "moduleResolution": "bundler",

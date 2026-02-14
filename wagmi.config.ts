@@ -13,7 +13,7 @@ export default defineConfig({
     react(),
     hardhat({
       project: '.',
-      artifacts: 'evm/artifacts',
+      artifacts: '.cache/artifacts',
       include: ['Market.json', 'Deal.json', 'DealFactory.json', 'Offer.json', 'OfferFactory.json', 'RepToken.json', 'PexfiToken.json'],
     }),
   ],
