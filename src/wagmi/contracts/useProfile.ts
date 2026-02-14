@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useReadContracts } from 'wagmi'
 import { Address } from 'viem'
-import { repTokenAbi } from '@/wagmi'
+import { profileAbi } from '@/wagmi'
 import { useAddress } from '@/hooks/useAddress'
 
 export type Profile = {
@@ -14,18 +14,18 @@ export type Profile = {
 }
 
 export function useProfile(address: Address | undefined) {
-  const repTokenAddress = useAddress('RepToken#RepToken')
+  const profileAddress = useAddress('Profile#Profile')
 
   const { data, isLoading, error, refetch } = useReadContracts({
     contracts:
-      repTokenAddress && address
+      profileAddress && address
         ? [
-            { address: repTokenAddress, abi: repTokenAbi, functionName: 'balanceOf', args: [address] },
-            { address: repTokenAddress, abi: repTokenAbi, functionName: 'upvotes', args: [address] },
-            { address: repTokenAddress, abi: repTokenAbi, functionName: 'downvotes', args: [address] },
+            { address: profileAddress, abi: profileAbi, functionName: 'balanceOf', args: [address] },
+            { address: profileAddress, abi: profileAbi, functionName: 'upvotes', args: [address] },
+            { address: profileAddress, abi: profileAbi, functionName: 'downvotes', args: [address] },
           ]
         : [],
-    query: { enabled: !!repTokenAddress && !!address },
+    query: { enabled: !!profileAddress && !!address },
   })
 
   const profile = useMemo<Profile | null>(() => {

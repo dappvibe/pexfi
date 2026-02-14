@@ -2,19 +2,19 @@ import { buildModule } from '@nomicfoundation/hardhat-ignition/modules'
 import { ethers } from 'ethers'
 import OfferFactoryModule from './OfferFactory.ts'
 import DealFactoryModule from './DealFactory.ts'
-import RepTokenModule from './RepToken.ts'
+import ProfileModule from './Profile.ts'
 
 export default buildModule('Market', (m) => {
   const { OfferFactory } = m.useModule(OfferFactoryModule)
   const { DealFactory } = m.useModule(DealFactoryModule)
-  const { RepToken } = m.useModule(RepTokenModule)
+  const { Profile } = m.useModule(ProfileModule)
   const uniswap = m.getParameter('uniswap') // factory (or mock) address
 
   // deploy
   const impl = m.contract('Market', [], { id: 'V0' })
   const proxy = m.contract('ERC1967Proxy', [
     impl,
-    m.encodeFunctionCall(impl, 'initialize', [OfferFactory, DealFactory, RepToken, uniswap]),
+    m.encodeFunctionCall(impl, 'initialize', [OfferFactory, DealFactory, Profile, uniswap]),
   ])
   const Market = m.contractAt('Market', proxy)
 
@@ -26,7 +26,7 @@ export default buildModule('Market', (m) => {
   // link it all together
   m.call(OfferFactory, 'initialize', [Market])
   m.call(DealFactory, 'initialize', [Market])
-  m.call(RepToken, 'grantRole', [ethers.encodeBytes32String('MARKET_ROLE'), proxy])
+  m.call(Profile, 'grantRole', [ethers.encodeBytes32String('MARKET_ROLE'), proxy])
 
-  return { Market, OfferFactory, DealFactory, RepToken }
+  return { Market, OfferFactory, DealFactory, Profile }
 })

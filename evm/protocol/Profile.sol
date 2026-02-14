@@ -10,8 +10,8 @@ import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol"
 import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-// @dev separate rep token allows multiple markets attached and rep be shared across them
-contract RepToken is UUPSUpgradeable, AccessControlUpgradeable, ERC721BurnableUpgradeable
+// @dev separate profile NFT allows multiple markets attached and rep be shared across them
+contract Profile is UUPSUpgradeable, AccessControlUpgradeable, ERC721BurnableUpgradeable
 {
     struct Stats {
         uint32 createdAt;

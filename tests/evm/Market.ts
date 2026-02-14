@@ -2,7 +2,7 @@ import MarketModule from '../../evm/modules/Market.ts';
 import {expect} from 'chai';
 
 let Uniswap, Tokens = {},
-    PriceFeeds = {}, RepToken, Market, DealFactory, OfferFactory,
+    PriceFeeds = {}, Profile, Market, DealFactory, OfferFactory,
     deployer, buyer, seller, mediator,
     offers = [], deal;
 
@@ -76,7 +76,7 @@ describe('Deployment', function()
         this.timeout(20000);
 
         it ('ignition bundle', async function() {
-            ({ Market, OfferFactory, DealFactory, RepToken } = await ignition.deploy(MarketModule, {
+            ({ Market, OfferFactory, DealFactory, Profile } = await ignition.deploy(MarketModule, {
                 parameters: { Market: {
                     uniswap: Uniswap.target,
                     addTokens_0: Object.values(Tokens).map(t => t.target),
@@ -98,11 +98,11 @@ describe('Deployment', function()
             await expect(await Market.mediator()).to.eq(deployer.address);
             await expect(await Market.offerFactory()).to.not.eq(ethers.ZeroAddress);
             await expect(await Market.dealFactory()).to.not.eq(ethers.ZeroAddress);
-            await expect(await Market.repToken()).to.not.eq(ethers.ZeroAddress);
+            await expect(await Market.profile()).to.not.eq(ethers.ZeroAddress);
 
             await expect(await OfferFactory.market()).to.eq(Market.target);
             await expect(await DealFactory.market()).to.eq(Market.target);
-            await expect(await RepToken.hasRole(ethers.encodeBytes32String('MARKET_ROLE'), Market.target)).to.be.true;
+            await expect(await Profile.hasRole(ethers.encodeBytes32String('MARKET_ROLE'), Market.target)).to.be.true;
         });
 
         it ('set mediator', async function () {
@@ -302,8 +302,8 @@ describe('Seller releases tokens', function() {
 // this must be tested on a completed deal because of state requirement
 describe('Feedback', function() {
     it ('users create profiles', async function() {
-        await RepToken.connect(seller).register();
-        await RepToken.connect(buyer).register();
+        await Profile.connect(seller).register();
+        await Profile.connect(buyer).register();
     });
 
     it('seller rates buyer', async function() {
@@ -388,9 +388,9 @@ describe('Cancellation by state', async function() {
         await expect(deal.cancel()).to.emit(deal, 'DealState');
     });
     it ('offer owner get expired deal recorded if not accepted in time', async function() {
-        let stats = await RepToken.stats(1);
+        let stats = await Profile.stats(1);
         await expect(stats[5]).to.eq(1);
-        stats = await RepToken.stats(2);
+        stats = await Profile.stats(2);
         await expect(stats[5]).to.eq(1);
     });
 

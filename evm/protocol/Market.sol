@@ -23,7 +23,7 @@ import {DealFactory} from "./DealFactory.sol";
 import {Deal} from "./Deal.sol";
 import {OfferFactory} from "./OfferFactory.sol";
 import {Offer} from "./Offer.sol";
-import {RepToken} from "./RepToken.sol";
+import {Profile} from "./Profile.sol";
 
 contract Market is OwnableUpgradeable, UUPSUpgradeable
 {
@@ -46,7 +46,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
 
     DealFactory     public dealFactory;
     OfferFactory    public offerFactory;
-    RepToken        public repToken;
+    Profile         public profile;
     IUniswapV3Factory private uniswap;
 
     address public mediator;
@@ -55,7 +55,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     function initialize(
         address offerFactory_,
         address dealFactory_,
-        address repToken_,
+        address profile_,
         address uniswap_
     )
     initializer external
@@ -65,7 +65,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
         feeCollector = msg.sender;
         offerFactory = OfferFactory(offerFactory_);
         dealFactory = DealFactory(dealFactory_);
-        repToken = RepToken(repToken_);
+        profile = Profile(profile_);
         uniswap = IUniswapV3Factory(uniswap_);
     }
     function _authorizeUpgrade(address) internal onlyOwner override {}
@@ -93,7 +93,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
         deals.add(address(deal), address(offer));
         emit DealCreated(offer.owner(), deal.taker(), address(offer), address(deal));
 
-        repToken.grantRole('DEAL_ROLE', address(deal));
+        profile.grantRole('DEAL_ROLE', address(deal));
     }
 
     /// @dev users provide allowance once to the market

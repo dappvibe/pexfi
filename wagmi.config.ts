@@ -14,7 +14,7 @@ export default defineConfig({
     hardhat({
       project: '.',
       artifacts: '.cache/artifacts',
-      include: ['Market.json', 'Deal.json', 'DealFactory.json', 'Offer.json', 'OfferFactory.json', 'RepToken.json', 'PexfiToken.json'],
+      include: ['Market.json', 'Deal.json', 'DealFactory.json', 'Offer.json', 'OfferFactory.json', 'Profile.json', 'PexfiToken.json'],
     }),
   ],
 })
