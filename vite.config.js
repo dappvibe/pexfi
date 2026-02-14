@@ -23,7 +23,6 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
       '@deployments': path.resolve(__dirname, './evm/deployments'),
       '@artifacts': path.resolve(__dirname, './.cache/artifacts'),
-      '@tests': path.resolve(__dirname, './tests'),
     },
   },
   test: {
