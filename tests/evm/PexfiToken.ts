@@ -1,4 +1,4 @@
-import PexfiTokenModule from '../../evm/ignition/modules/PexfiToken.ts';
+import PexfiTokenModule from '../../evm/modules/PexfiToken.ts';
 import {expect} from 'chai';
 
 let PexfiToken;

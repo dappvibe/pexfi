@@ -14,14 +14,19 @@ export default defineConfig({
     tests: './tests/evm',
     cache: './.cache/hardhat',
     artifacts: './.cache/artifacts',
-    ignition: './evm/ignition',
+    ignition: './evm',
   },
   typechain: {
-    outDir: "./evm/types"
+    outDir: './evm/types',
   },
   networks: {
     hardhat: {
       type: 'edr-simulated',
+    },
+    localhost: {
+      chainId: 31337,
+      type: 'http',
+      url: 'http://localhost:8545'
     },
     arbitrum: {
       type: 'http',
@@ -49,8 +54,8 @@ export default defineConfig({
       apiKey: process.env.ETHERSCAN_KEY,
     },
     blockscout: {
-      enabled: true
-    }
+      enabled: true,
+    },
   },
 
   solidity: {
@@ -72,7 +77,7 @@ export default defineConfig({
     },
     npmFilesToBuild: [
       '@openzeppelin/contracts/token/ERC20/ERC20.sol',
-      '@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol'
+      '@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol',
     ],
   },
   warnings: {
