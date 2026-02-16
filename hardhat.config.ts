@@ -26,7 +26,7 @@ export default defineConfig({
     localhost: {
       chainId: 31337,
       type: 'http',
-      url: 'http://localhost:8545'
+      url: 'http://localhost:8545',
     },
     arbitrum: {
       type: 'http',
@@ -61,23 +61,38 @@ export default defineConfig({
   solidity: {
     profiles: {
       default: {
-        version: '0.8.26',
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
+        compilers: [
+          {
+            version: '0.8.26',
+            settings: { optimizer: { enabled: true, runs: 200 }, viaIR: true },
           },
-          viaIR: true,
-        },
+          {
+            version: '0.8.16',
+            settings: { optimizer: { enabled: true, runs: 1000 } },
+          },
+        ],
       },
       production: {
-        version: '0.8.26',
-        settings: { optimizer: { enabled: true, runs: 1000 }, viaIR: true },
+        compilers: [
+          {
+            version: '0.8.26',
+            settings: { optimizer: { enabled: true, runs: 1000 }, viaIR: true },
+          },
+          {
+            version: '0.8.16',
+            settings: { optimizer: { enabled: true, runs: 1000 } },
+          },
+        ],
       },
     },
     npmFilesToBuild: [
       '@openzeppelin/contracts/token/ERC20/ERC20.sol',
       '@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol',
+      '@uma/core/contracts/optimistic-oracle-v3/implementation/OptimisticOracleV3.sol',
+      '@uma/core/contracts/data-verification-mechanism/implementation/Finder.sol',
+      '@uma/core/contracts/data-verification-mechanism/implementation/Store.sol',
+      '@uma/core/contracts/data-verification-mechanism/implementation/IdentifierWhitelist.sol',
+      '@uma/core/contracts/common/implementation/AddressWhitelist.sol',
     ],
   },
   warnings: {
