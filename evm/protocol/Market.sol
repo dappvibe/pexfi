@@ -51,6 +51,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
 
     address public mediator;
     address public feeCollector;
+    address public oracle;
 
     function initialize(
         address offerFactory_,
@@ -120,6 +121,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     function setOfferFactory(address offerFactory_) public onlyOwner { offerFactory = OfferFactory(offerFactory_); }
     function setMediator(address mediator_) public onlyOwner { mediator = mediator_; }
     function setFeeCollector(address feeCollector_) public onlyOwner { feeCollector = feeCollector_; }
+    function setOracle(address oracle_) public onlyOwner { oracle = oracle_; }
 
     /// @param amount_ must have 6 decimals as a fiat amount
     /// @param denominator ratio (4 decimal) to apply to resulting amount
