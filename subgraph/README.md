@@ -1,6 +1,6 @@
 # To Deploy
 
-1. Define networks RPCs in compose file, "ethereum" envvar. Separate with `,` entries like: `network-name:rpc-url`.
+1. Define networks RPCs `config.toml`.
 2. Define contracts addresses in `networks.json`. This will be automatically used on build.
 3. Generate WebAssembly `npm run subgraph:codegen`.
 4. For each supported network build and deploy indexer. Run from monorepo root:

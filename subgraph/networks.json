@@ -1,4 +1,10 @@
 {
+  "hardhat": {
+    "Market": {
+      "address": "0x4A679253410272dd5232B3Ff7cF5dbB88f295319",
+      "startBlock": 0
+    }
+  },
   "sepolia":  {
     "Market": {
       "address": "0x195Cb604d9d2BA0074Cc3299b44aDc2a61e32D62",
