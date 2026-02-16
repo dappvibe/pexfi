@@ -66,10 +66,10 @@ export function fetchAndSaveOffer(target: Address, market: Address): Offer {
     offer.disabled = disabledResult.value;
   }
 
-  let repTokenResult = marketContract.try_repToken();
-  let repTokenAddress = repTokenResult.value;
+  let profileResult = marketContract.try_profile();
+  let profileAddress = profileResult.value;
 
-  const profile = updateProfileFor(repTokenAddress, Address.fromBytes(offer.owner));
+  const profile = updateProfileFor(profileAddress, Address.fromBytes(offer.owner));
   offer.profile = profile ? profile.id : null;
   if (offer.isSell) {
     // ASC sorting, lowest first, so decrease goodstanding
