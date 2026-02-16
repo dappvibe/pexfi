@@ -36,6 +36,9 @@ services:
       ipfs: 'ipfs:5001'
       ethereum: 'arbitrum-one:http://evm:8545'
       GRAPH_LOG: info
+      GRAPH_NODE_CONFIG: /config.toml
+    volumes:
+      - ./subgraph/config.toml:/config.toml
 
   ipfs:
     image: ipfs/kubo:v0.17.0
@@ -68,15 +71,9 @@ services:
       - /bin/sh
       - -c
       - |
-        echo "Waiting for graph-node..."
-        while ! curl -s http://graph-node:8000 > /dev/null; do sleep 1; done
-        echo "Graph node is ready. Creating and deploying subgraph..."
-        # Create (ignore error if exists)
-        npx graph create -g http://graph-node:8020 sov || true
-        # Codegen
+        npx graph create -g http://graph-node:8020 hardhat
         npm run subgraph:codegen
-        # Deploy
-        npx graph deploy -g http://graph-node:8020 --ipfs http://ipfs:5001 -l v0.0.1 sov subgraph/subgraph.yaml
+        npx graph deploy hardhat subgraph/subgraph.yaml --network sepolia -g http://graph-node:8020 --ipfs http://ipfs:5001 -l v0.0.1 --network-file subgraph/networks.json -o .cache/subgraph/build
     depends_on:
       - graph-node
       - evm
