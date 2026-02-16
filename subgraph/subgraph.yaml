@@ -21,15 +21,15 @@ dataSources:
         - Token
       abis:
         - name: Market
-          file: ../evm/artifacts/evm/protocol/Market.sol/Market.json
+          file: ../.cache/artifacts/evm/protocol/Market.sol/Market.json
         - name: Offer
-          file: ../evm/artifacts/evm/protocol/Offer.sol/Offer.json
+          file: ../.cache/artifacts/evm/protocol/Offer.sol/Offer.json
         - name: Token
-          file: ../evm/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json
+          file: ../.cache/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json
         - name: Profile
-          file: ../evm/artifacts/evm/protocol/Profile.sol/Profile.json
+          file: ../.cache/artifacts/evm/protocol/Profile.sol/Profile.json
         - name: Deal
-          file: ../evm/artifacts/evm/protocol/Deal.sol/Deal.json
+          file: ../.cache/artifacts/evm/protocol/Deal.sol/Deal.json
       eventHandlers:
         - event: OfferCreated(indexed address,indexed string,indexed string,address)
           handler: handleOfferCreated
@@ -50,13 +50,13 @@ templates:
         - Offer
       abis:
         - name: Offer
-          file: ../evm/artifacts/evm/protocol/Offer.sol/Offer.json
+          file: ../.cache/artifacts/evm/protocol/Offer.sol/Offer.json
         - name: Market
-          file: ../evm/artifacts/evm/protocol/Market.sol/Market.json
+          file: ../.cache/artifacts/evm/protocol/Market.sol/Market.json
         - name: Profile
-          file: ../evm/artifacts/evm/protocol/Profile.sol/Profile.json
+          file: ../.cache/artifacts/evm/protocol/Profile.sol/Profile.json
         - name: Deal
-          file: ../evm/artifacts/evm/protocol/Deal.sol/Deal.json
+          file: ../.cache/artifacts/evm/protocol/Deal.sol/Deal.json
       eventHandlers:
         - event: OfferUpdated()
           handler: handleOfferUpdated
@@ -74,13 +74,13 @@ templates:
         - Deal
       abis:
         - name: Offer
-          file: ../evm/artifacts/evm/protocol/Offer.sol/Offer.json
+          file: ../.cache/artifacts/evm/protocol/Offer.sol/Offer.json
         - name: Market
-          file: ../evm/artifacts/evm/protocol/Market.sol/Market.json
+          file: ../.cache/artifacts/evm/protocol/Market.sol/Market.json
         - name: Profile
-          file: ../evm/artifacts/evm/protocol/Profile.sol/Profile.json
+          file: ../.cache/artifacts/evm/protocol/Profile.sol/Profile.json
         - name: Deal
-          file: ../evm/artifacts/evm/protocol/Deal.sol/Deal.json
+          file: ../.cache/artifacts/evm/protocol/Deal.sol/Deal.json
       eventHandlers:
         - event: DealState(uint8,address)
           handler: handleDealState
