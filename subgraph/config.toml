@@ -6,6 +6,12 @@ pool_size = 10
 [chains]
 ingestor = "default"
 
+[chains.hardhat]
+shard = "primary"
+provider = [
+  { label = "hardhat", details = { type = "web3", features = ['archive'], transport = "rpc", url = "http://evm:8545" } },
+]
+
 [chains.sepolia]
 shard = "primary"
 provider = [
