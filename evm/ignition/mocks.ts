@@ -15,7 +15,7 @@ import currencies from './currencies.json';
 
     // create ERC20 tokens and credit to all test signers
     const TokenFactory = await ethers.getContractFactory("MockERC20", signers[0]);
-    for (const token of [ ['WBTC', 8], ['WETH', 18], ['USDT', 6] ]) {
+    for (const token of [ ['WBTC', 8], ['WETH', 18], ['USDT', 6], ['USDC', 6] ]) {
         const t = Tokens[token[0]] = await TokenFactory.deploy(...token);
         process.stderr.write('Deployed '+token[0]+'\n');
         for (const signer of signers) {
