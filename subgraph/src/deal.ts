@@ -79,20 +79,20 @@ function doUpdateProfile(deal: DealEntity): void {
   let context = dataSource.context();
   let marketAddress = context.getString('marketAddress')
   let marketContract = MarketContract.bind(Address.fromString(marketAddress))
-  let repTokenAddressResult = marketContract.try_repToken()
-  if (repTokenAddressResult.reverted) {
+  let profileAddressResult = marketContract.try_profile()
+  if (profileAddressResult.reverted) {
     return
   }
 
-  let repTokenAddress = repTokenAddressResult.value
+  let profileAddress = profileAddressResult.value
 
   let offer = Offer.load(deal.offer)
   if (offer == null) {
     log.error("Offer not found for deal: {}", [deal.id])
     return;
   }
-  updateProfileFor(repTokenAddress, Address.fromBytes(offer.owner))
-  updateProfileFor(repTokenAddress, Address.fromBytes(deal.taker))
+  updateProfileFor(profileAddress, Address.fromBytes(offer.owner))
+  updateProfileFor(profileAddress, Address.fromBytes(deal.taker))
 }
 
 export function handleMessage(event: Message): void {
