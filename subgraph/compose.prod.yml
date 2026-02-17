@@ -27,11 +27,14 @@ services:
       - '8020:8020'
       - '8030:8030'
       - '8040:8040'
+    env_file:
+      - ../.env
     environment:
       node_id: default
       ipfs: 'ipfs:5001'
       GRAPH_LOG: info
       GRAPH_NODE_CONFIG: /config.toml
+      GOOGLE_RPC_KEY: ${GOOGLE_RPC_KEY}
     volumes:
       - ./config.toml:/config.toml
 
