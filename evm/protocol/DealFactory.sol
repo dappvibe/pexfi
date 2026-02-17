@@ -7,20 +7,24 @@ import {Offer} from "./Offer.sol";
 import {Market} from "./Market.sol";
 import {Deal} from "./Deal.sol";
 import "./libraries/Errors.sol";
+import {FinderInterface} from "@uma/core/contracts/data-verification-mechanism/interfaces/FinderInterface.sol";
+import {FinderConstants} from "./libraries/FinderConstants.sol";
 
 contract DealFactory is UUPSUpgradeable, OwnableUpgradeable
 {
-    Market public market;
+    FinderInterface public finder;
 
-    function initialize(address market_) public initializer {
+    function initialize(address finder_) public initializer {
         __Ownable_init(msg.sender);
-        market = Market(market_);
+        finder = FinderInterface(finder_);
     }
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     function create(address offer_, uint fiatAmount_, string memory paymentInstructions_)
     external
     {
+        Market market = Market(finder.getImplementationAddress(FinderConstants.Market));
+
         require(market.hasOffer(offer_), "no offer");
 
         Offer $offer = Offer(offer_);
