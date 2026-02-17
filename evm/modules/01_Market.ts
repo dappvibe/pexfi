@@ -2,6 +2,8 @@ import { buildModule } from '@nomicfoundation/hardhat-ignition/modules'
 import { zeroAddress } from 'viem'
 import { ethers } from 'ethers'
 
+const SIX_MONTHS = 6 * 30 * 24 * 60 * 60
+const TWO_YEARS = 2 * 365 * 24 * 60 * 60
 
 export default buildModule('Market', (m) => {
   const Finder = m.contract('Finder')
@@ -47,6 +49,7 @@ export default buildModule('Market', (m) => {
   m.call(Finder, 'changeImplementationAddress', [ethers.encodeBytes32String('Market'), Market], { id: 'regMarket' })
   m.call(Finder, 'changeImplementationAddress', [ethers.encodeBytes32String('Profile'), Profile], { id: 'regProfile' })
   m.call(Finder, 'changeImplementationAddress', [ethers.encodeBytes32String('Uniswap'), uniswap], { id: 'regUniswap' })
+  m.call(Finder, 'changeImplementationAddress', [ethers.encodeBytes32String('Mediator'), m.getAccount(0)], { id: 'regMediator' })
 
   // Profile grants role to Market
   m.call(Profile, 'grantRole', [ethers.encodeBytes32String('MARKET_ROLE'), MarketProxy])
@@ -54,6 +57,9 @@ export default buildModule('Market', (m) => {
   // --- Tokenomics ---
   const pexfi = m.contract('PexfiToken', [])
   const pexfiVault = m.contract('PexfiVault', [pexfi])
+  const beneficiary = m.getAccount(0)
+  const startTimestamp = Math.floor(Date.now() / 1000)
+  const pexfiVesting = m.contract('PexfiVesting', [beneficiary, startTimestamp, TWO_YEARS, SIX_MONTHS, pexfiVault])
 
   // Parameters needed for FeeCollector
   const universalRouter = m.getParameter('uniswapUniversalRouter')
@@ -107,6 +113,7 @@ export default buildModule('Market', (m) => {
     Profile,
     pexfi,
     pexfiVault,
+    pexfiVesting,
     feeCollector,
     OOv3,
     Finder,
