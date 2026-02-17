@@ -65,9 +65,9 @@ export function useContract() {
   const { data: connector } = useConnectorClient({ chainId })
 
   const marketAddress = useAddress('Market#Market')
-  const offerFactoryAddress = useAddress('OfferFactory#OfferFactory')
-  const dealFactoryAddress = useAddress('DealFactory#DealFactory')
-  const profileAddress = useAddress('Profile#Profile')
+  const offerFactoryAddress = useAddress('Market#OfferFactory')
+  const dealFactoryAddress = useAddress('Market#DealFactory')
+  const profileAddress = useAddress('Market#Profile')
 
   const provider = useMemo(() => (client ? clientToProvider(client) : undefined), [client, chainId])
 
