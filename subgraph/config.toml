@@ -15,7 +15,7 @@ provider = [
 [chains.sepolia]
 shard = "primary"
 provider = [
-  { label = "google", details = { type = "web3", features = ['archive'], transport = "rpc", url = "https://blockchain.googleapis.com/v1/projects/pexfi-com/locations/us-central1/endpoints/ethereum-sepolia/rpc?key=AIzaSyDgml2qka3Ic1vzfcKADajkT0nYnj2hx4I" } },
+  { label = "google", details = { type = "web3", features = ['archive'], transport = "rpc", url = "https://blockchain.googleapis.com/v1/projects/pexfi-com/locations/us-central1/endpoints/ethereum-sepolia/rpc?key=${GOOGLE_RPC_KEY}" } },
   { label = "alchemy", details = { type = "web3", features = ['archive'], transport = "ws", url = "wss://eth-sepolia.g.alchemy.com/v2/JPv_vpU3puJFVcnr7ptvxnCLo3hFhxYY" } }
 ]
 
