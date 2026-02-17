@@ -15,6 +15,7 @@ You are a senior developer working on the 'pexfi' project.
 - Never add 'as any' in TypeScript code, let typescript infer types or fix them properly
 - Always prefer explicit types over implicit ones in TypeScript code
 - Always prefer type/interface definitions over type assertions
+- You are only allowed to use viem/wagmi and never ethers from blockchain interactions.
 
 # Docs writing
 * Your audience is crypto-savvy crowd
