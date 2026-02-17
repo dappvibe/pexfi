@@ -35,8 +35,8 @@ contract Deal is AccessControl
     }
 
     // protection from stalled deals. after expiry seller can request refund and buyer still gets failed tx recorded
-    uint16 private ACCEPTANCE_TIME = 15 minutes;
-    uint16 private PAYMENT_WINDOW  = 1 hours;
+    uint16 private constant ACCEPTANCE_TIME = 15 minutes;
+    uint16 private constant PAYMENT_WINDOW  = 1 hours;
 
     bytes32 private constant MEDIATOR    = 'MEDIATOR';
     bytes32 private constant SELLER      = 'SELLER';
@@ -44,15 +44,15 @@ contract Deal is AccessControl
     bytes32 private constant MEMBER      = 'MEMBER';
 
     string  public terms;
-    uint    public tokenAmount;
-    address public taker;
-    uint    public fiatAmount;
+    uint    public immutable tokenAmount;
+    address public immutable taker;
+    uint    public immutable fiatAmount;
     string  public paymentInstructions;
-    uint    public allowCancelUnacceptedAfter;
+    uint    public immutable allowCancelUnacceptedAfter;
     uint    public allowCancelUnpaidAfter;
     State   public state = State.Initiated;
-    Market  internal market;
-    Offer   public offer;
+    Market  internal immutable market;
+    Offer   public immutable offer;
     bytes32 public assertionId;
 
     struct Feedback {

@@ -13,8 +13,8 @@ contract Offer
         uint32 max;
     }
 
-    address public owner;
-    bool public isSell;
+    address public immutable owner;
+    bool public immutable isSell;
     string public token;
     string public fiat;
     string public method;
