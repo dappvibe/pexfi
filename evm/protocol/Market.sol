@@ -52,6 +52,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     address public mediator;
     address public feeCollector;
     address public oracle;
+    uint16 public fee;
 
     function initialize(
         address offerFactory_,
@@ -68,6 +69,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
         dealFactory = DealFactory(dealFactory_);
         profile = Profile(profile_);
         uniswap = IUniswapV3Factory(uniswap_);
+        fee = 100;
     }
     function _authorizeUpgrade(address) internal onlyOwner override {}
 
@@ -122,6 +124,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     function setMediator(address mediator_) public onlyOwner { mediator = mediator_; }
     function setFeeCollector(address feeCollector_) public onlyOwner { feeCollector = feeCollector_; }
     function setOracle(address oracle_) public onlyOwner { oracle = oracle_; }
+    function setFee(uint16 fee_) public onlyOwner { fee = fee_; }
 
     /// @param amount_ must have 6 decimals as a fiat amount
     /// @param denominator ratio (4 decimal) to apply to resulting amount
