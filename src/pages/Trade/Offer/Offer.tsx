@@ -46,7 +46,7 @@ export default function OfferPage() {
       // FIXME when user is refirected immediately subgraph did not index the deal yet which leads to page fail to load
       receipt.logs.forEach((log) => {
         const DealCreated = Market.interface.parseLog(log)
-        if (DealCreated) {
+        if (DealCreated && DealCreated.name == 'DealCreated') {
           navigate(`/trade/deal/${DealCreated.args[3]}`)
         }
       })

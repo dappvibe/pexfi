@@ -3,8 +3,9 @@ pragma solidity 0.8.26;
 
 import {Methods} from "./libraries/Methods.sol";
 import {UnauthorizedAccount} from "./libraries/Errors.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract Offer
+contract Offer is Initializable
 {
     event OfferUpdated();
 
@@ -13,8 +14,8 @@ contract Offer
         uint32 max;
     }
 
-    address public immutable owner;
-    bool public immutable isSell;
+    address public owner;
+    bool public isSell;
     string public token;
     string public fiat;
     string public method;
@@ -23,7 +24,12 @@ contract Offer
     string public terms;
     bool public disabled;
 
-    constructor(
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(
         address owner_,
         bool isSell_,
         string memory token_,
@@ -33,6 +39,8 @@ contract Offer
         Limits memory limits_,
         string memory terms_
     )
+    external
+    initializer
     {
         owner = owner_;
         isSell = isSell_;

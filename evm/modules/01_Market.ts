@@ -7,27 +7,13 @@ export default buildModule('Market', (m) => {
   const Finder = m.contract('Finder')
 
   // --- Marketplace ---
-  const OfferFactoryImpl = m.contract('OfferFactory', [], { id: 'OfferFactoryV0' })
-  const OfferFactoryProxy = m.contract(
-    'ERC1967Proxy',
-    [
-      OfferFactoryImpl,
-      m.encodeFunctionCall(OfferFactoryImpl, 'initialize', [Finder]),
-    ],
-    { id: 'OfferFactoryProxy' }
-  )
-  const OfferFactory = m.contractAt('OfferFactory', OfferFactoryProxy)
+  const OfferImplementation = m.contract('Offer', [], { id: 'OfferImplementation' })
+  const OfferFactory = m.contract('OfferFactory', [Finder], { id: 'OfferFactory' })
+  m.call(OfferFactory, 'setImplementation', [OfferImplementation])
 
-  const DealFactoryImpl = m.contract('DealFactory', [], { id: 'DealFactoryV0' })
-  const DealFactoryProxy = m.contract(
-    'ERC1967Proxy',
-    [
-      DealFactoryImpl,
-      m.encodeFunctionCall(DealFactoryImpl, 'initialize', [Finder]),
-    ],
-    { id: 'DealFactoryProxy' }
-  )
-  const DealFactory = m.contractAt('DealFactory', DealFactoryProxy)
+  const DealImplementation = m.contract('Deal', [], { id: 'DealImplementation' })
+  const DealFactory = m.contract('DealFactory', [Finder], { id: 'DealFactory' })
+  m.call(DealFactory, 'setImplementation', [DealImplementation])
 
   const ProfileImpl = m.contract('Profile', [], { id: 'ProfileV0' })
   const ProfileProxy = m.contract('ERC1967Proxy', [ProfileImpl, m.encodeFunctionCall(ProfileImpl, 'initialize', [])], {
