@@ -1,14 +1,14 @@
 import { buildModule } from '@nomicfoundation/hardhat-ignition/modules'
-import CoreModule from './01_Core'
+import MarketModule from './01_Market'
 
 export default buildModule('UpgradeOfferFactory', (m) => {
-  const { OfferFactory } = m.useModule(CoreModule)
+  const { OfferFactory, Finder } = m.useModule(MarketModule)
 
   // Deploy the new implementation
   const newImpl = m.contract('OfferFactory', [], { id: 'OfferFactoryImplV2' })
 
   // Upgrade the proxy to the new implementation
-  m.call(OfferFactory, 'upgradeToAndCall', [newImpl, '0x'])
+  m.call(OfferFactory, 'upgradeToAndCall', [newImpl, m.encodeFunctionCall(newImpl, '__init_v2', [Finder])])
 
   return { OfferFactory }
 })

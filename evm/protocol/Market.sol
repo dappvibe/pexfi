@@ -24,6 +24,8 @@ import {Deal} from "./Deal.sol";
 import {OfferFactory} from "./OfferFactory.sol";
 import {Offer} from "./Offer.sol";
 import {Profile} from "./Profile.sol";
+import {FinderInterface} from "@uma/core/contracts/data-verification-mechanism/interfaces/FinderInterface.sol";
+import {FinderConstants} from "./libraries/FinderConstants.sol";
 
 contract Market is OwnableUpgradeable, UUPSUpgradeable
 {
@@ -44,32 +46,38 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     Offers.Storage  private offers;
     Deals.Storage   private deals;
 
-    DealFactory     public dealFactory;
-    OfferFactory    public offerFactory;
-    Profile         public profile;
-    IUniswapV3Factory private uniswap;
-
-    address public mediator;
-    address public feeCollector;
-    address public oracle;
+    FinderInterface public finder;
 
     function initialize(
-        address offerFactory_,
-        address dealFactory_,
-        address profile_,
-        address uniswap_
+        address finder_
     )
     initializer external
     {
         __Ownable_init(msg.sender);
-        mediator = msg.sender;
-        feeCollector = msg.sender;
-        offerFactory = OfferFactory(offerFactory_);
-        dealFactory = DealFactory(dealFactory_);
-        profile = Profile(profile_);
-        uniswap = IUniswapV3Factory(uniswap_);
+        finder = FinderInterface(finder_);
     }
+
     function _authorizeUpgrade(address) internal onlyOwner override {}
+
+    function offerFactory() public view returns (OfferFactory) {
+        return OfferFactory(finder.getImplementationAddress(FinderConstants.OfferFactory));
+    }
+    function dealFactory() public view returns (DealFactory) {
+        return DealFactory(finder.getImplementationAddress(FinderConstants.DealFactory));
+    }
+    function profile() public view returns (Profile) {
+        return Profile(finder.getImplementationAddress(FinderConstants.Profile));
+    }
+    function uniswap() internal view returns (IUniswapV3Factory) {
+        return IUniswapV3Factory(finder.getImplementationAddress(FinderConstants.Uniswap));
+    }
+    function feeCollector() public view returns (address) {
+        return finder.getImplementationAddress(FinderConstants.FeeCollector);
+    }
+    function oracle() public view returns (address) {
+        return finder.getImplementationAddress(FinderConstants.Oracle);
+    }
+
 
     /// @param isSell_ offers posted by Sellers, i.e. offers to buy tokens for fiat
     /// @param method_ filter can be disabled by passing "ANY"
@@ -80,21 +88,21 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     }
 
     function addOffer(Offer offer) external {
-        require(msg.sender == address(offerFactory), UnauthorizedAccount(msg.sender));
+        require(msg.sender == address(offerFactory()), UnauthorizedAccount(msg.sender));
         offers.add(offer);
         emit OfferCreated(offer.owner(), offer.token(), offer.fiat(), offer);
     }
     function hasOffer(address offer_) external view returns (bool) { return offers.has(offer_); }
 
     function addDeal(Deal deal) external {
-        require(msg.sender == address(dealFactory), UnauthorizedAccount(msg.sender));
+        require(msg.sender == address(dealFactory()), UnauthorizedAccount(msg.sender));
 
         Offer offer = deal.offer();
 
         deals.add(address(deal), address(offer));
         emit DealCreated(offer.owner(), deal.taker(), address(offer), address(deal));
 
-        profile.grantRole('DEAL_ROLE', address(deal));
+        profile().grantRole('DEAL_ROLE', address(deal));
     }
 
     /// @dev users provide allowance once to the market
@@ -117,11 +125,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
         $token.safeTransferFrom(seller, address($deal), $deal.tokenAmount());
     }
 
-    function setDealFactory(address dealFactory_) public onlyOwner { dealFactory = DealFactory(dealFactory_); }
-    function setOfferFactory(address offerFactory_) public onlyOwner { offerFactory = OfferFactory(offerFactory_); }
-    function setMediator(address mediator_) public onlyOwner { mediator = mediator_; }
-    function setFeeCollector(address feeCollector_) public onlyOwner { feeCollector = feeCollector_; }
-    function setOracle(address oracle_) public onlyOwner { oracle = oracle_; }
+
 
     /// @param amount_ must have 6 decimals as a fiat amount
     /// @param denominator ratio (4 decimal) to apply to resulting amount
@@ -192,7 +196,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     /// @return price of token_ in USDC (6 decimals)
     function _uniswapRateForUSD(Tokens.Token storage token_) internal view returns (uint)
     {
-        IUniswapV3Pool pool = IUniswapV3Pool(uniswap.getPool(
+        IUniswapV3Pool pool = IUniswapV3Pool(uniswap().getPool(
             address(token_.api),
             address(tokens.get("USDC").api),
             token_.uniswapPoolFee

@@ -5,6 +5,8 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {FinderInterface} from "@uma/core/contracts/data-verification-mechanism/interfaces/FinderInterface.sol";
+import {FinderConstants} from "./libraries/FinderConstants.sol";
 import "./Offer.sol";
 import "./Market.sol";
 
@@ -12,13 +14,13 @@ contract OfferFactory is UUPSUpgradeable, OwnableUpgradeable
 {
     using Strings for *;
 
-    Market public market;
-    uint private constant MIN_USD_VOLUME = 20;
+    FinderInterface public finder;
 
-    function initialize(address market_) public initializer {
+    function initialize(address finder_) public initializer {
         __Ownable_init(msg.sender);
-        market = Market(market_);
+        finder = FinderInterface(finder_);
     }
+
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     /// @dev check immutable props here to reduce Offer contract size
@@ -36,8 +38,11 @@ contract OfferFactory is UUPSUpgradeable, OwnableUpgradeable
     {
         require(rate_ > 0, "rate");
         require(limits_.min < limits_.max, 'minmax');
+
+        Market market = Market(finder.getImplementationAddress(FinderConstants.Market));
+
         market.getPrice(token_, fiat_); // this validates both token and fiat
-        require(market.convert(limits_.min, fiat_, 'USDC', 10000) > MIN_USD_VOLUME, 'min too low');
+        require(market.convert(limits_.min, fiat_, 'USDC', 10000) > 20, 'min too low');
         market.method(method_);         // validate method
 
         Offer offer = new Offer(
