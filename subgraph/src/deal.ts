@@ -182,16 +182,7 @@ export function handleDealState(event: DealStateEvent): void {
     }
   }
 
-  // mediator (on dispute)
-  if (event.params.state == 4) {
-    let context = dataSource.context();
-    let marketAddress = context.getString('marketAddress');
-    let marketContract = MarketContract.bind(Address.fromString(marketAddress));
-    let mediatorResult = marketContract.try_mediator();
-    if (!mediatorResult.reverted) {
-      notify(mediatorResult.value, event, notificationEvent);
-    }
-  }
+
 }
 
 export function handleFeedbackGiven(event: FeedbackGiven): void {
