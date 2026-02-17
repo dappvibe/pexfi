@@ -31,12 +31,8 @@ services:
     env_file:
       - .env
     environment:
-      postgres_host: postgres
-      postgres_user: graph-node
-      postgres_pass: let-me-in
-      postgres_db: graph-node
+      node_id: default
       ipfs: 'ipfs:5001'
-      ethereum: 'arbitrum-one:http://evm:8545'
       GRAPH_LOG: info
       GRAPH_NODE_CONFIG: /config.toml
       GOOGLE_RPC_KEY: ${GOOGLE_RPC_KEY}
@@ -76,7 +72,7 @@ services:
       - |
         npx graph create -g http://graph-node:8020 hardhat
         npm run subgraph:codegen
-        npx graph deploy hardhat subgraph/subgraph.yaml --network sepolia -g http://graph-node:8020 --ipfs http://ipfs:5001 -l v0.0.1 --network-file subgraph/networks.json -o .cache/subgraph/build
+        npx graph deploy hardhat subgraph/subgraph.yaml --network hardhat -g http://graph-node:8020 --ipfs http://ipfs:5001 -l v0.0.1 --network-file subgraph/networks.json -o .cache/subgraph/build
     depends_on:
       - graph-node
       - evm
