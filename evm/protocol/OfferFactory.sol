@@ -2,26 +2,29 @@
 pragma solidity 0.8.26;
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {FinderInterface} from "@uma/core/contracts/data-verification-mechanism/interfaces/FinderInterface.sol";
 import {FinderConstants} from "./libraries/FinderConstants.sol";
 import "./Offer.sol";
-import "./Market.sol";
 
-contract OfferFactory is UUPSUpgradeable, OwnableUpgradeable
+import "./Market.sol";
+import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
+
+contract OfferFactory is Ownable
 {
     using Strings for *;
 
     FinderInterface public finder;
+    address public implementation;
 
-    function initialize(address finder_) public initializer {
-        __Ownable_init(msg.sender);
+    constructor(address finder_) Ownable(msg.sender) {
         finder = FinderInterface(finder_);
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function setImplementation(address implementation_) external onlyOwner {
+        implementation = implementation_;
+    }
 
     /// @dev check immutable props here to reduce Offer contract size
     /// @param rate_ Multiplier to apply to market price (4 decimals)
@@ -45,7 +48,8 @@ contract OfferFactory is UUPSUpgradeable, OwnableUpgradeable
         require(market.convert(limits_.min, fiat_, 'USDC', 10000) > 20, 'min too low');
         market.method(method_);         // validate method
 
-        Offer offer = new Offer(
+        Offer offer = Offer(Clones.clone(implementation));
+        offer.initialize(
             msg.sender,
             isSell_,
             token_,

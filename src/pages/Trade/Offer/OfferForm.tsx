@@ -84,7 +84,7 @@ export default function OfferForm({ offer = null, setRate, setLimits, setTerms, 
       const receipt = await tx.wait()
       receipt.logs.forEach((log) => {
         const OfferCreated = Market.interface.parseLog(log)
-        if (OfferCreated) {
+        if (OfferCreated && OfferCreated.name == 'OfferCreated') {
           message.success('Offer created')
           navigate(`/trade/offer/${OfferCreated.args[3]}`)
         }
