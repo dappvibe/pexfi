@@ -10,10 +10,11 @@ import {Market} from "./Market.sol";
 import {Offer} from "./Offer.sol";
 import {Profile} from "./Profile.sol";
 import "./libraries/Errors.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 uint8 constant FEE = 100; // 1%
 
-contract Deal is AccessControl
+contract Deal is AccessControl, Initializable
 {
     using Strings for string;
 
@@ -44,15 +45,15 @@ contract Deal is AccessControl
     bytes32 private constant MEMBER      = 'MEMBER';
 
     string  public terms;
-    uint    public immutable tokenAmount;
-    address public immutable taker;
-    uint    public immutable fiatAmount;
+    uint    public tokenAmount;
+    address public taker;
+    uint    public fiatAmount;
     string  public paymentInstructions;
-    uint    public immutable allowCancelUnacceptedAfter;
+    uint    public allowCancelUnacceptedAfter;
     uint    public allowCancelUnpaidAfter;
-    State   public state = State.Initiated;
-    Market  internal immutable market;
-    Offer   public immutable offer;
+    State   public state; // defaults to Initiated (0)
+    Market  internal market;
+    Offer   public offer;
     bytes32 public assertionId;
 
     struct Feedback {
@@ -68,7 +69,12 @@ contract Deal is AccessControl
         _;
     }
 
-    constructor(
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(
         address market_,
         address offer_,
         address taker_,
@@ -76,6 +82,8 @@ contract Deal is AccessControl
         uint fiatAmount_,
         string memory paymentInstructions_
     )
+    external
+    initializer
     {
         market = Market(market_);
         offer = Offer(offer_);
