@@ -2,14 +2,17 @@ import { buildModule } from '@nomicfoundation/hardhat-ignition/modules'
 import { zeroAddress } from 'viem'
 import { ethers } from 'ethers'
 
+
 export default buildModule('Market', (m) => {
+  const Finder = m.contract('Finder')
+
   // --- Marketplace ---
   const OfferFactoryImpl = m.contract('OfferFactory', [], { id: 'OfferFactoryV0' })
   const OfferFactoryProxy = m.contract(
     'ERC1967Proxy',
     [
       OfferFactoryImpl,
-      '0x', // initialize later
+      m.encodeFunctionCall(OfferFactoryImpl, 'initialize', [Finder]),
     ],
     { id: 'OfferFactoryProxy' }
   )
@@ -20,7 +23,7 @@ export default buildModule('Market', (m) => {
     'ERC1967Proxy',
     [
       DealFactoryImpl,
-      '0x', // initialize later
+      m.encodeFunctionCall(DealFactoryImpl, 'initialize', [Finder]),
     ],
     { id: 'DealFactoryProxy' }
   )
@@ -38,7 +41,7 @@ export default buildModule('Market', (m) => {
   const MarketImpl = m.contract('Market', [], { id: 'MarketV0' })
   const MarketProxy = m.contract(
     'ERC1967Proxy',
-    [MarketImpl, m.encodeFunctionCall(MarketImpl, 'initialize', [OfferFactory, DealFactory, Profile, uniswap])],
+    [MarketImpl, m.encodeFunctionCall(MarketImpl, 'initialize', [Finder])],
     { id: 'MarketProxy' }
   )
   const Market = m.contractAt('Market', MarketProxy)
@@ -48,9 +51,18 @@ export default buildModule('Market', (m) => {
   m.call(Market, 'addFiats', [m.getParameter('fiats')])
   m.call(Market, 'addMethods', [m.getParameter('methods')])
 
-  // link it all together
-  m.call(OfferFactory, 'initialize', [Market])
-  m.call(DealFactory, 'initialize', [Market])
+  // link it all together via Finder
+  m.call(Finder, 'changeImplementationAddress', [ethers.encodeBytes32String('OfferFactory'), OfferFactory], {
+    id: 'regOfferFactory',
+  })
+  m.call(Finder, 'changeImplementationAddress', [ethers.encodeBytes32String('DealFactory'), DealFactory], {
+    id: 'regDealFactory',
+  })
+  m.call(Finder, 'changeImplementationAddress', [ethers.encodeBytes32String('Market'), Market], { id: 'regMarket' })
+  m.call(Finder, 'changeImplementationAddress', [ethers.encodeBytes32String('Profile'), Profile], { id: 'regProfile' })
+  m.call(Finder, 'changeImplementationAddress', [ethers.encodeBytes32String('Uniswap'), uniswap], { id: 'regUniswap' })
+
+  // Profile grants role to Market
   m.call(Profile, 'grantRole', [ethers.encodeBytes32String('MARKET_ROLE'), MarketProxy])
 
   // --- Tokenomics ---
@@ -62,13 +74,11 @@ export default buildModule('Market', (m) => {
   const weth = m.getParameter('weth')
 
   const feeCollector = m.contract('FeeCollector', [pexfiVault, pexfi, universalRouter, weth])
+  m.call(Finder, 'changeImplementationAddress', [ethers.encodeBytes32String('FeeCollector'), feeCollector], {
+    id: 'regFeeCollector',
+  })
 
-  // Set FeeCollector on Market
-  m.call(Market, 'setFeeCollector', [feeCollector])
-
-  // --- Oracle ---
-  // part of OOv3
-  const Finder = m.contract('Finder')
+  // --- Oracle Setup ---
 
   const Store = m.contract('Store', [{ rawValue: 0 }, { rawValue: 0 }, zeroAddress])
   m.call(Finder, 'changeImplementationAddress', [ethers.encodeBytes32String('Store'), Store], { id: 'setStore' })
