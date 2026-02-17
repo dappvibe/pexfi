@@ -1,9 +1,10 @@
 import { buildModule } from '@nomicfoundation/hardhat-ignition/modules'
-import { zeroAddress } from 'viem'
-import { ethers } from 'ethers'
+import { zeroAddress, stringToHex } from 'viem'
 
 const SIX_MONTHS = 6 * 30 * 24 * 60 * 60
 const TWO_YEARS = 2 * 365 * 24 * 60 * 60
+
+const bytes32 = (s) => stringToHex(s, {size: 32});
 
 export default buildModule('Market', (m) => {
   const Finder = m.contract('Finder')
@@ -40,19 +41,19 @@ export default buildModule('Market', (m) => {
   m.call(Market, 'addMethods', [m.getParameter('methods')])
 
   // link it all together via Finder
-  m.call(Finder, 'changeImplementationAddress', [ethers.encodeBytes32String('OfferFactory'), OfferFactory], {
+  m.call(Finder, 'changeImplementationAddress', [bytes32('OfferFactory'), OfferFactory], {
     id: 'regOfferFactory',
   })
-  m.call(Finder, 'changeImplementationAddress', [ethers.encodeBytes32String('DealFactory'), DealFactory], {
+  m.call(Finder, 'changeImplementationAddress', [bytes32('DealFactory'), DealFactory], {
     id: 'regDealFactory',
   })
-  m.call(Finder, 'changeImplementationAddress', [ethers.encodeBytes32String('Market'), Market], { id: 'regMarket' })
-  m.call(Finder, 'changeImplementationAddress', [ethers.encodeBytes32String('Profile'), Profile], { id: 'regProfile' })
-  m.call(Finder, 'changeImplementationAddress', [ethers.encodeBytes32String('Uniswap'), uniswap], { id: 'regUniswap' })
-  m.call(Finder, 'changeImplementationAddress', [ethers.encodeBytes32String('Mediator'), m.getAccount(0)], { id: 'regMediator' })
+  m.call(Finder, 'changeImplementationAddress', [bytes32('Market'), Market], { id: 'regMarket' })
+  m.call(Finder, 'changeImplementationAddress', [bytes32('Profile'), Profile], { id: 'regProfile' })
+  m.call(Finder, 'changeImplementationAddress', [bytes32('Uniswap'), uniswap], { id: 'regUniswap' })
+  m.call(Finder, 'changeImplementationAddress', [bytes32('Mediator'), m.getAccount(0)], { id: 'regMediator' })
 
   // Profile grants role to Market
-  m.call(Profile, 'grantRole', [ethers.encodeBytes32String('MARKET_ROLE'), MarketProxy])
+  m.call(Profile, 'grantRole', [bytes32('MARKET_ROLE'), MarketProxy])
 
   // --- Tokenomics ---
   const pexfi = m.contract('PexfiToken', [])
@@ -66,29 +67,29 @@ export default buildModule('Market', (m) => {
   const weth = m.getParameter('weth')
 
   const feeCollector = m.contract('FeeCollector', [pexfiVault, pexfi, universalRouter, weth])
-  m.call(Finder, 'changeImplementationAddress', [ethers.encodeBytes32String('FeeCollector'), feeCollector], {
+  m.call(Finder, 'changeImplementationAddress', [bytes32('FeeCollector'), feeCollector], {
     id: 'regFeeCollector',
   })
 
   // --- Oracle Setup ---
 
   const Store = m.contract('Store', [{ rawValue: 0 }, { rawValue: 0 }, zeroAddress])
-  m.call(Finder, 'changeImplementationAddress', [ethers.encodeBytes32String('Store'), Store], { id: 'setStore' })
+  m.call(Finder, 'changeImplementationAddress', [bytes32('Store'), Store], { id: 'setStore' })
 
   const IdentifierWhitelist = m.contract('IdentifierWhitelist', [])
   m.call(
     Finder,
     'changeImplementationAddress',
-    [ethers.encodeBytes32String('IdentifierWhitelist'), IdentifierWhitelist],
+    [bytes32('IdentifierWhitelist'), IdentifierWhitelist],
     { id: 'idenitfierWhitelist' }
   )
-  m.call(IdentifierWhitelist, 'addSupportedIdentifier', [ethers.encodeBytes32String('ASSERT_TRUTH')])
+  m.call(IdentifierWhitelist, 'addSupportedIdentifier', [bytes32('ASSERT_TRUTH')])
 
   const CollateralWhitelist = m.contract('AddressWhitelist', [])
   m.call(
     Finder,
     'changeImplementationAddress',
-    [ethers.encodeBytes32String('CollateralWhitelist'), CollateralWhitelist],
+    [bytes32('CollateralWhitelist'), CollateralWhitelist],
     { id: 'collateralWhitelist' }
   )
   m.call(CollateralWhitelist, 'addToWhitelist', [pexfiVault])
@@ -96,7 +97,7 @@ export default buildModule('Market', (m) => {
 
   // Placeholder Oracle address — syncUmaParams requires it at deploy time.
   // Re-registered to OOv3 after deployment below.
-  m.call(Finder, 'changeImplementationAddress', [ethers.encodeBytes32String('Oracle'), Finder], {
+  m.call(Finder, 'changeImplementationAddress', [bytes32('Oracle'), Finder], {
     id: 'setOraclePlaceholder',
   })
 
@@ -104,7 +105,7 @@ export default buildModule('Market', (m) => {
   const OOv3 = m.contract('OptimisticOracleV3', [Finder, pexfiVault, 60])
 
   // Re-register Oracle to actual OOv3 address
-  m.call(Finder, 'changeImplementationAddress', [ethers.encodeBytes32String('Oracle'), OOv3], { id: 'setOracle' })
+  m.call(Finder, 'changeImplementationAddress', [bytes32('Oracle'), OOv3], { id: 'setOracle' })
 
   return {
     Market,
