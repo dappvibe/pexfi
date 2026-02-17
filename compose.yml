@@ -28,6 +28,8 @@ services:
       - ipfs
       - postgres
       - evm
+    env_file:
+      - .env
     environment:
       postgres_host: postgres
       postgres_user: graph-node
@@ -37,6 +39,7 @@ services:
       ethereum: 'arbitrum-one:http://evm:8545'
       GRAPH_LOG: info
       GRAPH_NODE_CONFIG: /config.toml
+      GOOGLE_RPC_KEY: ${GOOGLE_RPC_KEY}
     volumes:
       - ./subgraph/config.toml:/config.toml
 
