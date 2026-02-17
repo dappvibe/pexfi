@@ -1,26 +1,16 @@
 {
   "Market": {
     "uniswap": "0x0227628f3F023bb0B980b67D528571c95c6DaC1c",
-    "addTokens_0": [
-      "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14",
-      "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"
-    ],
-    "addTokens_1": 500,
-    "fiats": [
-        ["USD", "0x0000000000000000000000000000000000000000"],
-        ["EUR", "0x1a81afB8146aeFfCFc5E50e8479e826E7D55b910"],
-        ["GBP", "0x91FAB41F5f3bE955963a986366edAcff1aaeaa83"]
-    ],
-    "methods": [
-      ["Bank Transfer", 0]
-    ]
-  },
-  "UpgradeMarket": {
-    "marketAddress": "0x195Cb604d9d2BA0074Cc3299b44aDc2a61e32D62"
-  },
-  "FeeCollector": {
     "uniswapUniversalRouter": "0x3A9D48AB9751398BbFa63ad67599Bb04e4BdF98b",
     "weth": "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14",
-    "marketAddress": "0x195Cb604d9d2BA0074Cc3299b44aDc2a61e32D62"
+    "marketAddress": "0x195Cb604d9d2BA0074Cc3299b44aDc2a61e32D62",
+    "addTokens_0": ["0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14", "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"],
+    "addTokens_1": 500,
+    "fiats": [
+      ["USD", "0x0000000000000000000000000000000000000000"],
+      ["EUR", "0x1a81afB8146aeFfCFc5E50e8479e826E7D55b910"],
+      ["GBP", "0x91FAB41F5f3bE955963a986366edAcff1aaeaa83"]
+    ],
+    "methods": [["Bank Transfer", 0]]
   }
 }

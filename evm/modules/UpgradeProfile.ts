@@ -1,8 +1,8 @@
 import { buildModule } from '@nomicfoundation/hardhat-ignition/modules'
-import ProfileModule from './Profile.ts'
+import CoreModule from './01_Core'
 
 export default buildModule('UpgradeProfile', (m) => {
-  const { Profile } = m.useModule(ProfileModule)
+  const { Profile } = m.useModule(CoreModule)
 
   // Deploy the new implementation
   const newImpl = m.contract('Profile', [], { id: 'ProfileImplV2' })

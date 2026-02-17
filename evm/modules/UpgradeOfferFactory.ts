@@ -1,8 +1,8 @@
 import { buildModule } from '@nomicfoundation/hardhat-ignition/modules'
-import OfferFactoryModule from './OfferFactory.ts'
+import CoreModule from './01_Core'
 
 export default buildModule('UpgradeOfferFactory', (m) => {
-  const { OfferFactory } = m.useModule(OfferFactoryModule)
+  const { OfferFactory } = m.useModule(CoreModule)
 
   // Deploy the new implementation
   const newImpl = m.contract('OfferFactory', [], { id: 'OfferFactoryImplV2' })
