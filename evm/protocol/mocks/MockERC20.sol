@@ -8,7 +8,7 @@ contract MockERC20 is ERC20
 {
     using Strings for string;
 
-    uint8 private _decimals;
+    uint8 private immutable _decimals;
 
     constructor(string memory $symbol, uint8 $decimals)
     ERC20(string.concat('Mock', $symbol), $symbol)
