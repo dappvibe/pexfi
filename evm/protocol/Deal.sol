@@ -6,13 +6,14 @@ import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {OptimisticOracleV3Interface} from
     "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3Interface.sol";
+import "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3CallbackRecipientInterface.sol";
 import {Market} from "./Market.sol";
 import {Offer} from "./Offer.sol";
 import {Profile} from "./Profile.sol";
 import "./libraries/Errors.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract Deal is AccessControl, Initializable
+contract Deal is AccessControl, Initializable, OptimisticOracleV3CallbackRecipientInterface
 {
     using Strings for string;
 
@@ -37,7 +38,6 @@ contract Deal is AccessControl, Initializable
     uint16 private constant ACCEPTANCE_TIME = 15 minutes;
     uint16 private constant PAYMENT_WINDOW  = 1 hours;
 
-    bytes32 private constant MEDIATOR    = 'MEDIATOR';
     bytes32 private constant SELLER      = 'SELLER';
     bytes32 private constant BUYER       = 'BUYER';
     bytes32 private constant MEMBER      = 'MEMBER';
@@ -52,7 +52,7 @@ contract Deal is AccessControl, Initializable
     State   public state; // defaults to Initiated (0)
     Market  internal market;
     Offer   public offer;
-    bytes32 public assertionId;
+    bool    public isPaid;
 
     struct Feedback {
         bool given;
@@ -128,15 +128,16 @@ contract Deal is AccessControl, Initializable
         _state(State.Paid);
     }
 
-    function release() external stateBetween(State.Funded, State.Canceled) {
-        if (state >= State.Disputed) {
-            OptimisticOracleV3Interface _oov3 = _oracle();
-            require(assertionId != bytes32(0), "no oracle assertion");
-            require(_oov3.getAssertionResult(assertionId), "oracle: not true");
+    function release() external stateBetween(State.Funded, State.Resolved) {
+        if (state == State.Resolved) {
+            require(isPaid, "not paid");
         } else {
             require(hasRole(SELLER, msg.sender), "not seller");
         }
+        _release();
+    }
 
+    function _release() internal {
         IERC20Metadata token = market.token(offer.token()).api;
         if (hasRole(BUYER, taker)) {
             token.transfer(taker, tokenAmount - (tokenAmount * market.fee() / 10000));
@@ -161,33 +162,21 @@ contract Deal is AccessControl, Initializable
     }
 
     function cancel() external stateBetween(State.Initiated, State.Resolved) {
-        // Oracle-resolved dispute: anyone can cancel if assertion is FALSE
-        if (state == State.Disputed && assertionId != bytes32(0)) {
-            OptimisticOracleV3Interface _oov3 = _oracle();
-            require(!_oov3.getAssertionResult(assertionId), "oracle: not false");
-        } else {
-            // Original cancel logic requires MEMBER role
-            require(hasRole(MEMBER, msg.sender), UnauthorizedAccount(msg.sender));
-
-            if (state == State.Initiated && taker == msg.sender && block.timestamp < allowCancelUnacceptedAfter) revert("too early");
-
-            if (!(
-                (state < State.Accepted)
-                || (hasRole(BUYER, msg.sender) && state < State.Canceled)
-                || (hasRole(SELLER, msg.sender) && ((state < State.Paid && block.timestamp > allowCancelUnpaidAfter)))
-                || hasRole(MEDIATOR, msg.sender)
-            )) revert ActionNotAllowedInThisState(state);
+        if (state == State.Resolved) {
+            require(!isPaid, "paid");
+            _cancel();
+            return;
         }
 
-        IERC20Metadata token = market.token(offer.token()).api;
-        if (state >= State.Funded && state <= State.Disputed) {
-            if (hasRole(SELLER, taker)) {
-                token.transfer(taker, tokenAmount);
-            }
-            else if (hasRole(SELLER, offer.owner())) {
-                token.transfer(offer.owner(), tokenAmount);
-            }
-        }
+        require(hasRole(MEMBER, msg.sender), UnauthorizedAccount(msg.sender));
+
+        if (state == State.Initiated && taker == msg.sender && block.timestamp < allowCancelUnacceptedAfter) revert("too early");
+
+        if (!(
+            (state < State.Accepted)
+            || (hasRole(BUYER, msg.sender) && state < State.Canceled)
+            || (hasRole(SELLER, msg.sender) && ((state < State.Paid && block.timestamp > allowCancelUnpaidAfter)))
+        )) revert ActionNotAllowedInThisState(state);
 
         // canceled after acceptance window
         if (state == State.Initiated && msg.sender != offer.owner()) {
@@ -195,6 +184,19 @@ contract Deal is AccessControl, Initializable
             uint $tokenId = _profile.ownerToTokenId(msg.sender);
             if ($tokenId != 0) {
                 _profile.statsDealExpired($tokenId);
+            }
+        }
+        _cancel();
+    }
+
+    function _cancel() internal {
+        IERC20Metadata token = market.token(offer.token()).api;
+        if (state >= State.Funded) {
+            if (hasRole(SELLER, taker)) {
+                token.transfer(taker, tokenAmount);
+            }
+            else if (hasRole(SELLER, offer.owner())) {
+                token.transfer(offer.owner(), tokenAmount);
             }
         }
 
@@ -205,14 +207,23 @@ contract Deal is AccessControl, Initializable
         _state(State.Disputed);
     }
 
-    /// @notice Link an OOv3 assertion to this deal (called after asserting truth on OOv3)
-    function setAssertionId(bytes32 assertionId_) external {
+    function assertionResolvedCallback(bytes32 assertionId, bool assertedTruthfully) external override {
+        require(msg.sender == market.oracle(), "not oracle");
         require(state == State.Disputed, "not disputed");
-        require(assertionId == bytes32(0), "already set");
-        OptimisticOracleV3Interface _oov3 = _oracle();
-        require(_oov3.getAssertion(assertionId_).asserter != address(0), "invalid assertion");
-        assertionId = assertionId_;
+
+        OptimisticOracleV3Interface _oov3 = OptimisticOracleV3Interface(msg.sender);
+        OptimisticOracleV3Interface.Assertion memory assertion = _oov3.getAssertion(assertionId);
+
+        if (assertion.domainId == keccak256(bytes("PAID"))) {
+             isPaid = assertedTruthfully;
+        } else if (assertion.domainId == keccak256(bytes("NOT PAID"))) {
+             isPaid = !assertedTruthfully;
+        }
+
+        _state(State.Resolved);
     }
+
+    function assertionDisputedCallback(bytes32 assertionId) external override {}
 
     function _oracle() internal view returns (OptimisticOracleV3Interface) {
         address oov3 = market.oracle();
@@ -251,6 +262,10 @@ contract Deal is AccessControl, Initializable
             }
             emit FeedbackGiven(offer.owner(), upvote, message_);
         }
+    }
+
+    function supportsInterface(bytes4 interfaceId) public view virtual override(AccessControl) returns (bool) {
+        return interfaceId == type(OptimisticOracleV3CallbackRecipientInterface).interfaceId || super.supportsInterface(interfaceId);
     }
 
     function _state(State state_) private {
