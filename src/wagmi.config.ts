@@ -22,7 +22,7 @@ const transports = {
     webSocket('wss://eth-sepolia.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY),
     http()
   ]),
-  [hardhat.id]: webSocket('http://localhost:8545'),
+  [hardhat.id]: webSocket('ws://localhost:8545'),
 }
 
 // E2E Testing Support: This is required to be here to automate provider in VITE env
