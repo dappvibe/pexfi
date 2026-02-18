@@ -47,6 +47,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     Deals.Storage   private deals;
 
     FinderInterface public finder;
+    uint16 public fee;
 
     function initialize(
         address finder_
@@ -125,7 +126,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
         $token.safeTransferFrom(seller, address($deal), $deal.tokenAmount());
     }
 
-
+    function setFee(uint16 fee_) public onlyOwner { fee = fee_; }
 
     /// @param amount_ must have 6 decimals as a fiat amount
     /// @param denominator ratio (4 decimal) to apply to resulting amount
