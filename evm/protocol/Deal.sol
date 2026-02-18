@@ -12,7 +12,7 @@ import {Profile} from "./Profile.sol";
 import "./libraries/Errors.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract Deal is AccessControl
+contract Deal is AccessControl, Initializable
 {
     using Strings for string;
 
@@ -67,7 +67,12 @@ contract Deal is AccessControl
         _;
     }
 
-    constructor(
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+      _disableInitializers();
+    }
+
+    function initialize(
         address market_,
         address offer_,
         address taker_,
@@ -75,6 +80,8 @@ contract Deal is AccessControl
         uint fiatAmount_,
         string memory paymentInstructions_
     )
+    external
+    initializer
     {
         market = Market(market_);
         offer = Offer(offer_);
