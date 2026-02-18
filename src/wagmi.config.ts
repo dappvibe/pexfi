@@ -1,4 +1,4 @@
-import { createConfig, fallback, http } from 'wagmi'
+import { createConfig, fallback, http, webSocket } from 'wagmi'
 import { Chain, hardhat, mainnet, sepolia } from 'wagmi/chains'
 
 const chains: Chain[] = []
@@ -14,9 +14,15 @@ switch (import.meta.env.MODE) {
 }
 
 const transports = {
-  [mainnet.id]: fallback([http('https://eth-mainnet.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY), http()]),
-  [sepolia.id]: fallback([http('https://eth-sepolia.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY), http()]),
-  [hardhat.id]: http('http://localhost:8545'),
+  [mainnet.id]: fallback([
+    webSocket('wss://eth-mainnet.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY),
+    http()
+  ]),
+  [sepolia.id]: fallback([
+    webSocket('wss://eth-sepolia.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY),
+    http()
+  ]),
+  [hardhat.id]: webSocket('http://localhost:8545'),
 }
 
 // E2E Testing Support: This is required to be here to automate provider in VITE env
