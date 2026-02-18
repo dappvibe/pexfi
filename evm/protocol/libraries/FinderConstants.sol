@@ -12,4 +12,5 @@ library FinderConstants {
     bytes32 constant CollateralWhitelist = "CollateralWhitelist";
     bytes32 constant FeeCollector = "FeeCollector";
     bytes32 constant Uniswap = "Uniswap";
+    bytes32 constant PexfiVault = "PexfiVault";
 }

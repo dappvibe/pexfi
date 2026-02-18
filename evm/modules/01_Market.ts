@@ -58,9 +58,19 @@ export default buildModule('Market', (m) => {
   // --- Tokenomics ---
   const pexfi = m.contract('PexfiToken', [])
   const pexfiVault = m.contract('PexfiVault', [pexfi])
+  const regPexfiVault = m.call(Finder, 'changeImplementationAddress', [bytes32('PexfiVault'), pexfiVault], { id: 'regPexfiVault' })
   const beneficiary = m.getAccount(0)
   const startTimestamp = Math.floor(Date.now() / 1000)
-  const pexfiVesting = m.contract('PexfiVesting', [beneficiary, startTimestamp, TWO_YEARS, SIX_MONTHS, pexfiVault])
+  const pexfiVesting = m.contract('PexfiVesting', [beneficiary, startTimestamp, TWO_YEARS, SIX_MONTHS, Finder], {
+    after: [regPexfiVault],
+  })
+
+  const stakeAmount = 160_000n * 10n ** 18n
+  const approveVault = m.call(pexfi, 'approve', [pexfiVault, stakeAmount], { id: 'approveVaultForStaking' })
+  m.call(pexfiVault, 'deposit', [stakeAmount, pexfiVesting], {
+    id: 'depositStake',
+    after: [approveVault, pexfiVesting],
+  })
 
   // Parameters needed for FeeCollector
   const universalRouter = m.getParameter('uniswapUniversalRouter')
@@ -80,7 +90,7 @@ export default buildModule('Market', (m) => {
   m.call(Finder, 'changeImplementationAddress', [bytes32('IdentifierWhitelist'), IdentifierWhitelist], {
     id: 'idenitfierWhitelist',
   })
-  m.call(IdentifierWhitelist, 'addSupportedIdentifier', [bytes32('ASSERT_TRUTH2')])
+  m.call(IdentifierWhitelist, 'addSupportedIdentifier', [bytes32('ASSERT_TRUTH')])
 
   const CollateralWhitelist = m.contract('AddressWhitelist', [])
   m.call(Finder, 'changeImplementationAddress', [bytes32('CollateralWhitelist'), CollateralWhitelist], {
