@@ -48,10 +48,23 @@ export default defineConfig({
     },
   },
 
+  chainDescriptors: {
+    31337: {
+      name: "Localhost",
+      chainType: "generic",
+      blockExplorers: {
+        etherscan: {
+          name: "Localhost Explorer",
+          url: "http://localhost",
+          apiUrl: "http://localhost/api",
+        },
+      },
+    },
+  },
   // For contracts source verification
   verify: {
     etherscan: {
-      apiKey: process.env.ETHERSCAN_KEY || '',
+      apiKey: process.env.ETHERSCAN_KEY || 'abc',
     },
     blockscout: {
       enabled: true,
