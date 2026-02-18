@@ -1,4 +1,14 @@
 services:
+  ### -- Service Bundles -- Start Here -- ###
+  all:
+    image: alpine
+    depends_on:
+      - evm
+      - subgraph
+      - web
+      - blockscout
+
+  # Blockchain
   evm:
     image: ghcr.io/foundry-rs/foundry
     working_dir: /anvil
@@ -16,52 +26,7 @@ services:
       retries: 5
 
   # Subgraph Stack
-  graph-node:
-    image: graphprotocol/graph-node:v0.35.0
-    ports:
-      - '8000:8000'
-      - '8001:8001'
-      - '8020:8020'
-      - '8030:8030'
-      - '8040:8040'
-    depends_on:
-      - ipfs
-      - postgres
-      - evm
-    env_file:
-      - .env
-    environment:
-      node_id: default
-      ipfs: 'ipfs:5001'
-      GRAPH_LOG: info
-      GRAPH_NODE_CONFIG: /config.toml
-      GOOGLE_RPC_KEY: ${GOOGLE_RPC_KEY}
-    volumes:
-      - ./subgraph/config.toml:/config.toml
-
-  ipfs:
-    image: ipfs/kubo:v0.17.0
-    ports:
-      - '5001:5001'
-    volumes:
-      # IPFS uses /data/ipfs. Data will be stored in volume root under 'ipfs/'
-      - subgraph:/data
-
-  postgres:
-    image: postgres:14
-    ports:
-      - '5432:5432'
-    command: ['postgres', '-cshared_preload_libraries=pg_stat_statements', '-cmax_connections=200']
-    environment:
-      POSTGRES_USER: graph-node
-      POSTGRES_PASSWORD: let-me-in
-      POSTGRES_DB: graph-node
-      POSTGRES_INITDB_ARGS: '-E UTF8 --locale=C'
-    volumes:
-      # Postgres uses /var/lib/postgresql/data. Data will be stored in volume root under 'data/'
-      - subgraph:/var/lib/postgresql
-
-  subgraph-deploy:
+  subgraph:
     image: node:20
     working_dir: /app
     volumes:
@@ -70,14 +35,14 @@ services:
       - /bin/sh
       - -c
       - |
-        npx graph create -g http://graph-node:8020 hardhat
+        npx graph create -g http://subgraph-node:8020 hardhat
         npm run subgraph:codegen
-        npx graph deploy hardhat subgraph/subgraph.yaml --network hardhat -g http://graph-node:8020 --ipfs http://ipfs:5001 -l v0.0.1 --network-file subgraph/networks.json -o .cache/subgraph/build
+        npx graph deploy hardhat subgraph/subgraph.yaml --network hardhat -g http://subgraph-node:8020 --ipfs http://ipfs:5001 -l v0.0.1 --network-file subgraph/networks.json -o .cache/subgraph/build
     depends_on:
-      - graph-node
+      - subgraph-node
       - evm
 
-  # Frontend Dev Server
+  # Frontend Dev Web Server
   web:
     image: node:20
     working_dir: /app
@@ -90,7 +55,142 @@ services:
     command: npm run dev -- --host
     depends_on:
       - evm
-      - graph-node
+      - subgraph-node
+
+  blockscout:
+    depends_on:
+      - redis-db
+      - blockscout-user-ops-indexer
+      - blockscout-sig-provider
+      - blockscout-visualizer
+      - blockscout-backend
+      - blockscout-frontend
+    image: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - "./blockscout/docker-compose/proxy/explorer.conf.template:/etc/nginx/templates/default.conf.template"
+    environment:
+      BACK_PROXY_PASS: 'http://blockscout-backend:4000'
+      FRONT_PROXY_PASS: 'http://blockscout-frontend:3000'
+
+
+  # --- Subservices (runs automatically by compose) ---
+  subgraph-node:
+    image: graphprotocol/graph-node:v0.35.0
+    ports:
+      - '8000:8000'
+      - '8001:8001'
+      - '8020:8020'
+      - '8030:8030'
+      - '8040:8040'
+    depends_on:
+      - ipfs
+      - postgres
+      - evm
+    environment:
+      node_id: default
+      ipfs: 'ipfs:5001'
+      GRAPH_LOG: info
+      GRAPH_NODE_CONFIG: /config.toml
+      GOOGLE_RPC_KEY: ${GOOGLE_RPC_KEY}
+    volumes:
+      - ./subgraph/config.toml:/config.toml
+
+  blockscout-backend:
+    depends_on:
+      - redis-db
+      - postgres
+    image: ghcr.io/blockscout/blockscout:latest
+    stop_grace_period: 5m
+    command: sh -c "bin/blockscout eval \"Elixir.Explorer.ReleaseTasks.create_and_migrate()\" && bin/blockscout start"
+    env_file:
+      - ./blockscout/docker-compose/envs/common-blockscout.env
+    volumes:
+      - blockscout:/app/logs/
+      - blockscout:/app/dets/
+    environment:
+      DATABASE_URL: "postgresql://graph-node:let-me-in@postgres:5432/blockscout"
+      ETHEREUM_JSONRPC_VARIANT: 'anvil'
+      ETHEREUM_JSONRPC_HTTP_URL: 'http://evm:8545/'
+      ETHEREUM_JSONRPC_WS_URL: 'ws://evm:8545/'
+      ETHEREUM_JSONRPC_TRACE_URL: 'http://evm:8545/'
+      CHAIN_ID: '31337'
+      POOL_SIZE: 5
+      POOL_SIZE_API: 2
+      INDEXER_CATCHUP_BLOCKS_CONCURRENCY: 1
+      INDEXER_RECEIPTS_CONCURRENCY: 1
+      INDEXER_INTERNAL_TRANSACTIONS_CONCURRENCY: 1
+      INDEXER_TOKEN_BALANCES_CONCURRENCY: 1
+      INDEXER_COIN_BALANCES_CONCURRENCY: 1
+      INDEXER_DISABLE_INTERNAL_TRANSACTIONS_FETCHER: 'true'
+      INDEXER_DISABLE_PENDING_TRANSACTIONS_FETCHER: 'true'
+      NFT_MEDIA_HANDLER_ENABLED: 'false'
+      TXS_STATS_ENABLED: 'false'
+
+  blockscout-frontend:
+    image: ghcr.io/blockscout/frontend:latest
+    platform: linux/amd64
+    env_file:
+      - ./blockscout/docker-compose/envs/common-frontend.env
+    depends_on:
+      - blockscout-backend
+    environment:
+      NEXT_PUBLIC_AD_BANNER_PROVIDER: none
+      NEXT_PUBLIC_NETWORK_NAME: localhost
+      NEXT_PUBLIC_NETWORK_SHORT_NAME: localhost
+      NEXT_PUBLIC_HOMEPAGE_CHARTS: '[]'
+
+  blockscout-visualizer:
+    image: ghcr.io/blockscout/visualizer:${VISUALIZER_DOCKER_TAG:-latest}
+    platform: linux/amd64
+    env_file:
+      -  ./blockscout/docker-compose/envs/common-visualizer.env
+
+  blockscout-sig-provider:
+    image: ghcr.io/blockscout/sig-provider:${SIG_PROVIDER_DOCKER_TAG:-latest}
+    platform: linux/amd64
+
+  blockscout-user-ops-indexer:
+    depends_on:
+      - blockscout-backend
+    image: ghcr.io/blockscout/user-ops-indexer:${USER_OPS_INDEXER_DOCKER_TAG:-latest}
+    platform: linux/amd64
+    env_file:
+      - ./blockscout/docker-compose/envs/common-user-ops-indexer.env
+    environment:
+      USER_OPS_INDEXER__INDEXER__RPC_URL: 'ws://evm:8545/'
+      USER_OPS_INDEXER__DATABASE__CONNECT__URL: "postgresql://graph-node:let-me-in@postgres:5432/blockscout"
+      USER_OPS_INDEXER__DATABASE__RUN_MIGRATIONS: true
+
+  redis-db:
+    image: 'redis:alpine'
+    command: redis-server
+    volumes:
+      - blockscout:/data
+
+  postgres:
+    image: postgres:17
+    ports:
+      - '5432:5432'
+    command: ['postgres', '-cshared_preload_libraries=pg_stat_statements', '-cmax_connections=200']
+    environment:
+      POSTGRES_USER: graph-node
+      POSTGRES_PASSWORD: let-me-in
+      POSTGRES_DB: graph-node
+      POSTGRES_INITDB_ARGS: '-E UTF8 --locale=C'
+    volumes:
+      # Postgres uses /var/lib/postgresql/data. Data will be stored in volume root under 'data/'
+      - subgraph:/var/lib/postgresql
+
+  ipfs:
+    image: ipfs/kubo:v0.17.0
+    ports:
+      - '5001:5001'
+    volumes:
+      # IPFS uses /data/ipfs. Data will be stored in volume root under 'ipfs/'
+      - subgraph:/data
 
 volumes:
   subgraph:
+  blockscout:
