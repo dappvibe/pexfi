@@ -136,6 +136,8 @@ services:
     depends_on:
       - blockscout-backend
     environment:
+      NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID: ${WALLET_CONNECT_PROJECT_ID}
+      NEXT_PUBLIC_NETWORK_RPC_URL: 'http://localhost:8545'
       NEXT_PUBLIC_AD_BANNER_PROVIDER: none
       NEXT_PUBLIC_NETWORK_NAME: localhost
       NEXT_PUBLIC_NETWORK_SHORT_NAME: localhost
