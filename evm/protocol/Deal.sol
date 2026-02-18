@@ -12,9 +12,7 @@ import {Profile} from "./Profile.sol";
 import "./libraries/Errors.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-uint8 constant FEE = 100; // 1%
-
-contract Deal is AccessControl, Initializable
+contract Deal is AccessControl
 {
     using Strings for string;
 
@@ -69,12 +67,7 @@ contract Deal is AccessControl, Initializable
         _;
     }
 
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
-        _disableInitializers();
-    }
-
-    function initialize(
+    constructor(
         address market_,
         address offer_,
         address taker_,
@@ -82,8 +75,6 @@ contract Deal is AccessControl, Initializable
         uint fiatAmount_,
         string memory paymentInstructions_
     )
-    external
-    initializer
     {
         market = Market(market_);
         offer = Offer(offer_);
@@ -141,10 +132,10 @@ contract Deal is AccessControl, Initializable
 
         IERC20Metadata token = market.token(offer.token()).api;
         if (hasRole(BUYER, taker)) {
-            token.transfer(taker, tokenAmount - (tokenAmount * FEE / 10000));
+            token.transfer(taker, tokenAmount - (tokenAmount * market.fee() / 10000));
         }
         else if (hasRole(BUYER, offer.owner())) {
-            token.transfer(offer.owner(), tokenAmount - (tokenAmount * FEE / 10000));
+            token.transfer(offer.owner(), tokenAmount - (tokenAmount * market.fee() / 10000));
         }
         else revert('no buyer');
         token.transfer(market.feeCollector(), token.balanceOf(address(this)));
