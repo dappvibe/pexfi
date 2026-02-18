@@ -4,7 +4,7 @@ import { zeroAddress, stringToHex } from 'viem'
 const SIX_MONTHS = 6 * 30 * 24 * 60 * 60
 const TWO_YEARS = 2 * 365 * 24 * 60 * 60
 
-const bytes32 = (s) => stringToHex(s, {size: 32});
+const bytes32 = (s) => stringToHex(s, { size: 32 })
 
 export default buildModule('Market', (m) => {
   const Finder = m.contract('Finder')
@@ -77,23 +77,20 @@ export default buildModule('Market', (m) => {
   m.call(Finder, 'changeImplementationAddress', [bytes32('Store'), Store], { id: 'setStore' })
 
   const IdentifierWhitelist = m.contract('IdentifierWhitelist', [])
-  m.call(
-    Finder,
-    'changeImplementationAddress',
-    [bytes32('IdentifierWhitelist'), IdentifierWhitelist],
-    { id: 'idenitfierWhitelist' }
-  )
-  m.call(IdentifierWhitelist, 'addSupportedIdentifier', [bytes32('ASSERT_TRUTH')])
+  m.call(Finder, 'changeImplementationAddress', [bytes32('IdentifierWhitelist'), IdentifierWhitelist], {
+    id: 'idenitfierWhitelist',
+  })
+  m.call(IdentifierWhitelist, 'addSupportedIdentifier', [bytes32('ASSERT_TRUTH2')])
 
   const CollateralWhitelist = m.contract('AddressWhitelist', [])
-  m.call(
-    Finder,
-    'changeImplementationAddress',
-    [bytes32('CollateralWhitelist'), CollateralWhitelist],
-    { id: 'collateralWhitelist' }
-  )
+  m.call(Finder, 'changeImplementationAddress', [bytes32('CollateralWhitelist'), CollateralWhitelist], {
+    id: 'collateralWhitelist',
+  })
   m.call(CollateralWhitelist, 'addToWhitelist', [pexfiVault])
-  m.call(Store, 'setFinalFee', [pexfiVault, { rawValue: 0 }])
+  // With OOv3 defaults (50% burn), Minimum Bond = Final Fee * 2 = 160,000 tokens.
+  // This ensures only the deployer can assert/dispute initially.
+  const initialFinalFee = 80_000n * 10n ** 18n
+  m.call(Store, 'setFinalFee', [pexfiVault, { rawValue: initialFinalFee }])
 
   // Placeholder Oracle address — syncUmaParams requires it at deploy time.
   // Re-registered to OOv3 after deployment below.
