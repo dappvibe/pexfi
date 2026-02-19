@@ -15,7 +15,7 @@
     "wagmi:generate": "wagmi generate",
     "test": "vitest",
     "test:web": "vitest run",
-    "test:evm": "hardhat test",
+    "test:evm": "npx hardhat test",
     "lint": "eslint . --ext js,jsx,ts,tsx",
     "subgraph:codegen": "npx graph codegen subgraph/subgraph.yaml -o .cache/subgraph/generated"
   },
