@@ -47,7 +47,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     Deals.Storage   private deals;
 
     FinderInterface public finder;
-    uint16 public fee;
+    uint16 public fee = 100;
 
     function initialize(
         address finder_
