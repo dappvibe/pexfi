@@ -1,10 +1,11 @@
 import React from 'react'
-import { useAccount, useReadContract, useWriteContract } from 'wagmi'
+import { useAccount, useReadContract, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
 import {
   dealAbi,
   erc20Abi,
   useReadPexfiVaultBalanceOf,
   useReadPexfiVestingOwner,
+  useSimulateDeal,
   useWritePexfiVestingBond,
 } from '@/wagmi'
 import { message, Skeleton, Space, Statistic } from 'antd'
@@ -16,13 +17,70 @@ import { DealState } from '@/wagmi/contracts/useDeal'
 import { useAddress } from '@/hooks/useAddress'
 import { maxUint256, stringToHex } from 'viem'
 
+interface DealButtonProps {
+  dealAddress: `0x${string}`
+  functionName: 'accept' | 'fund' | 'paid' | 'release' | 'dispute' | 'cancel'
+  label: React.ReactNode
+  successMessage?: string
+  danger?: boolean
+  disabled?: boolean
+}
+
+function DealButton({
+  dealAddress,
+  functionName,
+  label,
+  successMessage,
+  danger,
+  disabled,
+}: DealButtonProps) {
+  const { data, error, isLoading: isSimulating } = useSimulateDeal({
+    address: dealAddress,
+    functionName,
+    abi: [...dealAbi, ...erc20Abi],
+    query: {
+      retry: false,
+    },
+  })
+
+  const { writeContractAsync, isPending } = useWriteContract()
+
+  const onClick = async () => {
+    if (error) {
+      message.error(error.shortMessage || error.message || 'Simulation failed')
+      return
+    }
+    if (!data?.request) {
+      return
+    }
+    try {
+      await writeContractAsync(data.request)
+      if (successMessage) message.success(successMessage)
+    } catch (e: any) {
+      message.error(e?.shortMessage || e?.message || 'Transaction failed')
+    }
+  }
+
+  return (
+    <LoadingButton
+      type="primary"
+      danger={danger}
+      loading={isSimulating || isPending}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+    >
+      {label}
+    </LoadingButton>
+  )
+}
+
 export default function Controls() {
   const { deal, offer } = useDealContext()
   const { address } = useAccount()
   const marketAddress = useAddress('Market#Market')
   const vaultAddress = useAddress('Market#PexfiVault')
   const vestingAddress = useAddress('Market#PexfiVesting')
-  const { writeContractAsync } = useWriteContract()
+
   const { writeContractAsync: writeBondAsync } = useWritePexfiVestingBond()
 
   const tokenAddress = offer?.token?.address
@@ -57,42 +115,6 @@ export default function Controls() {
 
   if (!address || !offer) return <Skeleton active />
 
-  async function callDeal(
-    functionName: 'accept' | 'fund' | 'paid' | 'release' | 'dispute' | 'cancel',
-    successMessage: string
-  ) {
-    try {
-      await writeContractAsync({
-        address: deal.address,
-        abi: dealAbi,
-        functionName,
-      })
-      if (successMessage) message.success(successMessage)
-    } catch (e: any) {
-      message.error(e?.shortMessage || e?.message || 'Transaction failed')
-      throw e
-    }
-  }
-
-  async function accept() {
-    return callDeal('accept', 'Accepted')
-  }
-
-  async function fund() {
-    if (tokenAddress && marketAddress) {
-      if ((allowance ?? 0n) < deal.tokenAmount) {
-        await writeContractAsync({
-          address: tokenAddress,
-          abi: erc20Abi,
-          functionName: 'approve',
-          args: [marketAddress, maxUint256],
-        })
-        await refetchAllowance()
-      }
-    }
-    return callDeal('fund', 'Funded')
-  }
-
   const isOwner = () => equal(address, offer.owner)
   const isTaker = () => equal(address, deal.taker)
   const isBuyer = () => (offer.isSell && isTaker()) || (!offer.isSell && isOwner())
@@ -100,6 +122,30 @@ export default function Controls() {
 
   const hasEnoughStPexfi = (stPexfiBalance ?? 0n) >= 100000n * 10n ** 18n
   const canResolve = () => hasEnoughStPexfi || equal(address, vestingOwner)
+
+  const needsApproval =
+    !!tokenAddress && !!marketAddress && (allowance ?? 0n) < deal.tokenAmount
+
+  const { writeContractAsync: approveAsync, data: approveHash } = useWriteContract()
+  const { isLoading: isApproving } = useWaitForTransactionReceipt({
+    hash: approveHash,
+    query: { enabled: !!approveHash },
+  })
+
+  async function approve() {
+    if (!tokenAddress || !marketAddress) return
+    try {
+      await approveAsync({
+        address: tokenAddress,
+        abi: erc20Abi,
+        functionName: 'approve',
+        args: [marketAddress, maxUint256],
+      })
+      await refetchAllowance()
+    } catch (e: any) {
+      message.error(e?.shortMessage || e?.message || 'Transaction failed')
+    }
+  }
 
   async function callVesting(args: any[], successMessage: string) {
     if (!vestingAddress) return
@@ -118,12 +164,14 @@ export default function Controls() {
   const action = {
     countAccept: (
       <span>
-        Waiting for acceptance: <Statistic.Countdown value={deal.allowCancelUnacceptedAfter} />
+        Waiting for acceptance:{' '}
+        <Statistic.Countdown value={deal.allowCancelUnacceptedAfter} />
       </span>
     ),
     countFund: (
       <span>
-        Waiting for funding: <Statistic.Countdown value={deal.allowCancelUnacceptedAfter} />
+        Waiting for funding:{' '}
+        <Statistic.Countdown value={deal.allowCancelUnacceptedAfter} />
       </span>
     ),
     countPaid: (
@@ -137,34 +185,58 @@ export default function Controls() {
       </span>
     ),
     accept: (
-      <LoadingButton type={'primary'} onClick={accept}>
-        Accept
-      </LoadingButton>
+      <DealButton
+        dealAddress={deal.address}
+        functionName="accept"
+        label="Accept"
+        successMessage="Accepted"
+      />
     ),
-    fund: (
-      <LoadingButton type={'primary'} onClick={fund}>
-        Fund
+    fund: needsApproval ? (
+      <LoadingButton type={'primary'} onClick={approve} loading={isApproving}>
+        Approve
       </LoadingButton>
+    ) : (
+      <DealButton
+        dealAddress={deal.address}
+        functionName="fund"
+        label="Fund"
+        successMessage="Funded"
+      />
     ),
     paid: (
-      <LoadingButton type={'primary'} onClick={() => callDeal('paid', 'Paid')}>
-        Paid
-      </LoadingButton>
+      <DealButton
+        dealAddress={deal.address}
+        functionName="paid"
+        label="Paid"
+        successMessage="Paid"
+      />
     ),
     release: (
-      <LoadingButton type={'primary'} onClick={() => callDeal('release', 'Released')}>
-        Release
-      </LoadingButton>
+      <DealButton
+        dealAddress={deal.address}
+        functionName="release"
+        label="Release"
+        successMessage="Released"
+      />
     ),
     dispute: (
-      <LoadingButton danger onClick={() => callDeal('dispute', 'Disputed')}>
-        Dispute
-      </LoadingButton>
+      <DealButton
+        dealAddress={deal.address}
+        functionName="dispute"
+        label="Dispute"
+        successMessage="Disputed"
+        danger
+      />
     ),
     cancel: (
-      <LoadingButton danger onClick={() => callDeal('cancel', 'Canceled')}>
-        Cancel
-      </LoadingButton>
+      <DealButton
+        dealAddress={deal.address}
+        functionName="cancel"
+        label="Cancel"
+        successMessage="Canceled"
+        danger
+      />
     ),
     resolvePaid: (
       <LoadingButton
