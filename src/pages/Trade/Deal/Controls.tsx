@@ -1,6 +1,12 @@
 import React from 'react'
 import { useAccount, useReadContract, useWriteContract } from 'wagmi'
-import { dealAbi, erc20Abi, useReadMarketMediator } from '@/wagmi'
+import {
+  dealAbi,
+  erc20Abi,
+  useReadPexfiVaultBalanceOf,
+  useReadPexfiVestingOwner,
+  useWritePexfiVestingBond,
+} from '@/wagmi'
 import { message, Skeleton, Space, Statistic } from 'antd'
 import { useDealContext } from '@/pages/Trade/Deal/Deal'
 import LoadingButton from '@/components/LoadingButton'
@@ -8,14 +14,16 @@ import Feedback from '@/pages/Trade/Deal/Feedback'
 import { equal } from '@/utils'
 import { DealState } from '@/wagmi/contracts/useDeal'
 import { useAddress } from '@/hooks/useAddress'
-import { maxUint256 } from 'viem'
+import { maxUint256, stringToHex } from 'viem'
 
 export default function Controls() {
   const { deal, offer } = useDealContext()
   const { address } = useAccount()
   const marketAddress = useAddress('Market#Market')
+  const vaultAddress = useAddress('Market#PexfiVault')
+  const vestingAddress = useAddress('Market#PexfiVesting')
   const { writeContractAsync } = useWriteContract()
-  const { data: mediatorAddress } = useReadMarketMediator({ address: marketAddress })
+  const { writeContractAsync: writeBondAsync } = useWritePexfiVestingBond()
 
   const tokenAddress = offer?.token?.address
 
@@ -25,6 +33,26 @@ export default function Controls() {
     functionName: 'allowance',
     args: address && marketAddress ? [address, marketAddress] : undefined,
     query: { enabled: !!tokenAddress && !!address && !!marketAddress },
+  })
+
+  // get isPaid
+  const { data: isPaid } = useReadContract({
+    address: deal.address,
+    abi: dealAbi,
+    functionName: 'isPaid',
+  })
+
+  const isDisputed = deal.state === DealState.Disputed
+
+  const { data: stPexfiBalance } = useReadPexfiVaultBalanceOf({
+    address: vaultAddress,
+    args: address ? [address] : undefined,
+    query: { enabled: !!vaultAddress && !!address && isDisputed },
+  })
+
+  const { data: vestingOwner } = useReadPexfiVestingOwner({
+    address: vestingAddress,
+    query: { enabled: !!vestingAddress && isDisputed },
   })
 
   if (!address || !offer) return <Skeleton active />
@@ -69,7 +97,23 @@ export default function Controls() {
   const isTaker = () => equal(address, deal.taker)
   const isBuyer = () => (offer.isSell && isTaker()) || (!offer.isSell && isOwner())
   const isSeller = () => (offer.isSell && isOwner()) || (!offer.isSell && isTaker())
-  const isMediator = () => equal(address, mediatorAddress)
+
+  const hasEnoughStPexfi = (stPexfiBalance ?? 0n) >= 100000n * 10n ** 18n
+  const canResolve = () => hasEnoughStPexfi || equal(address, vestingOwner)
+
+  async function callVesting(args: any[], successMessage: string) {
+    if (!vestingAddress) return
+    try {
+      await writeBondAsync({
+        address: vestingAddress,
+        args: args as any,
+      })
+      if (successMessage) message.success(successMessage)
+    } catch (e: any) {
+      message.error(e?.shortMessage || e?.message || 'Transaction failed')
+      throw e
+    }
+  }
 
   const action = {
     countAccept: (
@@ -120,6 +164,22 @@ export default function Controls() {
     cancel: (
       <LoadingButton danger onClick={() => callDeal('cancel', 'Canceled')}>
         Cancel
+      </LoadingButton>
+    ),
+    resolvePaid: (
+      <LoadingButton
+        type={'primary'}
+        onClick={() => callVesting([deal.address, stringToHex('PAID')], 'Bonded PAID')}
+      >
+        Resolve Paid
+      </LoadingButton>
+    ),
+    resolveUnpaid: (
+      <LoadingButton
+        danger
+        onClick={() => callVesting([deal.address, stringToHex('NOT PAID')], 'Bonded NOT PAID')}
+      >
+        Resolve Unpaid
       </LoadingButton>
     ),
   }
@@ -184,19 +244,26 @@ export default function Controls() {
       if (isBuyer()) {
         controls.push(action.cancel)
       }
-      if (isMediator()) {
-        controls.push(action.release) // resolve for buyer
-        controls.push(action.cancel) // resolve for seller
+      if (vestingOwner && canResolve()) {
+        controls.push(action.resolvePaid)
+        controls.push(action.resolveUnpaid)
+      }
+      break
+
+    case DealState.Resolved:
+      if (isPaid) {
+        controls.push(action.release)
+      } else {
+        controls.push(action.cancel)
       }
       break
 
     case DealState.Cancelled:
-    case DealState.Resolved:
     case DealState.Released:
       break
   }
 
-  if (deal.state < DealState.Cancelled) {
+  if (deal.state < DealState.Cancelled || deal.state === DealState.Resolved) {
     return (
       <Space>
         {controls.map((button, index) => (
@@ -204,7 +271,7 @@ export default function Controls() {
         ))}
       </Space>
     )
-  } else if (deal.state === DealState.Released || deal.state === DealState.Resolved) {
+  } else if (deal.state === DealState.Released) {
     // Resolved also allows feedback so that users don't abuse disputes to not have feedback
     return <Feedback />
   } else {
