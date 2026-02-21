@@ -47,7 +47,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     Deals.Storage   private deals;
 
     FinderInterface public finder;
-    uint16 public fee = 100;
+    uint16 public fee;
 
     function initialize(
         address finder_
@@ -56,6 +56,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     {
         __Ownable_init(msg.sender);
         finder = FinderInterface(finder_);
+        fee = 100;
     }
 
     function _authorizeUpgrade(address) internal onlyOwner override {}
