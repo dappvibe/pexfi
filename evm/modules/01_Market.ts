@@ -24,7 +24,7 @@ export default buildModule('Market', (m) => {
   })
   const Profile = m.contractAt('Profile', ProfileProxy)
 
-  const uniswap = m.getParameter('uniswap') // factory (or mock) address
+  const uniswap = m.getParameter('UniswapV3Factory') // factory (or mock) address
 
   // deploy
   const MarketImpl = m.contract('Market', [], { id: 'MarketV0' })

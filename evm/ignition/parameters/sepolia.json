@@ -1,4 +1,7 @@
 {
+  "Mocks": {
+    "UniswapV3Factory": "0x0227628f3F023bb0B980b67D528571c95c6DaC1c"
+  },
   "Market": {
     "uniswap": "0x0227628f3F023bb0B980b67D528571c95c6DaC1c",
     "uniswapUniversalRouter": "0x3A9D48AB9751398BbFa63ad67599Bb04e4BdF98b",

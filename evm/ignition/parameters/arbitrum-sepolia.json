@@ -1,6 +1,6 @@
 {
   "Market": {
-    "uniswap": "0x5D2950f06D464cCaC7f7b0cE3Fe3572165aFDFDE",
+    "UniswapV3Factory": "0x5D2950f06D464cCaC7f7b0cE3Fe3572165aFDFDE",
     "addTokens_0": [
       "0xB8E28e26d262CA67a2f9A53Cc70A714dfb528D39",
       "0xA868febc9f1DF100cce2A57654eb92c5d2FdCE45",
