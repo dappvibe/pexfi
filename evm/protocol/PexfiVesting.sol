@@ -78,7 +78,7 @@ contract PexfiVesting is VestingWalletCliff {
             oov3.defaultLiveness(),                                                   // liveness
             token,                                                                   // currency
             bondAmount,                                                                 // bond
-            '0x4153534552545f54525554480000000000000000000000000000000000000000',     // ASSERT_TRUTH
+            0x4153534552545f54525554480000000000000000000000000000000000000000,     // ASSERT_TRUTH
             keccak256(claim)                // domainId
         );
     }
