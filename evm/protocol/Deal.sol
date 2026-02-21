@@ -42,6 +42,15 @@ contract Deal is AccessControl, Initializable, OptimisticOracleV3CallbackRecipie
     bytes32 private constant BUYER       = 'BUYER';
     bytes32 private constant MEMBER      = 'MEMBER';
 
+    struct DealParams {
+        address market;
+        address offer;
+        address taker;
+        uint tokenAmount;
+        uint fiatAmount;
+        string paymentInstructions;
+    }
+
     string  public terms;
     uint    public tokenAmount;
     address public taker;
@@ -72,34 +81,27 @@ contract Deal is AccessControl, Initializable, OptimisticOracleV3CallbackRecipie
       _disableInitializers();
     }
 
-    function initialize(
-        address market_,
-        address offer_,
-        address taker_,
-        uint tokenAmount_,
-        uint fiatAmount_,
-        string memory paymentInstructions_
-    )
+    function initialize(DealParams calldata params)
     external
     initializer
     {
-        market = Market(market_);
-        offer = Offer(offer_);
+        market = Market(params.market);
+        offer = Offer(params.offer);
 
-        taker = taker_;
+        taker = params.taker;
         if (offer.isSell()) {
-            _grantRole(BUYER, taker_);
+            _grantRole(BUYER, params.taker);
             _grantRole(SELLER, offer.owner());
         } else {
-            _grantRole(SELLER, taker_);
+            _grantRole(SELLER, params.taker);
             _grantRole(BUYER, offer.owner());
         }
         _grantRole(MEMBER, offer.owner());
-        _grantRole(MEMBER, taker_);
+        _grantRole(MEMBER, params.taker);
 
-        tokenAmount = tokenAmount_;
-        fiatAmount = fiatAmount_;
-        paymentInstructions = paymentInstructions_;
+        tokenAmount = params.tokenAmount;
+        fiatAmount = params.fiatAmount;
+        paymentInstructions = params.paymentInstructions;
         allowCancelUnacceptedAfter = block.timestamp + ACCEPTANCE_TIME;
         allowCancelUnpaidAfter = block.timestamp + 2 weeks; // initial safety value, overriden by accept()
 
@@ -107,7 +109,7 @@ contract Deal is AccessControl, Initializable, OptimisticOracleV3CallbackRecipie
         terms = offer.terms();
 
         // notify from the new address for unified state transitions
-        emit DealState(state, taker_);
+        emit DealState(state, params.taker);
     }
 
     /// @notice Offer owner agrees to the deal

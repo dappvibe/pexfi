@@ -150,7 +150,11 @@ describe('OfferPage', () => {
     fireEvent.click(submitBtn)
 
     await waitFor(() => {
-      expect(mockFactoryInstance.create).toHaveBeenCalled()
+      expect(mockFactoryInstance.create).toHaveBeenCalledWith({
+        offer: '0xOfferAddr',
+        fiatAmount: 20000000n,
+        paymentInstructions: '',
+      })
     })
   })
 })
