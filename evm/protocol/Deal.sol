@@ -172,13 +172,18 @@ contract Deal is AccessControl, Initializable, OptimisticOracleV3CallbackRecipie
 
         require(hasRole(MEMBER, msg.sender), UnauthorizedAccount(msg.sender));
 
-        if (state == State.Initiated && taker == msg.sender && block.timestamp < allowCancelUnacceptedAfter) revert("too early");
-
-        if (!(
-            (state < State.Accepted)
-            || (hasRole(BUYER, msg.sender) && state < State.Canceled)
-            || (hasRole(SELLER, msg.sender) && ((state < State.Paid && block.timestamp > allowCancelUnpaidAfter)))
-        )) revert ActionNotAllowedInThisState(state);
+        if (msg.sender == taker) {
+            if (state >= State.Accepted) {
+                if (block.timestamp <= allowCancelUnpaidAfter) revert("too early");
+                if (state != State.Accepted) revert ActionNotAllowedInThisState(state);
+            }
+        } else {
+            if (!(
+                (state < State.Accepted)
+                || (hasRole(BUYER, msg.sender) && state < State.Canceled)
+                || (hasRole(SELLER, msg.sender) && (state < State.Paid && block.timestamp > allowCancelUnpaidAfter))
+            )) revert ActionNotAllowedInThisState(state);
+        }
 
         // canceled after acceptance window
         if (state == State.Initiated && msg.sender != offer.owner()) {
