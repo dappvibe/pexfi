@@ -27,14 +27,11 @@ describe('Offer', () => {
   describe('OfferFactory', () => {
     describe('create()', () => {
       test('should trigger OfferCreated event', async () => {
-        const hash = await OfferFactory.write.create([OFFER_PARAMS])
-        const receipt = await publicClient.waitForTransactionReceipt({ hash })
-        const logs = parseEventLogs({
-          abi: Market.abi,
-          eventName: 'OfferCreated',
-          logs: receipt.logs,
-        })
-        assert.strictEqual(logs.length, 1, 'OfferCreated event not found')
+        await viem.assertions.emit(
+          OfferFactory.write.create([OFFER_PARAMS]),
+          Market,
+          'OfferCreated'
+        )
       })
 
       test('should register offer in Market', async () => {
