@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.26;
 
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {FinderInterface} from "@uma/core/contracts/data-verification-mechanism/interfaces/FinderInterface.sol";
+import {Market} from "./Market.sol";
+import {Offer} from "./Offer.sol";
 import {FinderConstants} from "./libraries/FinderConstants.sol";
-import "./Offer.sol";
-
-import "./Market.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {FinderInterface} from "@uma/core/contracts/data-verification-mechanism/interfaces/FinderInterface.sol";
 
 contract OfferFactory is Ownable
 {
@@ -27,37 +25,22 @@ contract OfferFactory is Ownable
     }
 
     /// @dev check immutable props here to reduce Offer contract size
-    /// @param rate_ Multiplier to apply to market price (4 decimals)
-    function create(
-        bool isSell_,
-        string memory token_,
-        string memory fiat_,
-        string memory method_,
-        uint16 rate_,
-        Offer.Limits memory limits_,
-        string memory terms_
-    )
+    function create(Offer.OfferParams calldata params)
     external
     {
-        require(rate_ > 0, "rate");
-        require(limits_.min < limits_.max, 'minmax');
+        require(params.rate > 0, "rate");
+        require(params.limits.min < params.limits.max, 'minmax');
 
         Market market = Market(finder.getImplementationAddress(FinderConstants.Market));
 
-        market.getPrice(token_, fiat_); // this validates both token and fiat
-        require(market.convert(limits_.min, fiat_, 'USDC', 10000) > 20, 'min too low');
-        market.method(method_);         // validate method
+        market.getPrice(params.token, params.fiat); // this validates both token and fiat
+        require(market.convert(params.limits.min, params.fiat, 'USDC', 10000) > 20, 'min too low');
+        market.method(params.method);               // validate method
 
         Offer offer = Offer(Clones.clone(implementation));
         offer.initialize(
             msg.sender,
-            isSell_,
-            token_,
-            fiat_,
-            method_,
-            rate_,
-            limits_,
-            terms_
+            params
         );
 
         // register this offer to market

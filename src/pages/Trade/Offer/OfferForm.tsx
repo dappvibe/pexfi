@@ -73,12 +73,19 @@ export default function OfferForm({ offer = null, setRate, setLimits, setTerms, 
     val.rate = Math.floor((1 + val.rate / 100) * 10 ** 4)
     val.terms ??= ''
 
-    const params = [val.isSell, val.token, val.fiat, val.method, val.rate, [val.min, val.max], val.terms]
+    const params = {
+      isSell: val.isSell,
+      token: val.token,
+      fiat: val.fiat,
+      method: val.method,
+      rate: val.rate,
+      limits: { min: val.min, max: val.max },
+      terms: val.terms,
+    }
 
     try {
       const factory = await signed(OfferFactory)
-      // @ts-ignore
-      const tx = await factory.create(...params)
+      const tx = await factory.create(params)
       message.success('Offer submitted. You will be redirected shortly.')
 
       const receipt = await tx.wait()
