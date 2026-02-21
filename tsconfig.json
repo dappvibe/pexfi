@@ -16,8 +16,9 @@
     },
     "moduleResolution": "bundler",
     "allowJs": true,
-    "types": ["vite/client", "vitest/globals"],
-    "noEmit": true
+    "types": ["node", "vite/client", "vitest/globals", "@nomicfoundation/hardhat-viem"],
+    "noEmit": true,
+    "allowImportingTsExtensions": true
   },
   "include": ["src/**/*", "tests/e2e/**/*", "evm/**/*", "tests/evm/**/*", "hardhat.config.ts"]
 }
