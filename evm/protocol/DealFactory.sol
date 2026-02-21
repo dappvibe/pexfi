@@ -23,28 +23,34 @@ contract DealFactory is Ownable
         implementation = implementation_;
     }
 
-    function create(address offer_, uint fiatAmount_, string memory paymentInstructions_)
+    struct DealParams {
+        address offer;
+        uint fiatAmount;
+        string paymentInstructions;
+    }
+
+    function create(DealParams calldata params)
     external
     {
         Market market = Market(finder.getImplementationAddress(FinderConstants.Market));
 
-        require(market.hasOffer(offer_), "no offer");
+        require(market.hasOffer(params.offer), "no offer");
 
-        Offer $offer = Offer(offer_);
+        Offer $offer = Offer(params.offer);
         require(msg.sender != $offer.owner(), UnauthorizedAccount(msg.sender));
         require(!$offer.disabled(), "disabled");
 
-        uint $tokenAmount = market.convert(fiatAmount_, $offer.fiat(), $offer.token(), $offer.rate());
+        uint $tokenAmount = market.convert(params.fiatAmount, $offer.fiat(), $offer.token(), $offer.rate());
 
         Deal deal = Deal(Clones.clone(implementation));
-        deal.initialize(
-            address(market),
-            offer_,
-            msg.sender,
-            $tokenAmount,
-            fiatAmount_,
-            paymentInstructions_
-        );
+        deal.initialize(Deal.DealParams({
+            market: address(market),
+            offer: params.offer,
+            taker: msg.sender,
+            tokenAmount: $tokenAmount,
+            fiatAmount: params.fiatAmount,
+            paymentInstructions: params.paymentInstructions
+        }));
 
         market.addDeal(deal);
     }
