@@ -14,6 +14,16 @@ contract Offer is Initializable
         uint32 max;
     }
 
+    struct OfferParams {
+        bool isSell;
+        uint16 rate;
+        Limits limits;
+        string token;
+        string fiat;
+        string method;
+        string terms;
+    }
+
     address public owner;
     bool public isSell;
     string public token;
@@ -31,25 +41,19 @@ contract Offer is Initializable
 
     function initialize(
         address owner_,
-        bool isSell_,
-        string memory token_,
-        string memory fiat_,
-        string memory method_,
-        uint16 rate_, // 4 decimals
-        Limits memory limits_,
-        string memory terms_
+        OfferParams calldata params
     )
     external
     initializer
     {
         owner = owner_;
-        isSell = isSell_;
-        token = token_;
-        fiat = fiat_;
-        method = method_;
-        rate = rate_;
-        limits = limits_;
-        terms = terms_;
+        isSell = params.isSell;
+        token = params.token;
+        fiat = params.fiat;
+        method = params.method;
+        rate = params.rate;
+        limits = params.limits;
+        terms = params.terms;
     }
 
     function setRate(uint16 rate_) external {
