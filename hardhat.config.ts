@@ -1,14 +1,25 @@
 import * as dotenv from 'dotenv'
 dotenv.config()
 
-import hardhatToolboxMochaEthersPlugin from '@nomicfoundation/hardhat-toolbox-mocha-ethers'
 import ignoreWarnings from 'hardhat-ignore-warnings';
 import hardhatVerify from '@nomicfoundation/hardhat-verify';
-
+import hardhatViem from "@nomicfoundation/hardhat-viem";
+import hardhatViemAssertions from "@nomicfoundation/hardhat-viem-assertions";
+import hardhatNodeTestRunner from "@nomicfoundation/hardhat-node-test-runner";
+import hardhatNetworkHelpers from "@nomicfoundation/hardhat-network-helpers";
+import hardhatIgnitionViem from "@nomicfoundation/hardhat-ignition-viem";
 import { defineConfig } from 'hardhat/config'
 
 export default defineConfig({
-  plugins: [hardhatToolboxMochaEthersPlugin, ignoreWarnings, hardhatVerify],
+  plugins: [
+    ignoreWarnings,
+    hardhatVerify,
+    hardhatViem,
+    hardhatViemAssertions,
+    hardhatNodeTestRunner,
+    hardhatNetworkHelpers,
+    hardhatIgnitionViem,
+  ],
   paths: {
     sources: './evm/protocol',
     tests: './tests/evm',
