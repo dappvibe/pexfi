@@ -2,7 +2,7 @@ import { before, describe, test } from 'node:test'
 import * as assert from 'node:assert'
 import { parseEventLogs, getAddress } from 'viem'
 import hre from 'hardhat'
-import deploymentFixture from './fixtures/deploymentFixture'
+import deploy from './deploy/deployMarket'
 
 export const OFFER_PARAMS = {
   isSell: true,
@@ -18,8 +18,7 @@ describe('Offer', () => {
   let viem, networkHelpers, OfferFactory, Market, publicClient, walletClients;
 
   before(async () => {
-    ({ networkHelpers } = await hre.network.connect());
-    ({ viem, OfferFactory, Market } = await networkHelpers.loadFixture(deploymentFixture))
+    ({ viem, OfferFactory, Market, networkHelpers } = await deploy())
     publicClient = await viem.getPublicClient()
     walletClients = await viem.getWalletClients()
   })
