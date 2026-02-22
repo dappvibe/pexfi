@@ -87,8 +87,8 @@ export default defineConfig({
       default: {
         compilers: [
           {
-            version: '0.8.26',
-            settings: { optimizer: { enabled: true, runs: 200 }, viaIR: true },
+            version: '0.8.34',
+            settings: { optimizer: { enabled: true, runs: 200 }, viaIR: false },
           },
           {
             version: '0.8.16',
@@ -99,7 +99,7 @@ export default defineConfig({
       production: {
         compilers: [
           {
-            version: '0.8.26',
+            version: '0.8.34',
             settings: { optimizer: { enabled: true, runs: 1000 }, viaIR: true },
           },
           {
