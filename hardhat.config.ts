@@ -22,7 +22,7 @@ export default defineConfig({
   ],
   paths: {
     sources: './evm/protocol',
-    tests: './tests/evm',
+    tests: './tests/hardhat',
     cache: './.cache/hardhat',
     artifacts: './.cache/artifacts',
     ignition: './evm',
