@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.26;
+pragma solidity 0.8.34;
 
 import {Market} from "./Market.sol";
 import {Offer} from "./Offer.sol";
