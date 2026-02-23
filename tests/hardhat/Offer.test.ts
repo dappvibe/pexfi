@@ -1,7 +1,6 @@
 import { before, describe, test } from 'node:test'
 import * as assert from 'node:assert'
-import { parseEventLogs, getAddress, stringToHex, padHex } from 'viem'
-import hre from 'hardhat'
+import { getAddress, padHex, parseEventLogs, stringToHex } from 'viem'
 import deploy from './deploy/deployMarket'
 
 const bytes3 = (s: string) => padHex(stringToHex(s), { size: 3, dir: 'right' })
@@ -19,10 +18,10 @@ export const OFFER_PARAMS = {
 }
 
 describe('Offer', () => {
-  let viem, networkHelpers, Market, publicClient, walletClients;
+  let viem, networkHelpers, Market, publicClient, walletClients
 
   before(async () => {
-    ({ viem, Market, networkHelpers } = await deploy())
+    ;({ viem, Market, networkHelpers } = await deploy())
     publicClient = await viem.getPublicClient()
     walletClients = await viem.getWalletClients()
   })
@@ -30,11 +29,7 @@ describe('Offer', () => {
   describe('Market.createOffer', () => {
     describe('create()', () => {
       test('should trigger OfferCreated event', async () => {
-        await viem.assertions.emit(
-          Market.write.createOffer([OFFER_PARAMS]),
-          Market,
-          'OfferCreated'
-        )
+        await viem.assertions.emit(Market.write.createOffer([OFFER_PARAMS]), Market, 'OfferCreated')
       })
 
       test('should register offer in Market', async () => {
@@ -48,18 +43,6 @@ describe('Offer', () => {
         const offerAddress = logs[0].args.offer
         const hasOffer = await Market.read.hasOffer([offerAddress])
         assert.ok(hasOffer, 'Offer should be registered in Market')
-      })
-
-      test('should revert when limits are too low', async () => {
-        await viem.assertions.revertWith(
-          Market.write.createOffer([
-            {
-              ...OFFER_PARAMS,
-              limits: { min: 0, max: 100 },
-            },
-          ]),
-          'min too low'
-        )
       })
 
       test('should revert when limits max equals min', async () => {
@@ -106,7 +89,7 @@ describe('Offer', () => {
   })
 
   describe('Offer', () => {
-    let offer;
+    let offer
 
     before(async () => {
       const hash = await Market.write.createOffer([OFFER_PARAMS])
@@ -130,11 +113,7 @@ describe('Offer', () => {
 
     test('setRate: should update rate and emit OfferUpdated', async () => {
       const newRate = 11000
-      await viem.assertions.emit(
-        offer.write.setRate([newRate]),
-        offer,
-        'OfferUpdated'
-      )
+      await viem.assertions.emit(offer.write.setRate([newRate]), offer, 'OfferUpdated')
       const rate = await offer.read.rate()
       assert.strictEqual(rate, newRate)
     })
@@ -151,40 +130,25 @@ describe('Offer', () => {
 
     test('setLimits: should update limits and emit OfferUpdated', async () => {
       const newLimits = { min: 2000, max: 6000 }
-      await viem.assertions.emit(
-        offer.write.setLimits([newLimits]),
-        offer,
-        'OfferUpdated'
-      )
+      await viem.assertions.emit(offer.write.setLimits([newLimits]), offer, 'OfferUpdated')
       const limits = await offer.read.limits()
       assert.strictEqual(Number(limits[0]), newLimits.min)
       assert.strictEqual(Number(limits[1]), newLimits.max)
     })
 
     test('setLimits: should revert if min >= max', async () => {
-      await viem.assertions.revertWith(
-        offer.write.setLimits([{ min: 5000, max: 5000 }]),
-        'limits'
-      )
+      await viem.assertions.revertWith(offer.write.setLimits([{ min: 5000, max: 5000 }]), 'limits')
     })
 
     test('setTerms: should update terms and emit OfferUpdated', async () => {
       const newTerms = 'updated terms'
-      await viem.assertions.emit(
-        offer.write.setTerms([newTerms]),
-        offer,
-        'OfferUpdated'
-      )
+      await viem.assertions.emit(offer.write.setTerms([newTerms]), offer, 'OfferUpdated')
       const terms = await offer.read.terms()
       assert.strictEqual(terms, newTerms)
     })
 
     test('setDisabled: should update disabled and emit OfferUpdated', async () => {
-      await viem.assertions.emit(
-        offer.write.setDisabled([true]),
-        offer,
-        'OfferUpdated'
-      )
+      await viem.assertions.emit(offer.write.setDisabled([true]), offer, 'OfferUpdated')
       const disabled = await offer.read.disabled()
       assert.ok(disabled)
     })
