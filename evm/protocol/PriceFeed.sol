@@ -7,29 +7,29 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 // @dev Deploy one contract per fiat currency (except for USD)
 contract PriceFeed is Ownable
 {
-    // Chainlink compatible
-    uint8 public decimals = 8;
-    string public description;
-    uint public version = 1;
+  // Chainlink compatible
+  uint8 public decimals = 8;
+  string public description;
+  uint public version = 1;
 
-    uint public latestTimestamp;
-    int private _rate;
+  uint public latestTimestamp;
+  int private _rate;
 
-    constructor(string memory name_) Ownable(msg.sender) {
-        description = string.concat(name_, " / USD");
-    }
+  constructor(string memory name_) Ownable(msg.sender) {
+    description = string.concat(name_, " / USD");
+  }
 
-    function set(int256 rate) external onlyOwner
-    {
-        _rate = rate;
-        latestTimestamp = block.timestamp;
-    }
+  function set(int256 rate) external onlyOwner
+  {
+    _rate = rate;
+    latestTimestamp = block.timestamp;
+  }
 
-    function latestRoundData()
-    external
-    view
-    returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
-    {
-        return (1, _rate, 0, latestTimestamp, 1);
-    }
+  function latestRoundData()
+  external
+  view
+  returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
+  {
+    return (1, _rate, 0, latestTimestamp, 1);
+  }
 }

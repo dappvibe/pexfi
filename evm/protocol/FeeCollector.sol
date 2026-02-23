@@ -12,225 +12,225 @@ import {IHooks} from "@uniswap/v4-core/src/interfaces/IHooks.sol";
 import {PexfiVault} from "./PexfiVault.sol";
 
 interface IWETH {
-    function withdraw(uint256 amount) external;
+  function withdraw(uint256 amount) external;
 }
 
 contract FeeCollector {
-    using SafeERC20 for IERC20;
-    using CurrencyLibrary for Currency;
+  using SafeERC20 for IERC20;
+  using CurrencyLibrary for Currency;
 
-    address public immutable vault;
-    Currency public immutable pexfi;
-    IUniversalRouter public immutable universalRouter;
-    address public immutable weth;
+  address public immutable vault;
+  Currency public immutable pexfi;
+  IUniversalRouter public immutable universalRouter;
+  address public immutable weth;
 
-    Currency  private immutable _poolKeyCurrency0;
-    Currency  private immutable _poolKeyCurrency1;
-    uint24    private immutable _poolKeyFee;
-    int24     private immutable _poolKeyTickSpacing;
-    IHooks    private immutable _poolKeyHooks;
+  Currency  private immutable _poolKeyCurrency0;
+  Currency  private immutable _poolKeyCurrency1;
+  uint24    private immutable _poolKeyFee;
+  int24     private immutable _poolKeyTickSpacing;
+  IHooks    private immutable _poolKeyHooks;
 
-    event Buyback(address indexed token, uint256 amountIn, uint256 amountPexfiOut);
+  event Buyback(address indexed token, uint256 amountIn, uint256 amountPexfiOut);
 
-    struct ExactInputSingleParams {
-        PoolKey poolKey;
-        bool zeroForOne;
-        uint128 amountIn;
-        uint128 amountOutMinimum;
-        bytes hookData;
-    }
+  struct ExactInputSingleParams {
+    PoolKey poolKey;
+    bool zeroForOne;
+    uint128 amountIn;
+    uint128 amountOutMinimum;
+    bytes hookData;
+  }
 
-    constructor(
-        address _vault,
-        address _pexfi,
-        address _universalRouter,
-        address _weth,
-        PoolKey memory _pexfiPoolKey
-    ) {
-        require(_vault != address(0) && _pexfi != address(0) && _universalRouter != address(0) && _weth != address(0), "Invalid address");
-        require(
-            Currency.unwrap(_pexfiPoolKey.currency0) == _pexfi || Currency.unwrap(_pexfiPoolKey.currency1) == _pexfi,
-            "Must involve PEXFI"
-        );
-        require(
-            Currency.unwrap(_pexfiPoolKey.currency0) == address(0) || Currency.unwrap(_pexfiPoolKey.currency1) == address(0),
-            "Must involve ETH"
-        );
+  constructor(
+    address _vault,
+    address _pexfi,
+    address _universalRouter,
+    address _weth,
+    PoolKey memory _pexfiPoolKey
+  ) {
+    require(_vault != address(0) && _pexfi != address(0) && _universalRouter != address(0) && _weth != address(0), "Invalid address");
+    require(
+      Currency.unwrap(_pexfiPoolKey.currency0) == _pexfi || Currency.unwrap(_pexfiPoolKey.currency1) == _pexfi,
+      "Must involve PEXFI"
+    );
+    require(
+      Currency.unwrap(_pexfiPoolKey.currency0) == address(0) || Currency.unwrap(_pexfiPoolKey.currency1) == address(0),
+      "Must involve ETH"
+    );
 
-        vault = _vault;
-        pexfi = Currency.wrap(_pexfi);
-        universalRouter = IUniversalRouter(_universalRouter);
-        weth = _weth;
+    vault = _vault;
+    pexfi = Currency.wrap(_pexfi);
+    universalRouter = IUniversalRouter(_universalRouter);
+    weth = _weth;
 
-        _poolKeyCurrency0  = _pexfiPoolKey.currency0;
-        _poolKeyCurrency1  = _pexfiPoolKey.currency1;
-        _poolKeyFee        = _pexfiPoolKey.fee;
-        _poolKeyTickSpacing = _pexfiPoolKey.tickSpacing;
-        _poolKeyHooks      = _pexfiPoolKey.hooks;
-    }
+    _poolKeyCurrency0 = _pexfiPoolKey.currency0;
+    _poolKeyCurrency1 = _pexfiPoolKey.currency1;
+    _poolKeyFee = _pexfiPoolKey.fee;
+    _poolKeyTickSpacing = _pexfiPoolKey.tickSpacing;
+    _poolKeyHooks = _pexfiPoolKey.hooks;
+  }
 
-    function pexfiPoolKey() public view returns (PoolKey memory) {
-        return PoolKey({
-            currency0: _poolKeyCurrency0,
-            currency1: _poolKeyCurrency1,
-            fee: _poolKeyFee,
-            tickSpacing: _poolKeyTickSpacing,
-            hooks: _poolKeyHooks
-        });
-    }
+  function pexfiPoolKey() public view returns (PoolKey memory) {
+    return PoolKey({
+      currency0: _poolKeyCurrency0,
+      currency1: _poolKeyCurrency1,
+      fee: _poolKeyFee,
+      tickSpacing: _poolKeyTickSpacing,
+      hooks: _poolKeyHooks
+    });
+  }
 
-    /**
-     * @notice Trigger buyback for a specific token
+  /**
+   * @notice Trigger buyback for a specific token
      * @param token The address of the token to buy back (address(0) for Native ETH)
      * @param fee The Uniswap V4 pool fee tier for Token/Native pair (e.g. 3000 for 0.3%)
      */
-    function buyback(address token, uint24 fee) external payable {
-        // 0. If PEXFI, send to Vault directly
-        if (token == Currency.unwrap(pexfi)) {
-            uint256 bal = IERC20(token).balanceOf(address(this));
-            if (bal > 0) IERC20(token).safeTransfer(vault, bal);
-            return;
-        }
-
-        // 1. Swap
-        if (token == address(0)) {
-            // Already Native ETH
-            _swapEthToPexfi();
-        } else if (token == weth) {
-            // Unwrap WETH -> ETH, then Swap ETH -> PEXFI
-            uint256 wethBal = IERC20(weth).balanceOf(address(this));
-            if (wethBal > 0) {
-                IWETH(weth).withdraw(wethBal);
-                _swapEthToPexfi();
-            }
-        } else {
-            // Standard Token -> Native -> PEXFI
-            _swapTokenToPexfi(token, fee);
-        }
-
-        // 2. Final Sweep of PEXFI to Vault
-        uint256 pexfiBal = IERC20(Currency.unwrap(pexfi)).balanceOf(address(this));
-        if (pexfiBal > 0) {
-            IERC20(Currency.unwrap(pexfi)).safeTransfer(vault, pexfiBal);
-        }
+  function buyback(address token, uint24 fee) external payable {
+    // 0. If PEXFI, send to Vault directly
+    if (token == Currency.unwrap(pexfi)) {
+      uint256 bal = IERC20(token).balanceOf(address(this));
+      if (bal > 0) IERC20(token).safeTransfer(vault, bal);
+      return;
     }
 
-    /**
-     * @param token The token address to swap from
+    // 1. Swap
+    if (token == address(0)) {
+      // Already Native ETH
+      _swapEthToPexfi();
+    } else if (token == weth) {
+      // Unwrap WETH -> ETH, then Swap ETH -> PEXFI
+      uint256 wethBal = IERC20(weth).balanceOf(address(this));
+      if (wethBal > 0) {
+        IWETH(weth).withdraw(wethBal);
+        _swapEthToPexfi();
+      }
+    } else {
+      // Standard Token -> Native -> PEXFI
+      _swapTokenToPexfi(token, fee);
+    }
+
+    // 2. Final Sweep of PEXFI to Vault
+    uint256 pexfiBal = IERC20(Currency.unwrap(pexfi)).balanceOf(address(this));
+    if (pexfiBal > 0) {
+      IERC20(Currency.unwrap(pexfi)).safeTransfer(vault, pexfiBal);
+    }
+  }
+
+  /**
+   * @param token The token address to swap from
      * @param fee The Uniswap V4 pool fee tier for the Token/Native pair
      */
-    function _swapTokenToPexfi(address token, uint24 fee) internal {
-        uint256 amountIn = IERC20(token).balanceOf(address(this));
-        if (amountIn == 0) return;
+  function _swapTokenToPexfi(address token, uint24 fee) internal {
+    uint256 amountIn = IERC20(token).balanceOf(address(this));
+    if (amountIn == 0) return;
 
-        IERC20(token).forceApprove(address(universalRouter), amountIn);
+    IERC20(token).forceApprove(address(universalRouter), amountIn);
 
-        // Construct PoolKey for Token/Native (V4)
-        Currency currency0 = Currency.wrap(token);
-        Currency currency1 = CurrencyLibrary.ADDRESS_ZERO;
-        if (currency0 > currency1) (currency0, currency1) = (currency1, currency0);
+    // Construct PoolKey for Token/Native (V4)
+    Currency currency0 = Currency.wrap(token);
+    Currency currency1 = CurrencyLibrary.ADDRESS_ZERO;
+    if (currency0 > currency1) (currency0, currency1) = (currency1, currency0);
 
-        int24 tickSpacing = 60;
-        if (fee == 100) tickSpacing = 2;
-        else if (fee == 500) tickSpacing = 10;
-        else if (fee == 3000) tickSpacing = 60;
-        else if (fee == 10000) tickSpacing = 200;
+    int24 tickSpacing = 60;
+    if (fee == 100) tickSpacing = 2;
+    else if (fee == 500) tickSpacing = 10;
+    else if (fee == 3000) tickSpacing = 60;
+    else if (fee == 10000) tickSpacing = 200;
 
-        PoolKey memory tokenPoolKey = PoolKey({
-            currency0: currency0,
-            currency1: currency1,
-            fee: fee,
-            tickSpacing: tickSpacing,
-            hooks: IHooks(address(0))
-        });
+    PoolKey memory tokenPoolKey = PoolKey({
+      currency0: currency0,
+      currency1: currency1,
+      fee: fee,
+      tickSpacing: tickSpacing,
+      hooks: IHooks(address(0))
+    });
 
-        bytes[] memory v4Inputs = new bytes[](3);
+    bytes[] memory v4Inputs = new bytes[](3);
 
-        // Action 1: Swap Token -> Native
-        bool zeroForOne = false;
-        ExactInputSingleParams memory swapParams1 = ExactInputSingleParams({
-            poolKey: tokenPoolKey,
-            zeroForOne: zeroForOne,
-            amountIn: uint128(amountIn),
-            amountOutMinimum: 0,
-            hookData: ""
-        });
-        v4Inputs[0] = abi.encode(swapParams1);
+    // Action 1: Swap Token -> Native
+    bool zeroForOne = false;
+    ExactInputSingleParams memory swapParams1 = ExactInputSingleParams({
+      poolKey: tokenPoolKey,
+      zeroForOne: zeroForOne,
+      amountIn: uint128(amountIn),
+      amountOutMinimum: 0,
+      hookData: ""
+    });
+    v4Inputs[0] = abi.encode(swapParams1);
 
-        // Action 2: Settle Input Token
-        v4Inputs[1] = abi.encode(
-            Currency.wrap(token),
-            amountIn,
-            true
-        );
+    // Action 2: Settle Input Token
+    v4Inputs[1] = abi.encode(
+      Currency.wrap(token),
+      amountIn,
+      true
+    );
 
-        // Action 3: Take Native: To FeeCollector
-        v4Inputs[2] = abi.encode(
-            CurrencyLibrary.ADDRESS_ZERO,
-            0
-        );
+    // Action 3: Take Native: To FeeCollector
+    v4Inputs[2] = abi.encode(
+      CurrencyLibrary.ADDRESS_ZERO,
+      0
+    );
 
-        bytes memory v4Actions = abi.encodePacked(
-            uint8(Actions.SWAP_EXACT_IN_SINGLE),
-            uint8(Actions.SETTLE),
-            uint8(Actions.TAKE_ALL)
-        );
+    bytes memory v4Actions = abi.encodePacked(
+      uint8(Actions.SWAP_EXACT_IN_SINGLE),
+      uint8(Actions.SETTLE),
+      uint8(Actions.TAKE_ALL)
+    );
 
-        bytes memory commands = abi.encodePacked(bytes1(uint8(Commands.V4_SWAP)));
-        bytes[] memory inputs = new bytes[](1);
-        inputs[0] = abi.encode(v4Actions, v4Inputs);
+    bytes memory commands = abi.encodePacked(bytes1(uint8(Commands.V4_SWAP)));
+    bytes[] memory inputs = new bytes[](1);
+    inputs[0] = abi.encode(v4Actions, v4Inputs);
 
-        universalRouter.execute(commands, inputs, block.timestamp);
+    universalRouter.execute(commands, inputs, block.timestamp);
 
-        // Now chained Native -> PEXFI
-        if (address(this).balance > 0) {
-            _swapEthToPexfi();
-        }
+    // Now chained Native -> PEXFI
+    if (address(this).balance > 0) {
+      _swapEthToPexfi();
     }
+  }
 
-    function _swapEthToPexfi() internal {
-        uint256 amountIn = address(this).balance;
-        if (amountIn == 0) return;
+  function _swapEthToPexfi() internal {
+    uint256 amountIn = address(this).balance;
+    if (amountIn == 0) return;
 
-        PoolKey memory key = pexfiPoolKey();
-        bool zeroForOne = Currency.unwrap(key.currency0) == address(0);
+    PoolKey memory key = pexfiPoolKey();
+    bool zeroForOne = Currency.unwrap(key.currency0) == address(0);
 
-        ExactInputSingleParams memory swapParams = ExactInputSingleParams({
-            poolKey: key,
-            zeroForOne: zeroForOne,
-            amountIn: uint128(amountIn),
-            amountOutMinimum: 0,
-            hookData: ""
-        });
+    ExactInputSingleParams memory swapParams = ExactInputSingleParams({
+      poolKey: key,
+      zeroForOne: zeroForOne,
+      amountIn: uint128(amountIn),
+      amountOutMinimum: 0,
+      hookData: ""
+    });
 
-        bytes[] memory v4Inputs = new bytes[](3);
-        v4Inputs[0] = abi.encode(swapParams);
+    bytes[] memory v4Inputs = new bytes[](3);
+    v4Inputs[0] = abi.encode(swapParams);
 
-        // Settle Native: Pay from Msg.Value (UR handles logic if we send value)
-        v4Inputs[1] = abi.encode(
-            CurrencyLibrary.ADDRESS_ZERO,
-            amountIn,
-            false
-        );
+    // Settle Native: Pay from Msg.Value (UR handles logic if we send value)
+    v4Inputs[1] = abi.encode(
+      CurrencyLibrary.ADDRESS_ZERO,
+      amountIn,
+      false
+    );
 
-        // Take PEXFI: To FeeCollector (then sweep to vault)
-        v4Inputs[2] = abi.encode(
-            pexfi,
-            0
-        );
+    // Take PEXFI: To FeeCollector (then sweep to vault)
+    v4Inputs[2] = abi.encode(
+      pexfi,
+      0
+    );
 
-        bytes memory v4Actions = abi.encodePacked(
-            uint8(Actions.SWAP_EXACT_IN_SINGLE),
-            uint8(Actions.SETTLE),
-            uint8(Actions.TAKE_ALL)
-        );
+    bytes memory v4Actions = abi.encodePacked(
+      uint8(Actions.SWAP_EXACT_IN_SINGLE),
+      uint8(Actions.SETTLE),
+      uint8(Actions.TAKE_ALL)
+    );
 
-        bytes memory commands = abi.encodePacked(bytes1(uint8(Commands.V4_SWAP)));
-        bytes[] memory inputs = new bytes[](1);
-        inputs[0] = abi.encode(v4Actions, v4Inputs);
+    bytes memory commands = abi.encodePacked(bytes1(uint8(Commands.V4_SWAP)));
+    bytes[] memory inputs = new bytes[](1);
+    inputs[0] = abi.encode(v4Actions, v4Inputs);
 
-        universalRouter.execute{value: amountIn}(commands, inputs, block.timestamp);
-    }
+    universalRouter.execute{value: amountIn}(commands, inputs, block.timestamp);
+  }
 
-    receive() external payable {}
+  receive() external payable {}
 }
