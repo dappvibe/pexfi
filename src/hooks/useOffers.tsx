@@ -1,6 +1,6 @@
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 export type OffersFilter = {
   disabled?: boolean
@@ -91,9 +91,19 @@ export function useOffers(params: OffersRequestParams): UseOffersResult {
   })
 
   const [totalCount, setTotalCount] = useState<number | null>(null)
-  useEffect(() => {
+  const [prevFilter, setPrevFilter] = useState(params.filter)
+
+  if (
+    params.filter.disabled !== prevFilter.disabled ||
+    params.filter.isSell !== prevFilter.isSell ||
+    params.filter.owner !== prevFilter.owner ||
+    params.filter.token !== prevFilter.token ||
+    params.filter.fiat !== prevFilter.fiat ||
+    params.filter.method !== prevFilter.method
+  ) {
+    setPrevFilter(params.filter)
     setTotalCount(null)
-  }, [...Object.values(params.filter)])
+  }
 
   function loadMore() {
     return fetchMore({
