@@ -15,8 +15,6 @@ export default buildModule('Market', (m) => {
   m.call(OfferFactory, 'setImplementation', [OfferImplementation])
 
   const DealImplementation = m.contract('Deal', [], { id: 'DealImplementation' })
-  const DealFactory = m.contract('DealFactory', [Finder], { id: 'DealFactory' })
-  m.call(DealFactory, 'setImplementation', [DealImplementation])
 
   const ProfileImpl = m.contract('Profile', [], { id: 'ProfileV0' })
   const ProfileProxy = m.contract('ERC1967Proxy', [ProfileImpl, m.encodeFunctionCall(ProfileImpl, 'initialize', [])], {
@@ -44,8 +42,8 @@ export default buildModule('Market', (m) => {
   m.call(Finder, 'changeImplementationAddress', [bytes32('OfferFactory'), OfferFactory], {
     id: 'regOfferFactory',
   })
-  m.call(Finder, 'changeImplementationAddress', [bytes32('DealFactory'), DealFactory], {
-    id: 'regDealFactory',
+  m.call(Finder, 'changeImplementationAddress', [bytes32('DealImplementation'), DealImplementation], {
+    id: 'regDealImplementation',
   })
   m.call(Finder, 'changeImplementationAddress', [bytes32('Market'), Market], { id: 'regMarket' })
   m.call(Finder, 'changeImplementationAddress', [bytes32('Profile'), Profile], { id: 'regProfile' })
@@ -120,7 +118,7 @@ export default buildModule('Market', (m) => {
   return {
     Market,
     OfferFactory,
-    DealFactory,
+    DealImplementation,
     Profile,
     pexfi,
     pexfiVault,

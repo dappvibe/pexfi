@@ -17,7 +17,6 @@ describe('Deal', () => {
   before(async () => {
     ;({
       OfferFactory,
-
       Market,
       WBTC,
       viem,
@@ -26,7 +25,6 @@ describe('Deal', () => {
       taker,
       nobody,
       publicClient,
-
       feeCollector,
       OOv3,
       pexfiVesting,

@@ -14,7 +14,7 @@ const bytes16 = (s: string) => padHex(stringToHex(s), { size: 16, dir: 'right' }
  */
 export default async () => {
   const { viem, ignition, networkHelpers } = await hre.network.connect()
-
+`
   // 1. Deploy Mocks state
   const mocks = await ignition.deploy(MocksModule)
 
