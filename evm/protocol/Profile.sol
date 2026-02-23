@@ -78,9 +78,10 @@ contract Profile is UUPSUpgradeable, AccessControlUpgradeable, ERC721BurnableUpg
         stats1.avgPaymentTime = (stats1.avgPaymentTime + stats2.avgPaymentTime) / 2;
         stats1.avgReleaseTime = (stats1.avgReleaseTime + stats2.avgReleaseTime) / 2;
 
+        address otherOwner = ownerOf(_otherTokenId);
         _burn(_otherTokenId);
         delete stats[_otherTokenId];
-        delete ownerToTokenId[ownerOf(_otherTokenId)];
+        delete ownerToTokenId[otherOwner];
     }
 
     function statsVote(uint tokenId_, bool up_) onlyRole(DEAL_ROLE) external
