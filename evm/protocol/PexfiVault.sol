@@ -9,14 +9,14 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import "./PexfiToken.sol";
 
 contract PexfiVault is ERC4626, ERC20Permit, Ownable {
-    constructor(PexfiToken asset_)
-        ERC4626(asset_)
-        ERC20("Staked Pexfi P2P", "sPEXFI")
-        ERC20Permit("Staked Pexfi P2P")
-        Ownable(msg.sender)
-    {}
+  constructor(PexfiToken asset_)
+  ERC4626(asset_)
+  ERC20("Staked Pexfi P2P", "sPEXFI")
+  ERC20Permit("Staked Pexfi P2P")
+  Ownable(msg.sender)
+  {}
 
-    function decimals() public view override(ERC4626, ERC20) returns (uint8) {
-        return super.decimals();
-    }
+  function decimals() public view override(ERC4626, ERC20) returns (uint8) {
+    return super.decimals();
+  }
 }
