@@ -34,6 +34,9 @@ contract Deal is ERC165, Initializable, OptimisticOracleV3CallbackRecipientInter
     uint16 private constant ACCEPTANCE_TIME = 15 minutes;
     uint16 private constant PAYMENT_WINDOW  = 1 hours;
 
+    bytes32 private constant RESOLVE_PAID = keccak256("PAID");
+    bytes32 private constant RESOLVE_NOT_PAID  = keccak256("NOT PAID");
+
     struct DealParams {
         address market;
         address offer;
@@ -205,9 +208,9 @@ contract Deal is ERC165, Initializable, OptimisticOracleV3CallbackRecipientInter
         OptimisticOracleV3Interface _oov3 = OptimisticOracleV3Interface(msg.sender);
         OptimisticOracleV3Interface.Assertion memory assertion = _oov3.getAssertion(assertionId);
 
-        if (assertion.domainId == keccak256(bytes("PAID"))) {
+        if (assertion.domainId == RESOLVE_PAID) {
              isPaid = assertedTruthfully;
-        } else if (assertion.domainId == keccak256(bytes("NOT PAID"))) {
+        } else if (assertion.domainId == RESOLVE_NOT_PAID) {
              isPaid = !assertedTruthfully;
         }
 
