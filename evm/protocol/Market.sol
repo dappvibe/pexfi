@@ -20,11 +20,11 @@ import {Fiats} from "./libraries/Fiats.sol";
 
 
 import {Deal} from "./Deal.sol";
-import {OfferFactory} from "./OfferFactory.sol";
 import {Offer} from "./Offer.sol";
 import {Profile} from "./Profile.sol";
 import {FinderConstants} from "./libraries/FinderConstants.sol";
 import {IChainlink} from "./interfaces/IChainlink.sol";
+import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 
 contract Market is OwnableUpgradeable, UUPSUpgradeable
 {
@@ -57,11 +57,26 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
 
     function _authorizeUpgrade(address) internal onlyOwner override {}
 
-    function offerFactory() public view returns (OfferFactory) {
-        return OfferFactory(finder.getImplementationAddress(FinderConstants.OfferFactory));
+    function createOffer(Offer.OfferParams calldata params) external {
+        require(params.rate > 0, "rate");
+        require(params.limits.min < params.limits.max, "minmax");
+
+        getPrice(params.token, params.fiat);
+        require(convert(params.limits.min, params.fiat, bytes8("USDC"), 10000) > 20, "min too low");
+        method(params.method);
+
+        address impl = finder.getImplementationAddress(FinderConstants.OfferImplementation);
+        Offer offer = Offer(Clones.clone(impl));
+        offer.initialize(msg.sender, params);
+
+        require(!offers[address(offer)], "exists");
+        offers[address(offer)] = true;
+        emit OfferCreated(offer.owner(), offer.token(), offer.fiat(), offer);
     }
 
-
+    function hasOffer(address offer_) external view returns (bool) {
+        return offers[offer_];
+    }
 
     function profile() public view returns (Profile) {
         return Profile(finder.getImplementationAddress(FinderConstants.Profile));
@@ -77,17 +92,6 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
 
     function oracle() public view returns (address) {
         return finder.getImplementationAddress(FinderConstants.Oracle);
-    }
-
-    function addOffer(Offer offer) external {
-        require(msg.sender == address(offerFactory()), UnauthorizedAccount(msg.sender));
-        require(!offers[address(offer)], "exists");
-        offers[address(offer)] = true;
-        emit OfferCreated(offer.owner(), offer.token(), offer.fiat(), offer);
-    }
-
-    function hasOffer(address offer_) external view returns (bool) {
-        return offers[offer_];
     }
 
     function addDeal(Deal deal, string calldata terms, string calldata paymentInstructions) external {

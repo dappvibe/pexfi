@@ -2,7 +2,7 @@ import { abi as MarketAbi } from '@artifacts/evm/protocol/Market.sol/Market.json
 import { abi as ProfileAbi } from '@artifacts/evm/protocol/Profile.sol/Profile.json'
 import { abi as DealAbi } from '@artifacts/evm/protocol/Deal.sol/Deal.json'
 import { abi as OfferAbi } from '@artifacts/evm/protocol/Offer.sol/Offer.json'
-import { abi as OfferFactoryAbi } from '@artifacts/evm/protocol/OfferFactory.sol/OfferFactory.json'
+
 
 import { abi as ERC20Abi } from '@artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
 import { useChainId, useClient, useConnectorClient } from 'wagmi'
@@ -65,7 +65,7 @@ export function useContract() {
   const { data: connector } = useConnectorClient({ chainId })
 
   const marketAddress = useAddress('Market#Market')
-  const offerFactoryAddress = useAddress('Market#OfferFactory')
+
 
   const profileAddress = useAddress('Market#Profile')
 
@@ -77,11 +77,7 @@ export function useContract() {
   }
 
   const Market = new ethers.Contract(marketAddress || ethers.ZeroAddress, MarketAbi, provider) as unknown as Types.Market
-  const OfferFactory = new ethers.Contract(
-    offerFactoryAddress || ethers.ZeroAddress,
-    OfferFactoryAbi,
-    provider
-  ) as unknown as Types.OfferFactory
+
 
   const Profile = new ethers.Contract(
     profileAddress || ethers.ZeroAddress,
@@ -95,7 +91,7 @@ export function useContract() {
   return {
     signed,
     Market,
-    OfferFactory,
+
 
     Profile,
     Deal,
