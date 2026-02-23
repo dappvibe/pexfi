@@ -146,6 +146,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
 
         if (fiat_ != bytes3("USD")) {
             (, int $fiatToUSD,,,) = fiats.get(fiat_).latestRoundData();
+            require($fiatToUSD > 0, "bad oracle price");
             price = price * 10 ** 8 / uint($fiatToUSD);
         }
     }
