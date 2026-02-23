@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Breadcrumb, Space } from 'antd'
-import { KeyboardDoubleArrowLeftOutlined } from '@mui/icons-material'
+import { DoubleLeftOutlined } from '@ant-design/icons'
 import React from 'react'
 
 export default function Subnav({ offer }) {
@@ -12,7 +12,7 @@ export default function Subnav({ offer }) {
           title: (
             <Link to={`/trade/sell/${offer.token}/${offer.fiat}/${offer.method}`}>
               <Space>
-                <KeyboardDoubleArrowLeftOutlined />
+                <DoubleLeftOutlined />
                 Back to offers
               </Space>
             </Link>
