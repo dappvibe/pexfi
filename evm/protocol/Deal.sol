@@ -166,26 +166,22 @@ contract Deal is ERC165, Initializable, OptimisticOracleV3CallbackRecipientInter
 
         require(msg.sender == offer.owner() || msg.sender == taker, UnauthorizedAccount(msg.sender));
 
-        if (msg.sender == taker) {
-            if (state >= State.Accepted) {
-                if (block.timestamp <= allowCancelUnpaidAfter) revert("too early");
-                if (state != State.Accepted) revert ActionNotAllowedInThisState(state);
+        if (state == State.Initiated) {
+            if (msg.sender != offer.owner()) {
+                if (block.timestamp <= allowCancelUnacceptedAfter) revert ActionNotAllowedInThisState(state);
+                Profile _profile = Profile(market.profile());
+                uint $tokenId = _profile.ownerToTokenId(offer.owner());
+                if ($tokenId != 0) {
+                    _profile.statsDealExpired($tokenId);
+                }
             }
+        } else if (state == State.Accepted) {
+            require(msg.sender == _buyer(), UnauthorizedAccount(msg.sender));
+            if (block.timestamp <= allowCancelUnpaidAfter) revert ActionNotAllowedInThisState(state);
         } else {
-            if (!(
-                (state < State.Accepted)
-                || (msg.sender == _buyer() && state < State.Canceled)
-                || (msg.sender == _seller() && (state < State.Paid && block.timestamp > allowCancelUnpaidAfter))
-            )) revert ActionNotAllowedInThisState(state);
+            revert ActionNotAllowedInThisState(state);
         }
 
-        if (state == State.Initiated && msg.sender != offer.owner()) {
-            Profile _profile = Profile(market.profile());
-            uint $tokenId = _profile.ownerToTokenId(msg.sender);
-            if ($tokenId != 0) {
-                _profile.statsDealExpired($tokenId);
-            }
-        }
         _cancel();
     }
 
