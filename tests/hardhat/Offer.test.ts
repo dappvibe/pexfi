@@ -19,26 +19,26 @@ export const OFFER_PARAMS = {
 }
 
 describe('Offer', () => {
-  let viem, networkHelpers, OfferFactory, Market, publicClient, walletClients;
+  let viem, networkHelpers, Market, publicClient, walletClients;
 
   before(async () => {
-    ({ viem, OfferFactory, Market, networkHelpers } = await deploy())
+    ({ viem, Market, networkHelpers } = await deploy())
     publicClient = await viem.getPublicClient()
     walletClients = await viem.getWalletClients()
   })
 
-  describe('OfferFactory', () => {
+  describe('Market.createOffer', () => {
     describe('create()', () => {
       test('should trigger OfferCreated event', async () => {
         await viem.assertions.emit(
-          OfferFactory.write.create([OFFER_PARAMS]),
+          Market.write.createOffer([OFFER_PARAMS]),
           Market,
           'OfferCreated'
         )
       })
 
       test('should register offer in Market', async () => {
-        const hash = await OfferFactory.write.create([OFFER_PARAMS])
+        const hash = await Market.write.createOffer([OFFER_PARAMS])
         const receipt = await publicClient.waitForTransactionReceipt({ hash })
         const logs = parseEventLogs({
           abi: Market.abi,
@@ -52,7 +52,7 @@ describe('Offer', () => {
 
       test('should revert when limits are too low', async () => {
         await viem.assertions.revertWith(
-          OfferFactory.write.create([
+          Market.write.createOffer([
             {
               ...OFFER_PARAMS,
               limits: { min: 0, max: 100 },
@@ -64,7 +64,7 @@ describe('Offer', () => {
 
       test('should revert when limits max equals min', async () => {
         await viem.assertions.revertWith(
-          OfferFactory.write.create([
+          Market.write.createOffer([
             {
               ...OFFER_PARAMS,
               limits: { min: 100, max: 100 },
@@ -76,7 +76,7 @@ describe('Offer', () => {
 
       test('should revert when limits max is less than min', async () => {
         await viem.assertions.revertWith(
-          OfferFactory.write.create([
+          Market.write.createOffer([
             {
               ...OFFER_PARAMS,
               limits: { min: 101, max: 10 },
@@ -88,7 +88,7 @@ describe('Offer', () => {
 
       test('should revert when rate is zero', async () => {
         await viem.assertions.revertWith(
-          OfferFactory.write.create([
+          Market.write.createOffer([
             {
               ...OFFER_PARAMS,
               rate: 0,
@@ -99,7 +99,7 @@ describe('Offer', () => {
       })
 
       test('should refuse when rate is negative', async () => {
-        const promise = OfferFactory.write.create([{ ...OFFER_PARAMS, rate: -1 }])
+        const promise = Market.write.createOffer([{ ...OFFER_PARAMS, rate: -1 }])
         await assert.rejects(promise, (error: any) => error.name === 'IntegerOutOfRangeError')
       })
     })
@@ -109,7 +109,7 @@ describe('Offer', () => {
     let offer;
 
     before(async () => {
-      const hash = await OfferFactory.write.create([OFFER_PARAMS])
+      const hash = await Market.write.createOffer([OFFER_PARAMS])
       const receipt = await publicClient.waitForTransactionReceipt({ hash })
       const logs = parseEventLogs({
         abi: Market.abi,

@@ -64,25 +64,22 @@ const mockOfferContract = {
 }
 
 // Mock useContract
-const mockOfferFactoryInstance = {
-  create: mockCreate,
-  connect: vi.fn().mockReturnThis(),
+const mockMarketInstance = {
+  createOffer: mockCreate,
+  getPrice: vi.fn(() => Promise.resolve(50000000000n)),
+  interface: {
+    parseLog: vi.fn(),
+  },
 }
 
 vi.mock('@/hooks/useContract', () => {
   return {
     useContract: vi.fn(() => ({
-      signed: vi.fn(() => Promise.resolve(mockOfferFactoryInstance)),
-      OfferFactory: mockOfferFactoryInstance,
+      signed: vi.fn(() => Promise.resolve(mockMarketInstance)),
       Offer: {
         attach: vi.fn(() => mockOfferContract),
       },
-      Market: {
-        getPrice: vi.fn(() => Promise.resolve(50000000000n)), // 50000 * 10^6
-        interface: {
-          parseLog: vi.fn(),
-        },
-      },
+      Market: mockMarketInstance,
     })),
   }
 })

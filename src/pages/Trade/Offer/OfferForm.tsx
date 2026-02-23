@@ -16,7 +16,7 @@ interface OfferFormProps {
 
 export default function OfferForm({ offer = null, setRate, setLimits, setTerms, toggleDisabled }: OfferFormProps) {
   const navigate = useNavigate()
-  const { Market, OfferFactory, signed } = useContract()
+  const { Market, signed } = useContract()
   const [lockSubmit, setLockSubmit] = React.useState(false)
   const { tokens, fiats, methods } = useInventory()
   const marketPrice = useRef(null)
@@ -84,8 +84,8 @@ export default function OfferForm({ offer = null, setRate, setLimits, setTerms, 
     }
 
     try {
-      const factory = await signed(OfferFactory)
-      const tx = await factory.create(params)
+      const market = await signed(Market)
+      const tx = await market.createOffer(params)
       message.success('Offer submitted. You will be redirected shortly.')
 
       const receipt = await tx.wait()

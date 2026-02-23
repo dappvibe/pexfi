@@ -11,8 +11,6 @@ export default buildModule('Market', (m) => {
 
   // --- Marketplace ---
   const OfferImplementation = m.contract('Offer', [], { id: 'OfferImplementation' })
-  const OfferFactory = m.contract('OfferFactory', [Finder], { id: 'OfferFactory' })
-  m.call(OfferFactory, 'setImplementation', [OfferImplementation])
 
   const DealImplementation = m.contract('Deal', [], { id: 'DealImplementation' })
 
@@ -39,8 +37,8 @@ export default buildModule('Market', (m) => {
   m.call(Market, 'addMethods', [m.getParameter('methodNames'), m.getParameter('methodGroups')])
 
   // link it all together via Finder
-  m.call(Finder, 'changeImplementationAddress', [bytes32('OfferFactory'), OfferFactory], {
-    id: 'regOfferFactory',
+  m.call(Finder, 'changeImplementationAddress', [bytes32('OfferImplementation'), OfferImplementation], {
+    id: 'regOfferImplementation',
   })
   m.call(Finder, 'changeImplementationAddress', [bytes32('DealImplementation'), DealImplementation], {
     id: 'regDealImplementation',
@@ -117,7 +115,7 @@ export default buildModule('Market', (m) => {
 
   return {
     Market,
-    OfferFactory,
+    OfferImplementation,
     DealImplementation,
     Profile,
     pexfi,

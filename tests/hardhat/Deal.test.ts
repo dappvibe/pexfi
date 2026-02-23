@@ -5,7 +5,7 @@ import deploy from './deploy/deployMarket'
 import { OFFER_PARAMS } from './Offer.test'
 
 describe('Deal', () => {
-  let OfferFactory, Market, WBTC, feeCollector, OOv3, pexfiVesting
+  let Market, WBTC, feeCollector, OOv3, pexfiVesting
   let viem, networkHelpers, publicClient
   let maker: Address, taker: Address, nobody: Address
   let takeSnapshot
@@ -16,7 +16,7 @@ describe('Deal', () => {
 
   before(async () => {
     ;({
-      OfferFactory,
+
       Market,
       WBTC,
       viem,
@@ -34,7 +34,7 @@ describe('Deal', () => {
     //await publicClient.request({ method: 'hardhat_setLoggingEnabled', params: [true] })
 
     const createOffer = async (extraParams = {}) => {
-      const hash = await OfferFactory.write.create([{ ...OFFER_PARAMS, ...extraParams }])
+      const hash = await Market.write.createOffer([{ ...OFFER_PARAMS, ...extraParams }])
       const receipt = await publicClient.waitForTransactionReceipt({ hash })
       const logs = parseEventLogs({
         abi: Market.abi,
