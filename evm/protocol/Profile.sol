@@ -86,31 +86,31 @@ contract Profile is UUPSUpgradeable, AccessControlUpgradeable, ERC721BurnableUpg
 
     function statsVote(uint tokenId_, bool up_) onlyRole(DEAL_ROLE) external
     {
-        up_ ? stats[tokenId_].upvotes++ : stats[tokenId_].downvotes++;
+        unchecked { up_ ? stats[tokenId_].upvotes++ : stats[tokenId_].downvotes++; }
     }
     function statsVolumeUSD(uint tokenId_, uint32 _volumeUSD) onlyRole(DEAL_ROLE) external
     {
-        stats[tokenId_].volumeUSD += _volumeUSD;
+        unchecked { stats[tokenId_].volumeUSD += _volumeUSD; }
     }
     function statsDealCompleted(uint tokenId_) onlyRole(DEAL_ROLE) external
     {
-        stats[tokenId_].dealsCompleted++;
+        unchecked { stats[tokenId_].dealsCompleted++; }
     }
     function statsDealExpired(uint tokenId_) onlyRole(DEAL_ROLE) external
     {
-        stats[tokenId_].dealsExpired++;
+        unchecked { stats[tokenId_].dealsExpired++; }
     }
     function statsDisputeLost(uint tokenId_) onlyRole(DEAL_ROLE) external
     {
-        stats[tokenId_].disputesLost++;
+        unchecked { stats[tokenId_].disputesLost++; }
     }
     function statsAvgPaymentTime(uint tokenId_, uint32 _dealTime) onlyRole(DEAL_ROLE) external
     {
-        stats[tokenId_].avgPaymentTime = (stats[tokenId_].avgPaymentTime + _dealTime) / 2;
+        unchecked { stats[tokenId_].avgPaymentTime = (stats[tokenId_].avgPaymentTime + _dealTime) / 2; }
     }
     function statsAvgReleaseTime(uint tokenId_, uint32 _dealTime) onlyRole(DEAL_ROLE) external
     {
-        stats[tokenId_].avgReleaseTime = (stats[tokenId_].avgReleaseTime + _dealTime) / 2;
+        unchecked { stats[tokenId_].avgReleaseTime = (stats[tokenId_].avgReleaseTime + _dealTime) / 2; }
     }
 
     function _resetStats(uint tokenId_) private
