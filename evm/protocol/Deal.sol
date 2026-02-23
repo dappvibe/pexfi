@@ -2,6 +2,7 @@
 pragma solidity 0.8.34;
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {OptimisticOracleV3Interface} from
     "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3Interface.sol";
 import "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3CallbackRecipientInterface.sol";
@@ -14,6 +15,7 @@ import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 contract Deal is ERC165, Initializable, OptimisticOracleV3CallbackRecipientInterface
 {
+    using SafeERC20 for IERC20Metadata;
     event DealState(State state, address sender);
     event Message(address indexed sender, string message);
     event FeedbackGiven(address indexed to, bool upvote, string message);
@@ -139,8 +141,8 @@ contract Deal is ERC165, Initializable, OptimisticOracleV3CallbackRecipientInter
     function _release() internal {
         IERC20Metadata token = market.token(offer.token()).api;
         uint feeAmount = tokenAmount * market.fee() / 10000;
-        token.transfer(_buyer(), tokenAmount - feeAmount);
-        token.transfer(market.feeCollector(), token.balanceOf(address(this)));
+        token.safeTransfer(_buyer(), tokenAmount - feeAmount);
+        token.safeTransfer(market.feeCollector(), token.balanceOf(address(this)));
 
         _state(State.Completed);
 
@@ -190,7 +192,7 @@ contract Deal is ERC165, Initializable, OptimisticOracleV3CallbackRecipientInter
     function _cancel() internal {
         IERC20Metadata token = market.token(offer.token()).api;
         if (state >= State.Funded) {
-            token.transfer(_seller(), tokenAmount);
+            token.safeTransfer(_seller(), tokenAmount);
         }
 
         _state(State.Canceled);
