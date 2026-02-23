@@ -17,12 +17,12 @@ contract Profile is UUPSUpgradeable, AccessControlUpgradeable, ERC721BurnableUpg
         uint32 createdAt;
         uint32 upvotes;
         uint32 downvotes;
-        uint64 volumeUSD;       // TODO
+        uint32 volumeUSD;
+        uint32 avgPaymentTime;  // TODO
+        uint32 avgReleaseTime;  // TODO
         uint32 dealsCompleted;
         uint32 dealsExpired;
         uint32 disputesLost;    // TODO
-        uint32 avgPaymentTime;  // TODO
-        uint32 avgReleaseTime;  // TODO
     }
     mapping(uint => Stats) public stats;
     uint private _nextTokenId;
@@ -88,7 +88,7 @@ contract Profile is UUPSUpgradeable, AccessControlUpgradeable, ERC721BurnableUpg
     {
         up_ ? stats[tokenId_].upvotes++ : stats[tokenId_].downvotes++;
     }
-    function statsVolumeUSD(uint tokenId_, uint64 _volumeUSD) onlyRole(DEAL_ROLE) external
+    function statsVolumeUSD(uint tokenId_, uint32 _volumeUSD) onlyRole(DEAL_ROLE) external
     {
         stats[tokenId_].volumeUSD += _volumeUSD;
     }
