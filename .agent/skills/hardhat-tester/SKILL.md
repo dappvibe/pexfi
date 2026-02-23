@@ -17,6 +17,9 @@ To deploy initial state of blockchain and contracts you MUST use ignition module
 If you need fixtures check for existing ignition modules that may provide mocks or initial values. You are required to load ignition module directly in tests.
 Goal is to replicate blockchain state as if was deployed with ignition to a live blockchain.
 
+# Running tests
+
+`npx hardhat test`
 
 # Using network in Hardhat 3
 
@@ -126,3 +129,7 @@ describe("Counter", function () {
   });
 });
 ```
+
+# Gas Stats
+
+When solving tasks for optimization and gas savings use `--gas-stats` option for test runner to compare results.
