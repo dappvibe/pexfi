@@ -76,7 +76,10 @@ export default buildModule('Market', (m) => {
   const universalRouter = m.getParameter('uniswapUniversalRouter')
   const weth = m.getParameter('weth')
 
-  const feeCollector = m.contract('FeeCollector', [pexfiVault, pexfi, universalRouter, weth])
+  const feeCollector = m.contract('FeeCollector', [
+    pexfiVault, pexfi, universalRouter, weth,
+    [zeroAddress, pexfi, 3000, 60, zeroAddress],
+  ])
   m.call(Finder, 'changeImplementationAddress', [bytes32('FeeCollector'), feeCollector], {
     id: 'regFeeCollector',
   })
