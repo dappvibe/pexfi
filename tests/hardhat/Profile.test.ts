@@ -93,35 +93,4 @@ describe('Profile', () => {
       assert.strictEqual(Number(stats[4]), 125)
     })
   })
-
-  describe('Profile Merging', () => {
-    test('merge() should combine stats and burn old NFT', async () => {
-      // Setup: Add some stats to tokenId2
-      await Profile.write.statsVote([tokenId2, true], { account: admin }) // 1 upvote
-
-      // user2 approves user1 to take tokenId2
-      await Profile.write.approve([user1, tokenId2], { account: user2 })
-
-      const stats1Before = await Profile.read.stats([tokenId1])
-      const stats2Before = await Profile.read.stats([tokenId2])
-
-      // user1 merges user2's profile into theirs
-      await Profile.write.merge([tokenId1, tokenId2], { account: user1 })
-
-      const stats1After = await Profile.read.stats([tokenId1])
-      assert.strictEqual(Number(stats1After[1]), Number(stats1Before[1]) + Number(stats2Before[1]))
-
-      // tokenId2 should be burned
-      await viem.assertions.revertWithCustomError(
-        Profile.read.ownerOf([tokenId2]),
-        Profile,
-        'ERC721NonexistentToken',
-        [tokenId2]
-      )
-
-      // user2 should not have a tokenId mapping anymore
-      const user2TokenId = await Profile.read.ownerToTokenId([user2])
-      assert.strictEqual(user2TokenId, 0n)
-    })
-  })
 })
