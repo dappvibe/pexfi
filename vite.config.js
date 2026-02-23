@@ -1,5 +1,4 @@
 import { defineConfig } from 'vite'
-import { viteSingleFile } from 'vite-plugin-singlefile'
 import react from '@vitejs/plugin-react'
 import tsconfigPaths from 'vite-tsconfig-paths'
 import path from 'path'
@@ -12,7 +11,6 @@ export default defineConfig({
     tsconfigPaths({
       projects: [path.resolve(__dirname, 'tsconfig.json')],
     }),
-    viteSingleFile(),
   ],
   base: './',
   build: {
