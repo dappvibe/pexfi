@@ -56,7 +56,7 @@ contract FeeCollector {
      * @notice Set the PEXFI/ETH V4 pool key
      * @param _key The Uniswap V4 pool key for the PEXFI/ETH pair
      */
-    function setPexfiPoolKey(PoolKey memory _key) external {
+    function setPexfiPoolKey(PoolKey calldata _key) external {
         // Enforce PEXFI usage
         require(Currency.unwrap(_key.currency0) == Currency.unwrap(pexfi) || Currency.unwrap(_key.currency1) == Currency.unwrap(pexfi), "Must involve PEXFI");
         // Enforce Native ETH usage for the other side
