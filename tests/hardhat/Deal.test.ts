@@ -5,7 +5,7 @@ import deploy from './deploy/deployMarket'
 import { OFFER_PARAMS } from './Offer.test'
 
 describe('Deal', () => {
-  let OfferFactory, DealFactory, Market, WBTC, feeCollector, OOv3, pexfiVesting
+  let OfferFactory, Market, WBTC, feeCollector, OOv3, pexfiVesting
   let viem, networkHelpers, publicClient
   let maker: Address, taker: Address, nobody: Address
   let takeSnapshot
@@ -17,7 +17,7 @@ describe('Deal', () => {
   before(async () => {
     ;({
       OfferFactory,
-      DealFactory,
+
       Market,
       WBTC,
       viem,
@@ -26,6 +26,7 @@ describe('Deal', () => {
       taker,
       nobody,
       publicClient,
+
       feeCollector,
       OOv3,
       pexfiVesting,
@@ -49,32 +50,32 @@ describe('Deal', () => {
     offerToBuy = await createOffer({ isSell: false })
   })
 
-  describe('DealFactory', () => {
-    test('create() should revert if taker is offer owner', async () => {
+  describe('Offer.createDeal', () => {
+    test('createDeal() should revert if taker is offer owner', async () => {
       await viem.assertions.revertWithCustomErrorWithArgs(
-        DealFactory.write.create(
-          [{ offer: offerToSell.address, fiatAmount: FIAT_AMOUNT, paymentInstructions: 'instructions' }],
+        offerToSell.write.createDeal(
+          [Market.address, { fiatAmount: FIAT_AMOUNT, paymentInstructions: 'instructions' }],
           { account: maker }
         ),
-        DealFactory,
+        offerToSell,
         'UnauthorizedAccount',
         [maker]
       )
       await viem.assertions.revertWithCustomErrorWithArgs(
-        DealFactory.write.create(
-          [{ offer: offerToBuy.address, fiatAmount: FIAT_AMOUNT, paymentInstructions: 'instructions' }],
+        offerToBuy.write.createDeal(
+          [Market.address, { fiatAmount: FIAT_AMOUNT, paymentInstructions: 'instructions' }],
           { account: maker }
         ),
-        DealFactory,
+        offerToBuy,
         'UnauthorizedAccount',
         [maker]
       )
     })
 
-    test('create() should trigger DealCreated event', async () => {
+    test('createDeal() should trigger DealCreated event', async () => {
       const createFor = async (offer) => {
-        const hash = await DealFactory.write.create(
-          [{ offer: offer.address, fiatAmount: FIAT_AMOUNT, paymentInstructions: 'instructions' }],
+        const hash = await offer.write.createDeal(
+          [Market.address, { fiatAmount: FIAT_AMOUNT, paymentInstructions: 'instructions' }],
           { account: taker }
         )
         const receipt = await publicClient.waitForTransactionReceipt({ hash })
