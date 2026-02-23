@@ -62,7 +62,6 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
         require(params.limits.min < params.limits.max, "minmax");
 
         getPrice(params.token, params.fiat);
-        require(convert(params.limits.min, params.fiat, bytes8("USDC"), 10000) > 20, "min too low");
         method(params.method);
 
         address impl = finder.getImplementationAddress(FinderConstants.OfferImplementation);
