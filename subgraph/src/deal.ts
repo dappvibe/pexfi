@@ -30,11 +30,7 @@ export function fetchDeal(dealAddress: Address): DealEntity {
   let fiatAmountResult = dealContract.try_fiatAmount()
   if (!fiatAmountResult.reverted) deal.fiatAmount = fiatAmountResult.value
 
-  let termsResult = dealContract.try_terms();
-  if (!termsResult.reverted) deal.terms = termsResult.value;
 
-  let paymentInstructionsResult = dealContract.try_paymentInstructions()
-  if (!paymentInstructionsResult.reverted) deal.paymentInstructions = paymentInstructionsResult.value
 
   let allowCancelUnacceptedAfterResult = dealContract.try_allowCancelUnacceptedAfter();
   if (!allowCancelUnacceptedAfterResult.reverted) deal.allowCancelUnacceptedAfter = allowCancelUnacceptedAfterResult.value.toI32();

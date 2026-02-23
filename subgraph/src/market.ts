@@ -17,6 +17,8 @@ export function handleOfferCreated(event: OfferCreatedEvent): void {
 export function handleDealCreated(event: DealCreated): void {
   let deal = fetchDeal(event.params.deal);
   deal.createdAt = event.block.timestamp.toI32();
+  deal.terms = event.params.terms;
+  deal.paymentInstructions = event.params.paymentInstructions;
   deal.save();
 
   // start listening to events from the new Deal contract

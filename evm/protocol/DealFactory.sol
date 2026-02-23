@@ -48,10 +48,9 @@ contract DealFactory is Ownable
             offer: params.offer,
             taker: msg.sender,
             tokenAmount: $tokenAmount,
-            fiatAmount: params.fiatAmount,
-            paymentInstructions: params.paymentInstructions
+            fiatAmount: params.fiatAmount
         }));
 
-        market.addDeal(deal);
+        market.addDeal(deal, $offer.terms(), params.paymentInstructions);
     }
 }

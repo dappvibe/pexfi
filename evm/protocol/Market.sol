@@ -29,7 +29,10 @@ import {IChainlink} from "./interfaces/IChainlink.sol";
 contract Market is OwnableUpgradeable, UUPSUpgradeable
 {
     event OfferCreated(address indexed owner, bytes8 indexed token, bytes3 indexed fiat, Offer offer);
-    event DealCreated(address indexed offerOwner, address indexed taker, address indexed offer, address deal);
+    event DealCreated(
+        address indexed offerOwner, address indexed taker, address indexed offer,
+        address deal, string terms, string paymentInstructions
+    );
 
     using SafeERC20 for IERC20Metadata;
     using Tokens  for Tokens.Storage;
@@ -89,12 +92,12 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
         return offers[offer_];
     }
 
-    function addDeal(Deal deal) external {
+    function addDeal(Deal deal, string calldata terms, string calldata paymentInstructions) external {
         require(msg.sender == address(dealFactory()), UnauthorizedAccount(msg.sender));
         deals[address(deal)] = true;
 
         Offer offer = deal.offer();
-        emit DealCreated(offer.owner(), deal.taker(), address(offer), address(deal));
+        emit DealCreated(offer.owner(), deal.taker(), address(offer), address(deal), terms, paymentInstructions);
         profile().grantRole("DEAL_ROLE", address(deal));
     }
 
