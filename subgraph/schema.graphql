@@ -4,8 +4,8 @@ type Offer @entity(immutable: false) {
   profile: Profile
   isSell: Boolean!
   token: Token!
-  fiat: String!
-  method: String!
+  fiat: Bytes!
+  method: Bytes!
   rate: Int!
   minFiat: Int!
   maxFiat: Int!
@@ -17,10 +17,9 @@ type Offer @entity(immutable: false) {
 }
 
 type Token @entity(immutable: true) {
-  # symbol is used as the PK so that client can filter by query param string
+  # bytes8 symbol hex used as PK
   id: ID!
   address: Bytes!
-  name: String!
   decimals: Int!
 }
 
@@ -66,8 +65,8 @@ type Profile @entity(immutable: false) {
 
 type Feedback @entity(immutable: false) {
   id: ID!
-  given: Boolean,
-  upvote: Boolean,
+  given: Boolean
+  upvote: Boolean
   message: String!
 }
 

@@ -9,7 +9,7 @@ dataSources:
     network: hardhat
     source:
       abi: Market
-      address: "0x70E5370b8981Abc6e14C91F4AcE823954EFC8eA3"
+      address: '0x70E5370b8981Abc6e14C91F4AcE823954EFC8eA3'
       startBlock: 0
     mapping:
       kind: ethereum/events
@@ -31,7 +31,7 @@ dataSources:
         - name: Deal
           file: ../.cache/artifacts/evm/protocol/Deal.sol/Deal.json
       eventHandlers:
-        - event: OfferCreated(indexed address,indexed string,indexed string,address)
+        - event: OfferCreated(indexed address,indexed bytes8,indexed bytes3,address)
           handler: handleOfferCreated
         - event: DealCreated(indexed address,indexed address,indexed address,address)
           handler: handleDealCreated

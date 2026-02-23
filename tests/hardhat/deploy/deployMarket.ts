@@ -1,7 +1,10 @@
 import hre from 'hardhat'
 import MocksModule from '@evm/modules/00_MockDependencies.ts'
 import MarketModule from '@evm/modules/01_Market.ts'
-import { getAddress } from 'viem'
+import { getAddress, stringToHex, padHex } from 'viem'
+
+const bytes3 = (s: string) => padHex(stringToHex(s), { size: 3, dir: 'right' })
+const bytes16 = (s: string) => padHex(stringToHex(s), { size: 16, dir: 'right' })
 
 /**
  * With HardHat v3 you must hre.network.connect() to have access to viem and network helpers such as takeSnapshot.
@@ -24,14 +27,12 @@ export default async () => {
       addTokens_0: [mocks.WBTC.address, mocks.WETH.address, mocks.USDC.address],
       addTokens_1: 500,
       fiats: [
-        ['USD', mocks.USD.address],
-        ['EUR', mocks.EUR.address],
-        ['GBP', mocks.GBP.address],
+        [bytes3('USD'), mocks.USD.address],
+        [bytes3('EUR'), mocks.EUR.address],
+        [bytes3('GBP'), mocks.GBP.address],
       ],
-      methods: [
-        ['National Bank', 0n],
-        ['SEPA', 0n],
-      ],
+      methodNames: [bytes16('National Bank'), bytes16('SEPA')],
+      methodGroups: [0n, 0n],
     },
   }
 
@@ -43,12 +44,13 @@ export default async () => {
   const walletClients = await viem.getWalletClients()
   const maker = getAddress(walletClients[0].account.address)
   const taker = getAddress(walletClients[1].account.address)
+  const nobody = getAddress(walletClients[3].account.address)
   const admin = getAddress(walletClients[2].account.address)
 
   return {
     ...mocks,
     ...market,
-    maker, taker, admin,
+    maker, taker, admin, nobody,
     publicClient, walletClients,
     viem,
     ignition,
