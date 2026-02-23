@@ -1,59 +1,56 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.34;
 
-import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import {StorageSlot} from "@openzeppelin/contracts/utils/StorageSlot.sol";
-
-error InvalidMethod(string method);
+error InvalidMethod(bytes16 method);
 
 library Methods {
-    using EnumerableSet for EnumerableSet.Bytes32Set;
+  enum Group {
+    Other,
+    Crypto,
+    Cash,
+    Bank
+  }
 
-    enum Group {
-        Other,  // undefined
-        Crypto, // other chains, mediation can be automated
-        Cash,   // anonymous cash delivery to ATM or otherwise
-        Bank    // any regulated KYC'ed transfer entity
-    }
-    struct Method {
-        string name;
-        Group group;
-        //Country country;
-    }
+  struct Method {
+    bool exists;
+    Group group;
+  }
 
-    struct Storage {
-        EnumerableSet.Bytes32Set keys;
-        mapping (bytes32 => Method) values;
-    }
+  struct Storage {
+    bytes16[] keys;
+    mapping(bytes16 => Method) values;
+  }
 
-    function add(Storage storage self, Method calldata method) internal {
-        bytes32 $name = bytes32(bytes(method.name));
-        if (self.keys.add($name)) {
-            self.values[$name] = method;
-        }
+  function add(Storage storage self, bytes16 name, Group group) internal {
+    if (!self.values[name].exists) {
+      self.keys.push(name);
     }
+    self.values[name] = Method(true, group);
+  }
 
-    function get(Storage storage self, string memory name) internal view returns (Method memory) {
-        bytes32 key = bytes32(bytes(name));
-        require(self.keys.contains(key), InvalidMethod(name));
-        return self.values[key];
-    }
+  function get(Storage storage self, bytes16 name) internal view returns (Method memory) {
+    require(self.values[name].exists, InvalidMethod(name));
+    return self.values[name];
+  }
 
-    function list(Storage storage self) internal view returns (Method[] memory) {
-        Method[] memory result = new Method[](self.keys.length());
-        for (uint i = 0; i < self.keys.length(); i++) {
-            result[i] = self.values[self.keys.at(i)];
-        }
-        return result;
-    }
+  function list(Storage storage self) internal view returns (bytes16[] memory) {
+    return self.keys;
+  }
 
-    function has(Storage storage self, string memory name) internal view returns (bool) {
-        return self.keys.contains(bytes32(bytes(name)));
-    }
+  function has(Storage storage self, bytes16 name) internal view returns (bool) {
+    return self.values[name].exists;
+  }
 
-    function remove(Storage storage self, string memory name) internal {
-        bytes32 $name = bytes32(bytes(name));
-        self.keys.remove($name);
-        delete self.values[$name];
+  function remove(Storage storage self, bytes16 name) internal {
+    require(self.values[name].exists, InvalidMethod(name));
+    uint len = self.keys.length;
+    for (uint i = 0; i < len; i++) {
+      if (self.keys[i] == name) {
+        self.keys[i] = self.keys[len - 1];
+        self.keys.pop();
+        break;
+      }
     }
+    delete self.values[name];
+  }
 }

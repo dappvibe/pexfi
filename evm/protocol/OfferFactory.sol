@@ -6,12 +6,12 @@ import {Offer} from "./Offer.sol";
 import {FinderConstants} from "./libraries/FinderConstants.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+
 import {FinderInterface} from "@uma/core/contracts/data-verification-mechanism/interfaces/FinderInterface.sol";
 
 contract OfferFactory is Ownable
 {
-    using Strings for *;
+
 
     FinderInterface public finder;
     address public implementation;
@@ -34,7 +34,7 @@ contract OfferFactory is Ownable
         Market market = Market(finder.getImplementationAddress(FinderConstants.Market));
 
         market.getPrice(params.token, params.fiat); // this validates both token and fiat
-        require(market.convert(params.limits.min, params.fiat, 'USDC', 10000) > 20, 'min too low');
+        require(market.convert(params.limits.min, params.fiat, bytes8("USDC"), 10000) > 20, "min too low");
         market.method(params.method);               // validate method
 
         Offer offer = Offer(Clones.clone(implementation));

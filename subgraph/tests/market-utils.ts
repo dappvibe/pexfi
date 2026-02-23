@@ -1,11 +1,11 @@
 import { newMockEvent } from "matchstick-as/assembly/index"
-import { ethereum, Address } from "@graphprotocol/graph-ts"
+import { ethereum, Address, Bytes } from "@graphprotocol/graph-ts"
 import { OfferCreated } from "../generated/Market/Market"
 
 export function createOfferCreatedEvent(
   owner: Address,
-  token: string,
-  fiat: string,
+  token: Bytes,
+  fiat: Bytes,
   offer: Address
 ): OfferCreated {
   let offerCreatedEvent = changetype<OfferCreated>(newMockEvent())
@@ -16,10 +16,10 @@ export function createOfferCreatedEvent(
     new ethereum.EventParam("owner", ethereum.Value.fromAddress(owner))
   )
   offerCreatedEvent.parameters.push(
-    new ethereum.EventParam("token", ethereum.Value.fromString(token))
+    new ethereum.EventParam("token", ethereum.Value.fromFixedBytes(token))
   )
   offerCreatedEvent.parameters.push(
-    new ethereum.EventParam("fiat", ethereum.Value.fromString(fiat))
+    new ethereum.EventParam("fiat", ethereum.Value.fromFixedBytes(fiat))
   )
   offerCreatedEvent.parameters.push(
     new ethereum.EventParam("offer", ethereum.Value.fromAddress(offer))

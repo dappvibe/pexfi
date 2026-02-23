@@ -1,5 +1,5 @@
 import { buildModule } from '@nomicfoundation/hardhat-ignition/modules'
-import { zeroAddress, stringToHex } from 'viem'
+import { zeroAddress, stringToHex, padHex } from 'viem'
 
 const SIX_MONTHS = 6 * 30 * 24 * 60 * 60
 const TWO_YEARS = 2 * 365 * 24 * 60 * 60
@@ -38,7 +38,7 @@ export default buildModule('Market', (m) => {
   // post-deploy data population
   m.call(Market, 'addTokens', [m.getParameter('addTokens_0'), m.getParameter('addTokens_1')])
   m.call(Market, 'addFiats', [m.getParameter('fiats')])
-  m.call(Market, 'addMethods', [m.getParameter('methods')])
+  m.call(Market, 'addMethods', [m.getParameter('methodNames'), m.getParameter('methodGroups')])
 
   // link it all together via Finder
   m.call(Finder, 'changeImplementationAddress', [bytes32('OfferFactory'), OfferFactory], {
