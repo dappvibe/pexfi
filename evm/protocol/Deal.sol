@@ -58,7 +58,6 @@ contract Deal is ERC165, Initializable, OptimisticOracleV3CallbackRecipientInter
     struct Feedback {
         bool given;
         bool upvote;
-        string message;
     }
     Feedback public feedbackForOwner;
     Feedback public feedbackForTaker;
@@ -238,7 +237,6 @@ contract Deal is ERC165, Initializable, OptimisticOracleV3CallbackRecipientInter
             require(!feedbackForTaker.given, "already");
             feedbackForTaker.given = true;
             feedbackForTaker.upvote = upvote;
-            feedbackForTaker.message = message_;
             uint $tokenId = _profile.ownerToTokenId(taker);
             if ($tokenId != 0) {
                 _profile.statsVote($tokenId, upvote);
@@ -249,7 +247,6 @@ contract Deal is ERC165, Initializable, OptimisticOracleV3CallbackRecipientInter
             require(!feedbackForOwner.given, "already");
             feedbackForOwner.given = true;
             feedbackForOwner.upvote = upvote;
-            feedbackForOwner.message = message_;
             uint $tokenId = _profile.ownerToTokenId(offer.owner());
             if ($tokenId != 0) {
                 _profile.statsVote($tokenId, upvote);
