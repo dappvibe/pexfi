@@ -69,14 +69,14 @@ contract Offer is Initializable
     emit OfferUpdated();
   }
 
-  function setLimits(Limits memory limits_) public {
+  function setLimits(Limits calldata limits_) external {
     require(msg.sender == owner, UnauthorizedAccount(msg.sender));
     require(limits_.min < limits_.max, "limits");
     limits = limits_;
     emit OfferUpdated();
   }
 
-  function setTerms(string memory terms_) public {
+  function setTerms(string calldata terms_) external {
     require(msg.sender == owner, UnauthorizedAccount(msg.sender));
     terms = terms_;
     emit OfferUpdated();
