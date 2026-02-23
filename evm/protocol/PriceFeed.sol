@@ -2,14 +2,11 @@
 pragma solidity 0.8.34;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 // @dev Provides rates for currencies not available in chainlink
 // @dev Deploy one contract per fiat currency (except for USD)
 contract PriceFeed is Ownable
 {
-    using Strings for string;
-
     // Chainlink compatible
     uint8 public decimals = 8;
     string public description;
