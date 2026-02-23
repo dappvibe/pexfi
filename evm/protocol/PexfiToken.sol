@@ -6,7 +6,7 @@ import {ERC20Permit} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20P
 import {ERC20Burnable} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 
 contract PexfiToken is ERC20, ERC20Permit, ERC20Burnable {
-    constructor() ERC20("Pexfi P2P", "PEXFI") ERC20Permit("Pexfi P2P") {
-        _mint(msg.sender, 1_000_000 * 10 ** decimals());
-    }
+  constructor() ERC20("Pexfi P2P", "PEXFI") ERC20Permit("Pexfi P2P") {
+    _mint(msg.sender, 1_000_000 * 10 ** decimals());
+  }
 }

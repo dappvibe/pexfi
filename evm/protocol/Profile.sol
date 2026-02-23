@@ -13,95 +13,103 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 // @dev separate profile NFT allows multiple markets attached and rep be shared across them
 contract Profile is UUPSUpgradeable, AccessControlUpgradeable, ERC721BurnableUpgradeable
 {
-    struct Stats {
-        uint32 createdAt;
-        uint32 upvotes;
-        uint32 downvotes;
-        uint32 volumeUSD;
-        uint32 avgPaymentTime;  // TODO
-        uint32 avgReleaseTime;  // TODO
-        uint32 dealsCompleted;
-        uint32 dealsExpired;
-        uint32 disputesLost;    // TODO
-    }
-    mapping(uint => Stats) public stats;
-    uint private _nextTokenId;
+  struct Stats {
+    uint32 createdAt;
+    uint32 upvotes;
+    uint32 downvotes;
+    uint32 volumeUSD;
+    uint32 avgPaymentTime;  // TODO
+    uint32 avgReleaseTime;  // TODO
+    uint32 dealsCompleted;
+    uint32 dealsExpired;
+    uint32 disputesLost;    // TODO
+  }
 
-    mapping(address owner => uint) public ownerToTokenId;
+  mapping(uint => Stats) public stats;
+  uint private _nextTokenId;
 
-    bytes32 internal constant MARKET_ROLE = "MARKET_ROLE";
-    bytes32 internal constant DEAL_ROLE = "DEAL_ROLE";
+  mapping(address owner => uint) public ownerToTokenId;
 
-    function initialize() initializer external
-    {
-        __ERC721_init("Reputation Token", "REP");
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setRoleAdmin(DEAL_ROLE, MARKET_ROLE);
-        _nextTokenId = 1;
-    }
-    function _authorizeUpgrade(address) internal onlyRole(DEFAULT_ADMIN_ROLE) override {}
+  bytes32 internal constant MARKET_ROLE = "MARKET_ROLE";
+  bytes32 internal constant DEAL_ROLE = "DEAL_ROLE";
 
-    function supportsInterface(bytes4 interfaceId) public view
-    override(ERC721Upgradeable, AccessControlUpgradeable)
-    returns (bool) {
-        return
-            ERC721Upgradeable.supportsInterface(interfaceId) ||
-            AccessControlUpgradeable.supportsInterface(interfaceId);
-    }
+  function initialize() initializer external
+  {
+    __ERC721_init("Reputation Token", "REP");
+    _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    _setRoleAdmin(DEAL_ROLE, MARKET_ROLE);
+    _nextTokenId = 1;
+  }
 
-    function register() external returns(uint tokenId)
-    {
-        require(ownerToTokenId[msg.sender] == 0, "already");
+  function _authorizeUpgrade(address) internal onlyRole(DEFAULT_ADMIN_ROLE) override {}
 
-        tokenId = _nextTokenId;
-        _mint(msg.sender, tokenId);
-        _resetStats(tokenId);
-        stats[tokenId].createdAt = uint32(block.timestamp);
-        ownerToTokenId[msg.sender] = tokenId;
-        _nextTokenId++;
-    }
+  function supportsInterface(bytes4 interfaceId) public view
+  override(ERC721Upgradeable, AccessControlUpgradeable)
+  returns (bool) {
+    return
+        ERC721Upgradeable.supportsInterface(interfaceId) ||
+        AccessControlUpgradeable.supportsInterface(interfaceId);
+  }
 
-    function statsVote(uint tokenId_, bool up_) onlyRole(DEAL_ROLE) external
-    {
-        unchecked { up_ ? stats[tokenId_].upvotes++ : stats[tokenId_].downvotes++; }
-    }
-    function statsVolumeUSD(uint tokenId_, uint32 _volumeUSD) onlyRole(DEAL_ROLE) external
-    {
-        unchecked { stats[tokenId_].volumeUSD += _volumeUSD; }
-    }
-    function statsDealCompleted(uint tokenId_) onlyRole(DEAL_ROLE) external
-    {
-        unchecked { stats[tokenId_].dealsCompleted++; }
-    }
-    function statsDealExpired(uint tokenId_) onlyRole(DEAL_ROLE) external
-    {
-        unchecked { stats[tokenId_].dealsExpired++; }
-    }
-    function statsDisputeLost(uint tokenId_) onlyRole(DEAL_ROLE) external
-    {
-        unchecked { stats[tokenId_].disputesLost++; }
-    }
-    function statsAvgPaymentTime(uint tokenId_, uint32 _dealTime) onlyRole(DEAL_ROLE) external
-    {
-        unchecked { stats[tokenId_].avgPaymentTime = (stats[tokenId_].avgPaymentTime + _dealTime) / 2; }
-    }
-    function statsAvgReleaseTime(uint tokenId_, uint32 _dealTime) onlyRole(DEAL_ROLE) external
-    {
-        unchecked { stats[tokenId_].avgReleaseTime = (stats[tokenId_].avgReleaseTime + _dealTime) / 2; }
-    }
+  function register() external returns (uint tokenId)
+  {
+    require(ownerToTokenId[msg.sender] == 0, "already");
 
-    function _resetStats(uint tokenId_) private
-    {
-        stats[tokenId_] = Stats({
-            createdAt: stats[tokenId_].createdAt,
-            upvotes: 0,
-            downvotes: 0,
-            volumeUSD: 0,
-            dealsCompleted: 0,
-            dealsExpired: 0,
-            disputesLost: 0,
-            avgPaymentTime: 0,
-            avgReleaseTime: 0
-        });
-    }
+    tokenId = _nextTokenId;
+    _mint(msg.sender, tokenId);
+    _resetStats(tokenId);
+    stats[tokenId].createdAt = uint32(block.timestamp);
+    ownerToTokenId[msg.sender] = tokenId;
+    _nextTokenId++;
+  }
+
+  function statsVote(uint tokenId_, bool up_) onlyRole(DEAL_ROLE) external
+  {
+    unchecked {up_ ? stats[tokenId_].upvotes++ : stats[tokenId_].downvotes++;}
+  }
+
+  function statsVolumeUSD(uint tokenId_, uint32 _volumeUSD) onlyRole(DEAL_ROLE) external
+  {
+    unchecked {stats[tokenId_].volumeUSD += _volumeUSD;}
+  }
+
+  function statsDealCompleted(uint tokenId_) onlyRole(DEAL_ROLE) external
+  {
+    unchecked {stats[tokenId_].dealsCompleted++;}
+  }
+
+  function statsDealExpired(uint tokenId_) onlyRole(DEAL_ROLE) external
+  {
+    unchecked {stats[tokenId_].dealsExpired++;}
+  }
+
+  function statsDisputeLost(uint tokenId_) onlyRole(DEAL_ROLE) external
+  {
+    unchecked {stats[tokenId_].disputesLost++;}
+  }
+
+  function statsAvgPaymentTime(uint tokenId_, uint32 _dealTime) onlyRole(DEAL_ROLE) external
+  {
+    unchecked {stats[tokenId_].avgPaymentTime = (stats[tokenId_].avgPaymentTime + _dealTime) / 2;}
+  }
+
+  function statsAvgReleaseTime(uint tokenId_, uint32 _dealTime) onlyRole(DEAL_ROLE) external
+  {
+    unchecked {stats[tokenId_].avgReleaseTime = (stats[tokenId_].avgReleaseTime + _dealTime) / 2;}
+  }
+
+  function _resetStats(uint tokenId_) private
+  {
+    stats[tokenId_] = Stats({
+      createdAt: stats[tokenId_].createdAt,
+      upvotes: 0,
+      downvotes: 0,
+      volumeUSD: 0,
+      dealsCompleted: 0,
+      dealsExpired: 0,
+      disputesLost: 0,
+      avgPaymentTime: 0,
+      avgReleaseTime: 0
+    });
+  }
 }
