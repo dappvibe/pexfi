@@ -38,29 +38,7 @@ export function fetchDeal(dealAddress: Address): DealEntity {
   let allowCancelUnpaidAfterResult = dealContract.try_allowCancelUnpaidAfter();
   if (!allowCancelUnpaidAfterResult.reverted) deal.allowCancelUnpaidAfter = allowCancelUnpaidAfterResult.value.toI32();
 
-  let feedbackForOwner = dealContract.try_feedbackForOwner();
-  if (!feedbackForOwner.reverted) {
-    if (feedbackForOwner.value.getGiven()) {
-      let fb = new Feedback(`${dealAddress.toHexString()}-owner`);
-      fb.given = feedbackForOwner.value.getGiven();
-      fb.upvote = feedbackForOwner.value.getUpvote();
-      fb.message = feedbackForOwner.value.getMessage();
-      fb.save();
-      deal.feedbackForOwner = fb.id;
-    }
-  }
 
-  let feedbackForTaker = dealContract.try_feedbackForTaker();
-  if (!feedbackForTaker.reverted) {
-    if (feedbackForTaker.value.getGiven()) {
-      let fb = new Feedback(`${dealAddress.toHexString()}-taker`);
-      fb.given = feedbackForTaker.value.getGiven();
-      fb.upvote = feedbackForTaker.value.getUpvote();
-      fb.message = feedbackForTaker.value.getMessage();
-      fb.save();
-      deal.feedbackForTaker = fb.id;
-    }
-  }
 
   return deal;
 }
@@ -182,5 +160,38 @@ export function handleDealState(event: DealStateEvent): void {
 }
 
 export function handleFeedbackGiven(event: FeedbackGiven): void {
-  indexDealAndProfile(event.address)
+  let deal = fetchDeal(event.address)
+
+  let dealContract = DealContract.bind(event.address)
+  let offerResult = dealContract.try_offer()
+  if (offerResult.reverted) return
+
+  let offerContract = OfferContract.bind(offerResult.value)
+  let ownerResult = offerContract.try_owner()
+  if (ownerResult.reverted) return
+
+  // event.params.to is the feedback recipient
+  // if recipient is taker → sender is owner → this is feedbackForTaker
+  // if recipient is owner → sender is taker → this is feedbackForOwner
+  let takerResult = dealContract.try_taker()
+  if (takerResult.reverted) return
+
+  if (event.params.to == takerResult.value) {
+    let fb = new Feedback(`${event.address.toHexString()}-taker`)
+    fb.given = true
+    fb.upvote = event.params.upvote
+    fb.message = event.params.message
+    fb.save()
+    deal.feedbackForTaker = fb.id
+  } else {
+    let fb = new Feedback(`${event.address.toHexString()}-owner`)
+    fb.given = true
+    fb.upvote = event.params.upvote
+    fb.message = event.params.message
+    fb.save()
+    deal.feedbackForOwner = fb.id
+  }
+
+  deal.save()
+  doUpdateProfile(deal)
 }
