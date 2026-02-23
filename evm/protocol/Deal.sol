@@ -228,6 +228,7 @@ contract Deal is ERC165, Initializable, OptimisticOracleV3CallbackRecipientInter
 
     function feedback(bool upvote, string calldata message_)
     external
+    onlyMember
     stateBetween(State.Resolved, State.Completed)
     {
         Profile _profile = Profile(market.profile());
