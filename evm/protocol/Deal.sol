@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.34;
 
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {OptimisticOracleV3Interface} from
@@ -15,7 +15,7 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 
 contract Deal is AccessControl, Initializable, OptimisticOracleV3CallbackRecipientInterface
 {
-    using Strings for string;
+
 
     event DealState(State state, address sender);
     event Message(address indexed sender, string message);

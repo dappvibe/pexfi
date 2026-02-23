@@ -1,14 +1,18 @@
 import { before, describe, test } from 'node:test'
 import * as assert from 'node:assert'
-import { parseEventLogs, getAddress } from 'viem'
+import { parseEventLogs, getAddress, stringToHex, padHex } from 'viem'
 import hre from 'hardhat'
 import deploy from './deploy/deployMarket'
 
+const bytes3 = (s: string) => padHex(stringToHex(s), { size: 3, dir: 'right' })
+const bytes8 = (s: string) => padHex(stringToHex(s), { size: 8, dir: 'right' })
+const bytes16 = (s: string) => padHex(stringToHex(s), { size: 16, dir: 'right' })
+
 export const OFFER_PARAMS = {
   isSell: true,
-  token: 'WBTC',
-  fiat: 'USD',
-  method: 'National Bank',
+  token: bytes8('WBTC'),
+  fiat: bytes3('USD'),
+  method: bytes16('National Bank'),
   rate: 10250,
   limits: { min: 1000, max: 5000 },
   terms: 'terms of offer',

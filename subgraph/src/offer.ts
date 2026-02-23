@@ -23,16 +23,19 @@ export function fetchAndSaveOffer(target: Address, market: Address): Offer {
 
   let tokenResult = offerContract.try_token();
   if (!tokenResult.reverted) {
-    let marketTokenResult = marketContract.try_token(tokenResult.value);
-    let token = Token.load(marketTokenResult.value.symbol);
+    let tokenKey = tokenResult.value;
+    let tokenId = tokenKey.toHexString();
+    let token = Token.load(tokenId);
     if (!token) {
-      token = new Token(marketTokenResult.value.symbol);
-      token.address = marketTokenResult.value.api;
-      token.name = marketTokenResult.value.name;
-      token.decimals = marketTokenResult.value.decimals;
-      token.save();
+      let marketTokenResult = marketContract.try_token(tokenKey);
+      if (!marketTokenResult.reverted) {
+        token = new Token(tokenId);
+        token.address = marketTokenResult.value.getApi();
+        token.decimals = marketTokenResult.value.getDecimals();
+        token.save();
+      }
     }
-    offer.token = token.id;
+    offer.token = tokenId;
   }
 
   let fiatResult = offerContract.try_fiat();
