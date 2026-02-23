@@ -49,19 +49,21 @@ contract PexfiVesting is VestingWalletCliff {
         token = IERC20(finder.getImplementationAddress(FinderConstants.PexfiVault));
     }
 
+    bytes32 private constant PAID = keccak256("PAID");
+    bytes32 private constant NOT_PAID = keccak256("NOT PAID");
+
     /// @notice Helper for the beneficiary to use vested tokens for OOv3 assertions without claiming them first.
     function bond(address deal, bytes calldata claim) external onlyOwner
     {
+        bytes32 claimHash = keccak256(claim);
         require(
-            keccak256(claim) == keccak256(bytes("PAID")) ||
-            keccak256(claim) == keccak256(bytes("NOT PAID")),
+            claimHash == PAID || claimHash == NOT_PAID,
             "invalid claim"
         );
         require(
             IERC165(deal).supportsInterface(type(OptimisticOracleV3CallbackRecipientInterface).interfaceId),
             "deal: no callback interface"
         );
-
 
         address oracleAddress = finder.getImplementationAddress(FinderConstants.Oracle);
         IOptimisticOracleV3 oov3 = IOptimisticOracleV3(oracleAddress);
@@ -78,8 +80,8 @@ contract PexfiVesting is VestingWalletCliff {
             oov3.defaultLiveness(),                                                   // liveness
             token,                                                                   // currency
             bondAmount,                                                                 // bond
-            0x4153534552545f54525554480000000000000000000000000000000000000000,     // ASSERT_TRUTH
-            keccak256(claim)                // domainId
+            0x4153534552545f54525554480000000000000000000000000000000000000000,      // ASSERT_TRUTH
+            claimHash                                                                // domainId
         );
     }
 }
