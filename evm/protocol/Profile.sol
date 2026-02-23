@@ -61,29 +61,6 @@ contract Profile is UUPSUpgradeable, AccessControlUpgradeable, ERC721BurnableUpg
         _nextTokenId++;
     }
 
-    function merge(uint tokenId_, uint _otherTokenId) external
-    {
-        require(msg.sender == ownerOf(tokenId_), "owner");
-        require(msg.sender == _getApproved(_otherTokenId), "approve");
-
-        Stats storage stats1 = stats[tokenId_];
-        Stats storage stats2 = stats[_otherTokenId];
-
-        stats1.upvotes += stats2.upvotes;
-        stats1.downvotes += stats2.downvotes;
-        stats1.volumeUSD += stats2.volumeUSD;
-        stats1.dealsCompleted += stats2.dealsCompleted;
-        stats1.dealsExpired += stats2.dealsExpired;
-        stats1.disputesLost += stats2.disputesLost;
-        stats1.avgPaymentTime = (stats1.avgPaymentTime + stats2.avgPaymentTime) / 2;
-        stats1.avgReleaseTime = (stats1.avgReleaseTime + stats2.avgReleaseTime) / 2;
-
-        address otherOwner = ownerOf(_otherTokenId);
-        _burn(_otherTokenId);
-        delete stats[_otherTokenId];
-        delete ownerToTokenId[otherOwner];
-    }
-
     function statsVote(uint tokenId_, bool up_) onlyRole(DEAL_ROLE) external
     {
         unchecked { up_ ? stats[tokenId_].upvotes++ : stats[tokenId_].downvotes++; }
