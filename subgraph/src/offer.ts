@@ -1,5 +1,5 @@
 import {OfferUpdated} from "../../.cache/subgraph/generated/templates/Offer/Offer";
-import {Offer as OfferEntity, Offer, Token} from "../../.cache/subgraph/generated/schema";
+import {Offer as OfferEntity, Offer, Token, Profile as ProfileEntity} from "../../.cache/subgraph/generated/schema";
 import {Offer as OfferContract} from "../../.cache/subgraph/generated/Market/Offer"
 import {Address, dataSource, log} from '@graphprotocol/graph-ts';
 import {Market as MarketContract} from "../../.cache/subgraph/generated/Market/Market";
@@ -7,6 +7,8 @@ import {getRangingModifier, updateProfileFor} from "./profile";
 
 export function fetchAndSaveOffer(target: Address, market: Address): Offer {
   let offerContract = OfferContract.bind(target);
+
+  let existingOffer = OfferEntity.load(target.toHex());
   let offer = new OfferEntity(target.toHex());
 
   let marketContract = MarketContract.bind(market);
@@ -30,8 +32,8 @@ export function fetchAndSaveOffer(target: Address, market: Address): Offer {
       let marketTokenResult = marketContract.try_token(tokenKey);
       if (!marketTokenResult.reverted) {
         token = new Token(tokenId);
-        token.address = marketTokenResult.value.getApi();
-        token.decimals = marketTokenResult.value.getDecimals();
+        token.address = marketTokenResult.value.api;
+        token.decimals = marketTokenResult.value.decimals;
         token.save();
       }
     }
@@ -69,10 +71,19 @@ export function fetchAndSaveOffer(target: Address, market: Address): Offer {
     offer.disabled = disabledResult.value;
   }
 
-  let profileResult = marketContract.try_profile();
-  let profileAddress = profileResult.value;
+  let profile: ProfileEntity | null = null;
+  if (existingOffer && existingOffer.profile && existingOffer.owner.equals(offer.owner)) {
+    profile = ProfileEntity.load(existingOffer.profile!);
+  }
 
-  const profile = updateProfileFor(profileAddress, Address.fromBytes(offer.owner));
+  if (!profile) {
+    let profileResult = marketContract.try_profile();
+    if (!profileResult.reverted) {
+      let profileAddress = profileResult.value;
+      profile = updateProfileFor(profileAddress, Address.fromBytes(offer.owner));
+    }
+  }
+
   offer.profile = profile ? profile.id : null;
   if (offer.isSell) {
     // ASC sorting, lowest first, so decrease goodstanding
