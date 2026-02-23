@@ -182,12 +182,12 @@ describe('Deal', () => {
       await viem.assertions.revertWithCustomError(
         dealToBuy.write.fund({ account: taker }),
         dealToBuy,
-        'AccessControlUnauthorizedAccount'
+        'UnauthorizedAccount'
       )
       await viem.assertions.revertWithCustomError(
         dealToSell.write.fund({ account: maker }),
         dealToSell,
-        'AccessControlUnauthorizedAccount'
+        'UnauthorizedAccount'
       )
     })
 
@@ -253,12 +253,12 @@ describe('Deal', () => {
       await viem.assertions.revertWithCustomError(
         dealToBuy.write.paid({ account: maker }),
         dealToBuy,
-        'AccessControlUnauthorizedAccount'
+        'UnauthorizedAccount'
       )
       await viem.assertions.revertWithCustomError(
         dealToSell.write.paid({ account: taker }),
         dealToSell,
-        'AccessControlUnauthorizedAccount'
+        'UnauthorizedAccount'
       )
     })
 
