@@ -165,25 +165,25 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     function getMethods() public view returns (bytes16[] memory) {return methods.list();}
 
     function addTokens(address[] calldata tokens_, uint16 uniswapPoolFee) external onlyOwner {
-        for (uint8 i = 0; i < tokens_.length; i++) {
+        for (uint i = 0; i < tokens_.length; i++) {
             tokens.add(tokens_[i], uniswapPoolFee);
         }
     }
 
     function removeTokens(bytes8[] calldata token_) external onlyOwner {
-        for (uint8 i = 0; i < token_.length; i++) {
+        for (uint i = 0; i < token_.length; i++) {
             tokens.remove(token_[i]);
         }
     }
 
     function addFiats(Fiats.Fiat[] calldata fiats_) external onlyOwner {
-        for (uint8 i = 0; i < fiats_.length; i++) {
+        for (uint i = 0; i < fiats_.length; i++) {
             fiats.add(fiats_[i]);
         }
     }
 
     function removeFiats(bytes3[] calldata fiat_) external onlyOwner {
-        for (uint8 i = 0; i < fiat_.length; i++) {
+        for (uint i = 0; i < fiat_.length; i++) {
             fiats.remove(fiat_[i]);
         }
     }
