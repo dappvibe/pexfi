@@ -30,12 +30,12 @@ export function fetchAndSaveOffer(target: Address, market: Address): Offer {
       let marketTokenResult = marketContract.try_token(tokenKey);
       if (!marketTokenResult.reverted) {
         token = new Token(tokenId);
-        token.address = marketTokenResult.value.getApi();
-        token.decimals = marketTokenResult.value.getDecimals();
+        token.address = marketTokenResult.value.api;
+        token.decimals = marketTokenResult.value.decimals;
         token.save();
       }
     }
-    offer.token = tokenId;
+    if (token) offer.token = token.id;
   }
 
   let fiatResult = offerContract.try_fiat();
