@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.34;
 
-
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {OptimisticOracleV3Interface} from
@@ -15,8 +14,6 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 
 contract Deal is AccessControl, Initializable, OptimisticOracleV3CallbackRecipientInterface
 {
-
-
     event DealState(State state, address sender);
     event Message(address indexed sender, string message);
     event FeedbackGiven(address indexed to, bool upvote, string message);
@@ -48,14 +45,11 @@ contract Deal is AccessControl, Initializable, OptimisticOracleV3CallbackRecipie
         address taker;
         uint tokenAmount;
         uint fiatAmount;
-        string paymentInstructions;
     }
 
-    string  public terms;
     uint    public tokenAmount;
     address public taker;
     uint    public fiatAmount;
-    string  public paymentInstructions;
     uint    public allowCancelUnacceptedAfter;
     uint    public allowCancelUnpaidAfter;
     State   public state; // defaults to Initiated (0)
@@ -101,12 +95,8 @@ contract Deal is AccessControl, Initializable, OptimisticOracleV3CallbackRecipie
 
         tokenAmount = params.tokenAmount;
         fiatAmount = params.fiatAmount;
-        paymentInstructions = params.paymentInstructions;
         allowCancelUnacceptedAfter = block.timestamp + ACCEPTANCE_TIME;
         allowCancelUnpaidAfter = block.timestamp + 2 weeks; // initial safety value, overriden by accept()
-
-        // copy MUTABLE offer values to freeze them for this deal
-        terms = offer.terms();
 
         // notify from the new address for unified state transitions
         emit DealState(state, params.taker);

@@ -33,7 +33,7 @@ dataSources:
       eventHandlers:
         - event: OfferCreated(indexed address,indexed bytes8,indexed bytes3,address)
           handler: handleOfferCreated
-        - event: DealCreated(indexed address,indexed address,indexed address,address)
+        - event: DealCreated(indexed address,indexed address,indexed address,address,string,string)
           handler: handleDealCreated
       file: ./src/market.ts
 templates:
