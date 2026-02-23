@@ -43,12 +43,10 @@ describe('OfferPage', () => {
       parseLog: vi.fn(),
     },
   }
-  const mockOfferContract = { attach: vi.fn() }
-  const mockTokenContract = {
-    attach: vi.fn(),
-    allowance: vi.fn(),
+  const mockOfferContractInstance = {
+    createDeal: vi.fn(),
   }
-  const mockDealFactory = { address: '0xDealFactory' }
+  const mockOfferContract = { attach: vi.fn(() => mockOfferContractInstance) }
   const mockSigned = vi.fn()
 
   beforeEach(() => {
@@ -56,8 +54,7 @@ describe('OfferPage', () => {
     vi.mocked(useContract).mockReturnValue({
       Market: mockMarket,
       Offer: mockOfferContract,
-      Token: mockTokenContract,
-      DealFactory: mockDealFactory,
+      Token: { attach: vi.fn(), allowance: vi.fn() },
       signed: mockSigned,
     } as any)
   })
@@ -124,12 +121,12 @@ describe('OfferPage', () => {
     vi.mocked(Offer.fetch).mockResolvedValue(mockOffer as any)
 
     // Mock Factory create
-    const mockFactoryInstance = {
-      create: vi.fn().mockResolvedValue({
+    const mockSignedOffer = {
+      createDeal: vi.fn().mockResolvedValue({
         wait: vi.fn().mockResolvedValue({ logs: [] }),
       }),
     }
-    mockSigned.mockResolvedValue(mockFactoryInstance)
+    mockSigned.mockResolvedValue(mockSignedOffer)
 
     renderPage()
 
@@ -150,11 +147,7 @@ describe('OfferPage', () => {
     fireEvent.click(submitBtn)
 
     await waitFor(() => {
-      expect(mockFactoryInstance.create).toHaveBeenCalledWith({
-        offer: '0xOfferAddr',
-        fiatAmount: 20000000n,
-        paymentInstructions: '',
-      })
+      expect(mockSignedOffer.createDeal).toHaveBeenCalled()
     })
   })
 })
