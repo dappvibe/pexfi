@@ -12,7 +12,7 @@ import { useOffer } from './hooks/useOffer'
 export default function OfferPage() {
   const navigate = useNavigate()
   const account = useAccount()
-  const { Market, DealFactory, signed } = useContract()
+  const { Market, Offer: OfferContract, signed } = useContract()
 
   const { offerId } = useParams()
   const { offer, allowance, setAllowance, token, setRate, setLimits, setTerms, toggleDisabled } = useOffer(offerId, {
@@ -36,15 +36,18 @@ export default function OfferPage() {
     setLockButton(true)
     await approve()
 
-    const factory = await signed(DealFactory)
+    const offerContract = OfferContract.attach(offer.address)
+    const signedOffer = await signed(offerContract)
     const amount = BigInt(values['fiatAmount'] * 10 ** 6)
 
     try {
-      const tx = await factory.create({
-        offer: offer.address,
-        fiatAmount: amount,
-        paymentInstructions: values['paymentInstructions'] ?? '',
-      })
+      const tx = await signedOffer.createDeal(
+        Market.target,
+        {
+          fiatAmount: amount,
+          paymentInstructions: values['paymentInstructions'] ?? '',
+        }
+      )
       message.info('Deal submitted. You will be redirected shortly.')
       const receipt = await tx.wait()
       // FIXME when user is refirected immediately subgraph did not index the deal yet which leads to page fail to load

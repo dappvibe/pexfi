@@ -4,7 +4,7 @@ pragma solidity 0.8.34;
 library FinderConstants {
     bytes32 constant Market = "Market";
     bytes32 constant OfferFactory = "OfferFactory";
-    bytes32 constant DealFactory = "DealFactory";
+    bytes32 constant DealImplementation = "DealImplementation";
     bytes32 constant Profile = "Profile";
     bytes32 constant Oracle = "Oracle";
     bytes32 constant Store = "Store";

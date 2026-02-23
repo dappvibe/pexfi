@@ -2,7 +2,11 @@
 pragma solidity 0.8.34;
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
+import {FinderConstants} from "./libraries/FinderConstants.sol";
 import {UnauthorizedAccount} from "./libraries/Errors.sol";
+import {Market} from "./Market.sol";
+import {Deal} from "./Deal.sol";
 
 contract Offer is Initializable
 {
@@ -21,6 +25,11 @@ contract Offer is Initializable
     bytes3 fiat;
     bytes16 method;
     string terms;
+  }
+
+  struct CreateDealParams {
+    uint fiatAmount;
+    string paymentInstructions;
   }
 
   // slot 1: address (20) + isSell (1) + rate (2) + fiat (3) + disabled (1) = 27 bytes
@@ -60,6 +69,31 @@ contract Offer is Initializable
     rate = params.rate;
     limits = params.limits;
     terms = params.terms;
+  }
+
+  function createDeal(
+    Market market,
+    CreateDealParams calldata params
+  )
+  external
+  {
+    require(msg.sender != owner, UnauthorizedAccount(msg.sender));
+    require(!disabled, "disabled");
+    require(market.hasOffer(address(this)), "not registered");
+
+    uint $tokenAmount = market.convert(params.fiatAmount, fiat, token, rate);
+
+    address impl = market.finder().getImplementationAddress(FinderConstants.DealImplementation);
+    Deal deal = Deal(Clones.clone(impl));
+    deal.initialize(Deal.DealParams({
+      market: address(market),
+      offer: address(this),
+      taker: msg.sender,
+      tokenAmount: $tokenAmount,
+      fiatAmount: params.fiatAmount
+    }));
+
+    market.addDeal(deal, terms, params.paymentInstructions);
   }
 
   function setRate(uint16 rate_) external {

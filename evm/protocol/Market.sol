@@ -18,7 +18,7 @@ import {Tokens} from "./libraries/Tokens.sol";
 import {Methods} from "./libraries/Methods.sol";
 import {Fiats} from "./libraries/Fiats.sol";
 
-import {DealFactory} from "./DealFactory.sol";
+
 import {Deal} from "./Deal.sol";
 import {OfferFactory} from "./OfferFactory.sol";
 import {Offer} from "./Offer.sol";
@@ -61,9 +61,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
         return OfferFactory(finder.getImplementationAddress(FinderConstants.OfferFactory));
     }
 
-    function dealFactory() public view returns (DealFactory) {
-        return DealFactory(finder.getImplementationAddress(FinderConstants.DealFactory));
-    }
+
 
     function profile() public view returns (Profile) {
         return Profile(finder.getImplementationAddress(FinderConstants.Profile));
@@ -93,7 +91,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     }
 
     function addDeal(Deal deal, string calldata terms, string calldata paymentInstructions) external {
-        require(msg.sender == address(dealFactory()), UnauthorizedAccount(msg.sender));
+        require(offers[msg.sender], UnauthorizedAccount(msg.sender));
         deals[address(deal)] = true;
 
         Offer offer = deal.offer();
