@@ -119,8 +119,22 @@ describe('Deal', () => {
       await snapshot.restore()
     })
 
-    test('taker can cancel', async () => {
+    test('taker cannot cancel before acceptance timeout', async () => {
+      await viem.assertions.revertWithCustomError(
+        dealToBuy.write.cancel({ account: taker }),
+        dealToBuy,
+        'ActionNotAllowedInThisState'
+      )
+      await viem.assertions.revertWithCustomError(
+        dealToSell.write.cancel({ account: taker }),
+        dealToSell,
+        'ActionNotAllowedInThisState'
+      )
+    })
+
+    test('taker can cancel after acceptance timeout', async () => {
       const snapshot = await takeSnapshot()
+      await networkHelpers.time.increase(15 * 60 + 1)
       await viem.assertions.emitWithArgs(dealToBuy.write.cancel({ account: taker }), dealToBuy, 'DealState', [5, taker])
       await viem.assertions.emitWithArgs(dealToSell.write.cancel({ account: taker }), dealToSell, 'DealState', [
         5,
@@ -190,6 +204,27 @@ describe('Deal', () => {
       )
     })
 
+    test('buyer cannot cancel', async () => {
+      await viem.assertions.revertWithCustomError(
+        dealToBuy.write.cancel({ account: taker }),
+        dealToBuy,
+        'ActionNotAllowedInThisState'
+      )
+      await viem.assertions.revertWithCustomError(
+        dealToSell.write.cancel({ account: maker }),
+        dealToSell,
+        'ActionNotAllowedInThisState'
+      )
+    })
+
+    test('buyer can cancel after timeout', async () => {
+      const snapshot = await takeSnapshot()
+      await networkHelpers.time.increase(60 * 60 + 1)
+      await viem.assertions.emitWithArgs(dealToBuy.write.cancel({ account: taker }), dealToBuy, 'DealState', [5, taker])
+      await viem.assertions.emitWithArgs(dealToSell.write.cancel({ account: maker }), dealToSell, 'DealState', [5, maker])
+      await snapshot.restore()
+    })
+
     test('fund() transfers token from seller to deal', async () => {
       // do not take a snapshot here, advance state for next tests
       const fund = async (deal, seller, amount) => {
@@ -248,6 +283,19 @@ describe('Deal', () => {
   })
 
   describe('Deal Funded', () => {
+    test('buyer cannot cancel', async () => {
+      await viem.assertions.revertWithCustomError(
+        dealToBuy.write.cancel({ account: taker }),
+        dealToBuy,
+        'ActionNotAllowedInThisState'
+      )
+      await viem.assertions.revertWithCustomError(
+        dealToSell.write.cancel({ account: maker }),
+        dealToSell,
+        'ActionNotAllowedInThisState'
+      )
+    })
+
     test('seller cannot call paid()', async () => {
       await viem.assertions.revertWithCustomError(
         dealToBuy.write.paid({ account: maker }),
@@ -270,6 +318,19 @@ describe('Deal', () => {
 
   describe('Deal Disputed', () => {
     let disputed, undisputed // to revert once when this block is done
+
+    test('buyer cannot cancel', async () => {
+      await viem.assertions.revertWithCustomError(
+        dealToBuy.write.cancel({ account: taker }),
+        dealToBuy,
+        'ActionNotAllowedInThisState'
+      )
+      await viem.assertions.revertWithCustomError(
+        dealToSell.write.cancel({ account: maker }),
+        dealToSell,
+        'ActionNotAllowedInThisState'
+      )
+    })
 
     test('anyone can dispute()', async () => {
       undisputed = await takeSnapshot()
