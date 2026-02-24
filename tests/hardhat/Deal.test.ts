@@ -328,17 +328,44 @@ describe('Deal', () => {
       assert.ok(assertionId)
 
       await viem.assertions.revertWith(OOv3.write.settleAssertion([assertionId]), 'Assertion not expired')
+
+      // Revert if called by not oracle
+      await viem.assertions.revertWith(
+        dealToBuy.write.assertionResolvedCallback([assertionId, true]),
+        'not oracle'
+      )
+
       await networkHelpers.time.increase(61) // default liveness
 
       await viem.assertions.emitWithArgs(OOv3.write.settleAssertion([assertionId]), dealToBuy, 'DealState', [
         6,
         OOv3.address,
       ])
+      assert.ok(await dealToBuy.read.isPaid())
     })
 
-    test('anyone can release()', async () => {
+    test('anyone can release() if Resolved and isPaid', async () => {
       await viem.assertions.emit(dealToBuy.write.release({ account: nobody }), dealToBuy, 'DealState')
       await disputed.restore()
+    })
+
+    test('release() fails if Resolved and NOT isPaid', async () => {
+       // 1. Resolve NOT PAID
+       const hash = await pexfiVesting.write.bond([dealToBuy.address, stringToHex('NOT PAID')], { account: maker })
+       const receipt = await publicClient.waitForTransactionReceipt({ hash })
+       const assertionId = parseEventLogs({
+         abi: OOv3.abi,
+         eventName: 'AssertionMade',
+         logs: receipt.logs,
+       })[0].args.assertionId
+       await networkHelpers.time.increase(61)
+       await OOv3.write.settleAssertion([assertionId])
+       assert.ok(!(await dealToBuy.read.isPaid()))
+
+       // 2. Try release
+       await viem.assertions.revertWith(dealToBuy.write.release({ account: nobody }), 'not paid')
+
+       await disputed.restore()
     })
 
     test('arbiter resolves NOT PAID', async () => {
@@ -424,6 +451,42 @@ describe('Deal', () => {
     test('Feedback cannot be given again', async () => {
       await viem.assertions.revertWith(dealToBuy.write.feedback([true, 'good deal'], { account: taker }), 'already')
       await viem.assertions.revertWith(dealToBuy.write.feedback([true, 'good deal'], { account: maker }), 'already')
+    })
+
+    test('Feedback reverts if in wrong state (e.g. Paid)', async () => {
+       // Create new deal, advance to Paid
+       const hash = await offerToSell.write.createDeal([Market.address, { fiatAmount: FIAT_AMOUNT, paymentInstructions: 'i' }], { account: taker })
+       const r = await publicClient.waitForTransactionReceipt({ hash })
+       const dealAddr = parseEventLogs({ abi: Market.abi, eventName: 'DealCreated', logs: r.logs })[0].args.deal
+       const deal = await viem.getContractAt('Deal', dealAddr)
+
+       await deal.write.accept({ account: maker })
+       await WBTC.write.approve([Market.address, await deal.read.tokenAmount()], { account: maker })
+       await deal.write.fund({ account: maker })
+       await deal.write.paid({ account: taker })
+
+       await viem.assertions.revertWithCustomError(
+         deal.write.feedback([true, 'fail'], { account: taker }),
+         deal,
+         'ActionNotAllowedInThisState'
+       )
+    })
+
+    test('supportsInterface() returns true for OOv3 recipient', async () => {
+       // OptimisticOracleV3CallbackRecipientInterface:
+       // assertionResolvedCallback(bytes32,bool) -> 0xf1b156b2
+       // assertionDisputedCallback(bytes32)      -> 0xd448a4ec
+       // XOR: 0xf1b156b2 ^ 0xd448a4ec = 0x25f9f25e
+       const OOv3_RECIPIENT_INTERFACE_ID = '0x25f9f25e'
+       assert.ok(await dealToBuy.read.supportsInterface([OOv3_RECIPIENT_INTERFACE_ID]))
+    })
+
+    test('message() reverts if not member', async () => {
+       await viem.assertions.revertWithCustomError(
+         dealToBuy.write.message(['hello'], { account: nobody }),
+         dealToBuy,
+         'UnauthorizedAccount'
+       )
     })
   })
 })
