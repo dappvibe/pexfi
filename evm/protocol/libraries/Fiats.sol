@@ -2,8 +2,7 @@
 pragma solidity 0.8.34;
 
 import "../interfaces/IChainlink.sol";
-
-error InvalidFiat(bytes3 fiat);
+import {IMarket} from "../interfaces/IMarket.sol";
 
 library Fiats {
   struct Fiat {
@@ -25,7 +24,7 @@ library Fiats {
 
   function get(Storage storage self, bytes3 symbol) internal view returns (IChainlink) {
     IChainlink feed = self.values[symbol];
-    require(address(feed) != address(0), InvalidFiat(symbol));
+    require(address(feed) != address(0), IMarket.InvalidFiat(symbol));
     return feed;
   }
 
@@ -34,7 +33,7 @@ library Fiats {
   }
 
   function remove(Storage storage self, bytes3 symbol) internal {
-    require(address(self.values[symbol]) != address(0), InvalidFiat(symbol));
+    require(address(self.values[symbol]) != address(0), IMarket.InvalidFiat(symbol));
     uint len = self.keys.length;
     for (uint i = 0; i < len; i++) {
       if (self.keys[i] == symbol) {

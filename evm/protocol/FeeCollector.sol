@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.34;
 
+import {IFeeCollector} from "./interfaces/IFeeCollector.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IUniversalRouter} from "@uniswap/universal-router/contracts/interfaces/IUniversalRouter.sol";
 import {Commands} from "@uniswap/universal-router/contracts/libraries/Commands.sol";
-import {Actions} from "@uniswap/v4-periphery/src/libraries/Actions.sol";
-import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
-import {Currency, CurrencyLibrary} from "@uniswap/v4-core/src/types/Currency.sol";
 import {IHooks} from "@uniswap/v4-core/src/interfaces/IHooks.sol";
-import {PexfiVault} from "./PexfiVault.sol";
+import {CurrencyLibrary, Currency} from "@uniswap/v4-core/src/types/Currency.sol";
+import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
+import {Actions} from "@uniswap/v4-periphery/src/libraries/Actions.sol";
 
 interface IWETH {
   function withdraw(uint256 amount) external;
 }
 
-contract FeeCollector {
+contract FeeCollector is IFeeCollector {
   using SafeERC20 for IERC20;
   using CurrencyLibrary for Currency;
 

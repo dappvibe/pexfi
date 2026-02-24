@@ -1,37 +1,20 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.34;
 
+import {IDeal} from "./interfaces/IDeal.sol";
+import {IMarket} from "./interfaces/IMarket.sol";
+import {IOffer} from "./interfaces/IOffer.sol";
+import {IProfile} from "./interfaces/IProfile.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {OptimisticOracleV3Interface} from
-"@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3Interface.sol";
-import "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3CallbackRecipientInterface.sol";
-import {Market} from "./Market.sol";
-import {Offer} from "./Offer.sol";
-import {Profile} from "./Profile.sol";
-import "./libraries/Errors.sol";
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+import {OptimisticOracleV3CallbackRecipientInterface} from "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3CallbackRecipientInterface.sol";
+import {OptimisticOracleV3Interface} from "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3Interface.sol";
 
-contract Deal is ERC165, Initializable, OptimisticOracleV3CallbackRecipientInterface
+contract Deal is IDeal, ERC165, Initializable
 {
   using SafeERC20 for IERC20Metadata;
-  event DealState(State state, address sender);
-  event Message(address indexed sender, string message);
-  event FeedbackGiven(address indexed to, bool upvote, string message);
-
-  error ActionNotAllowedInThisState(State state);
-
-  enum State {
-    Initiated,
-    Accepted,
-    Funded,
-    Paid,
-    Disputed,
-    Canceled,
-    Resolved,
-    Completed
-  }
 
   uint16 private constant ACCEPTANCE_TIME = 15 minutes;
   uint16 private constant PAYMENT_WINDOW = 1 hours;
@@ -39,31 +22,18 @@ contract Deal is ERC165, Initializable, OptimisticOracleV3CallbackRecipientInter
   bytes32 private constant RESOLVE_PAID = keccak256("PAID");
   bytes32 private constant RESOLVE_NOT_PAID = keccak256("NOT PAID");
 
-  struct DealParams {
-    address market;
-    address offer;
-    address taker;
-    uint tokenAmount;
-    uint fiatAmount;
-  }
-
   uint    public tokenAmount;
   address public taker;
   uint    public fiatAmount;
   uint    public allowCancelUnacceptedAfter;
   uint    public allowCancelUnpaidAfter;
-  State   public state; // defaults to Initiated (0)
-  Market  internal market;
-  Offer   public offer;
+  IDeal.State   public state; // defaults to Initiated (0)
+  IMarket  internal market;
+  IOffer   public offer;
   bool    public isPaid;
 
-  struct Feedback {
-    bool given;
-    bool upvote;
-  }
-
-  Feedback public feedbackForOwner;
-  Feedback public feedbackForTaker;
+  IDeal.Feedback public feedbackForOwner;
+  IDeal.Feedback public feedbackForTaker;
 
   function _seller() internal view returns (address) {
     return offer.isSell() ? offer.owner() : taker;
@@ -74,22 +44,22 @@ contract Deal is ERC165, Initializable, OptimisticOracleV3CallbackRecipientInter
   }
 
   modifier onlySeller() {
-    require(msg.sender == _seller(), UnauthorizedAccount(msg.sender));
+    require(msg.sender == _seller(), IMarket.UnauthorizedAccount(msg.sender));
     _;
   }
 
   modifier onlyBuyer() {
-    require(msg.sender == _buyer(), UnauthorizedAccount(msg.sender));
+    require(msg.sender == _buyer(), IMarket.UnauthorizedAccount(msg.sender));
     _;
   }
 
   modifier onlyMember() {
-    require(msg.sender == offer.owner() || msg.sender == taker, UnauthorizedAccount(msg.sender));
+    require(msg.sender == offer.owner() || msg.sender == taker, IMarket.UnauthorizedAccount(msg.sender));
     _;
   }
 
-  modifier stateBetween(State from_, State to_) {
-    if (state < from_ || state > to_) revert ActionNotAllowedInThisState(state);
+  modifier stateBetween(IDeal.State from_, IDeal.State to_) {
+    if (state < from_ || state > to_) revert IDeal.ActionNotAllowedInThisState(state);
     _;
   }
 
@@ -98,12 +68,12 @@ contract Deal is ERC165, Initializable, OptimisticOracleV3CallbackRecipientInter
     _disableInitializers();
   }
 
-  function initialize(DealParams calldata params)
+  function initialize(IDeal.DealParams calldata params)
   external
   initializer
   {
-    market = Market(params.market);
-    offer = Offer(params.offer);
+    market = IMarket(params.market);
+    offer = IOffer(params.offer);
     taker = params.taker;
 
     tokenAmount = params.tokenAmount;
@@ -114,23 +84,23 @@ contract Deal is ERC165, Initializable, OptimisticOracleV3CallbackRecipientInter
     emit DealState(state, params.taker);
   }
 
-  function accept() external stateBetween(State.Initiated, State.Initiated) {
-    require(msg.sender == offer.owner(), UnauthorizedAccount(msg.sender));
+  function accept() external stateBetween(IDeal.State.Initiated, IDeal.State.Initiated) {
+    require(msg.sender == offer.owner(), IMarket.UnauthorizedAccount(msg.sender));
 
-    _state(State.Accepted);
+    _state(IDeal.State.Accepted);
     allowCancelUnpaidAfter = block.timestamp + PAYMENT_WINDOW;
   }
 
-  function fund() external onlySeller stateBetween(State.Accepted, State.Accepted) {
+  function fund() external onlySeller stateBetween(IDeal.State.Accepted, IDeal.State.Accepted) {
     market.fundDeal();
-    _state(State.Funded);
+    _state(IDeal.State.Funded);
   }
 
-  function paid() external onlyBuyer stateBetween(State.Accepted, State.Funded) {
-    _state(State.Paid);
+  function paid() external onlyBuyer stateBetween(IDeal.State.Accepted, IDeal.State.Funded) {
+    _state(IDeal.State.Paid);
   }
 
-  function release() external stateBetween(State.Funded, State.Resolved) {
+  function release() external stateBetween(IDeal.State.Funded, IDeal.State.Resolved) {
     if (state == State.Resolved) {
       require(isPaid, "not paid");
     } else {
@@ -145,9 +115,9 @@ contract Deal is ERC165, Initializable, OptimisticOracleV3CallbackRecipientInter
     token.safeTransfer(_buyer(), tokenAmount - feeAmount);
     token.safeTransfer(market.feeCollector(), token.balanceOf(address(this)));
 
-    _state(State.Completed);
+    _state(IDeal.State.Completed);
 
-    Profile _profile = Profile(market.profile());
+    IProfile _profile = IProfile(market.profile());
     uint $tokenId = _profile.ownerToTokenId(offer.owner());
     if ($tokenId != 0) {
       _profile.statsDealCompleted($tokenId);
@@ -158,29 +128,29 @@ contract Deal is ERC165, Initializable, OptimisticOracleV3CallbackRecipientInter
     }
   }
 
-  function cancel() external stateBetween(State.Initiated, State.Resolved) {
-    if (state == State.Resolved) {
+  function cancel() external stateBetween(IDeal.State.Initiated, IDeal.State.Resolved) {
+    if (state == IDeal.State.Resolved) {
       require(!isPaid, "paid");
       _cancel();
       return;
     }
 
-    require(msg.sender == offer.owner() || msg.sender == taker, UnauthorizedAccount(msg.sender));
+    require(msg.sender == offer.owner() || msg.sender == taker, IMarket.UnauthorizedAccount(msg.sender));
 
-    if (state == State.Initiated) {
+    if (state == IDeal.State.Initiated) {
       if (msg.sender != offer.owner()) {
-        if (block.timestamp <= allowCancelUnacceptedAfter) revert ActionNotAllowedInThisState(state);
-        Profile _profile = Profile(market.profile());
+        if (block.timestamp <= allowCancelUnacceptedAfter) revert IDeal.ActionNotAllowedInThisState(state);
+        IProfile _profile = IProfile(market.profile());
         uint $tokenId = _profile.ownerToTokenId(offer.owner());
         if ($tokenId != 0) {
           _profile.statsDealExpired($tokenId);
         }
       }
-    } else if (state == State.Accepted) {
-      require(msg.sender == _buyer(), UnauthorizedAccount(msg.sender));
-      if (block.timestamp <= allowCancelUnpaidAfter) revert ActionNotAllowedInThisState(state);
+    } else if (state == IDeal.State.Accepted) {
+      require(msg.sender == _buyer(), IMarket.UnauthorizedAccount(msg.sender));
+      if (block.timestamp <= allowCancelUnpaidAfter) revert IDeal.ActionNotAllowedInThisState(state);
     } else {
-      revert ActionNotAllowedInThisState(state);
+      revert IDeal.ActionNotAllowedInThisState(state);
     }
 
     _cancel();
@@ -188,20 +158,20 @@ contract Deal is ERC165, Initializable, OptimisticOracleV3CallbackRecipientInter
 
   function _cancel() internal {
     IERC20Metadata token = market.token(offer.token()).api;
-    if (state >= State.Funded) {
+    if (state >= IDeal.State.Funded) {
       token.safeTransfer(_seller(), tokenAmount);
     }
 
-    _state(State.Canceled);
+    _state(IDeal.State.Canceled);
   }
 
-  function dispute() external onlyMember stateBetween(State.Accepted, State.Paid) {
-    _state(State.Disputed);
+  function dispute() external onlyMember stateBetween(IDeal.State.Accepted, IDeal.State.Paid) {
+    _state(IDeal.State.Disputed);
   }
 
   function assertionResolvedCallback(bytes32 assertionId, bool assertedTruthfully) external override {
     require(msg.sender == market.oracle(), "not oracle");
-    require(state == State.Disputed, "not disputed");
+    require(state == IDeal.State.Disputed, "not disputed");
 
     OptimisticOracleV3Interface _oov3 = OptimisticOracleV3Interface(msg.sender);
     OptimisticOracleV3Interface.Assertion memory assertion = _oov3.getAssertion(assertionId);
@@ -212,7 +182,7 @@ contract Deal is ERC165, Initializable, OptimisticOracleV3CallbackRecipientInter
       isPaid = !assertedTruthfully;
     }
 
-    _state(State.Resolved);
+    _state(IDeal.State.Resolved);
   }
 
   function assertionDisputedCallback(bytes32 assertionId) external override {}
@@ -230,9 +200,9 @@ contract Deal is ERC165, Initializable, OptimisticOracleV3CallbackRecipientInter
   function feedback(bool upvote, string calldata message_)
   external
   onlyMember
-  stateBetween(State.Resolved, State.Completed)
+  stateBetween(IDeal.State.Resolved, IDeal.State.Completed)
   {
-    Profile _profile = Profile(market.profile());
+    IProfile _profile = IProfile(market.profile());
     if (msg.sender == offer.owner()) {
       require(!feedbackForTaker.given, "already");
       feedbackForTaker.given = true;
@@ -259,7 +229,7 @@ contract Deal is ERC165, Initializable, OptimisticOracleV3CallbackRecipientInter
     return interfaceId == type(OptimisticOracleV3CallbackRecipientInterface).interfaceId || super.supportsInterface(interfaceId);
   }
 
-  function _state(State state_) private {
+  function _state(IDeal.State state_) private {
     state = state_;
     emit DealState(state, msg.sender);
   }
