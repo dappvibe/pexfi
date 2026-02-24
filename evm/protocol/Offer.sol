@@ -3,35 +3,13 @@ pragma solidity 0.8.34;
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
+import {IOffer} from "./interfaces/IOffer.sol";
+import {IMarket} from "./interfaces/IMarket.sol";
+import {IDeal} from "./interfaces/IDeal.sol";
 import {FinderConstants} from "./libraries/FinderConstants.sol";
-import {UnauthorizedAccount} from "./libraries/Errors.sol";
-import {Market} from "./Market.sol";
-import {Deal} from "./Deal.sol";
 
-contract Offer is Initializable
+contract Offer is IOffer, Initializable
 {
-  event OfferUpdated();
-
-  struct Limits {
-    uint32 min;
-    uint32 max;
-  }
-
-  struct OfferParams {
-    bool isSell;
-    uint16 rate;
-    Limits limits;
-    bytes8 token;
-    bytes3 fiat;
-    bytes16 method;
-    string terms;
-  }
-
-  struct CreateDealParams {
-    uint fiatAmount;
-    string paymentInstructions;
-  }
-
   // slot 1: address (20) + isSell (1) + rate (2) + fiat (3) + disabled (1) = 27 bytes
   address public owner;
   bool public isSell;
@@ -44,7 +22,7 @@ contract Offer is Initializable
   bytes16 public method;
 
   // slot 3
-  Limits public limits;
+  IOffer.Limits public limits;
 
   // dynamic
   string public terms;
@@ -72,20 +50,20 @@ contract Offer is Initializable
   }
 
   function createDeal(
-    Market market,
-    CreateDealParams calldata params
+    IMarket market,
+    IOffer.CreateDealParams calldata params
   )
   external
   {
-    require(msg.sender != owner, UnauthorizedAccount(msg.sender));
+    require(msg.sender != owner, IMarket.UnauthorizedAccount(msg.sender));
     require(!disabled, "disabled");
     require(market.hasOffer(address(this)), "not registered");
 
     uint $tokenAmount = market.convert(params.fiatAmount, fiat, token, rate);
 
     address impl = market.finder().getImplementationAddress(FinderConstants.DealImplementation);
-    Deal deal = Deal(Clones.clone(impl));
-    deal.initialize(Deal.DealParams({
+    IDeal deal = IDeal(Clones.clone(impl));
+    deal.initialize(IDeal.DealParams({
       market: address(market),
       offer: address(this),
       taker: msg.sender,
@@ -97,27 +75,27 @@ contract Offer is Initializable
   }
 
   function setRate(uint16 rate_) external {
-    require(msg.sender == owner, UnauthorizedAccount(msg.sender));
+    require(msg.sender == owner, IMarket.UnauthorizedAccount(msg.sender));
     require(rate_ > 0, "rate");
     rate = rate_;
     emit OfferUpdated();
   }
 
-  function setLimits(Limits calldata limits_) external {
-    require(msg.sender == owner, UnauthorizedAccount(msg.sender));
+  function setLimits(IOffer.Limits calldata limits_) external {
+    require(msg.sender == owner, IMarket.UnauthorizedAccount(msg.sender));
     require(limits_.min < limits_.max, "limits");
     limits = limits_;
     emit OfferUpdated();
   }
 
   function setTerms(string calldata terms_) external {
-    require(msg.sender == owner, UnauthorizedAccount(msg.sender));
+    require(msg.sender == owner, IMarket.UnauthorizedAccount(msg.sender));
     terms = terms_;
     emit OfferUpdated();
   }
 
   function setDisabled(bool disabled_) public {
-    require(msg.sender == owner, UnauthorizedAccount(msg.sender));
+    require(msg.sender == owner, IMarket.UnauthorizedAccount(msg.sender));
     disabled = disabled_;
     emit OfferUpdated();
   }

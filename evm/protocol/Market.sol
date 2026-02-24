@@ -13,27 +13,21 @@ import {FinderInterface} from "@uma/core/contracts/data-verification-mechanism/i
 
 import {FullMath} from "./libraries/FullMath.sol";
 import {TickMath} from "./libraries/TickMath.sol";
-import "./libraries/Errors.sol";
 import {Tokens} from "./libraries/Tokens.sol";
 import {Methods} from "./libraries/Methods.sol";
 import {Fiats} from "./libraries/Fiats.sol";
 
 
-import {Deal} from "./Deal.sol";
-import {Offer} from "./Offer.sol";
-import {Profile} from "./Profile.sol";
+import {IMarket} from "./interfaces/IMarket.sol";
+import {IOffer} from "./interfaces/IOffer.sol";
+import {IDeal} from "./interfaces/IDeal.sol";
+import {IProfile} from "./interfaces/IProfile.sol";
 import {FinderConstants} from "./libraries/FinderConstants.sol";
 import {IChainlink} from "./interfaces/IChainlink.sol";
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 
-contract Market is OwnableUpgradeable, UUPSUpgradeable
+contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
 {
-  event OfferCreated(address indexed owner, bytes8 indexed token, bytes3 indexed fiat, Offer offer);
-  event DealCreated(
-    address indexed offerOwner, address indexed taker, address indexed offer,
-    address deal, string terms, string paymentInstructions
-  );
-
   using SafeERC20 for IERC20Metadata;
   using Tokens  for Tokens.Storage;
   using Fiats   for Fiats.Storage;
@@ -57,7 +51,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
 
   function _authorizeUpgrade(address) internal onlyOwner override {}
 
-  function createOffer(Offer.OfferParams calldata params) external {
+  function createOffer(IOffer.OfferParams calldata params) external {
     require(params.rate > 0, "rate");
     require(params.limits.min < params.limits.max, "minmax");
 
@@ -65,7 +59,7 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     method(params.method);
 
     address impl = finder.getImplementationAddress(FinderConstants.OfferImplementation);
-    Offer offer = Offer(Clones.clone(impl));
+    IOffer offer = IOffer(Clones.clone(impl));
     offer.initialize(msg.sender, params);
 
     require(!offers[address(offer)], "exists");
@@ -77,8 +71,8 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     return offers[offer_];
   }
 
-  function profile() public view returns (Profile) {
-    return Profile(finder.getImplementationAddress(FinderConstants.Profile));
+  function profile() public view returns (IProfile) {
+    return IProfile(finder.getImplementationAddress(FinderConstants.Profile));
   }
 
   function uniswap() internal view returns (IUniswapV3Factory) {
@@ -93,11 +87,11 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
     return finder.getImplementationAddress(FinderConstants.Oracle);
   }
 
-  function addDeal(Deal deal, string calldata terms, string calldata paymentInstructions) external {
-    require(offers[msg.sender], UnauthorizedAccount(msg.sender));
+  function addDeal(IDeal deal, string calldata terms, string calldata paymentInstructions) external {
+    require(offers[msg.sender], IMarket.UnauthorizedAccount(msg.sender));
     deals[address(deal)] = true;
 
-    Offer offer = deal.offer();
+    IOffer offer = IOffer(deal.offer());
     emit DealCreated(offer.owner(), deal.taker(), address(offer), address(deal), terms, paymentInstructions);
     profile().grantRole("DEAL_ROLE", address(deal));
   }
@@ -106,10 +100,10 @@ contract Market is OwnableUpgradeable, UUPSUpgradeable
   function fundDeal() external {
     require(deals[msg.sender], UnauthorizedAccount(msg.sender));
 
-    Deal $deal = Deal(msg.sender);
-    require($deal.state() == Deal.State.Accepted, "not accepted");
+    IDeal $deal = IDeal(msg.sender);
+    require($deal.state() == IDeal.State.Accepted, "not accepted");
 
-    Offer $offer = $deal.offer();
+    IOffer $offer = IOffer($deal.offer());
     IERC20Metadata $token = token($offer.token()).api;
 
     address seller = $offer.isSell() ? $offer.owner() : $deal.taker();

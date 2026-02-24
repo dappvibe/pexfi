@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.34;
 
-error InvalidMethod(bytes16 method);
+import {IMarket} from "../interfaces/IMarket.sol";
 
 library Methods {
   enum Group {
@@ -29,7 +29,7 @@ library Methods {
   }
 
   function get(Storage storage self, bytes16 name) internal view returns (Method memory) {
-    require(self.values[name].exists, InvalidMethod(name));
+    require(self.values[name].exists, IMarket.InvalidMethod(name));
     return self.values[name];
   }
 
@@ -42,7 +42,7 @@ library Methods {
   }
 
   function remove(Storage storage self, bytes16 name) internal {
-    require(self.values[name].exists, InvalidMethod(name));
+    require(self.values[name].exists, IMarket.InvalidMethod(name));
     uint len = self.keys.length;
     for (uint i = 0; i < len; i++) {
       if (self.keys[i] == name) {

@@ -67,30 +67,30 @@ describe('Profile', () => {
 
   describe('Stat Updates', () => {
     test('statsVote() should increment upvotes', async () => {
-      const statsBefore = await Profile.read.stats([tokenId1])
+      const statsBefore = await Profile.read.stats([tokenId1]) as any
       await Profile.write.statsVote([tokenId1, true], { account: admin })
-      const statsAfter = await Profile.read.stats([tokenId1])
-      assert.strictEqual(Number(statsAfter[1]), Number(statsBefore[1]) + 1)
+      const statsAfter = await Profile.read.stats([tokenId1]) as any
+      assert.strictEqual(Number(statsAfter.upvotes), Number(statsBefore.upvotes) + 1)
     })
 
     test('statsVolumeUSD() should accumulate volume', async () => {
-      const statsBefore = await Profile.read.stats([tokenId1])
+      const statsBefore = await Profile.read.stats([tokenId1]) as any
       const volume = 1000n
       await Profile.write.statsVolumeUSD([tokenId1, volume], { account: admin })
-      const statsAfter = await Profile.read.stats([tokenId1])
-      assert.strictEqual(BigInt(statsAfter[3]), BigInt(statsBefore[3]) + volume)
+      const statsAfter = await Profile.read.stats([tokenId1]) as any
+      assert.strictEqual(BigInt(statsAfter.volumeUSD), BigInt(statsBefore.volumeUSD) + volume)
     })
 
     test('averaging logic (avgPaymentTime)', async () => {
       // First update: (0 + 100) / 2 = 50
       await Profile.write.statsAvgPaymentTime([tokenId1, 100], { account: admin })
-      let stats = await Profile.read.stats([tokenId1])
-      assert.strictEqual(Number(stats[4]), 50)
+      let stats = await Profile.read.stats([tokenId1]) as any
+      assert.strictEqual(Number(stats.avgPaymentTime), 50)
 
       // Second update: (50 + 200) / 2 = 125
       await Profile.write.statsAvgPaymentTime([tokenId1, 200], { account: admin })
-      stats = await Profile.read.stats([tokenId1])
-      assert.strictEqual(Number(stats[4]), 125)
+      stats = await Profile.read.stats([tokenId1]) as any
+      assert.strictEqual(Number(stats.avgPaymentTime), 125)
     })
   })
 })
