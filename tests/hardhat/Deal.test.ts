@@ -251,35 +251,6 @@ describe('Deal', () => {
         'ActionNotAllowedInThisState'
       )
     })
-
-    /*test('cancellation timeouts', async () => {
-      await dealAccepted.restore()
-
-      // Takers cannot cancel early
-      await assert.rejects(dealToBuy.write.cancel({ account: taker }), /too early/)
-      await assert.rejects(dealToSell.write.cancel({ account: taker }), /too early/)
-
-      // Maker Seller cannot cancel early
-      await assert.rejects(dealToBuy.write.cancel({ account: maker }))
-
-      // Increase time past PAYMENT_WINDOW (1 hour)
-      await networkHelpers.time.increase(3601)
-
-      // Now they can cancel
-      await viem.assertions.emit(dealToBuy.write.cancel({ account: taker }), dealToBuy, 'DealState')
-      await viem.assertions.emit(dealToSell.write.cancel({ account: taker }), dealToSell, 'DealState')
-    })*/
-
-    /*    test('maker BUYER can cancel anytime', async () => {
-      await dealAccepted.restore()
-      await viem.assertions.emitWithArgs(dealToSell.write.cancel({ account: maker }), dealToSell, 'DealState', [5, maker])
-    })
-
-    test('dispute() moves to Disputed state', async () => {
-      await dealAccepted.restore()
-      await viem.assertions.emitWithArgs(dealToBuy.write.dispute({ account: taker }), dealToBuy, 'DealState', [4, taker])
-      await viem.assertions.emitWithArgs(dealToSell.write.dispute({ account: maker }), dealToSell, 'DealState', [4, maker])
-    })*/
   })
 
   describe('Deal Funded', () => {
