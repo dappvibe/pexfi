@@ -1,4 +1,4 @@
-import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
+import { buildModule } from '@nomicfoundation/hardhat-ignition/modules'
 
 /**
  * Marketplace depends on external services such as:
@@ -14,60 +14,60 @@ const RATES: Record<string, number> = {
   USD: 1,
   EUR: 1.08,
   GBP: 1.26,
-};
+}
 
-export default buildModule("Mocks", (m) => {
+export default buildModule('Mocks', (m) => {
   // --- 1. Tokens ---
-  const tokens: Record<string, any> = {};
+  const tokens: Record<string, any> = {}
   const tokenList = [
-    ["WBTC", 8],
-    ["WETH", 18],
-    ["USDC", 6],
-  ] as const;
+    ['WBTC', 8],
+    ['WETH', 18],
+    ['USDC', 6],
+  ] as const
 
   // Contract credits Deployer. They will transfer to the first 5 accounts.
-  const accounts = [];
+  const accounts = []
   for (let i = 1; i <= 5; i++) {
-    accounts.push(m.getAccount(i));
+    accounts.push(m.getAccount(i))
   }
 
   for (const [symbol, decimals] of tokenList) {
-    const token = m.contract("MockERC20", [symbol, decimals], { id: symbol });
-    tokens[symbol] = token;
+    const token = m.contract('MockERC20', [symbol, decimals], { id: symbol })
+    tokens[symbol] = token
 
-    const amount = 100000n * 10n ** BigInt(decimals);
+    const amount = 100000n * 10n ** BigInt(decimals)
 
     for (let i = 0; i < accounts.length; i++) {
-      m.call(token, "transfer", [accounts[i], amount], {
+      m.call(token, 'transfer', [accounts[i], amount], {
         id: `transfer_${symbol}_${i}`,
-      });
+      })
     }
   }
 
   // --- 2. Uniswap ---
-  const uniswap = m.contract("MockUniswapV3Factory", [], { id: "Uniswap" });
+  const uniswap = m.contract('MockUniswapV3Factory', [], { id: 'Uniswap' })
 
-  const poolBTC = m.contract("PoolBTC", [], { id: "PoolBTC" });
-  const poolETH = m.contract("PoolETH", [], { id: "PoolETH" });
+  const poolBTC = m.contract('PoolBTC', [], { id: 'PoolBTC' })
+  const poolETH = m.contract('PoolETH', [], { id: 'PoolETH' })
 
-  m.call(uniswap, "setPool", [tokens["WBTC"], poolBTC], { id: "SetPoolBTC" });
-  m.call(uniswap, "setPool", [tokens["WETH"], poolETH], { id: "SetPoolETH" });
+  m.call(uniswap, 'setPool', [tokens['WBTC'], poolBTC], { id: 'SetPoolBTC' })
+  m.call(uniswap, 'setPool', [tokens['WETH'], poolETH], { id: 'SetPoolETH' })
 
   // --- 3. Price Feeds ---
-  const priceFeeds: Record<string, any> = {};
+  const priceFeeds: Record<string, any> = {}
 
   for (const [code, rate] of Object.entries(RATES)) {
-    const feed = m.contract("PriceFeed", [code], { id: `PriceFeed_${code}` });
-    priceFeeds[code] = feed;
+    const feed = m.contract('PriceFeed', [code], { id: `PriceFeed_${code}` })
+    priceFeeds[code] = feed
 
-    const intRate = Math.round(rate * 10 ** 8);
-    m.call(feed, "set", [intRate], { id: `SetRate_${code}` });
+    const intRate = Math.round(rate * 10 ** 8)
+    m.call(feed, 'set', [intRate], { id: `SetRate_${code}` })
   }
 
   // Return everything needed for Market
   return {
     ...tokens,
     uniswap,
-    ...priceFeeds
-  };
-});
+    ...priceFeeds,
+  }
+})
