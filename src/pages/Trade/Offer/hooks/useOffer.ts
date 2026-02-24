@@ -31,33 +31,36 @@ export function useOffer(
       return
     }
 
-    let promise = OfferModel.fetch(OfferContract.attach(offerId))
-
-    if (fetchPrice) {
-      promise = promise.then((offer) => {
-        if (!offer) return null
-        return Market.getPrice(offer.token, offer.fiat).then((price) => {
-          offer.setPairPrice(price)
-          return offer
-        })
-      })
-    }
-
-    promise = promise.then((offer) => {
-      if (!offer || !account.address || offer.isSell || !fetchAllowance) {
-        return offer
+    OfferModel.fetch(OfferContract.attach(offerId)).then(async (offer) => {
+      if (!offer) {
+        setOffer(null)
+        return
       }
 
-      return Market.token(offer.token).then(([address]) => {
-        token.current = Token.attach(address) as ERC20
-        return token.current.allowance(account.address, Market.target).then((res) => {
-          setAllowance(res)
-          return offer
-        })
-      })
-    })
+      const promises = []
 
-    promise.then(setOffer)
+      if (fetchPrice) {
+        promises.push(
+          Market.getPrice(offer.token, offer.fiat).then((price) => {
+            offer.setPairPrice(price)
+          })
+        )
+      }
+
+      if (fetchAllowance && account.address && !offer.isSell) {
+        promises.push(
+          Market.token(offer.token).then(([address]) => {
+            token.current = Token.attach(address) as ERC20
+            return token.current.allowance(account.address, Market.target).then((res) => {
+              setAllowance(res)
+            })
+          })
+        )
+      }
+
+      await Promise.all(promises)
+      setOffer(offer)
+    })
   }, [offerId, chainId, account?.address, fetchPrice, fetchAllowance, Market, OfferContract, Token, refetchTrigger])
 
   const setRate = useCallback(
