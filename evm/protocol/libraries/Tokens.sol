@@ -2,8 +2,7 @@
 pragma solidity 0.8.34;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-
-error InvalidToken(bytes8 token);
+import {IMarket} from "../interfaces/IMarket.sol";
 
 library Tokens {
   struct Token {
@@ -27,7 +26,7 @@ library Tokens {
   }
 
   function get(Storage storage self, bytes8 symbol) internal view returns (Token storage) {
-    require(address(self.values[symbol].api) != address(0), InvalidToken(symbol));
+    require(address(self.values[symbol].api) != address(0), IMarket.InvalidToken(symbol));
     return self.values[symbol];
   }
 
@@ -36,7 +35,7 @@ library Tokens {
   }
 
   function remove(Storage storage self, bytes8 symbol) internal {
-    require(address(self.values[symbol].api) != address(0), InvalidToken(symbol));
+    require(address(self.values[symbol].api) != address(0), IMarket.InvalidToken(symbol));
     uint len = self.keys.length;
     for (uint i = 0; i < len; i++) {
       if (self.keys[i] == symbol) {
