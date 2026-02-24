@@ -137,13 +137,13 @@ describe('OfferForm', () => {
       await user.click(bankOption)
 
       // Input Margin
-      const marginInput = screen.getByRole('spinbutton')
+      const marginInput = screen.getByRole('spinbutton', { name: 'Margin' })
       await user.clear(marginInput)
       await user.type(marginInput, '10')
 
       // Limits
-      await user.type(screen.getByLabelText('Limits'), '100')
-      await user.type(screen.getByLabelText('-'), '1000')
+      await user.type(screen.getByLabelText('Minimum limit'), '100')
+      await user.type(screen.getByLabelText('Maximum limit'), '1000')
 
       await user.click(screen.getByText('Deploy contract'))
 
@@ -152,7 +152,15 @@ describe('OfferForm', () => {
       })
 
       const expectedRate = 11000
-      expect(mockCreate).toHaveBeenCalledWith(true, 'USDT', 'USD', 'Bank Transfer', expectedRate, [100, 1000], '')
+      expect(mockCreate).toHaveBeenCalledWith({
+        isSell: true,
+        token: 'USDT',
+        fiat: 'USD',
+        method: 'Bank Transfer',
+        rate: expectedRate,
+        limits: { min: 100, max: 1000 },
+        terms: '',
+      })
     }, 30000)
   })
 
@@ -190,7 +198,7 @@ describe('OfferForm', () => {
       )
 
       expect(screen.getByText('WETH')).toBeInTheDocument()
-      expect(screen.getByText('EUR')).not.toBeNull()
+      expect(screen.getAllByText('EUR')[0]).toBeInTheDocument()
       expect(screen.getByDisplayValue('5.00')).not.toBeNull()
       expect(screen.getByDisplayValue('500')).not.toBeNull()
       expect(screen.getByDisplayValue('5000')).not.toBeNull()
@@ -240,7 +248,7 @@ describe('OfferForm', () => {
         </MemoryRouter>
       )
 
-      const minInput = screen.getByLabelText('Limits')
+      const minInput = screen.getByLabelText('Minimum limit')
       await user.clear(minInput)
       await user.type(minInput, '200')
 
@@ -248,7 +256,7 @@ describe('OfferForm', () => {
       await user.click(updateBtn)
 
       await waitFor(() => {
-        expect(mockSetLimits).toHaveBeenCalledWith('200', 5000)
+        expect(mockSetLimits).toHaveBeenCalledWith(200, 5000)
       })
     })
 

@@ -208,19 +208,49 @@ export default function OfferForm({ offer = null, setRate, setLimits, setTerms, 
       </Row>
       <Row>
         <Col>
-          <Space>
-            <Form.Item name="min" label="Limits" rules={required} initialValue={offer ? offer.min : undefined}>
-              <Input style={{ width: 120 }} />
-            </Form.Item>
-            <Form.Item name={'max'} label={'-'} rules={required} initialValue={offer ? offer.max : undefined}>
-              <Input style={{ width: 120 }} />
-            </Form.Item>
-            {offer && (
-              <Form.Item>
-                <Button onClick={handleSetLimits}>Update</Button>
-              </Form.Item>
+          <Form.Item
+            label="Limits"
+            required
+            style={{ marginBottom: 0 }}
+            shouldUpdate={(prev, cur) => prev.fiat !== cur.fiat}
+          >
+            {() => (
+              <Space align="baseline">
+                <Form.Item
+                  name="min"
+                  rules={required}
+                  initialValue={offer ? offer.min : undefined}
+                >
+                  <InputNumber
+                    style={{ width: 160 }}
+                    placeholder="Min"
+                    addonAfter={form.getFieldValue('fiat')}
+                    aria-label="Minimum limit"
+                  />
+                </Form.Item>
+                <span aria-hidden="true" style={{ padding: '0 8px' }}>
+                  -
+                </span>
+                <Form.Item
+                  name="max"
+                  rules={required}
+                  initialValue={offer ? offer.max : undefined}
+                >
+                  <InputNumber
+                    style={{ width: 160 }}
+                    placeholder="Max"
+                    addonAfter={form.getFieldValue('fiat')}
+                    aria-label="Maximum limit"
+                  />
+                </Form.Item>
+                {offer && (
+                  <Form.Item>
+                    <Button onClick={handleSetLimits}>Update</Button>
+                  </Form.Item>
+                )}
+              </Space>
             )}
-          </Space>
+          </Form.Item>
         </Col>
       </Row>
       <Form.Item name="terms" label="Terms" initialValue={offer ? offer.terms : undefined}>
