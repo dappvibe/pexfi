@@ -54,7 +54,9 @@ export default buildModule('Market', (m) => {
   // --- Tokenomics ---
   const pexfi = m.contract('PexfiToken', [])
   const pexfiVault = m.contract('PexfiVault', [pexfi])
-  const regPexfiVault = m.call(Finder, 'changeImplementationAddress', [bytes32('PexfiVault'), pexfiVault], { id: 'regPexfiVault' })
+  const regPexfiVault = m.call(Finder, 'changeImplementationAddress', [bytes32('PexfiVault'), pexfiVault], {
+    id: 'regPexfiVault',
+  })
   const beneficiary = m.getAccount(0)
   const startTimestamp = Math.floor(Date.now() / 1000)
   const pexfiVesting = m.contract('PexfiVesting', [beneficiary, startTimestamp, TWO_YEARS, SIX_MONTHS, Finder], {
@@ -73,7 +75,10 @@ export default buildModule('Market', (m) => {
   const weth = m.getParameter('weth')
 
   const feeCollector = m.contract('FeeCollector', [
-    pexfiVault, pexfi, universalRouter, weth,
+    pexfiVault,
+    pexfi,
+    universalRouter,
+    weth,
     [zeroAddress, pexfi, 3000, 60, zeroAddress],
   ])
   m.call(Finder, 'changeImplementationAddress', [bytes32('FeeCollector'), feeCollector], {
