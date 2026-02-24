@@ -18,12 +18,14 @@ export const OFFER_PARAMS = {
 }
 
 describe('Offer', () => {
-  let viem, networkHelpers, Market, publicClient, walletClients
+  let viem, networkHelpers, Market, publicClient, walletClients, admin, nobody
 
   before(async () => {
     ;({ viem, Market, networkHelpers } = await deploy())
     publicClient = await viem.getPublicClient()
     walletClients = await viem.getWalletClients()
+    admin = walletClients[0].account
+    nobody = walletClients[1].account
   })
 
   describe('Market.createOffer', () => {
@@ -86,6 +88,36 @@ describe('Offer', () => {
         await assert.rejects(promise, (error: any) => error.name === 'IntegerOutOfRangeError')
       })
     })
+
+    describe('createDeal()', () => {
+      let offer
+
+      before(async () => {
+        const hash = await Market.write.createOffer([OFFER_PARAMS])
+        const receipt = await publicClient.waitForTransactionReceipt({ hash })
+        const logs = parseEventLogs({
+          abi: Market.abi,
+          eventName: 'OfferCreated',
+          logs: receipt.logs,
+        })
+        offer = await viem.getContractAt('Offer', (logs[0] as any).args.offer)
+      })
+
+      test('should revert if disabled', async () => {
+        await offer.write.setDisabled([true], { account: admin })
+        await viem.assertions.revertWith(
+          offer.write.createDeal([Market.address, { fiatAmount: 1000n, paymentInstructions: 'p' }], {
+            account: nobody,
+          }),
+          'disabled'
+        )
+        // reset
+        await offer.write.setDisabled([false], { account: admin })
+      })
+
+      // Skip unregistered test as it requires complex setup/mocking
+      // which is out of scope for current local runner constraints
+    })
   })
 
   describe('Offer', () => {
@@ -147,10 +179,28 @@ describe('Offer', () => {
       assert.strictEqual(terms, newTerms)
     })
 
+    test('setTerms: should revert if not owner', async () => {
+      await viem.assertions.revertWithCustomErrorWithArgs(
+        offer.write.setTerms(['fail'], { account: nobody }),
+        offer,
+        'UnauthorizedAccount',
+        [getAddress(nobody.address)]
+      )
+    })
+
     test('setDisabled: should update disabled and emit OfferUpdated', async () => {
       await viem.assertions.emit(offer.write.setDisabled([true]), offer, 'OfferUpdated')
       const disabled = await offer.read.disabled()
       assert.ok(disabled)
+    })
+
+    test('setDisabled: should revert if not owner', async () => {
+      await viem.assertions.revertWithCustomErrorWithArgs(
+        offer.write.setDisabled([false], { account: nobody }),
+        offer,
+        'UnauthorizedAccount',
+        [getAddress(nobody.address)]
+      )
     })
   })
 })
