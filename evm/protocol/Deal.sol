@@ -5,10 +5,12 @@ import {IDeal} from "./interfaces/IDeal.sol";
 import {IMarket} from "./interfaces/IMarket.sol";
 import {IOffer} from "./interfaces/IOffer.sol";
 import {IProfile} from "./interfaces/IProfile.sol";
+import {FinderConstants} from "./libraries/FinderConstants.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+import {FinderInterface} from "@uma/core/contracts/data-verification-mechanism/interfaces/FinderInterface.sol";
 import {OptimisticOracleV3CallbackRecipientInterface} from "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3CallbackRecipientInterface.sol";
 import {OptimisticOracleV3Interface} from "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3Interface.sol";
 
@@ -28,7 +30,7 @@ contract Deal is IDeal, ERC165, Initializable
   uint    public allowCancelUnacceptedAfter;
   uint    public allowCancelUnpaidAfter;
   IDeal.State   public state; // defaults to Initiated (0)
-  IMarket  internal market;
+  FinderInterface  internal finder;
   IOffer   public offer;
   bool    public isPaid;
 
@@ -72,7 +74,7 @@ contract Deal is IDeal, ERC165, Initializable
   external
   initializer
   {
-    market = IMarket(params.market);
+    finder = FinderInterface(params.finder);
     offer = IOffer(params.offer);
     taker = params.taker;
 
@@ -91,7 +93,7 @@ contract Deal is IDeal, ERC165, Initializable
   }
 
   function fund() external onlySeller stateBetween(IDeal.State.Accepted, IDeal.State.Accepted) {
-    market.fundDeal();
+    IMarket(finder.getImplementationAddress(FinderConstants.Market)).fundDeal();
     _state(IDeal.State.Funded);
   }
 
@@ -109,14 +111,16 @@ contract Deal is IDeal, ERC165, Initializable
   }
 
   function _release() internal {
+    IMarket market = IMarket(finder.getImplementationAddress(FinderConstants.Market));
     IERC20Metadata token = market.token(offer.token()).api;
     uint feeAmount = tokenAmount * market.fee() / 10000;
     token.safeTransfer(_buyer(), tokenAmount - feeAmount);
-    token.safeTransfer(market.feeCollector(), token.balanceOf(address(this)));
+    address feeCollector = finder.getImplementationAddress(FinderConstants.FeeCollector);
+    token.safeTransfer(feeCollector, token.balanceOf(address(this)));
 
     _state(IDeal.State.Completed);
 
-    IProfile _profile = IProfile(market.profile());
+    IProfile _profile = IProfile(finder.getImplementationAddress(FinderConstants.Profile));
     uint $tokenId = _profile.ownerToTokenId(offer.owner());
     if ($tokenId != 0) {
       _profile.statsDealCompleted($tokenId);
@@ -139,7 +143,7 @@ contract Deal is IDeal, ERC165, Initializable
     if (state == IDeal.State.Initiated) {
       if (msg.sender != offer.owner()) {
         if (block.timestamp <= allowCancelUnacceptedAfter) revert IDeal.ActionNotAllowedInThisState(state);
-        IProfile _profile = IProfile(market.profile());
+        IProfile _profile = IProfile(finder.getImplementationAddress(FinderConstants.Profile));
         uint $tokenId = _profile.ownerToTokenId(offer.owner());
         if ($tokenId != 0) {
           _profile.statsDealExpired($tokenId);
@@ -156,6 +160,7 @@ contract Deal is IDeal, ERC165, Initializable
   }
 
   function _cancel() internal {
+    IMarket market = IMarket(finder.getImplementationAddress(FinderConstants.Market));
     IERC20Metadata token = market.token(offer.token()).api;
     if (state >= IDeal.State.Funded) {
       token.safeTransfer(_seller(), tokenAmount);
@@ -169,7 +174,7 @@ contract Deal is IDeal, ERC165, Initializable
   }
 
   function assertionResolvedCallback(bytes32 assertionId, bool assertedTruthfully) external override {
-    require(msg.sender == market.oracle(), "not oracle");
+    require(msg.sender == finder.getImplementationAddress(FinderConstants.Oracle), "not oracle");
     require(state == IDeal.State.Disputed, "not disputed");
 
     OptimisticOracleV3Interface _oov3 = OptimisticOracleV3Interface(msg.sender);
@@ -187,7 +192,7 @@ contract Deal is IDeal, ERC165, Initializable
   function assertionDisputedCallback(bytes32 assertionId) external override {}
 
   function _oracle() internal view returns (OptimisticOracleV3Interface) {
-    address oov3 = market.oracle();
+    address oov3 = finder.getImplementationAddress(FinderConstants.Oracle);
     require(oov3 != address(0), "no oracle");
     return OptimisticOracleV3Interface(oov3);
   }
@@ -201,7 +206,7 @@ contract Deal is IDeal, ERC165, Initializable
   onlyMember
   stateBetween(IDeal.State.Resolved, IDeal.State.Completed)
   {
-    IProfile _profile = IProfile(market.profile());
+    IProfile _profile = IProfile(finder.getImplementationAddress(FinderConstants.Profile));
     if (msg.sender == offer.owner()) {
       require(!feedbackForTaker.given, "already");
       feedbackForTaker.given = true;

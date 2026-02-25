@@ -19,7 +19,7 @@ interface IDeal is OptimisticOracleV3CallbackRecipientInterface {
   }
 
   struct DealParams {
-    address market;
+    address finder;
     address offer;
     address taker;
     uint256 tokenAmount;
