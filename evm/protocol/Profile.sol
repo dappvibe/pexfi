@@ -6,10 +6,9 @@ import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/acce
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
-import {ERC721BurnableUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
 
 // @dev separate profile NFT allows multiple markets attached and rep be shared across them
-contract Profile is IProfile, UUPSUpgradeable, AccessControlUpgradeable, ERC721BurnableUpgradeable
+contract Profile is IProfile, UUPSUpgradeable, AccessControlUpgradeable, ERC721Upgradeable
 {
   mapping(uint => IProfile.Stats) private _stats;
   uint private _nextTokenId;
