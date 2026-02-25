@@ -1,0 +1,22 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Tests in hardhat/" type="NodeJsTestRunner">
+    <node-interpreter value="project" />
+    <working-dir value="$PROJECT_DIR$" />
+    <language value="TYPE_SCRIPT" />
+    <typescript-loader value="TSX" />
+    <envs />
+    <scope-kind value="DIRECTORY" />
+    <test-directory value="$PROJECT_DIR$/tests/hardhat" />
+    <method v="2">
+      <option name="NpmBeforeRunTask" enabled="true">
+        <package-json value="$PROJECT_DIR$/package.json" />
+        <command value="run" />
+        <scripts>
+          <script value="build:evm" />
+        </scripts>
+        <node-interpreter value="project" />
+        <envs />
+      </option>
+    </method>
+  </configuration>
+</component>
