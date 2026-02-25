@@ -177,12 +177,6 @@ describe('Market', () => {
   })
 
   describe('Market Configuration', () => {
-    test('profile(), feeCollector(), oracle() should return valid addresses', async () => {
-      assert.notStrictEqual(await Market.read.profile(), '0x0000000000000000000000000000000000000000')
-      assert.notStrictEqual(await Market.read.feeCollector(), '0x0000000000000000000000000000000000000000')
-      assert.notStrictEqual(await Market.read.oracle(), '0x0000000000000000000000000000000000000000')
-    })
-
     test('setFee() should update fee', async () => {
       await Market.write.setFee([200], { account: admin })
       assert.strictEqual(await Market.read.fee(), 200)

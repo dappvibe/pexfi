@@ -64,7 +64,7 @@ contract Offer is IOffer, Initializable
     address impl = market.finder().getImplementationAddress(FinderConstants.DealImplementation);
     IDeal deal = IDeal(Clones.clone(impl));
     deal.initialize(IDeal.DealParams({
-      market: address(market),
+      finder: address(market.finder()),
       offer: address(this),
       taker: msg.sender,
       tokenAmount: $tokenAmount,

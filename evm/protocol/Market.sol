@@ -70,29 +70,14 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     return offers[offer_];
   }
 
-  function profile() public view returns (IProfile) {
-    return IProfile(finder.getImplementationAddress(FinderConstants.Profile));
-  }
-
-  function uniswap() internal view returns (IUniswapV3Factory) {
-    return IUniswapV3Factory(finder.getImplementationAddress(FinderConstants.Uniswap));
-  }
-
-  function feeCollector() public view returns (address) {
-    return finder.getImplementationAddress(FinderConstants.FeeCollector);
-  }
-
-  function oracle() public view returns (address) {
-    return finder.getImplementationAddress(FinderConstants.Oracle);
-  }
-
   function addDeal(IDeal deal, string calldata terms, string calldata paymentInstructions) external {
     require(offers[msg.sender], IMarket.UnauthorizedAccount(msg.sender));
     deals[address(deal)] = true;
 
     IOffer offer = IOffer(deal.offer());
     emit DealCreated(offer.owner(), deal.taker(), address(offer), address(deal), terms, paymentInstructions);
-    profile().grantRole("DEAL_ROLE", address(deal));
+    IProfile profile = IProfile(finder.getImplementationAddress(FinderConstants.Profile));
+    profile.grantRole("DEAL_ROLE", address(deal));
   }
 
   /// @dev users provide allowance once to the market
@@ -191,7 +176,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
 
   /// @return price of token_ in USDC (6 decimals)
   function _uniswapRateForUSD(Tokens.Token storage token_) internal view returns (uint) {
-    IUniswapV3Pool pool = IUniswapV3Pool(uniswap().getPool(
+    IUniswapV3Pool pool = IUniswapV3Pool(IUniswapV3Factory(finder.getImplementationAddress(FinderConstants.Uniswap)).getPool(
       address(token_.api),
       address(tokens.get(bytes8("USDC")).api),
       token_.uniswapPoolFee
