@@ -5,6 +5,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
@@ -17,14 +18,12 @@ import {Tokens} from "./libraries/Tokens.sol";
 import {Methods} from "./libraries/Methods.sol";
 import {Fiats} from "./libraries/Fiats.sol";
 
-
 import {IMarket} from "./interfaces/IMarket.sol";
 import {IOffer} from "./interfaces/IOffer.sol";
 import {IDeal} from "./interfaces/IDeal.sol";
 import {IProfile} from "./interfaces/IProfile.sol";
 import {FinderConstants} from "./libraries/FinderConstants.sol";
 import {IChainlink} from "./interfaces/IChainlink.sol";
-import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 
 contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
 {
