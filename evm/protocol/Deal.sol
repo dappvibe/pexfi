@@ -79,7 +79,6 @@ contract Deal is IDeal, ERC165, Initializable
     tokenAmount = params.tokenAmount;
     fiatAmount = params.fiatAmount;
     allowCancelUnacceptedAfter = block.timestamp + ACCEPTANCE_TIME;
-    allowCancelUnpaidAfter = block.timestamp + 2 weeks;
 
     emit DealState(state, params.taker);
   }
