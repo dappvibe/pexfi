@@ -24,6 +24,7 @@ export default async () => {
       UniswapV3Factory: mocks.uniswap.address,
       uniswapUniversalRouter: mocks.uniswap.address, // reuse for mock
       weth: mocks.WETH.address,
+      usdc: mocks.USDC.address,
       addTokens_0: [mocks.WBTC.address, mocks.WETH.address, mocks.USDC.address],
       addTokens_1: 500,
       fiats: [
