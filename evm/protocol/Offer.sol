@@ -12,13 +12,13 @@ contract Offer is IOffer, Initializable
 {
   // slot 1: address (20) + isSell (1) + rate (2) + fiat (3) + disabled (1) = 27 bytes
   address public owner;
-  bool public isSell;
-  uint16 public rate;
-  bytes3 public fiat;
-  bool public disabled;
+  bool    public isSell;
+  uint16  public rate;
+  bytes3  public fiat;
+  bool    public disabled;
 
   // slot 2: token (8) + method (16) = 24 bytes
-  bytes8 public token;
+  bytes8  public token;
   bytes16 public method;
 
   // slot 3
