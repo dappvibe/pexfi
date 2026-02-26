@@ -50,10 +50,9 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
   function _authorizeUpgrade(address) internal onlyOwner override {}
 
   function createOffer(IOffer.OfferParams calldata params) external {
-    require(params.rate > 0, IOffer.InvalidRate());
-    require(params.limits.min < params.limits.max, IOffer.InvalidLimits());
-
-    getPrice(params.token, params.fiat);
+    // validate token, fiat and methods are supported
+    token(params.token);
+    fiat(params.fiat);
     method(params.method);
 
     address impl = finder.getImplementationAddress(FinderConstants.OfferImplementation);
@@ -62,7 +61,8 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
 
     require(!offers[address(offer)], IMarket.InvalidArgument());
     offers[address(offer)] = true;
-    emit OfferCreated(offer.owner(), offer.token(), offer.fiat(), offer);
+
+    emit OfferCreated(msg.sender, params.token, params.fiat, offer);
   }
 
   function addDeal(IDeal deal, string calldata terms, string calldata paymentInstructions) external {

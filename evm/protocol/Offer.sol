@@ -39,6 +39,9 @@ contract Offer is IOffer, Initializable
   external
   initializer
   {
+    require(params.rate > 0, IOffer.InvalidRate());
+    require(params.limits.min < params.limits.max, IOffer.InvalidLimits());
+
     owner = owner_;
     isSell = params.isSell;
     token = params.token;
