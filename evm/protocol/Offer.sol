@@ -52,17 +52,13 @@ contract Offer is IOffer, Initializable
     terms = params.terms;
   }
 
-  function createDeal(
-    IMarket market,
-    IOffer.CreateDealParams calldata params
-  )
+  function createDeal(IMarket market, IOffer.CreateDealParams calldata params)
   external
   {
     require(msg.sender != owner, IMarket.UnauthorizedAccount(msg.sender));
     require(!disabled, IOffer.OfferDisabled());
-    require(market.offers(address(this)) != false, IMarket.UnknownOffer());
 
-    uint $tokenAmount = market.convert(params.fiatAmount, fiat, token, rate);
+    uint _tokenAmount = market.convert(params.fiatAmount, fiat, token, rate);
 
     address impl = market.finder().getImplementationAddress(FinderConstants.DealImplementation);
     IDeal deal = IDeal(Clones.clone(impl));
@@ -70,7 +66,7 @@ contract Offer is IOffer, Initializable
       finder: address(market.finder()),
       offer: address(this),
       taker: msg.sender,
-      tokenAmount: $tokenAmount,
+      tokenAmount: _tokenAmount,
       fiatAmount: params.fiatAmount
     }));
 
