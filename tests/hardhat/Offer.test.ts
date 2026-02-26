@@ -2,6 +2,7 @@ import { before, describe, test } from 'node:test'
 import * as assert from 'node:assert'
 import { getAddress, padHex, parseEventLogs, stringToHex } from 'viem'
 import deploy from './deploy/deployMarket'
+import { offerAbi } from '../../src/wagmi'
 
 const bytes3 = (s: string) => padHex(stringToHex(s), { size: 3, dir: 'right' })
 const bytes8 = (s: string) => padHex(stringToHex(s), { size: 8, dir: 'right' })
@@ -18,10 +19,10 @@ export const OFFER_PARAMS = {
 }
 
 describe('Offer', () => {
-  let viem, networkHelpers, Market, publicClient, walletClients, admin, nobody
+  let viem, networkHelpers, Market, Offer, publicClient, walletClients, admin, nobody
 
   before(async () => {
-    ;({ viem, Market, networkHelpers } = await deploy())
+    ;({ viem, Market, Offer, networkHelpers } = await deploy())
     publicClient = await viem.getPublicClient()
     walletClients = await viem.getWalletClients()
     admin = walletClients[0].account
@@ -48,38 +49,41 @@ describe('Offer', () => {
       })
 
       test('should revert when limits max equals min', async () => {
-        await viem.assertions.revertWith(
+        await viem.assertions.revertWithCustomError(
           Market.write.createOffer([
             {
               ...OFFER_PARAMS,
               limits: { min: 100, max: 100 },
             },
           ]),
-          'minmax'
+          { abi: offerAbi },
+          'InvalidLimits'
         )
       })
 
       test('should revert when limits max is less than min', async () => {
-        await viem.assertions.revertWith(
+        await viem.assertions.revertWithCustomError(
           Market.write.createOffer([
             {
               ...OFFER_PARAMS,
               limits: { min: 101, max: 10 },
             },
           ]),
-          'minmax'
+          { abi: offerAbi },
+          'InvalidLimits'
         )
       })
 
       test('should revert when rate is zero', async () => {
-        await viem.assertions.revertWith(
+        await viem.assertions.revertWithCustomError(
           Market.write.createOffer([
             {
               ...OFFER_PARAMS,
               rate: 0,
             },
           ]),
-          'rate'
+          { abi: offerAbi },
+          'InvalidRate'
         )
       })
 
@@ -105,18 +109,16 @@ describe('Offer', () => {
 
       test('should revert if disabled', async () => {
         await offer.write.setDisabled([true], { account: admin })
-        await viem.assertions.revertWith(
+        await viem.assertions.revertWithCustomError(
           offer.write.createDeal([Market.address, { fiatAmount: 1000n, paymentInstructions: 'p' }], {
             account: nobody,
           }),
-          'disabled'
+          offer,
+          'OfferDisabled'
         )
         // reset
         await offer.write.setDisabled([false], { account: admin })
       })
-
-      // Skip unregistered test as it requires complex setup/mocking
-      // which is out of scope for current local runner constraints
     })
   })
 
@@ -169,7 +171,7 @@ describe('Offer', () => {
     })
 
     test('setLimits: should revert if min >= max', async () => {
-      await viem.assertions.revertWith(offer.write.setLimits([{ min: 5000, max: 5000 }]), 'limits')
+      await viem.assertions.revertWithCustomError(offer.write.setLimits([{ min: 5000, max: 5000 }]), offer, 'InvalidLimits')
     })
 
     test('setTerms: should update terms and emit OfferUpdated', async () => {

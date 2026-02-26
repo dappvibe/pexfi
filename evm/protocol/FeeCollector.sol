@@ -10,6 +10,7 @@ import {IHooks} from "@uniswap/v4-core/src/interfaces/IHooks.sol";
 import {CurrencyLibrary, Currency} from "@uniswap/v4-core/src/types/Currency.sol";
 import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
 import {Actions} from "@uniswap/v4-periphery/src/libraries/Actions.sol";
+import {IMarket} from "./interfaces/IMarket.sol";
 
 interface IWETH {
   function withdraw(uint256 amount) external;
@@ -47,14 +48,14 @@ contract FeeCollector is IFeeCollector {
     address _weth,
     PoolKey memory _pexfiPoolKey
   ) {
-    require(_vault != address(0) && _pexfi != address(0) && _universalRouter != address(0) && _weth != address(0), "Invalid address");
+    require(_vault != address(0) && _pexfi != address(0) && _universalRouter != address(0) && _weth != address(0), IMarket.InvalidArgument());
     require(
       Currency.unwrap(_pexfiPoolKey.currency0) == _pexfi || Currency.unwrap(_pexfiPoolKey.currency1) == _pexfi,
-      "Must involve PEXFI"
+      IMarket.InvalidArgument()
     );
     require(
       Currency.unwrap(_pexfiPoolKey.currency0) == address(0) || Currency.unwrap(_pexfiPoolKey.currency1) == address(0),
-      "Must involve ETH"
+      IMarket.InvalidArgument()
     );
 
     vault = _vault;
@@ -81,9 +82,9 @@ contract FeeCollector is IFeeCollector {
 
   /**
    * @notice Trigger buyback for a specific token
-     * @param token The address of the token to buy back (address(0) for Native ETH)
-     * @param fee The Uniswap V4 pool fee tier for Token/Native pair (e.g. 3000 for 0.3%)
-     */
+   * @param token The address of the token to buy back (address(0) for Native ETH)
+   * @param fee The Uniswap V4 pool fee tier for Token/Native pair (e.g. 3000 for 0.3%)
+   */
   function buyback(address token, uint24 fee) external payable {
     // 0. If PEXFI, send to Vault directly
     if (token == Currency.unwrap(pexfi)) {
@@ -117,8 +118,8 @@ contract FeeCollector is IFeeCollector {
 
   /**
    * @param token The token address to swap from
-     * @param fee The Uniswap V4 pool fee tier for the Token/Native pair
-     */
+   * @param fee The Uniswap V4 pool fee tier for the Token/Native pair
+   */
   function _swapTokenToPexfi(address token, uint24 fee) internal {
     uint256 amountIn = IERC20(token).balanceOf(address(this));
     if (amountIn == 0) return;

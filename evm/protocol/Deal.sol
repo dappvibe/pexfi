@@ -103,9 +103,9 @@ contract Deal is IDeal, ERC165, Initializable
 
   function release() external stateBetween(IDeal.State.Funded, IDeal.State.Resolved) {
     if (state == State.Resolved) {
-      require(isPaid, "not paid");
+      require(isPaid, InvalidResolution(isPaid));
     } else {
-      require(msg.sender == _seller(), "not seller");
+      require(msg.sender == _seller(), IMarket.UnauthorizedAccount(msg.sender));
     }
     _release();
   }
@@ -133,7 +133,7 @@ contract Deal is IDeal, ERC165, Initializable
 
   function cancel() external stateBetween(IDeal.State.Initiated, IDeal.State.Resolved) {
     if (state == IDeal.State.Resolved) {
-      require(!isPaid, "paid");
+      require(!isPaid, InvalidResolution(!isPaid));
       _cancel();
       return;
     }
@@ -202,7 +202,7 @@ contract Deal is IDeal, ERC165, Initializable
   {
     IProfile _profile = IProfile(finder.getImplementationAddress(FinderConstants.Profile));
     if (msg.sender == offer.owner()) {
-      require(!feedbackForTaker.given, "already");
+      require(!feedbackForTaker.given, IProfile.FeedbackAlreadyGiven());
       feedbackForTaker.given = true;
       feedbackForTaker.upvote = upvote;
       uint $tokenId = _profile.ownerToTokenId(taker);
@@ -212,7 +212,7 @@ contract Deal is IDeal, ERC165, Initializable
       emit FeedbackGiven(taker, upvote, message_);
     }
     else if (msg.sender == taker) {
-      require(!feedbackForOwner.given, "already");
+      require(!feedbackForOwner.given, IProfile.FeedbackAlreadyGiven());
       feedbackForOwner.given = true;
       feedbackForOwner.upvote = upvote;
       uint $tokenId = _profile.ownerToTokenId(offer.owner());

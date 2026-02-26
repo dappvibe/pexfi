@@ -10,9 +10,12 @@ import {OptimisticOracleV3Interface} from "@uma/core/contracts/optimistic-oracle
 import {OptimisticOracleV3CallbackRecipientInterface} from "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3CallbackRecipientInterface.sol";
 
 import {FinderConstants} from "./libraries/FinderConstants.sol";
+import {IMarket} from "./interfaces/IMarket.sol";
 
 /// @dev Must replicate to avoid IERC20 version mismatch
 interface IOptimisticOracleV3 {
+  error InvlalidClaim();
+
   function defaultLiveness() external view returns (uint64);
 
   function defaultIdentifier() external view returns (bytes32);
@@ -59,13 +62,10 @@ contract PexfiVesting is VestingWalletCliff {
   function bond(address deal, bytes calldata claim) external onlyOwner
   {
     bytes32 claimHash = keccak256(claim);
-    require(
-      claimHash == PAID || claimHash == NOT_PAID,
-      "invalid claim"
-    );
+    require(claimHash == PAID || claimHash == NOT_PAID, IOptimisticOracleV3.InvlalidClaim());
     require(
       IERC165(deal).supportsInterface(type(OptimisticOracleV3CallbackRecipientInterface).interfaceId),
-      "deal: no callback interface"
+      IMarket.InvalidArgument()
     );
 
     address oracleAddress = finder.getImplementationAddress(FinderConstants.Oracle);
