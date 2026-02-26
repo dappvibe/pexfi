@@ -49,6 +49,11 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
 
   function _authorizeUpgrade(address) internal onlyOwner override {}
 
+  function setFee(uint8 fee_) public onlyOwner {fee = fee_;}
+
+  /**
+   * Business logic.
+   */
   function createOffer(IOffer.OfferParams calldata params) external {
     // validate token, fiat and methods are supported
     token(params.token);
@@ -89,7 +94,61 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     $token.safeTransferFrom(seller, address($deal), $deal.tokenAmount());
   }
 
-  function setFee(uint8 fee_) public onlyOwner {fee = fee_;}
+  /**
+   * Inventory management.
+   */
+
+  function addTokens(address[] calldata tokens_, uint16 uniswapPoolFee) external onlyOwner {
+    for (uint i = 0; i < tokens_.length; i++) {
+      tokens.add(tokens_[i], uniswapPoolFee);
+    }
+  }
+
+  function removeTokens(bytes8[] calldata token_) external onlyOwner {
+    for (uint i = 0; i < token_.length; i++) {
+      tokens.remove(token_[i]);
+    }
+  }
+
+  function token(bytes8 symbol_) public view returns (Tokens.Token memory) {return tokens.get(symbol_);}
+
+  function getTokens() public view returns (bytes8[] memory) {return tokens.list();}
+
+  function fiat(bytes3 symbol_) public view returns (IChainlink) {return fiats.get(symbol_);}
+
+  function getFiats() public view returns (bytes3[] memory) {return fiats.list();}
+
+  function method(bytes16 name_) public view returns (Methods.Method memory) {return methods.get(name_);}
+
+  function getMethods() public view returns (bytes16[] memory) {return methods.list();}
+
+  function addFiats(Fiats.Fiat[] calldata fiats_) external onlyOwner {
+    for (uint i = 0; i < fiats_.length; i++) {
+      fiats.add(fiats_[i]);
+    }
+  }
+
+  function removeFiats(bytes3[] calldata fiat_) external onlyOwner {
+    for (uint i = 0; i < fiat_.length; i++) {
+      fiats.remove(fiat_[i]);
+    }
+  }
+
+  function addMethods(bytes16[] calldata names_, Methods.Group[] calldata groups_) external onlyOwner {
+    for (uint i = 0; i < names_.length; i++) {
+      methods.add(names_[i], groups_[i]);
+    }
+  }
+
+  function removeMethods(bytes16[] calldata names_) external onlyOwner {
+    for (uint i = 0; i < names_.length; i++) {
+      methods.remove(names_[i]);
+    }
+  }
+
+  /**
+   * Uniswap prices synchronization methods.
+   */
 
   /// @param amount_ must have 6 decimals as a fiat amount
   /// @param denominator ratio (4 decimal) to apply to resulting amount
@@ -118,54 +177,6 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
       (, int $fiatToUSD,,,) = fiats.get(fiat_).latestRoundData();
       require($fiatToUSD > 0, IMarket.InvalidArgument());
       price = price * 10 ** 8 / uint($fiatToUSD);
-    }
-  }
-
-  function token(bytes8 symbol_) public view returns (Tokens.Token memory) {return tokens.get(symbol_);}
-
-  function getTokens() public view returns (bytes8[] memory) {return tokens.list();}
-
-  function fiat(bytes3 symbol_) public view returns (IChainlink) {return fiats.get(symbol_);}
-
-  function getFiats() public view returns (bytes3[] memory) {return fiats.list();}
-
-  function method(bytes16 name_) public view returns (Methods.Method memory) {return methods.get(name_);}
-
-  function getMethods() public view returns (bytes16[] memory) {return methods.list();}
-
-  function addTokens(address[] calldata tokens_, uint16 uniswapPoolFee) external onlyOwner {
-    for (uint i = 0; i < tokens_.length; i++) {
-      tokens.add(tokens_[i], uniswapPoolFee);
-    }
-  }
-
-  function removeTokens(bytes8[] calldata token_) external onlyOwner {
-    for (uint i = 0; i < token_.length; i++) {
-      tokens.remove(token_[i]);
-    }
-  }
-
-  function addFiats(Fiats.Fiat[] calldata fiats_) external onlyOwner {
-    for (uint i = 0; i < fiats_.length; i++) {
-      fiats.add(fiats_[i]);
-    }
-  }
-
-  function removeFiats(bytes3[] calldata fiat_) external onlyOwner {
-    for (uint i = 0; i < fiat_.length; i++) {
-      fiats.remove(fiat_[i]);
-    }
-  }
-
-  function addMethods(bytes16[] calldata names_, Methods.Group[] calldata groups_) external onlyOwner {
-    for (uint i = 0; i < names_.length; i++) {
-      methods.add(names_[i], groups_[i]);
-    }
-  }
-
-  function removeMethods(bytes16[] calldata names_) external onlyOwner {
-    for (uint i = 0; i < names_.length; i++) {
-      methods.remove(names_[i]);
     }
   }
 
