@@ -32,20 +32,19 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
   using Fiats   for Fiats.Storage;
   using Methods for Methods.Storage;
 
+  FinderInterface public finder;
+
   Tokens.Storage  private tokens;
   Fiats.Storage   private fiats;
   Methods.Storage private methods;
 
   mapping(address => bool) private offers;
   mapping(address => bool) private deals;
-
-  FinderInterface public finder;
-  uint16 public fee;
+  uint8 public fee;
 
   function initialize(address finder_) initializer external {
     __Ownable_init(msg.sender);
     finder = FinderInterface(finder_);
-    fee = 100;
   }
 
   function _authorizeUpgrade(address) internal onlyOwner override {}
@@ -94,7 +93,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     $token.safeTransferFrom(seller, address($deal), $deal.tokenAmount());
   }
 
-  function setFee(uint16 fee_) public onlyOwner {fee = fee_;}
+  function setFee(uint8 fee_) public onlyOwner {fee = fee_;}
 
   /// @param amount_ must have 6 decimals as a fiat amount
   /// @param denominator ratio (4 decimal) to apply to resulting amount

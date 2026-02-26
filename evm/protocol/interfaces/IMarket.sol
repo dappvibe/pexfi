@@ -38,7 +38,7 @@ interface IMarket {
 
   function fundDeal() external;
 
-  function setFee(uint16 fee_) external;
+  function setFee(uint8 fee_) external;
 
   function convert(
     uint256 amount_,
@@ -61,7 +61,7 @@ interface IMarket {
 
   function getMethods() external view returns (bytes16[] memory);
 
-  function fee() external view returns (uint16);
+  function fee() external view returns (uint8);
 
   function finder() external view returns (FinderInterface);
 }
