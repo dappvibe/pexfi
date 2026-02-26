@@ -57,7 +57,7 @@ contract Offer is IOffer, Initializable
   {
     require(msg.sender != owner, IMarket.UnauthorizedAccount(msg.sender));
     require(!disabled, IOffer.OfferDisabled());
-    require(market.hasOffer(address(this)), IMarket.UnknownOffer());
+    require(market.offers(address(this)) != false, IMarket.UnknownOffer());
 
     uint $tokenAmount = market.convert(params.fiatAmount, fiat, token, rate);
 
