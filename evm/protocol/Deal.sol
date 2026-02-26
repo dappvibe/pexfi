@@ -191,12 +191,6 @@ contract Deal is IDeal, ERC165, Initializable
 
   function assertionDisputedCallback(bytes32 assertionId) external override {}
 
-  function _oracle() internal view returns (OptimisticOracleV3Interface) {
-    address oov3 = finder.getImplementationAddress(FinderConstants.Oracle);
-    require(oov3 != address(0), "no oracle");
-    return OptimisticOracleV3Interface(oov3);
-  }
-
   function message(string calldata message_) external onlyMember {
     emit Message(msg.sender, message_);
   }
