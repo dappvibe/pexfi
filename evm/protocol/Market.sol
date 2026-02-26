@@ -38,8 +38,8 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
   Fiats.Storage   private fiats;
   Methods.Storage private methods;
 
-  mapping(address => bool) private offers;
-  mapping(address => bool) private deals;
+  mapping(address => bool) public offers;
+  mapping(address => bool) public deals;
   uint8 public fee;
 
   function initialize(address finder_) initializer external {
@@ -63,10 +63,6 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     require(!offers[address(offer)], IMarket.InvalidArgument());
     offers[address(offer)] = true;
     emit OfferCreated(offer.owner(), offer.token(), offer.fiat(), offer);
-  }
-
-  function hasOffer(address offer_) external view returns (bool) {
-    return offers[offer_];
   }
 
   function addDeal(IDeal deal, string calldata terms, string calldata paymentInstructions) external {

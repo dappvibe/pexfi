@@ -44,7 +44,7 @@ describe('Offer', () => {
           logs: receipt.logs,
         })
         const offerAddress = logs[0].args.offer
-        const hasOffer = await Market.read.hasOffer([offerAddress])
+        const hasOffer = await Market.read.offers([offerAddress])
         assert.ok(hasOffer, 'Offer should be registered in Market')
       })
 

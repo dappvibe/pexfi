@@ -32,7 +32,7 @@ interface IMarket {
 
   function createOffer(IOffer.OfferParams calldata params) external;
 
-  function hasOffer(address offer_) external view returns (bool);
+  function offers(address offer_) external view returns (bool);
 
   function addDeal(IDeal deal, string calldata terms, string calldata paymentInstructions) external;
 
