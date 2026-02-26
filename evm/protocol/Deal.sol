@@ -174,8 +174,8 @@ contract Deal is IDeal, ERC165, Initializable
   }
 
   function assertionResolvedCallback(bytes32 assertionId, bool assertedTruthfully) external override {
-    require(msg.sender == finder.getImplementationAddress(FinderConstants.Oracle), "not oracle");
-    require(state == IDeal.State.Disputed, "not disputed");
+    require(msg.sender == finder.getImplementationAddress(FinderConstants.Oracle), IMarket.UnauthorizedAccount(msg.sender));
+    if (state != IDeal.State.Disputed) return;
 
     OptimisticOracleV3Interface _oov3 = OptimisticOracleV3Interface(msg.sender);
     OptimisticOracleV3Interface.Assertion memory assertion = _oov3.getAssertion(assertionId);
