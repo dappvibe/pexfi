@@ -23,7 +23,8 @@ export default buildModule('Market', (m) => {
   const uniswap = m.getParameter('UniswapV3Factory') // factory (or mock) address
 
   // deploy
-  const MarketImpl = m.contract('Market', [], { id: 'MarketV0' })
+  const usdc = m.getParameter('usdc')
+  const MarketImpl = m.contract('Market', [usdc], { id: 'MarketV0' })
   const MarketProxy = m.contract(
     'ERC1967Proxy',
     [MarketImpl, m.encodeFunctionCall(MarketImpl, 'initialize', [Finder])],

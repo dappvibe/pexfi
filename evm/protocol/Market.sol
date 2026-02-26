@@ -42,6 +42,14 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
   mapping(address => bool) public deals;
   uint8 public fee;
 
+  IERC20Metadata public immutable USDC;
+
+  /// @custom:oz-upgrades-unsafe-allow constructor
+  constructor(address usdc_) {
+    USDC = IERC20Metadata(usdc_);
+    _disableInitializers();
+  }
+
   function initialize(address finder_) initializer external {
     __Ownable_init(msg.sender);
     finder = FinderInterface(finder_);
@@ -184,7 +192,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
   function _uniswapRateForUSD(Tokens.Token storage token_) internal view returns (uint) {
     IUniswapV3Pool pool = IUniswapV3Pool(IUniswapV3Factory(finder.getImplementationAddress(FinderConstants.Uniswap)).getPool(
       address(token_.api),
-      address(tokens.get(bytes8("USDC")).api),
+      address(USDC),
       token_.uniswapPoolFee
     ));
 
