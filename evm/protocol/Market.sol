@@ -51,8 +51,8 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
   function _authorizeUpgrade(address) internal onlyOwner override {}
 
   function createOffer(IOffer.OfferParams calldata params) external {
-    require(params.rate > 0, "rate");
-    require(params.limits.min < params.limits.max, "minmax");
+    require(params.rate > 0, IOffer.InvalidRate());
+    require(params.limits.min < params.limits.max, IOffer.InvalidLimits());
 
     getPrice(params.token, params.fiat);
     method(params.method);
@@ -61,7 +61,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     IOffer offer = IOffer(Clones.clone(impl));
     offer.initialize(msg.sender, params);
 
-    require(!offers[address(offer)], "exists");
+    require(!offers[address(offer)], IMarket.InvalidArgument());
     offers[address(offer)] = true;
     emit OfferCreated(offer.owner(), offer.token(), offer.fiat(), offer);
   }
@@ -85,7 +85,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     require(deals[msg.sender], UnauthorizedAccount(msg.sender));
 
     IDeal $deal = IDeal(msg.sender);
-    require($deal.state() == IDeal.State.Accepted, "not accepted");
+    require($deal.state() == IDeal.State.Accepted, IDeal.ActionNotAllowedInThisState(IDeal.State.Accepted));
 
     IOffer $offer = IOffer($deal.offer());
     IERC20Metadata $token = token($offer.token()).api;
@@ -121,7 +121,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
 
     if (fiat_ != bytes3("USD")) {
       (, int $fiatToUSD,,,) = fiats.get(fiat_).latestRoundData();
-      require($fiatToUSD > 0, "bad oracle price");
+      require($fiatToUSD > 0, IMarket.InvalidArgument());
       price = price * 10 ** 8 / uint($fiatToUSD);
     }
   }

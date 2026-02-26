@@ -46,7 +46,7 @@ contract Profile is IProfile, UUPSUpgradeable, AccessControlUpgradeable, ERC721U
 
   function register() external returns (uint tokenId)
   {
-    require(ownerToTokenId[msg.sender] == 0, "already");
+    require(ownerToTokenId[msg.sender] == 0, IProfile.ProfileAlreadyExists());
 
     tokenId = _nextTokenId;
     _mint(msg.sender, tokenId);

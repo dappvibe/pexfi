@@ -56,8 +56,8 @@ contract Offer is IOffer, Initializable
   external
   {
     require(msg.sender != owner, IMarket.UnauthorizedAccount(msg.sender));
-    require(!disabled, "disabled");
-    require(market.hasOffer(address(this)), "not registered");
+    require(!disabled, IOffer.OfferDisabled());
+    require(market.hasOffer(address(this)), IMarket.UnknownOffer());
 
     uint $tokenAmount = market.convert(params.fiatAmount, fiat, token, rate);
 
@@ -76,14 +76,14 @@ contract Offer is IOffer, Initializable
 
   function setRate(uint16 rate_) external {
     require(msg.sender == owner, IMarket.UnauthorizedAccount(msg.sender));
-    require(rate_ > 0, "rate");
+    require(rate_ > 0, IOffer.InvalidRate());
     rate = rate_;
     emit OfferUpdated();
   }
 
   function setLimits(IOffer.Limits calldata limits_) external {
     require(msg.sender == owner, IMarket.UnauthorizedAccount(msg.sender));
-    require(limits_.min < limits_.max, "limits");
+    require(limits_.min < limits_.max, IOffer.InvalidLimits());
     limits = limits_;
     emit OfferUpdated();
   }

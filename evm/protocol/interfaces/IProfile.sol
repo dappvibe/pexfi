@@ -2,6 +2,9 @@
 pragma solidity 0.8.34;
 
 interface IProfile {
+  error FeedbackAlreadyGiven();
+  error ProfileAlreadyExists();
+
   struct Stats {
     uint32 createdAt;
     uint32 upvotes;

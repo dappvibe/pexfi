@@ -3,6 +3,7 @@ import * as assert from 'node:assert'
 import { Address, parseEventLogs, stringToHex } from 'viem'
 import deploy from './deploy/deployMarket'
 import { OFFER_PARAMS } from './Offer.test'
+import { profileAbi } from '../../src/wagmi'
 
 describe('Deal', () => {
   let Market, WBTC, feeCollector, OOv3, pexfiVesting
@@ -330,9 +331,10 @@ describe('Deal', () => {
       await viem.assertions.revertWith(OOv3.write.settleAssertion([assertionId]), 'Assertion not expired')
 
       // Revert if called by not oracle
-      await viem.assertions.revertWith(
+      await viem.assertions.revertWithCustomError(
         dealToBuy.write.assertionResolvedCallback([assertionId, true]),
-        'not oracle'
+        Market,
+        'UnauthorizedAccount'
       )
 
       await networkHelpers.time.increase(61) // default liveness
@@ -363,7 +365,7 @@ describe('Deal', () => {
        assert.ok(!(await dealToBuy.read.isPaid()))
 
        // 2. Try release
-       await viem.assertions.revertWith(dealToBuy.write.release({ account: nobody }), 'not paid')
+       await viem.assertions.revertWithCustomError(dealToBuy.write.release({ account: nobody }), dealToBuy, 'InvalidResolution')
 
        await disputed.restore()
     })
@@ -396,8 +398,8 @@ describe('Deal', () => {
 
   describe('Deal Paid', () => {
     test('buyer cannot release()', async () => {
-      await viem.assertions.revertWith(dealToBuy.write.release({ account: taker }), 'not seller')
-      await viem.assertions.revertWith(dealToSell.write.release({ account: maker }), 'not seller')
+      await viem.assertions.revertWithCustomError(dealToBuy.write.release({ account: taker }), Market, 'UnauthorizedAccount')
+      await viem.assertions.revertWithCustomError(dealToSell.write.release({ account: maker }), Market, 'UnauthorizedAccount')
     })
 
     test('release() should transfer tokens to buyer and collect fee', async () => {
@@ -449,8 +451,16 @@ describe('Deal', () => {
     })
 
     test('Feedback cannot be given again', async () => {
-      await viem.assertions.revertWith(dealToBuy.write.feedback([true, 'good deal'], { account: taker }), 'already')
-      await viem.assertions.revertWith(dealToBuy.write.feedback([true, 'good deal'], { account: maker }), 'already')
+      await viem.assertions.revertWithCustomError(
+        dealToBuy.write.feedback([true, 'good deal'], { account: taker }),
+        { abi: profileAbi },
+        'FeedbackAlreadyGiven'
+      )
+      await viem.assertions.revertWithCustomError(
+        dealToBuy.write.feedback([true, 'good deal'], { account: maker }),
+        { abi: profileAbi },
+        'FeedbackAlreadyGiven'
+      )
     })
 
     test('Feedback reverts if in wrong state (e.g. Paid)', async () => {
