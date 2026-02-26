@@ -7,6 +7,13 @@ import {OptimisticOracleV3CallbackRecipientInterface} from
 "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3CallbackRecipientInterface.sol";
 
 interface IDeal is OptimisticOracleV3CallbackRecipientInterface {
+  error ActionNotAllowedInThisState(State state);
+  error InvalidResolution(bool resolvedPaid);
+
+  event DealState(State state, address sender);
+  event Message(address indexed sender, string message);
+  event FeedbackGiven(address indexed to, bool upvote, string message);
+
   enum State {
     Initiated,
     Accepted,
@@ -30,12 +37,6 @@ interface IDeal is OptimisticOracleV3CallbackRecipientInterface {
     bool given;
     bool upvote;
   }
-
-  event DealState(State state, address sender);
-  event Message(address indexed sender, string message);
-  event FeedbackGiven(address indexed to, bool upvote, string message);
-
-  error ActionNotAllowedInThisState(State state);
 
   function initialize(DealParams calldata params) external;
 

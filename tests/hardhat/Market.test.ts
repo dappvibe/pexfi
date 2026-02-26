@@ -2,6 +2,7 @@ import { before, describe, test } from 'node:test'
 import * as assert from 'node:assert'
 import { Address, getAddress, stringToHex, padHex } from 'viem'
 import deploy from './deploy/deployMarket'
+import { offerAbi } from '../../src/wagmi'
 
 const bytes3 = (s: string) => padHex(stringToHex(s), { size: 3, dir: 'right' })
 const bytes8 = (s: string) => padHex(stringToHex(s), { size: 8, dir: 'right' })
@@ -9,13 +10,14 @@ const bytes16 = (s: string) => padHex(stringToHex(s), { size: 16, dir: 'right' }
 const bytes32 = (s: string) => padHex(stringToHex(s), { size: 32, dir: 'right' })
 
 describe('Market', () => {
-  let Market: any, WBTC: any, USD: any, USDC: any, viem: any, publicClient: any, networkHelpers: any
+  let Market: any, WBTC: any, USD: any, USDC: any, viem: any, publicClient: any, networkHelpers: any, Offer: any
   let admin: Address, nobody: Address
 
   before(async () => {
     const deployment = await deploy()
     ;({
       Market,
+      Offer,
       WBTC,
       USD,
       USDC,
@@ -169,9 +171,10 @@ describe('Market', () => {
 
     test('createOffer() should revert if min >= max', async () => {
       const badParams = { ...offerParams, limits: { min: 1000, max: 100 } }
-      await assert.rejects(
+      await viem.assertions.revertWithCustomError(
         Market.write.createOffer([badParams], { account: admin }),
-        /minmax/
+        { abi: offerAbi },
+        'InvalidLimits'
       )
     })
   })

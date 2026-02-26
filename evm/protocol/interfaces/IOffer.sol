@@ -4,6 +4,10 @@ pragma solidity 0.8.34;
 import {IMarket} from "./IMarket.sol";
 
 interface IOffer {
+  error InvalidRate();
+  error InvalidLimits();
+  error OfferDisabled();
+
   struct Limits {
     uint32 min;
     uint32 max;
