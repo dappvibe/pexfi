@@ -75,7 +75,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     profile.grantRole("DEAL_ROLE", address(deal));
   }
 
-  /// @dev users provide allowance once to the market
+  /// @dev Method is in Market so that users provide allowance in single place instead of each Deal
   function fundDeal() external {
     require(deals[msg.sender], UnauthorizedAccount(msg.sender));
 
