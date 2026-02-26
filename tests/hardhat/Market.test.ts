@@ -158,7 +158,7 @@ describe('Market', () => {
       })
       assert.strictEqual(logs.length, 1)
       const offerAddress = logs[0].args.offer
-      assert.ok(await Market.read.hasOffer([offerAddress]))
+      assert.ok(await Market.read.offers([offerAddress]))
     })
 
     test('createOffer() should revert if rate is 0', async () => {
