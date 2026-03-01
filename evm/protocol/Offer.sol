@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.34;
 
+import {IDeal} from "./interfaces/IDeal.sol";
+import {IMarket} from "./interfaces/IMarket.sol";
+import {IOffer} from "./interfaces/IOffer.sol";
+import {FinderConstants} from "./libraries/FinderConstants.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
-import {IOffer} from "./interfaces/IOffer.sol";
-import {IMarket} from "./interfaces/IMarket.sol";
-import {IDeal} from "./interfaces/IDeal.sol";
-import {FinderConstants} from "./libraries/FinderConstants.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Offer is IOffer, Initializable
 {
@@ -17,11 +18,11 @@ contract Offer is IOffer, Initializable
   bytes3  public fiat;
   bool    public disabled;
 
-  // slot 2: token (8) + method (16) = 24 bytes
-  bytes8  public token;
-  bytes16 public method;
+  // slot 2: token (20) + methods (1) = 21 bytes
+  IERC20 public token;
+  uint256 public methods;
 
-  // slot 3
+  // slot 3 = 8 bytes
   IOffer.Limits public limits;
 
   // dynamic
@@ -46,7 +47,7 @@ contract Offer is IOffer, Initializable
     isSell = params.isSell;
     token = params.token;
     fiat = params.fiat;
-    method = params.method;
+    methods = params.methods;
     rate = params.rate;
     limits = params.limits;
     terms = params.terms;
