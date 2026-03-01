@@ -1,24 +1,28 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.34;
 
-import {FinderInterface} from "@uma/core/contracts/data-verification-mechanism/interfaces/FinderInterface.sol";
-import {IOffer} from "./IOffer.sol";
-import {IDeal} from "./IDeal.sol";
-import {IProfile} from "./IProfile.sol";
 import {IChainlink} from "./IChainlink.sol";
-import {Tokens} from "../libraries/Tokens.sol";
-import {Methods} from "../libraries/Methods.sol";
+import {IDeal} from "./IDeal.sol";
+import {IOffer} from "./IOffer.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {FinderInterface} from "@uma/core/contracts/data-verification-mechanism/interfaces/FinderInterface.sol";
+import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
 interface IMarket {
+  struct Token {
+    uint8 decimals;
+    IUniswapV3Pool pool; // address(0) disables a token
+  }
+
   error InvalidArgument();
 
   error UnauthorizedAccount(address account);
-  error InvalidToken(bytes8 token);
+  error InvalidToken(IERC20 token);
   error InvalidFiat(bytes3 fiat);
-  error InvalidMethod(bytes16 method);
+  error InvalidMethod(uint256 method);
   error UnknownOffer();
 
-  event OfferCreated(address indexed owner, bytes8 indexed token, bytes3 indexed fiat, IOffer offer);
+  event OfferCreated(address owner, IERC20 token, bytes3 fiat, IOffer offer);
   event DealCreated(
     address indexed offerOwner,
     address indexed taker,
@@ -27,6 +31,12 @@ interface IMarket {
     string terms,
     string paymentInstructions
   );
+  event TokenAdded(IERC20 address_);
+  event TokenRemoved(IERC20 address_);
+  event FiatAdded(bytes3 symbol, IChainlink feed);
+  event FiatRemoved(bytes3 symbol);
+  event MethodAdded(bytes16 name);
+  event MethodsDisabledMask(uint mask);
 
   function initialize(address finder_) external;
 
@@ -43,23 +53,17 @@ interface IMarket {
   function convert(
     uint256 amount_,
     bytes3 fromFiat_,
-    bytes8 toToken_,
+    IERC20 toToken_,
     uint256 denominator
   ) external view returns (uint256 amount);
 
-  function getPrice(bytes8 token_, bytes3 fiat_) external view returns (uint256 price);
+  function getPrice(IERC20 token_, bytes3 fiat_) external view returns (uint256 price);
 
-  function token(bytes8 symbol_) external view returns (Tokens.Token memory);
+  function tokens(IERC20 address_) external view returns (uint8 decimals, IUniswapV3Pool pool);
 
-  function getTokens() external view returns (bytes8[] memory);
+  function fiats(bytes3 symbol_) external view returns (IChainlink);
 
-  function fiat(bytes3 symbol_) external view returns (IChainlink);
-
-  function getFiats() external view returns (bytes3[] memory);
-
-  function method(bytes16 name_) external view returns (Methods.Method memory);
-
-  function getMethods() external view returns (bytes16[] memory);
+  function methods(uint256 index) external view returns (bytes16);
 
   function fee() external view returns (uint8);
 

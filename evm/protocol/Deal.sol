@@ -7,7 +7,7 @@ import {IOffer} from "./interfaces/IOffer.sol";
 import {IProfile} from "./interfaces/IProfile.sol";
 import {FinderConstants} from "./libraries/FinderConstants.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {FinderInterface} from "@uma/core/contracts/data-verification-mechanism/interfaces/FinderInterface.sol";
@@ -16,7 +16,7 @@ import {OptimisticOracleV3Interface} from "@uma/core/contracts/optimistic-oracle
 
 contract Deal is IDeal, ERC165, Initializable
 {
-  using SafeERC20 for IERC20Metadata;
+  using SafeERC20 for IERC20;
 
   uint16 private constant ACCEPTANCE_TIME = 15 minutes;
   uint16 private constant PAYMENT_WINDOW = 1 hours;
@@ -33,6 +33,7 @@ contract Deal is IDeal, ERC165, Initializable
   FinderInterface  internal finder;
   IOffer   public offer;
   bool    public isPaid;
+  uint8   public method; // single chosen method FIXME just LOG this immutable data
 
   IDeal.Feedback public feedbackForOwner;
   IDeal.Feedback public feedbackForTaker;
@@ -112,7 +113,7 @@ contract Deal is IDeal, ERC165, Initializable
 
   function _release() internal {
     IMarket market = IMarket(finder.getImplementationAddress(FinderConstants.Market));
-    IERC20Metadata token = market.token(offer.token()).api;
+    IERC20 token = offer.token();
     uint feeAmount = tokenAmount * market.fee() / 10000;
     token.safeTransfer(_buyer(), tokenAmount - feeAmount);
     address feeCollector = finder.getImplementationAddress(FinderConstants.FeeCollector);
@@ -160,10 +161,8 @@ contract Deal is IDeal, ERC165, Initializable
   }
 
   function _cancel() internal {
-    IMarket market = IMarket(finder.getImplementationAddress(FinderConstants.Market));
-    IERC20Metadata token = market.token(offer.token()).api;
     if (state >= IDeal.State.Funded) {
-      token.safeTransfer(_seller(), tokenAmount);
+      offer.token().safeTransfer(_seller(), tokenAmount);
     }
 
     _state(IDeal.State.Canceled);

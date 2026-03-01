@@ -37,10 +37,10 @@ describe('Market', () => {
       const newFiat = { symbol: bytes3('JPY'), toUSD: USD.address }
       await Market.write.addFiats([[newFiat]], { account: admin })
 
-      const fiats = await Market.read.getFiats()
-      assert.ok(fiats.some((f: any) => f === bytes3('JPY')))
+      const fiats = await Market.read.fiats([bytes3('JPY')])
+      assert.ok(fiats)
 
-      const feed = await Market.read.fiat([bytes3('JPY')])
+      const feed = await Market.read.fiats([bytes3('JPY')])
       assert.strictEqual(getAddress(feed), getAddress(USD.address))
     })
 
@@ -53,13 +53,14 @@ describe('Market', () => {
     })
 
     test('removeFiats() should remove fiat', async () => {
-      await Market.write.removeFiats([[bytes3('JPY')]], { account: admin })
-
-      const fiats = await Market.read.getFiats()
-      assert.ok(!fiats.some((f: any) => f === bytes3('JPY')))
+      await viem.assertions.emit(
+        Market.write.removeFiats([[bytes3('JPY')]], { account: admin }),
+        Market,
+        'FiatRemoved'
+      )
 
       await viem.assertions.revertWithCustomError(
-        Market.read.fiat([bytes3('JPY')]),
+        Market.read.fiats([bytes3('JPY')]),
         Market,
         'InvalidFiat'
       )
@@ -67,30 +68,30 @@ describe('Market', () => {
   })
 
   describe('Tokens CRUD', () => {
-    test('addTokens() should add new token', async () => {
-      await Market.write.addTokens([[WBTC.address], 3000], { account: admin })
+    test('addtoken() should add new token', async () => {
+      await Market.write.addtoken([[WBTC.address], 3000], { account: admin })
 
-      const tokens = await Market.read.getTokens()
-      assert.ok(tokens.some((t: any) => t === bytes8('WBTC')))
+      const tokens = await Market.read.token([bytes8('WBTC')])
+      assert.ok(tokens)
 
       const tokenInfo = await Market.read.token([bytes8('WBTC')])
-      assert.strictEqual(getAddress(tokenInfo.api), getAddress(WBTC.address))
-      assert.strictEqual(tokenInfo.uniswapPoolFee, 3000)
+      assert.strictEqual(getAddress(tokenInfo[0]), getAddress(WBTC.address))
+      assert.strictEqual(tokenInfo[1], 3000)
     })
 
-    test('addTokens() should revert if not owner', async () => {
+    test('addtoken() should revert if not owner', async () => {
       await viem.assertions.revertWithCustomError(
-        Market.write.addTokens([[WBTC.address], 3000], { account: nobody }),
+        Market.write.addtoken([[WBTC.address], 3000], { account: nobody }),
         Market,
         'OwnableUnauthorizedAccount'
       )
     })
 
-    test('removeTokens() should remove token', async () => {
-      await Market.write.removeTokens([[bytes8('WBTC')]], { account: admin })
+    test('removetoken() should remove token', async () => {
+      await Market.write.removetoken([[bytes8('WBTC')]], { account: admin })
 
-      const tokens = await Market.read.getTokens()
-      assert.ok(!tokens.some((t: any) => t === bytes8('WBTC')))
+      const tokens = await Market.read.token([bytes8('WBTC')])
+      assert.ok(!tokens)
 
       await viem.assertions.revertWithCustomError(
         Market.read.token([bytes8('WBTC')]),
@@ -102,19 +103,15 @@ describe('Market', () => {
 
   describe('Methods CRUD', () => {
     test('addMethods() should add new method', async () => {
-      await Market.write.addMethods([[bytes16('Alipay')], [0]], { account: admin })
+      await Market.write.addMethods([[bytes16('Alipay')]], { account: admin })
 
-      const methods = await Market.read.getMethods()
-      assert.ok(methods.some((m: any) => m === bytes16('Alipay')))
-
-      const methodInfo = await Market.read.method([bytes16('Alipay')])
-      assert.ok(methodInfo.exists)
-      assert.strictEqual(methodInfo.group, 0)
+      const methods = await Market.read.methods([bytes16('Alipay')])
+      assert.strictEqual(methods, true)
     })
 
     test('addMethods() should revert if not owner', async () => {
       await viem.assertions.revertWithCustomError(
-        Market.write.addMethods([[bytes16('Alipay')], [0]], { account: nobody }),
+        Market.write.addMethods([[bytes16('Alipay')]], { account: nobody }),
         Market,
         'OwnableUnauthorizedAccount'
       )
@@ -123,14 +120,10 @@ describe('Market', () => {
     test('removeMethods() should remove method', async () => {
       await Market.write.removeMethods([[bytes16('Alipay')]], { account: admin })
 
-      const methods = await Market.read.getMethods()
-      assert.ok(!methods.some((m: any) => m === bytes16('Alipay')))
+      const methods = await Market.read.methods([bytes16('Alipay')])
+      assert.strictEqual(methods, true)
 
-      await viem.assertions.revertWithCustomError(
-        Market.read.method([bytes16('Alipay')]),
-        Market,
-        'InvalidMethod'
-      )
+      await viem.assertions.emit(Market.read.method([bytes16('Alipay')]), Market, 'MethodRemoved')
     })
   })
 
@@ -342,8 +335,8 @@ describe('Market', () => {
       assert.strictEqual(info.decimals, 6)
     })
 
-    test('getTokens() should return list of tokens', async () => {
-      const tokens = await Market.read.getTokens()
+    test('gettoken() should return list of tokens', async () => {
+      const tokens = await Market.read.gettoken()
       assert.ok(tokens.length > 0)
     })
 
