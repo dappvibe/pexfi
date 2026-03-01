@@ -2,7 +2,7 @@
 pragma solidity 0.8.34;
 
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
@@ -14,9 +14,6 @@ import {FinderInterface} from "@uma/core/contracts/data-verification-mechanism/i
 
 import {FullMath} from "./libraries/FullMath.sol";
 import {TickMath} from "./libraries/TickMath.sol";
-import {Tokens} from "./libraries/Tokens.sol";
-import {Methods} from "./libraries/Methods.sol";
-import {Fiats} from "./libraries/Fiats.sol";
 
 import {IMarket} from "./interfaces/IMarket.sol";
 import {IOffer} from "./interfaces/IOffer.sol";
@@ -27,26 +24,28 @@ import {IChainlink} from "./interfaces/IChainlink.sol";
 
 contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
 {
-  using SafeERC20 for IERC20Metadata;
-  using Tokens  for Tokens.Storage;
-  using Fiats   for Fiats.Storage;
-  using Methods for Methods.Storage;
+  using SafeERC20 for IERC20;
 
   FinderInterface public finder;
 
-  Tokens.Storage  private tokens;
-  Fiats.Storage   private fiats;
-  Methods.Storage private methods;
+  mapping(IERC20 => Token)        public tokens;
+  mapping(bytes3  => IChainlink)  public fiats;
 
+  /**
+   * Offers may accept multiple methods.
+   */
+  bytes16[] public methods;
+  uint256 private disabledMethodsMask;
+
+  uint8 public fee;
   mapping(address => bool) public offers;
   mapping(address => bool) public deals;
-  uint8 public fee;
 
-  IERC20Metadata public immutable USDC;
+  IERC20 public immutable USDC;
 
   /// @custom:oz-upgrades-unsafe-allow constructor
-  constructor(address usdc_) {
-    USDC = IERC20Metadata(usdc_);
+  constructor(IERC20 usdc_) {
+    USDC = usdc_;
     _disableInitializers();
   }
 
@@ -54,32 +53,66 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     __Ownable_init(msg.sender);
     finder = FinderInterface(finder_);
   }
-
   function _authorizeUpgrade(address) internal onlyOwner override {}
 
+  /**
+   * Admin configuration methods.
+   */
   function setFee(uint8 fee_) public onlyOwner {fee = fee_;}
 
+  function addToken(IERC20 address_, Token calldata token_) external onlyOwner {
+    tokens[address_] = token_;
+    emit TokenAdded(address_);
+  }
+  function removeToken(IERC20 address_) external onlyOwner {
+    delete tokens[address_];
+    emit TokenRemoved(address_);
+  }
+
+  function addFiat(bytes3 symbol_, IChainlink chainlink_) external onlyOwner {
+    fiats[symbol_] = chainlink_;
+    emit FiatAdded(symbol_, chainlink_);
+  }
+  function removeFiat(bytes3 symbol_) external onlyOwner {
+    delete fiats[symbol_];
+    emit FiatRemoved(symbol_);
+  }
+
+  function addMethods(bytes16[] calldata names_) external onlyOwner {
+    for (uint i = 0; i < names_.length; i++) {
+      methods.push(names_[i]);
+      emit MethodAdded(names_[i]);
+    }
+  }
+  function disableMethods(uint256 mask) external onlyOwner {
+    disabledMethodsMask |= mask;
+    emit MethodsDisabledMask(disabledMethodsMask);
+  }
+  function enableMethods(uint256 mask) external onlyOwner {
+    disabledMethodsMask &= ~mask;
+    emit MethodsDisabledMask(disabledMethodsMask);
+  }
+
   /**
-   * Business logic.
+   * Offers/Deals Registry.
    */
   function createOffer(IOffer.OfferParams calldata params) external {
-    // validate token, fiat and methods are supported
-    token(params.token);
-    fiat(params.fiat);
-    method(params.method);
+    if (address(tokens[params.token].pool) == address(0)) revert InvalidToken(params.token);
+    if (address(fiats[params.fiat]) == address(0))        revert InvalidFiat(params.fiat);
+    if ((params.methods & disabledMethodsMask) != 0)      revert InvalidMethod(params.methods & disabledMethodsMask);
 
     address impl = finder.getImplementationAddress(FinderConstants.OfferImplementation);
     IOffer offer = IOffer(Clones.clone(impl));
     offer.initialize(msg.sender, params);
 
-    require(!offers[address(offer)], IMarket.InvalidArgument());
+    require(!offers[address(offer)], InvalidArgument());
     offers[address(offer)] = true;
 
     emit OfferCreated(msg.sender, params.token, params.fiat, offer);
   }
 
   function addDeal(IDeal deal, string calldata terms, string calldata paymentInstructions) external {
-    require(offers[msg.sender], IMarket.UnauthorizedAccount(msg.sender));
+    require(offers[msg.sender], UnauthorizedAccount(msg.sender));
     deals[address(deal)] = true;
 
     IOffer offer = IOffer(deal.offer());
@@ -88,70 +121,18 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     profile.grantRole("DEAL_ROLE", address(deal));
   }
 
-  /// @dev Method is in Market so that users provide allowance in single place instead of each Deal
+  /// @dev Method is in Market so that users provide allowance in single place instead of each Offer
   function fundDeal() external {
     require(deals[msg.sender], UnauthorizedAccount(msg.sender));
 
-    IDeal $deal = IDeal(msg.sender);
-    require($deal.state() == IDeal.State.Accepted, IDeal.ActionNotAllowedInThisState(IDeal.State.Accepted));
+    IDeal deal = IDeal(msg.sender);
+    require(deal.state() == IDeal.State.Accepted, IDeal.ActionNotAllowedInThisState(IDeal.State.Accepted));
 
-    IOffer $offer = IOffer($deal.offer());
-    IERC20Metadata $token = token($offer.token()).api;
+    IOffer offer = IOffer(deal.offer());
+    IERC20 token = IERC20(offer.token());
 
-    address seller = $offer.isSell() ? $offer.owner() : $deal.taker();
-    $token.safeTransferFrom(seller, address($deal), $deal.tokenAmount());
-  }
-
-  /**
-   * Inventory management.
-   */
-
-  function addTokens(address[] calldata tokens_, uint16 uniswapPoolFee) external onlyOwner {
-    for (uint i = 0; i < tokens_.length; i++) {
-      tokens.add(tokens_[i], uniswapPoolFee);
-    }
-  }
-
-  function removeTokens(bytes8[] calldata token_) external onlyOwner {
-    for (uint i = 0; i < token_.length; i++) {
-      tokens.remove(token_[i]);
-    }
-  }
-
-  function token(bytes8 symbol_) public view returns (Tokens.Token memory) {return tokens.get(symbol_);}
-
-  function getTokens() public view returns (bytes8[] memory) {return tokens.list();}
-
-  function fiat(bytes3 symbol_) public view returns (IChainlink) {return fiats.get(symbol_);}
-
-  function getFiats() public view returns (bytes3[] memory) {return fiats.list();}
-
-  function method(bytes16 name_) public view returns (Methods.Method memory) {return methods.get(name_);}
-
-  function getMethods() public view returns (bytes16[] memory) {return methods.list();}
-
-  function addFiats(Fiats.Fiat[] calldata fiats_) external onlyOwner {
-    for (uint i = 0; i < fiats_.length; i++) {
-      fiats.add(fiats_[i]);
-    }
-  }
-
-  function removeFiats(bytes3[] calldata fiat_) external onlyOwner {
-    for (uint i = 0; i < fiat_.length; i++) {
-      fiats.remove(fiat_[i]);
-    }
-  }
-
-  function addMethods(bytes16[] calldata names_, Methods.Group[] calldata groups_) external onlyOwner {
-    for (uint i = 0; i < names_.length; i++) {
-      methods.add(names_[i], groups_[i]);
-    }
-  }
-
-  function removeMethods(bytes16[] calldata names_) external onlyOwner {
-    for (uint i = 0; i < names_.length; i++) {
-      methods.remove(names_[i]);
-    }
+    address seller = offer.isSell() ? offer.owner() : deal.taker();
+    token.safeTransferFrom(seller, address(deal), deal.tokenAmount());
   }
 
   /**
@@ -161,48 +142,40 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
   /// @param amount_ must have 6 decimals as a fiat amount
   /// @param denominator ratio (4 decimal) to apply to resulting amount
   /// @return amount of tokens in precision of given token // FIXME precision is not respected
-  function convert(uint amount_, bytes3 fromFiat_, bytes8 toToken_, uint denominator)
+  function convert(uint amount_, bytes3 fromFiat_, IERC20 toToken_, uint denominator)
   public view
   returns (uint256 amount)
   {
-    if (fromFiat_ == bytes3("USD") && toToken_ == bytes8("USDC"))
+    if (fromFiat_ == bytes3("USD") && address(toToken_) == address(USDC))
       return FullMath.mulDiv(amount_, 10 ** 4, denominator);
 
-    uint decimals = tokens.get(toToken_).decimals;
+    uint decimals = tokens[toToken_].decimals;
     amount = FullMath.mulDiv(amount_, 10 ** decimals, getPrice(toToken_, fromFiat_));
     return FullMath.mulDiv(amount, 10 ** 4, denominator);
   }
 
   /// @return price with 6 decimals
-  function getPrice(bytes8 token_, bytes3 fiat_) public view returns (uint256 price) {
-    if (token_ != bytes8("USDC")) {
-      price = _uniswapRateForUSD(tokens.get(token_));
+  function getPrice(IERC20 token_, bytes3 fiat_) public view returns (uint256 price) {
+    // first fetch market TWAP for Uniswap pool of token/USDC
+    if (address(token_) != address(USDC)) {
+      Token memory token = tokens[token_];
+      uint32[] memory secs = new uint32[](2);
+      secs[0] = 300;
+      secs[1] = 0;
+      (int56[] memory tickCumulatives,) = token.pool.observe(secs);
+      int56 tickCumulativesDelta = tickCumulatives[1] - tickCumulatives[0];
+      uint160 sqrtPriceX96 = TickMath.getSqrtPriceAtTick(int24(tickCumulativesDelta / 300));
+
+      // price of token_ in USDC (6 decimals)
+      price = FullMath.mulDiv(uint256(sqrtPriceX96) * uint256(sqrtPriceX96), 10 ** token.decimals, 1 << 192);
     } else {
       price = 10 ** 6;
     }
 
-    if (fiat_ != bytes3("USD")) {
-      (, int $fiatToUSD,,,) = fiats.get(fiat_).latestRoundData();
-      require($fiatToUSD > 0, IMarket.InvalidArgument());
+    if (fiat_ != bytes3("USD")) { // 0 is USD
+      (, int $fiatToUSD,,,) = fiats[fiat_].latestRoundData();
+      require($fiatToUSD > 0, InvalidArgument());
       price = price * 10 ** 8 / uint($fiatToUSD);
     }
-  }
-
-  /// @return price of token_ in USDC (6 decimals)
-  function _uniswapRateForUSD(Tokens.Token storage token_) internal view returns (uint) {
-    IUniswapV3Pool pool = IUniswapV3Pool(IUniswapV3Factory(finder.getImplementationAddress(FinderConstants.Uniswap)).getPool(
-      address(token_.api),
-      address(USDC),
-      token_.uniswapPoolFee
-    ));
-
-    uint32[] memory secs = new uint32[](2);
-    secs[0] = 300;
-    secs[1] = 0;
-    (int56[] memory tickCumulatives,) = pool.observe(secs);
-    int56 tickCumulativesDelta = tickCumulatives[1] - tickCumulatives[0];
-    uint160 sqrtPriceX96 = TickMath.getSqrtPriceAtTick(int24(tickCumulativesDelta / 300));
-
-    return FullMath.mulDiv(uint256(sqrtPriceX96) * uint256(sqrtPriceX96), 10 ** token_.decimals, 1 << 192);
   }
 }

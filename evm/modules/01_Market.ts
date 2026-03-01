@@ -35,7 +35,7 @@ export default buildModule('Market', (m) => {
   // post-deploy data population
   m.call(Market, 'addTokens', [m.getParameter('addTokens_0'), m.getParameter('addTokens_1')])
   m.call(Market, 'addFiats', [m.getParameter('fiats')])
-  m.call(Market, 'addMethods', [m.getParameter('methodNames'), m.getParameter('methodGroups')])
+  m.call(Market, 'addMethods', [m.getParameter('methodNames')])
 
   // link it all together via Finder
   m.call(Finder, 'changeImplementationAddress', [bytes32('OfferImplementation'), OfferImplementation], {

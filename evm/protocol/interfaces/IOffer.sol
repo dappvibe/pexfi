@@ -2,6 +2,7 @@
 pragma solidity 0.8.34;
 
 import {IMarket} from "./IMarket.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface IOffer {
   error InvalidRate();
@@ -17,9 +18,9 @@ interface IOffer {
     bool isSell;
     uint16 rate;
     Limits limits;
-    bytes8 token;
+    IERC20 token;
     bytes3 fiat;
-    bytes16 method;
+    uint256 methods;
     string terms;
   }
 
@@ -52,9 +53,9 @@ interface IOffer {
 
   function disabled() external view returns (bool);
 
-  function token() external view returns (bytes8);
+  function token() external view returns (IERC20);
 
-  function method() external view returns (bytes16);
+  function methods() external view returns (uint256);
 
   function limits() external view returns (uint32 min, uint32 max);
 
