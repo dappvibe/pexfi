@@ -19,7 +19,13 @@ export default function OfferPage() {
     fetchPrice: true,
     fetchAllowance: true,
   })
-  const isOwner = offer?.owner?.toLowerCase() === account.address?.toLowerCase()
+
+  const [form] = Form.useForm()
+  const [lockButton, setLockButton] = useState(false)
+
+  if (!offer) return <Skeleton active />
+
+  const isOwner = account.address && offer.owner.toLowerCase() === account.address.toLowerCase()
 
   async function approve() {
     if (allowance > 0 || offer.isSell) return Promise.resolve()
@@ -77,7 +83,6 @@ export default function OfferPage() {
     setLockButton(false)
   }
 
-  const [form] = Form.useForm()
   const syncTokenAmount = (fiat) => {
     const value = fiat.length > 0 ? (fiat / offer.price).toFixed(8) : ''
     form.setFieldValue('tokenAmount', value)
@@ -88,7 +93,6 @@ export default function OfferPage() {
     form.validateFields(['fiatAmount'])
   }
 
-  const [lockButton, setLockButton] = useState(false)
   let submit = (
     <Button type={'primary'} htmlType="submit" loading={lockButton} disabled={!account}>
       Open Deal
@@ -110,8 +114,6 @@ export default function OfferPage() {
       </Button>
     )
   }
-
-  if (!offer) return <Skeleton active />
 
   if (isOwner) {
     return (

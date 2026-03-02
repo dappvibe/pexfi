@@ -1,28 +1,30 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAccount, useChainId } from 'wagmi'
+import { padHex } from 'viem'
 import { useContract } from '@/hooks/useContract'
 import OfferModel from '@/model/Offer.js'
 import { ERC20, Offer } from '@/types'
+
+import { abi as ERC20Abi } from '@artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
+import { ethers } from 'ethers'
 
 interface UseOfferOptions {
   fetchPrice?: boolean
   fetchAllowance?: boolean
 }
 
-export function useOffer(
-  offerId: string | undefined,
-  { fetchPrice = false, fetchAllowance = false }: UseOfferOptions = {}
-) {
+export function useOffer(offerId: string, options: UseOfferOptions = {}) {
+  const { fetchPrice = false, fetchAllowance = false } = options
+  const [offer, setOffer] = useState<any>(null)
+  const [allowance, setAllowance] = useState<bigint>(0n)
+  const [refetchTrigger, setRefetchTrigger] = useState(0)
+  const token = useRef<ERC20 | null>(null)
   const chainId = useChainId()
   const account = useAccount()
-  const { Market, Offer: OfferContract, Token, signed } = useContract()
-  const [offer, setOffer] = useState<OfferModel | null>(null)
-  const [allowance, setAllowance] = useState(0)
-  const token = useRef<ERC20 | null>(null)
-  const [refetchTrigger, setRefetchTrigger] = useState(0)
+  const { signed, Market, Offer: OfferContract, Token } = useContract()
 
   const refetch = useCallback(() => {
-    setRefetchTrigger((n) => n + 1)
+    setRefetchTrigger((prev) => prev + 1)
   }, [])
 
   useEffect(() => {
@@ -31,46 +33,50 @@ export function useOffer(
       return
     }
 
-    OfferModel.fetch(OfferContract.attach(offerId)).then(async (offer) => {
-      if (!offer) {
-        setOffer(null)
-        return
-      }
+    const fetchData = async () => {
+      try {
+        const offer = await OfferModel.fetch(OfferContract.attach(offerId))
+        if (!offer) {
+          setOffer(null)
+          return
+        }
 
-      const promises = []
+        const promises = []
 
-      if (fetchPrice) {
-        promises.push(
-          Market.getPrice(offer.token, offer.fiat).then((price) => {
-            offer.setPairPrice(price)
-          })
-        )
-      }
+        if (fetchPrice) {
+          const fiatBytes3 = padHex(offer.fiat as `0x${string}`, { size: 3, dir: 'right' })
+          promises.push(
+            Market.getPrice(offer.token, fiatBytes3).then((price) => {
+              offer.setPairPrice(price)
+            })
+          )
+        }
 
-      if (fetchAllowance && account.address && !offer.isSell) {
-        promises.push(
-          Market.token(offer.token).then(([address]) => {
-            token.current = Token.attach(address) as ERC20
-            return token.current.allowance(account.address, Market.target).then((res) => {
+        if (fetchAllowance && account.address && !offer.isSell) {
+          token.current = new ethers.Contract(offer.token, ERC20Abi, Market.runner) as unknown as ERC20
+          promises.push(
+            token.current.allowance(account.address, Market.target).then((res) => {
               setAllowance(res)
             })
-          })
-        )
-      }
+          )
+        }
 
-      await Promise.all(promises)
-      setOffer(offer)
-    })
+        await Promise.all(promises)
+        setOffer(offer)
+      } catch (e) {
+        console.error('useOffer fetch error:', e)
+        setOffer(null)
+      }
+    }
+
+    fetchData()
   }, [offerId, chainId, account?.address, fetchPrice, fetchAllowance, Market, OfferContract, Token, refetchTrigger])
 
   const setRate = useCallback(
     async (rate: number) => {
-      if (!offer) throw new Error('No offer')
-      const rateInt = Math.floor((1 + rate / 100) * 10 ** 4)
-      if (Math.floor(offer.rate * 10 ** 4) === rateInt) return
-
-      const o = (await signed(OfferContract.attach(offer.address))) as Offer
-      const tx = await o.setRate(rateInt)
+      if (!offer) return
+      const contract = (await signed(OfferContract.attach(offer.address))) as Offer
+      const tx = await contract.setRate(Math.floor(rate * 10 ** 4))
       await tx.wait()
       refetch()
     },
@@ -79,12 +85,9 @@ export function useOffer(
 
   const setLimits = useCallback(
     async (min: number, max: number) => {
-      if (!offer) throw new Error('No offer')
-      const minInt = Math.floor(min)
-      const maxInt = Math.ceil(max)
-      const o = (await signed(OfferContract.attach(offer.address))) as Offer
-      // @ts-ignore generated LimitsStruct is wrong, an array works
-      const tx = await o.setLimits([minInt, maxInt])
+      if (!offer) return
+      const contract = (await signed(OfferContract.attach(offer.address))) as Offer
+      const tx = await contract.setLimits({ min: BigInt(min), max: BigInt(max) })
       await tx.wait()
       refetch()
     },
@@ -93,9 +96,9 @@ export function useOffer(
 
   const setTerms = useCallback(
     async (terms: string) => {
-      if (!offer) throw new Error('No offer')
-      const o = (await signed(OfferContract.attach(offer.address))) as Offer
-      const tx = await o.setTerms(terms)
+      if (!offer) return
+      const contract = (await signed(OfferContract.attach(offer.address))) as Offer
+      const tx = await contract.setTerms(terms)
       await tx.wait()
       refetch()
     },
@@ -103,9 +106,9 @@ export function useOffer(
   )
 
   const toggleDisabled = useCallback(async () => {
-    if (!offer) throw new Error('No offer')
-    const o = (await signed(OfferContract.attach(offer.address))) as Offer
-    const tx = await o.setDisabled(!offer.disabled)
+    if (!offer) return
+    const contract = (await signed(OfferContract.attach(offer.address))) as Offer
+    const tx = await contract.setDisabled(!offer.disabled)
     await tx.wait()
     refetch()
   }, [offer, signed, OfferContract, refetch])

@@ -1,6 +1,7 @@
 import { Button, Col, Form, Input, InputNumber, message, Radio, Row, Select, Skeleton, Space } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import React, { useRef } from 'react'
+import { padHex, stringToHex } from 'viem'
 import { useContract } from '@/hooks/useContract'
 import { useInventory } from '@/hooks/useInventory'
 
@@ -75,9 +76,9 @@ export default function OfferForm({ offer = null, setRate, setLimits, setTerms, 
 
     const params = {
       isSell: val.isSell,
-      token: val.token,
-      fiat: val.fiat,
-      method: val.method,
+      token: tokens[val.token].address,
+      fiat: padHex(stringToHex(val.fiat), { size: 3, dir: 'right' }),
+      methods: 1n << BigInt(methods[val.method].index),
       rate: val.rate,
       limits: { min: val.min, max: val.max },
       terms: val.terms,
@@ -102,14 +103,21 @@ export default function OfferForm({ offer = null, setRate, setLimits, setTerms, 
   }
 
   async function fetchRate() {
-    const token = form.getFieldValue('token')
+    const symbol = form.getFieldValue('token')
     const fiat = form.getFieldValue('fiat')
-    if (token && fiat) {
-      // FIXME store market rate somewhere, not from current
-      let price: number | string = Number(await Market.getPrice(token, fiat))
-      price = (price / 10 ** 6).toFixed(2)
-      marketPrice.current = price
-      previewPrice()
+    if (symbol && fiat) {
+      const token = tokens[symbol]
+      if (!token) return
+
+      const fiatBytes3 = padHex(stringToHex(fiat), { size: 3, dir: 'right' })
+      try {
+        let price: number | string = Number(await Market.getPrice(token.address, fiatBytes3))
+        price = (price / 10 ** 6).toFixed(2)
+        marketPrice.current = price
+        previewPrice()
+      } catch (e) {
+        console.error('fetchRate error:', e)
+      }
     }
   }
 
@@ -143,10 +151,9 @@ export default function OfferForm({ offer = null, setRate, setLimits, setTerms, 
             <Form.Item name="token" label={'token'} rules={required} initialValue={offer ? offer.token : undefined}>
               <Select showSearch style={{ width: 85 }} onChange={fetchRate} disabled={!!offer}>
                 {Object.keys(tokens).map((key) => {
-                  const token = tokens[key]
                   return (
-                    <Select.Option key={token.address} value={token.symbol}>
-                      {token.symbol}
+                    <Select.Option key={key} value={key}>
+                      {key}
                     </Select.Option>
                   )
                 })}
@@ -166,10 +173,9 @@ export default function OfferForm({ offer = null, setRate, setLimits, setTerms, 
             <Form.Item name="method" label={'using'} rules={required} initialValue={offer ? offer.method : undefined}>
               <Select showSearch placeholder={'Payment method'} disabled={!!offer}>
                 {Object.keys(methods).map((key) => {
-                  const method = methods[key]
                   return (
                     <Select.Option key={key} value={key}>
-                      {method.name}
+                      {key}
                     </Select.Option>
                   )
                 })}
@@ -185,7 +191,7 @@ export default function OfferForm({ offer = null, setRate, setLimits, setTerms, 
               name="rate"
               label={'Margin'}
               rules={required}
-              initialValue={offer ? ((offer.rate - 1) * 100).toFixed(2) : undefined}
+              initialValue={offer ? (offer.rate - 1) * 100 : undefined}
             >
               <InputNumber
                 style={{ width: 120 }}
