@@ -1,98 +1,133 @@
 import { renderHook, waitFor } from '@testing-library/react'
 import { useInventory } from '@/hooks/useInventory'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { pad, stringToHex } from 'viem'
-import * as wagmi from 'wagmi'
+import { MockedProvider } from '@apollo/client/testing/react'
+import { gql } from '@apollo/client'
 
-// Mock generated abi
-vi.mock('@/wagmi', () => ({
-  marketAbi: [],
-}))
+const GET_INVENTORY = gql`
+  query GetInventory {
+    tokens(where: { removed: false }) {
+      id
+      address
+      name
+      symbol
+      decimals
+    }
+    fiats(where: { removed: false }) {
+      id
+      symbol
+    }
+    methods(where: { disabled: false }) {
+      id
+      name
+      index
+    }
+  }
+`
 
-// Mock addresses
-vi.mock('@contracts/addresses.json', () => ({
-  default: {
-    31337: {
-      'Market#Market': '0xMarketAddress',
+const inventoryMock = {
+  request: {
+    query: GET_INVENTORY,
+  },
+  result: {
+    data: {
+      tokens: [
+        {
+          __typename: 'Token',
+          id: '0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0',
+          address: '0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0',
+          name: 'MockUSDC',
+          symbol: 'USDC',
+          decimals: 6,
+        },
+        {
+          __typename: 'Token',
+          id: '0xdc64a140aa3e981100a9beca4e685f962f0cf6c9',
+          address: '0xdc64a140aa3e981100a9beca4e685f962f0cf6c9',
+          name: 'MockWETH',
+          symbol: 'WETH',
+          decimals: 18,
+        },
+      ],
+      fiats: [
+        {
+          __typename: 'Fiat',
+          id: '0x4555520000000000000000000000000000000000000000000000000000000000',
+          symbol: 'EUR',
+        },
+        {
+          __typename: 'Fiat',
+          id: '0x5553440000000000000000000000000000000000000000000000000000000000',
+          symbol: 'USD',
+        },
+      ],
+      methods: [
+        {
+          __typename: 'Method',
+          id: '0',
+          name: 'Bank Transfer',
+          index: '0',
+        },
+      ],
     },
   },
-}))
-
-// Mock wagmi
-vi.mock('wagmi', async (importOriginal) => {
-  return {
-    ...(await importOriginal<typeof import('wagmi')>()),
-    useChainId: () => 31337,
-    useReadContracts: vi.fn(),
-  }
-})
-
-const mockReadContracts = vi.mocked(wagmi.useReadContracts)
+}
 
 describe('useInventory', () => {
-  let queryClient: QueryClient
-
-  beforeEach(() => {
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: {
-          retry: false,
-          gcTime: 0,
-        },
-      },
-    })
-    mockReadContracts.mockClear()
-  })
-
-  const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  )
-
-  it('fetches and transforms inventory data correctly', async () => {
-    // Setup Mocks
-    const mockTokens = [{ address: '0xTokenAddress', symbol: 'TEST', name: 'Test Token', decimals: 18n }]
-    // USD bytes32
-    const mockFiats = [pad(stringToHex('USD'), { size: 32, dir: 'right' })]
-    const mockMethods = [{ name: 'Bank Transfer', group: 1n }]
-
-    mockReadContracts.mockImplementation(({ query }: any) => {
-      const rawData = [mockTokens, mockFiats, mockMethods]
-      const data = query?.select ? query.select(rawData) : rawData
-      return { data, isLoading: false }
-    })
+  it('fetches and transforms inventory data correctly from subgraph', async () => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <MockedProvider mocks={[inventoryMock]} addTypename={true}>
+        {children}
+      </MockedProvider>
+    )
 
     const { result } = renderHook(() => useInventory(), { wrapper })
 
     // Wait for data to be loaded
-    await waitFor(() => expect(result.current.tokens).not.toEqual({}))
+    await waitFor(() => expect(result.current.loading).toBe(false))
 
     // Validation
     const { tokens, fiats, methods } = result.current
 
     // Check Tokens
-    expect(tokens['TEST']).toBeDefined()
-    expect(tokens['TEST'].address).toBe('0xTokenAddress')
-    expect(tokens['TEST'].symbol).toBe('TEST')
-    expect(tokens['TEST'].decimals).toBe(18n)
+    expect(tokens['USDC']).toBeDefined()
+    expect(tokens['USDC'].symbol).toBe('USDC')
+    expect(tokens['USDC'].decimals).toBe(6)
 
-    // Check Fiats (decoded)
+    expect(tokens['WETH']).toBeDefined()
+    expect(tokens['WETH'].decimals).toBe(18)
+
+    // Check Fiats
     expect(fiats).toContain('USD')
+    expect(fiats).toContain('EUR')
 
     // Check Methods
     expect(methods['Bank Transfer']).toBeDefined()
-    expect(methods['Bank Transfer'].group).toBe(1n)
+    expect(methods['Bank Transfer'].index).toBe('0')
   })
 
   it('handles empty data gracefully', async () => {
-    mockReadContracts.mockImplementation(({ query }: any) => {
-      const rawData = [[], [], []]
-      const data = query?.select ? query.select(rawData) : rawData
-      return { data, isLoading: false }
-    })
+    const emptyMock = {
+      request: {
+        query: GET_INVENTORY,
+      },
+      result: {
+        data: {
+          tokens: [],
+          fiats: [],
+          methods: [],
+        },
+      },
+    }
+
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <MockedProvider mocks={[emptyMock]} addTypename={true}>
+        {children}
+      </MockedProvider>
+    )
 
     const { result } = renderHook(() => useInventory(), { wrapper })
 
-    await waitFor(() => expect(result.current).toBeDefined())
+    await waitFor(() => expect(result.current.loading).toBe(false))
 
     expect(result.current.tokens).toEqual({})
     expect(result.current.fiats).toEqual([])
