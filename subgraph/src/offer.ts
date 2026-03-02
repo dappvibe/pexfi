@@ -1,11 +1,48 @@
 import {OfferUpdated} from "../../.cache/subgraph/generated/templates/Offer/Offer";
-import {Offer as OfferEntity, Offer, Token} from "../../.cache/subgraph/generated/schema";
+import {Offer as OfferEntity, Token} from "../../.cache/subgraph/generated/schema";
 import {Offer as OfferContract} from "../../.cache/subgraph/generated/Market/Offer"
-import {Address, dataSource, log} from '@graphprotocol/graph-ts';
+import {Token as TokenContract} from "../../.cache/subgraph/generated/Market/Token"
+import {Address, BigInt, Bytes, dataSource} from '@graphprotocol/graph-ts';
 import {Market as MarketContract} from "../../.cache/subgraph/generated/Market/Market";
+import {Finder as FinderContract} from "../../.cache/subgraph/generated/Market/Finder";
 import {getRangingModifier, updateProfileFor} from "./profile";
 
-export function fetchAndSaveOffer(target: Address, market: Address): Offer {
+export function fetchToken(tokenAddress: Address): Token {
+  let tokenId = tokenAddress.toHexString();
+  let token = Token.load(tokenId);
+  if (!token) {
+    token = new Token(tokenId);
+    token.address = tokenAddress;
+
+    let tokenContract = TokenContract.bind(tokenAddress);
+
+    let symbolResult = tokenContract.try_symbol();
+    if (!symbolResult.reverted) {
+      token.symbol = symbolResult.value;
+    } else {
+      token.symbol = "UNKNOWN";
+    }
+
+    let nameResult = tokenContract.try_name();
+    if (!nameResult.reverted) {
+      token.name = nameResult.value;
+    } else {
+      token.name = "Unknown Token";
+    }
+
+    let decimalsResult = tokenContract.try_decimals();
+    if (!decimalsResult.reverted) {
+      token.decimals = decimalsResult.value;
+    } else {
+      token.decimals = 18;
+    }
+
+    token.save();
+  }
+  return token;
+}
+
+export function fetchAndSaveOffer(target: Address, market: Address): OfferEntity {
   let offerContract = OfferContract.bind(target);
   let offer = new OfferEntity(target.toHex());
 
@@ -23,19 +60,8 @@ export function fetchAndSaveOffer(target: Address, market: Address): Offer {
 
   let tokenResult = offerContract.try_token();
   if (!tokenResult.reverted) {
-    let tokenKey = tokenResult.value;
-    let tokenId = tokenKey.toHexString();
-    let token = Token.load(tokenId);
-    if (!token) {
-      let marketTokenResult = marketContract.try_token(tokenKey);
-      if (!marketTokenResult.reverted) {
-        token = new Token(tokenId);
-        token.address = marketTokenResult.value.api;
-        token.decimals = marketTokenResult.value.decimals;
-        token.save();
-      }
-    }
-    if (token) offer.token = token.id;
+    let token = fetchToken(tokenResult.value);
+    offer.token = token.id;
   }
 
   let fiatResult = offerContract.try_fiat();
@@ -43,9 +69,9 @@ export function fetchAndSaveOffer(target: Address, market: Address): Offer {
     offer.fiat = fiatResult.value;
   }
 
-  let methodResult = offerContract.try_method();
-  if (!methodResult.reverted) {
-    offer.method = methodResult.value;
+  let methodsResult = offerContract.try_methods();
+  if (!methodsResult.reverted) {
+    offer.methods = methodsResult.value;
   }
 
   let rateResult = offerContract.try_rate();
@@ -69,17 +95,23 @@ export function fetchAndSaveOffer(target: Address, market: Address): Offer {
     offer.disabled = disabledResult.value;
   }
 
-  let profileResult = marketContract.try_profile();
-  let profileAddress = profileResult.value;
-
-  const profile = updateProfileFor(profileAddress, Address.fromBytes(offer.owner));
-  offer.profile = profile ? profile.id : null;
-  if (offer.isSell) {
-    // ASC sorting, lowest first, so decrease goodstanding
-    offer.ranging = offer.rate * 100 / getRangingModifier(profile);
-  } else {
-    // DESC sorting, highest first so increase goodstanding
-    offer.ranging = offer.rate * getRangingModifier(profile);
+  let finderResult = marketContract.try_finder();
+  if (!finderResult.reverted) {
+    let finderContract = FinderContract.bind(finderResult.value);
+    let profileAddressResult = finderContract.try_getImplementationAddress(Bytes.fromHexString("0x50726f66696c6500000000000000000000000000000000000000000000000000") as Bytes);
+    if (!profileAddressResult.reverted) {
+      const profile = updateProfileFor(profileAddressResult.value, Address.fromBytes(offer.owner));
+      offer.profile = profile ? profile.id : null;
+      let modifier = BigInt.fromI32(getRangingModifier(profile));
+      let rate = BigInt.fromI32(offer.rate);
+      if (offer.isSell) {
+        // ASC sorting, lowest first, so decrease goodstanding
+        offer.ranging = rate.times(BigInt.fromI32(100)).div(modifier);
+      } else {
+        // DESC sorting, highest first so increase goodstanding
+        offer.ranging = rate.times(modifier);
+      }
+    }
   }
 
   offer.save();
