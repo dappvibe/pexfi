@@ -4,14 +4,15 @@ import { zeroAddress, stringToHex, padHex, ethAddress } from 'viem'
 const SIX_MONTHS = 6 * 30 * 24 * 60 * 60
 const TWO_YEARS = 2 * 365 * 24 * 60 * 60
 
-const bytes32 = (s) => stringToHex(s, { size: 32 })
+const bytes32 = (s: string) => padHex(stringToHex(s), { size: 32, dir: 'right' })
+const bytes16 = (s: string) => padHex(stringToHex(s), { size: 16, dir: 'right' })
+const bytes3 = (s: string) => padHex(stringToHex(s), { size: 3, dir: 'right' })
 
 export default buildModule('Market', (m) => {
   const Finder = m.contract('Finder')
 
   // --- Marketplace ---
   const OfferImplementation = m.contract('Offer', [], { id: 'OfferImplementation' })
-
   const DealImplementation = m.contract('Deal', [], { id: 'DealImplementation' })
 
   const ProfileImpl = m.contract('Profile', [], { id: 'ProfileV0' })
@@ -31,9 +32,20 @@ export default buildModule('Market', (m) => {
   const Market = m.contractAt('Market', MarketProxy)
 
   // post-deploy data population
-  m.call(Market, 'addTokens', [m.getParameter('addTokens_0'), m.getParameter('addTokens_1')])
-  m.call(Market, 'addFiats', [m.getParameter('fiats')])
-  m.call(Market, 'addMethods', [m.getParameter('methodNames')])
+  m.call(Market, 'addToken', [
+    m.getParameter('weth_address'),
+    { decimals: 18, pool: m.getParameter('weth_pool') },
+  ], { id: 'WETH' })
+  m.call(Market, 'addToken', [
+      m.getParameter('usdc'),
+      { decimals: 6, pool: ethAddress }, // any non-zero pool, USDC is never converted
+    ],
+    { id: 'USDC' }
+  )
+  // any non-zero address just to register entry, USD is never converted
+  m.call(Market, 'addFiat', [bytes3('USD'), ethAddress], { id: 'USD' })
+  m.call(Market, 'addFiat', [bytes3('EUR'), m.getParameter('eur_chainlink')], { id: 'EUR' })
+  m.call(Market, 'addMethods', [[bytes16('Bank Transfer')]])
 
   // link it all together via Finder
   m.call(Finder, 'changeImplementationAddress', [bytes32('OfferImplementation'), OfferImplementation], {
@@ -70,13 +82,12 @@ export default buildModule('Market', (m) => {
 
   // Parameters needed for FeeCollector
   const universalRouter = m.getParameter('uniswapUniversalRouter')
-  const weth = m.getParameter('weth')
 
   const feeCollector = m.contract('FeeCollector', [
     pexfiVault,
     pexfi,
     universalRouter,
-    weth,
+    m.getParameter('weth_address'),
     [zeroAddress, pexfi, 3000, 60, zeroAddress],
   ])
   m.call(Finder, 'changeImplementationAddress', [bytes32('FeeCollector'), feeCollector], {
