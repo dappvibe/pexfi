@@ -7,7 +7,6 @@ services:
       - subgraph
       - web
       - blockscout
-    entrypoint: exit
 
   # Blockchain
   evm:
