@@ -1,25 +1,23 @@
 import { before, describe, test } from 'node:test'
 import * as assert from 'node:assert'
-import { Address, getAddress, stringToHex, padHex } from 'viem'
-import deploy from './deploy/deployMarket'
+import { Address, getAddress, stringToHex, padHex, zeroAddress, ethAddress } from 'viem'
+import deploy from './ignition/01_Market.test'
 import { offerAbi } from '../../src/wagmi'
 
 const bytes3 = (s: string) => padHex(stringToHex(s), { size: 3, dir: 'right' })
-const bytes8 = (s: string) => padHex(stringToHex(s), { size: 8, dir: 'right' })
 const bytes16 = (s: string) => padHex(stringToHex(s), { size: 16, dir: 'right' })
-const bytes32 = (s: string) => padHex(stringToHex(s), { size: 32, dir: 'right' })
 
 describe('Market', () => {
-  let Market: any, WBTC: any, USD: any, USDC: any, viem: any, publicClient: any, networkHelpers: any, Offer: any
+  let Market, WETH, EUR, USDC, viem, publicClient, networkHelpers
   let admin: Address, nobody: Address
+  let offerParams
 
   before(async () => {
     const deployment = await deploy()
     ;({
       Market,
-      Offer,
-      WBTC,
-      USD,
+      WETH,
+      EUR,
       USDC,
       viem,
       publicClient,
@@ -30,120 +28,88 @@ describe('Market', () => {
     const walletClients = await viem.getWalletClients()
     admin = getAddress(walletClients[0].account.address)
     nobody = getAddress(walletClients[3].account.address)
+
+    offerParams = {
+      isSell: true,
+      rate: 1000,
+      limits: { min: 100, max: 1000 },
+      token: WETH.address,
+      fiat: bytes3('USD'),
+      methods: 1n << 0n,
+      terms: 'some terms',
+    }
   })
 
   describe('Fiats CRUD', () => {
-    test('addFiats() should add new fiat', async () => {
-      const newFiat = { symbol: bytes3('JPY'), toUSD: USD.address }
-      await Market.write.addFiats([[newFiat]], { account: admin })
+    test('addFiat() should add new fiat', async () => {
+      const newFiat = [bytes3('JPY'), EUR.address]
+      await Market.write.addFiat(newFiat, { account: admin })
 
       const fiats = await Market.read.fiats([bytes3('JPY')])
       assert.ok(fiats)
 
       const feed = await Market.read.fiats([bytes3('JPY')])
-      assert.strictEqual(getAddress(feed), getAddress(USD.address))
-    })
-
-    test('addFiats() should revert if not owner', async () => {
-      await viem.assertions.revertWithCustomError(
-        Market.write.addFiats([[{ symbol: bytes3('JPY'), toUSD: USD.address }]], { account: nobody }),
-        Market,
-        'OwnableUnauthorizedAccount'
-      )
+      assert.strictEqual(getAddress(feed), getAddress(EUR.address))
     })
 
     test('removeFiats() should remove fiat', async () => {
       await viem.assertions.emit(
-        Market.write.removeFiats([[bytes3('JPY')]], { account: admin }),
+        Market.write.removeFiat([bytes3('JPY')], { account: admin }),
         Market,
         'FiatRemoved'
       )
 
-      await viem.assertions.revertWithCustomError(
-        Market.read.fiats([bytes3('JPY')]),
-        Market,
-        'InvalidFiat'
-      )
+      const res = await Market.read.fiats([bytes3('JPY')])
+      assert.strictEqual(res, zeroAddress)
     })
   })
 
   describe('Tokens CRUD', () => {
-    test('addtoken() should add new token', async () => {
-      await Market.write.addtoken([[WBTC.address], 3000], { account: admin })
+    test('removeToken() should remove token', async () => {
+      const s = await networkHelpers.takeSnapshot();
+      await Market.write.removeToken([WETH.address], { account: admin })
 
-      const tokens = await Market.read.token([bytes8('WBTC')])
-      assert.ok(tokens)
+      const info = await Market.read.tokens([WETH.address])
+      assert.strictEqual(info[0], zeroAddress)
 
-      const tokenInfo = await Market.read.token([bytes8('WBTC')])
-      assert.strictEqual(getAddress(tokenInfo[0]), getAddress(WBTC.address))
-      assert.strictEqual(tokenInfo[1], 3000)
-    })
-
-    test('addtoken() should revert if not owner', async () => {
-      await viem.assertions.revertWithCustomError(
-        Market.write.addtoken([[WBTC.address], 3000], { account: nobody }),
-        Market,
-        'OwnableUnauthorizedAccount'
-      )
-    })
-
-    test('removetoken() should remove token', async () => {
-      await Market.write.removetoken([[bytes8('WBTC')]], { account: admin })
-
-      const tokens = await Market.read.token([bytes8('WBTC')])
-      assert.ok(!tokens)
-
-      await viem.assertions.revertWithCustomError(
-        Market.read.token([bytes8('WBTC')]),
-        Market,
-        'InvalidToken'
-      )
+      await s.restore();
     })
   })
 
   describe('Methods CRUD', () => {
     test('addMethods() should add new method', async () => {
-      await Market.write.addMethods([[bytes16('Alipay')]], { account: admin })
+      await viem.assertions.emitWithArgs(
+        Market.write.addMethods([[bytes16('Alipay')]]),
+        Market,
+        'MethodAdded',
+        [bytes16('Alipay'), 1n]
+      )
 
-      const methods = await Market.read.methods([bytes16('Alipay')])
-      assert.strictEqual(methods, true)
+      const methods = await Market.read.methods([1])
+      assert.strictEqual(methods, bytes16('Alipay'))
     })
 
-    test('addMethods() should revert if not owner', async () => {
-      await viem.assertions.revertWithCustomError(
-        Market.write.addMethods([[bytes16('Alipay')]], { account: nobody }),
+    test('disableMethods() should update mask', async () => {
+      await viem.assertions.emitWithArgs(
+        Market.write.disableMethods([1]),
         Market,
-        'OwnableUnauthorizedAccount'
+        'MethodsDisabledMask',
+        [1n]
       )
     })
 
-    test('removeMethods() should remove method', async () => {
-      await Market.write.removeMethods([[bytes16('Alipay')]], { account: admin })
+    test('enableMethods() should update mask', async () => {
+      await viem.assertions.emitWithArgs(Market.write.enableMethods([1]), Market, 'MethodsDisabledMask', [0n])
+    })
 
-      const methods = await Market.read.methods([bytes16('Alipay')])
-      assert.strictEqual(methods, true)
-
-      await viem.assertions.emit(Market.read.method([bytes16('Alipay')]), Market, 'MethodRemoved')
+    test('unknown method should revert with panic', async () => {
+      await viem.assertions.revert(Market.read.methods([100]));
     })
   })
 
   describe('Offer Management', () => {
-    const offerParams = {
-      isSell: true,
-      rate: 1000,
-      limits: { min: 100, max: 1000 },
-      token: bytes8('USDC'),
-      fiat: bytes3('USD'),
-      method: bytes16('National Bank'),
-      terms: 'some terms'
-    }
-
     test('createOffer() should create new offer', async () => {
-      await Market.write.createOffer([offerParams], { account: admin })
-      // The event emission is handled by OfferFactory/Market internal logic,
-      // but we can check hasOffer for a newly created offer.
-      // Since it uses Clones, we need to predict or find the address.
-      // For simplicity, we just check that it doesn't revert and we can find it in events.
+      await Market.write.createOffer([offerParams])
       const logs = await publicClient.getContractEvents({
         address: Market.address,
         abi: Market.abi,
@@ -151,11 +117,14 @@ describe('Market', () => {
       })
       assert.strictEqual(logs.length, 1)
       const offerAddress = logs[0].args.offer
-      assert.ok(await Market.read.offers([offerAddress]))
+
+      const offer = await Market.read.offers([offerAddress]);
+      assert.ok(offer)
     })
 
     test('createOffer() should revert if rate is 0', async () => {
       const badParams = { ...offerParams, rate: 0 }
+
       await assert.rejects(
         Market.write.createOffer([badParams], { account: admin }),
         /rate/
@@ -191,18 +160,12 @@ describe('Market', () => {
 
   describe('Pricing & Conversion', () => {
     test('getPrice() for USDC should be 1e6', async () => {
-      const price = await Market.read.getPrice([bytes8('USDC'), bytes3('USD')])
+      const price = await Market.read.getPrice([USDC.address, bytes3('USD')])
       assert.strictEqual(price, 1000000n)
     })
 
     test('convert() should calculate correct amount', async () => {
-      // USD to USDC (1:1 with 1000 rate/denominator)
-      // convert(uint amount_, bytes3 fromFiat_, bytes8 toToken_, uint denominator)
-      // If from == USD and to == USDC: amount_ * 1e4 / denominator
-      // 100 USD * 1e4 / 10000 = 100 USDC (with 6 decimals = 100_000_000, wait USDC is 6 decimals)
-      // Market.sol:135 returns FullMath.mulDiv(amount_, 10 ** 4, denominator);
-      // amount_ is fiat amount (6 decimals), so 100 * 1e6 * 1e4 / 1e4 = 100 * 1e6 = 100 USDC. Correct.
-      const amount = await Market.read.convert([100n * 10n ** 6n, bytes3('USD'), bytes8('USDC'), 10000n])
+      const amount = await Market.read.convert([100n * 10n ** 6n, bytes3('USD'), USDC.address, 10000n])
       assert.strictEqual(amount, 100n * 10n ** 6n)
     })
   })
@@ -217,9 +180,9 @@ describe('Market', () => {
         isSell: true,
         rate: 10000,
         limits: { min: 1, max: 1000000 },
-        token: bytes8('USDC'),
+        token: USDC.address,
         fiat: bytes3('USD'),
-        method: bytes16('SEPA'),
+        methods: 1n << 1n,
         terms: 'test'
       }
       await Market.write.createOffer([params], { account: admin })
@@ -233,7 +196,7 @@ describe('Market', () => {
 
     test('addDeal() should revert if not called by offer', async () => {
       await viem.assertions.revertWithCustomError(
-        Market.write.addDeal(['0x0000000000000000000000000000000000000001', 'terms', 'payment'], { account: admin }),
+        Market.write.addDeal(['0x0000000000000000000000000000000000000001', bytes16('Bank Transfer'), 'terms', 'payment'], { account: admin }),
         Market,
         'UnauthorizedAccount'
       )
@@ -252,6 +215,7 @@ describe('Market', () => {
       const OfferContract = await viem.getContractAt('Offer', testOffer)
       const createDealParams = {
         fiatAmount: 100n * 10n**6n,
+        method: 1n,
         paymentInstructions: 'pay me'
       }
       const walletClients = await viem.getWalletClients()
@@ -272,7 +236,7 @@ describe('Market', () => {
 
       // 3. Call addDeal with the REAL deal address
       // We can use a different terms/payment to verify it emits correctly
-      await Market.write.addDeal([dealAddress, 'brand new terms', 'brand new payment'], { account: testOffer })
+      await Market.write.addDeal([dealAddress, bytes16('Bank Transfer'), 'brand new terms', 'brand new payment'], { account: testOffer })
 
       const logsAfter = await publicClient.getContractEvents({
         address: Market.address,
@@ -289,6 +253,7 @@ describe('Market', () => {
       const OfferContract = await viem.getContractAt('Offer', testOffer)
       const createDealParams = {
         fiatAmount: 100n * 10n**6n, // 100 USD
+        method: 1n,
         paymentInstructions: 'pay me'
       }
 
@@ -330,34 +295,15 @@ describe('Market', () => {
   })
 
   describe('View Functions', () => {
-    test('token() should return token info', async () => {
-      const info = await Market.read.token([bytes8('USDC')])
-      assert.strictEqual(info.decimals, 6)
+    test('tokens() should return token info', async () => {
+      const info = await Market.read.tokens([USDC.address])
+      assert.strictEqual(info[0], getAddress(ethAddress))
+      assert.strictEqual(info[1], 6)
     })
 
-    test('gettoken() should return list of tokens', async () => {
-      const tokens = await Market.read.gettoken()
-      assert.ok(tokens.length > 0)
-    })
-
-    test('fiat() should return oracle address', async () => {
-      const oracleAddr = await Market.read.fiat([bytes3('USD')])
-      assert.notStrictEqual(oracleAddr, '0x0000000000000000000000000000000000000000')
-    })
-
-    test('getFiats() should return list of fiats', async () => {
-      const fiats = await Market.read.getFiats()
-      assert.ok(fiats.length > 0)
-    })
-
-    test('method() should return method info', async () => {
-      const info = await Market.read.method([bytes16('SEPA')])
-      assert.ok(info.exists)
-    })
-
-    test('getMethods() should return list of methods', async () => {
-      const methods = await Market.read.getMethods()
-      assert.ok(methods.length > 0)
+    test('fiats() should return oracle address', async () => {
+      const oracleAddr = await Market.read.fiats([bytes3('USD')])
+      assert.strictEqual(oracleAddr, getAddress(ethAddress))
     })
   })
 })

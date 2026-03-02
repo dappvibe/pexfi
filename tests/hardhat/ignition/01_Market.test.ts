@@ -1,10 +1,9 @@
+import { before, describe, test } from 'node:test'
+import * as assert from 'node:assert'
 import hre from 'hardhat'
 import MocksModule from '@evm/modules/00_MockDependencies.ts'
 import MarketModule from '@evm/modules/01_Market.ts'
-import { getAddress, stringToHex, padHex } from 'viem'
-
-const bytes3 = (s: string) => padHex(stringToHex(s), { size: 3, dir: 'right' })
-const bytes16 = (s: string) => padHex(stringToHex(s), { size: 16, dir: 'right' })
+import { getAddress, stringToHex, padHex, ethAddress } from 'viem'
 
 /**
  * With HardHat v3 you must hre.network.connect() to have access to viem and network helpers such as takeSnapshot.
@@ -12,7 +11,7 @@ const bytes16 = (s: string) => padHex(stringToHex(s), { size: 16, dir: 'right' }
  * Returned toolbox must be used in tests to preserve nonce and enable snapshots.
  * Think of it as a bootstrap entry point for each test suite using Market deployment.
  */
-export default async () => {
+export default async function deploy() {
   const { viem, ignition, networkHelpers } = await hre.network.connect()
 
   // 1. Deploy Mocks state
@@ -21,19 +20,11 @@ export default async () => {
   // 2. Prepare parameters to wire Market up to local mocks
   const parameters = {
     Market: {
-      UniswapV3Factory: mocks.uniswap.address,
-      uniswapUniversalRouter: mocks.uniswap.address, // reuse for mock
-      weth: mocks.WETH.address,
+      uniswapUniversalRouter: ethAddress, // mock is not implemented
+      weth_address: mocks.WETH.address,
+      weth_pool: mocks.poolETH.address,
       usdc: mocks.USDC.address,
-      addTokens_0: [mocks.WBTC.address, mocks.WETH.address, mocks.USDC.address],
-      addTokens_1: 500,
-      fiats: [
-        [bytes3('USD'), mocks.USD.address],
-        [bytes3('EUR'), mocks.EUR.address],
-        [bytes3('GBP'), mocks.GBP.address],
-      ],
-      methodNames: [bytes16('National Bank'), bytes16('SEPA')],
-      methodGroups: [0n, 0n],
+      eur_chainlink: mocks.EUR.address,
     },
   }
 
@@ -58,3 +49,13 @@ export default async () => {
     networkHelpers
   }
 }
+
+
+/*
+describe('market', () => {
+  test('should deploy successfully', async () => {
+    const { Market } = await deploy();
+    assert.ok(Market.address, 'market contract should be deployed');
+  })
+})
+*/
