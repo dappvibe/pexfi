@@ -45,13 +45,8 @@ export default buildModule('Mocks', (m) => {
   }
 
   // --- 2. Uniswap ---
-  const uniswap = m.contract('MockUniswapV3Factory', [], { id: 'Uniswap' })
-
   const poolBTC = m.contract('PoolBTC', [], { id: 'PoolBTC' })
   const poolETH = m.contract('PoolETH', [], { id: 'PoolETH' })
-
-  m.call(uniswap, 'setPool', [tokens['WBTC'], poolBTC], { id: 'SetPoolBTC' })
-  m.call(uniswap, 'setPool', [tokens['WETH'], poolETH], { id: 'SetPoolETH' })
 
   // --- 3. Price Feeds ---
   const priceFeeds: Record<string, any> = {}
@@ -67,7 +62,8 @@ export default buildModule('Mocks', (m) => {
   // Return everything needed for Market
   return {
     ...tokens,
-    uniswap,
     ...priceFeeds,
+    poolBTC,
+    poolETH
   }
 })

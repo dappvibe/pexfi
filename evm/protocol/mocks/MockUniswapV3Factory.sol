@@ -28,27 +28,5 @@ contract PoolETH {
     secondsPerLiquidityCumulativeX128s[0] = 431388776603627029670683737059;
     secondsPerLiquidityCumulativeX128s[1] = 431388776750562642834933065513;
     return (tickCumulatives, secondsPerLiquidityCumulativeX128s);
-
-  }
-}
-
-
-contract MockUniswapV3Factory
-{
-  mapping(address tokenA => address pool) public pools;
-
-  // original method
-  function getPool(
-    address tokenA,
-    address tokenB,
-    uint24 fee
-  ) external view returns (address pool)
-  {
-    return pools[tokenA];
-  }
-
-  function setPool(address tokenA, address pool) external
-  {
-    pools[tokenA] = pool;
   }
 }
