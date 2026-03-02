@@ -9,7 +9,7 @@ dataSources:
     network: hardhat
     source:
       abi: Market
-      address: '0x70E5370b8981Abc6e14C91F4AcE823954EFC8eA3'
+      address: "0x851356ae760d987E095750cCeb3bC6014560891C"
       startBlock: 0
     mapping:
       kind: ethereum/events
@@ -19,6 +19,8 @@ dataSources:
         - Offer
         - Profile
         - Token
+        - Fiat
+        - Method
       abis:
         - name: Market
           file: ../.cache/artifacts/evm/protocol/Market.sol/Market.json
@@ -30,11 +32,25 @@ dataSources:
           file: ../.cache/artifacts/evm/protocol/Profile.sol/Profile.json
         - name: Deal
           file: ../.cache/artifacts/evm/protocol/Deal.sol/Deal.json
+        - name: Finder
+          file: ../.cache/artifacts/@uma/core/contracts/data-verification-mechanism/implementation/Finder.sol/Finder.json
       eventHandlers:
-        - event: OfferCreated(indexed address,indexed bytes8,indexed bytes3,address)
+        - event: TokenAdded(address)
+          handler: handleTokenAdded
+        - event: TokenRemoved(address)
+          handler: handleTokenRemoved
+        - event: FiatAdded(bytes32,address)
+          handler: handleFiatAdded
+        - event: FiatRemoved(bytes32)
+          handler: handleFiatRemoved
+        - event: MethodAdded(bytes16,uint256)
+          handler: handleMethodAdded
+        - event: MethodsDisabledMask(uint256)
+          handler: handleMethodsDisabledMask
+        - event: OfferCreated(address,address,bytes32,address)
           handler: handleOfferCreated
-        - event: DealCreated(indexed address,indexed address,indexed
-            address,address,string,string)
+        - event: DealCreated(indexed
+            address,address,address,address,bytes16,string,string)
           handler: handleDealCreated
       file: ./src/market.ts
 templates:
@@ -58,6 +74,8 @@ templates:
           file: ../.cache/artifacts/evm/protocol/Profile.sol/Profile.json
         - name: Deal
           file: ../.cache/artifacts/evm/protocol/Deal.sol/Deal.json
+        - name: Finder
+          file: ../.cache/artifacts/@uma/core/contracts/data-verification-mechanism/implementation/Finder.sol/Finder.json
       eventHandlers:
         - event: OfferUpdated()
           handler: handleOfferUpdated
@@ -82,11 +100,13 @@ templates:
           file: ../.cache/artifacts/evm/protocol/Profile.sol/Profile.json
         - name: Deal
           file: ../.cache/artifacts/evm/protocol/Deal.sol/Deal.json
+        - name: Finder
+          file: ../.cache/artifacts/@uma/core/contracts/data-verification-mechanism/implementation/Finder.sol/Finder.json
       eventHandlers:
         - event: DealState(uint8,address)
           handler: handleDealState
-        - event: FeedbackGiven(indexed address,bool,string)
+        - event: FeedbackGiven(address,bool,string)
           handler: handleFeedbackGiven
-        - event: Message(indexed address,string)
+        - event: Message(address,string)
           handler: handleMessage
       file: ./src/deal.ts
