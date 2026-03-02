@@ -1,52 +1,70 @@
-import { useReadContracts } from 'wagmi'
-import { bytesToString, hexToBytes } from 'viem'
-import { marketAbi } from '@/wagmi'
-import { useAddress } from '@/hooks/useAddress'
+import { gql } from '@apollo/client'
+import { useQuery } from '@apollo/client/react'
+
+const GET_INVENTORY = gql`
+  query GetInventory {
+    tokens(where: { removed: false }) {
+      id
+      address
+      name
+      symbol
+      decimals
+    }
+    fiats(where: { removed: false }) {
+      id
+      symbol
+    }
+    methods(where: { disabled: false }) {
+      id
+      name
+      index
+    }
+  }
+`
+
+export interface Token {
+  id: string
+  address: string
+  name: string
+  symbol: string
+  decimals: number
+}
+
+export interface Fiat {
+  id: string
+  symbol: string
+}
+
+export interface Method {
+  id: string
+  name: string
+  index: string
+}
 
 export function useInventory() {
-  const address = useAddress('Market#Market')
+  const { data, loading, error } = useQuery(GET_INVENTORY)
 
-  const { data } = useReadContracts({
-    allowFailure: false,
-    contracts: [
-      { address, abi: marketAbi, functionName: 'getTokens' },
-      { address, abi: marketAbi, functionName: 'getFiats' },
-      { address, abi: marketAbi, functionName: 'getMethods' },
-    ],
-    query: {
-      staleTime: Infinity, // reload page to refresh
-      enabled: !!address,
-      select: (data) => {
-        const [tokensRaw, fiatsRaw, methodsRaw] = data as [any[], string[], any[]]
-
-        const tokens = tokensRaw.reduce(
-          (acc, token) => {
-            acc[token.symbol] = token
-            return acc
-          },
-          {} as Record<string, any>
-        )
-
-        const fiats = fiatsRaw.map((f) => bytesToString(hexToBytes(f), { size: 32 }))
-
-        const methods = methodsRaw.reduce(
-          (acc, method) => {
-            acc[method.name] = method
-            return acc
-          },
-          {} as Record<string, any>
-        )
-
-        return { tokens, fiats, methods }
-      },
-    },
-  })
-
-  return (
-    data || {
+  if (loading || error || !data) {
+    return {
       tokens: {},
       fiats: [],
       methods: {},
+      loading,
+      error,
     }
-  )
+  }
+
+  const tokens = (data.tokens || []).reduce((acc: Record<string, Token>, token: Token) => {
+    acc[token.symbol] = token
+    return acc
+  }, {})
+
+  const fiats = (data.fiats || []).map((f: Fiat) => f.symbol)
+
+  const methods = (data.methods || []).reduce((acc: Record<string, Method>, method: Method) => {
+    acc[method.name] = method
+    return acc
+  }, {})
+
+  return { tokens, fiats, methods, loading: false, error: undefined }
 }
