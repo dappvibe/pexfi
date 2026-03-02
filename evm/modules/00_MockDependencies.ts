@@ -43,6 +43,7 @@ export default buildModule('Mocks', (m) => {
 
   // --- 2. Uniswap ---
   const poolETH = m.contract('PoolETH', [], { id: 'PoolETH' })
+  const universalRouter = m.contract('UniswapUniversalRouterMock', [], { id: 'UniswapUniversalRouter' })
 
   // --- 3. Price Feeds ---
   const priceFeeds: Record<string, any> = {}
@@ -59,6 +60,7 @@ export default buildModule('Mocks', (m) => {
   return {
     ...tokens,
     ...priceFeeds,
-    poolETH
+    poolETH,
+    universalRouter
   }
 })
