@@ -1,7 +1,7 @@
 import { before, describe, test } from 'node:test'
 import * as assert from 'node:assert'
 import { Address, getAddress, stringToHex } from 'viem'
-import deploy from './deploy/deployMarket'
+import deploy from './ignition/01_Market.test'
 
 describe('Profile', () => {
   let Profile: any, viem: any, admin: Address, nobody: Address
@@ -35,9 +35,10 @@ describe('Profile', () => {
     })
 
     test('register() should revert if already registered', async () => {
-      await viem.assertions.revertWith(
+      await viem.assertions.revertWithCustomError(
         Profile.write.register({ account: user1 }),
-        'already'
+        Profile,
+        'ProfileAlreadyExists'
       )
     })
   })

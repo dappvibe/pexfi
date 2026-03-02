@@ -1,25 +1,26 @@
 import { before, describe, test } from 'node:test'
 import * as assert from 'node:assert'
-import { Address, parseEventLogs, stringToHex } from 'viem'
-import deploy from './deploy/deployMarket'
-import { OFFER_PARAMS } from './Offer.test'
+import { Address, padHex, parseEventLogs, stringToHex } from 'viem'
+import deploy from './ignition/01_Market.test'
 import { profileAbi } from '../../src/wagmi'
 
+const bytes32 = (s: string) => padHex(stringToHex(s), { size: 32, dir: 'right' })
+const bytes3 = (s: string) => padHex(stringToHex(s), { size: 3, dir: 'right' })
+
 describe('Deal', () => {
-  let Market, WBTC, feeCollector, OOv3, pexfiVesting
+  let Market, WETH, feeCollector, OOv3, pexfiVesting
   let viem, networkHelpers, publicClient
   let maker: Address, taker: Address, nobody: Address
   let takeSnapshot
-  let offerToSell, offerToBuy
+  let offerToSell, offerToBuy, offerParams
   let dealToBuy, dealToSell
 
   const FIAT_AMOUNT = 1000_000000n
 
   before(async () => {
     ;({
-
       Market,
-      WBTC,
+      WETH,
       viem,
       networkHelpers,
       maker,
@@ -32,10 +33,20 @@ describe('Deal', () => {
     } = await deploy())
     ;({ takeSnapshot } = networkHelpers)
 
+    offerParams = {
+      isSell: true,
+      token: WETH.address,
+      fiat: bytes3('USD'),
+      methods: 1n << 0n,
+      rate: 10250,
+      limits: { min: 1000, max: 5000 },
+      terms: 'terms of offer',
+    }
+
     //await publicClient.request({ method: 'hardhat_setLoggingEnabled', params: [true] })
 
     const createOffer = async (extraParams = {}) => {
-      const hash = await Market.write.createOffer([{ ...OFFER_PARAMS, ...extraParams }])
+      const hash = await Market.write.createOffer([{ ...offerParams, ...extraParams }])
       const receipt = await publicClient.waitForTransactionReceipt({ hash })
       const logs = parseEventLogs({
         abi: Market.abi,
@@ -53,7 +64,7 @@ describe('Deal', () => {
     test('createDeal() should revert if taker is offer owner', async () => {
       await viem.assertions.revertWithCustomErrorWithArgs(
         offerToSell.write.createDeal(
-          [Market.address, { fiatAmount: FIAT_AMOUNT, paymentInstructions: 'instructions' }],
+          [Market.address, { method: 0n, fiatAmount: FIAT_AMOUNT, paymentInstructions: 'instructions' }],
           { account: maker }
         ),
         offerToSell,
@@ -62,7 +73,7 @@ describe('Deal', () => {
       )
       await viem.assertions.revertWithCustomErrorWithArgs(
         offerToBuy.write.createDeal(
-          [Market.address, { fiatAmount: FIAT_AMOUNT, paymentInstructions: 'instructions' }],
+          [Market.address, { method: 0n, fiatAmount: FIAT_AMOUNT, paymentInstructions: 'instructions' }],
           { account: maker }
         ),
         offerToBuy,
@@ -74,7 +85,7 @@ describe('Deal', () => {
     test('createDeal() should trigger DealCreated event', async () => {
       const createFor = async (offer) => {
         const hash = await offer.write.createDeal(
-          [Market.address, { fiatAmount: FIAT_AMOUNT, paymentInstructions: 'instructions' }],
+          [Market.address, { fiatAmount: FIAT_AMOUNT, method: 0n, paymentInstructions: 'instructions' }],
           { account: taker }
         )
         const receipt = await publicClient.waitForTransactionReceipt({ hash })
@@ -229,10 +240,10 @@ describe('Deal', () => {
     test('fund() transfers token from seller to deal', async () => {
       // do not take a snapshot here, advance state for next tests
       const fund = async (deal, seller, amount) => {
-        await WBTC.write.approve([Market.address, amount], { account: seller })
+        await WETH.write.approve([Market.address, amount], { account: seller })
         const tx = await deal.write.fund({ account: seller })
         await viem.assertions.emitWithArgs(tx, deal, 'DealState', [2, seller])
-        await viem.assertions.emitWithArgs(tx, WBTC, 'Transfer', [seller, deal.address, amount])
+        await viem.assertions.emitWithArgs(tx, WETH, 'Transfer', [seller, deal.address, amount])
         return tx
       }
       const amount = await dealToBuy.read.tokenAmount()
@@ -412,9 +423,9 @@ describe('Deal', () => {
         const tx = await deal.write.release({ account: seller })
 
         await viem.assertions.emitWithArgs(tx, deal, 'DealState', [7, seller])
-        await viem.assertions.emitWithArgs(tx, WBTC, 'Transfer', [deal.address, buyer, BigInt(amount - feeAmount)])
+        await viem.assertions.emitWithArgs(tx, WETH, 'Transfer', [deal.address, buyer, BigInt(amount - feeAmount)])
         if (fee > 0) {
-          await viem.assertions.emitWithArgs(tx, WBTC, 'Transfer', [deal.address, feeCollector.address, feeAmount])
+          await viem.assertions.emitWithArgs(tx, WETH, 'Transfer', [deal.address, feeCollector.address, feeAmount])
         }
       }
 
@@ -464,14 +475,17 @@ describe('Deal', () => {
     })
 
     test('Feedback reverts if in wrong state (e.g. Paid)', async () => {
-       // Create new deal, advance to Paid
-       const hash = await offerToSell.write.createDeal([Market.address, { fiatAmount: FIAT_AMOUNT, paymentInstructions: 'i' }], { account: taker })
+       // Create a new deal, advance to Paid
+       const hash = await offerToSell.write.createDeal([
+         Market.address,
+         { fiatAmount: FIAT_AMOUNT, method: 0n, paymentInstructions: 'i' }
+       ], { account: taker })
        const r = await publicClient.waitForTransactionReceipt({ hash })
        const dealAddr = parseEventLogs({ abi: Market.abi, eventName: 'DealCreated', logs: r.logs })[0].args.deal
        const deal = await viem.getContractAt('Deal', dealAddr)
 
        await deal.write.accept({ account: maker })
-       await WBTC.write.approve([Market.address, await deal.read.tokenAmount()], { account: maker })
+       await WETH.write.approve([Market.address, await deal.read.tokenAmount()], { account: maker })
        await deal.write.fund({ account: maker })
        await deal.write.paid({ account: taker })
 
