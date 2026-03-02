@@ -51,7 +51,7 @@ contract FeeCollector is IFeeCollector {
       Currency.unwrap(_pexfiPoolKey.currency0) == _pexfi || Currency.unwrap(_pexfiPoolKey.currency1) == _pexfi,
       IMarket.InvalidArgument()
     );
-    require(
+    require(  // address(0) is V4 NATIVE ETH
       Currency.unwrap(_pexfiPoolKey.currency0) == address(0) || Currency.unwrap(_pexfiPoolKey.currency1) == address(0),
       IMarket.InvalidArgument()
     );
