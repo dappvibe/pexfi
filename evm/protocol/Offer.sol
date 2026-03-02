@@ -18,11 +18,11 @@ contract Offer is IOffer, Initializable
   bytes3  public fiat;
   bool    public disabled;
 
-  // slot 2: token (20) + methods (1) = 21 bytes
-  IERC20 public token;
+  // slot 2: 32 bytes
   uint256 public methods;
 
-  // slot 3 = 8 bytes
+  // slot 3: token (20) + limits (8)
+  IERC20 public token;
   IOffer.Limits public limits;
 
   // dynamic
@@ -40,9 +40,6 @@ contract Offer is IOffer, Initializable
   external
   initializer
   {
-    require(params.rate > 0, IOffer.InvalidRate());
-    require(params.limits.min < params.limits.max, IOffer.InvalidLimits());
-
     owner = owner_;
     isSell = params.isSell;
     token = params.token;
@@ -56,8 +53,11 @@ contract Offer is IOffer, Initializable
   function createDeal(IMarket market, IOffer.CreateDealParams calldata params)
   external
   {
-    require(msg.sender != owner, IMarket.UnauthorizedAccount(msg.sender));
-    require(!disabled, IOffer.OfferDisabled());
+    if (msg.sender == owner) revert IMarket.UnauthorizedAccount(msg.sender);
+    if (disabled) revert IOffer.OfferDisabled();
+    bytes16 method = market.methods(params.method); // will panic if out of bounds
+    if ((methods & (1 << params.method)) == 0) revert IMarket.InvalidMethod(1 << params.method);
+    if (((1 << params.method) & market.disabledMethodsMask()) != 0) revert IMarket.InvalidMethod(market.disabledMethodsMask());
 
     uint _tokenAmount = market.convert(params.fiatAmount, fiat, token, rate);
 
@@ -71,7 +71,7 @@ contract Offer is IOffer, Initializable
       fiatAmount: params.fiatAmount
     }));
 
-    market.addDeal(deal, terms, params.paymentInstructions);
+    market.addDeal(deal, method, terms, params.paymentInstructions);
   }
 
   function setRate(uint16 rate_) external {

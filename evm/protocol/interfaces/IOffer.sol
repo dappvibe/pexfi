@@ -26,6 +26,7 @@ interface IOffer {
 
   struct CreateDealParams {
     uint256 fiatAmount;
+    uint8 method;
     string paymentInstructions;
   }
 
