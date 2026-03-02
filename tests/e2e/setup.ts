@@ -74,6 +74,9 @@ export const test = base.extend<{
   createParty: (startPage?: string) => Promise<PartyContext>
 }>({
   page: async ({ page }, use) => {
+    page.on('console', (msg) => {
+      console.error(`[Browser Console] ${msg.text()}`)
+    })
     await page.addInitScript(() => {
       window.E2E = true
     })
