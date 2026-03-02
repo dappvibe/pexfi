@@ -1,42 +1,41 @@
 import { before, describe, test } from 'node:test'
 import * as assert from 'node:assert'
 import { getAddress, padHex, parseEventLogs, stringToHex } from 'viem'
-import deploy from './deploy/deployMarket'
+import deploy from './ignition/01_Market.test'
 import { offerAbi } from '../../src/wagmi'
 
 const bytes3 = (s: string) => padHex(stringToHex(s), { size: 3, dir: 'right' })
-const bytes8 = (s: string) => padHex(stringToHex(s), { size: 8, dir: 'right' })
-const bytes16 = (s: string) => padHex(stringToHex(s), { size: 16, dir: 'right' })
-
-export const OFFER_PARAMS = {
-  isSell: true,
-  token: bytes8('WBTC'),
-  fiat: bytes3('USD'),
-  method: bytes16('National Bank'),
-  rate: 10250,
-  limits: { min: 1000, max: 5000 },
-  terms: 'terms of offer',
-}
 
 describe('Offer', () => {
-  let viem, networkHelpers, Market, Offer, publicClient, walletClients, admin, nobody
+  let viem, networkHelpers, Market, WETH, Offer, poolBTC, publicClient, walletClients, admin, nobody
+  let offerParams;
 
   before(async () => {
-    ;({ viem, Market, Offer, networkHelpers } = await deploy())
+    ;({ viem, Market, Offer, WETH, poolBTC, networkHelpers } = await deploy())
     publicClient = await viem.getPublicClient()
     walletClients = await viem.getWalletClients()
     admin = walletClients[0].account
     nobody = walletClients[1].account
+
+    offerParams = {
+      isSell: true,
+      token: WETH.address,
+      fiat: bytes3('USD'),
+      methods: 1n << 0n,
+      rate: 10250,
+      limits: { min: 1000, max: 5000 },
+      terms: 'terms of offer',
+    }
   })
 
   describe('Market.createOffer', () => {
     describe('create()', () => {
       test('should trigger OfferCreated event', async () => {
-        await viem.assertions.emit(Market.write.createOffer([OFFER_PARAMS]), Market, 'OfferCreated')
+        await viem.assertions.emit(Market.write.createOffer([offerParams]), Market, 'OfferCreated')
       })
 
       test('should register offer in Market', async () => {
-        const hash = await Market.write.createOffer([OFFER_PARAMS])
+        const hash = await Market.write.createOffer([offerParams])
         const receipt = await publicClient.waitForTransactionReceipt({ hash })
         const logs = parseEventLogs({
           abi: Market.abi,
@@ -52,7 +51,7 @@ describe('Offer', () => {
         await viem.assertions.revertWithCustomError(
           Market.write.createOffer([
             {
-              ...OFFER_PARAMS,
+              ...offerParams,
               limits: { min: 100, max: 100 },
             },
           ]),
@@ -65,7 +64,7 @@ describe('Offer', () => {
         await viem.assertions.revertWithCustomError(
           Market.write.createOffer([
             {
-              ...OFFER_PARAMS,
+              ...offerParams,
               limits: { min: 101, max: 10 },
             },
           ]),
@@ -78,7 +77,7 @@ describe('Offer', () => {
         await viem.assertions.revertWithCustomError(
           Market.write.createOffer([
             {
-              ...OFFER_PARAMS,
+              ...offerParams,
               rate: 0,
             },
           ]),
@@ -88,7 +87,7 @@ describe('Offer', () => {
       })
 
       test('should refuse when rate is negative', async () => {
-        const promise = Market.write.createOffer([{ ...OFFER_PARAMS, rate: -1 }])
+        const promise = Market.write.createOffer([{ ...offerParams, rate: -1 }])
         await assert.rejects(promise, (error: any) => error.name === 'IntegerOutOfRangeError')
       })
     })
@@ -97,7 +96,7 @@ describe('Offer', () => {
       let offer
 
       before(async () => {
-        const hash = await Market.write.createOffer([OFFER_PARAMS])
+        const hash = await Market.write.createOffer([offerParams])
         const receipt = await publicClient.waitForTransactionReceipt({ hash })
         const logs = parseEventLogs({
           abi: Market.abi,
@@ -110,7 +109,7 @@ describe('Offer', () => {
       test('should revert if disabled', async () => {
         await offer.write.setDisabled([true], { account: admin })
         await viem.assertions.revertWithCustomError(
-          offer.write.createDeal([Market.address, { fiatAmount: 1000n, paymentInstructions: 'p' }], {
+          offer.write.createDeal([Market.address, { method: 0n, fiatAmount: 1000n, paymentInstructions: 'p' }], {
             account: nobody,
           }),
           offer,
@@ -126,7 +125,7 @@ describe('Offer', () => {
     let offer
 
     before(async () => {
-      const hash = await Market.write.createOffer([OFFER_PARAMS])
+      const hash = await Market.write.createOffer([offerParams])
       const receipt = await publicClient.waitForTransactionReceipt({ hash })
       const logs = parseEventLogs({
         abi: Market.abi,
@@ -139,7 +138,7 @@ describe('Offer', () => {
 
     test('initialize: should revert if called twice', async () => {
       await viem.assertions.revertWithCustomError(
-        offer.write.initialize([walletClients[0].account.address, OFFER_PARAMS]),
+        offer.write.initialize([walletClients[0].account.address, offerParams]),
         offer,
         'InvalidInitialization'
       )
