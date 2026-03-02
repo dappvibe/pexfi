@@ -20,7 +20,7 @@ export default async function deploy() {
   // 2. Prepare parameters to wire Market up to local mocks
   const parameters = {
     Market: {
-      uniswapUniversalRouter: ethAddress, // mock is not implemented
+      uniswapUniversalRouter: mocks.universalRouter.address,
       weth_address: mocks.WETH.address,
       weth_pool: mocks.poolETH.address,
       usdc: mocks.USDC.address,
