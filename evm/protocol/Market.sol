@@ -43,10 +43,10 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
   mapping(address => bool) public offers;
   mapping(address => bool) public deals;
 
-  IERC20 public immutable USDC;
+  address public immutable USDC;
 
   /// @custom:oz-upgrades-unsafe-allow constructor
-  constructor(IERC20 usdc_) {
+  constructor(address usdc_) {
     USDC = usdc_;
     _disableInitializers();
   }
@@ -151,7 +151,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
   public view
   returns (uint256 amount)
   {
-    if (fromFiat_ == bytes3("USD") && address(toToken_) == address(USDC))
+    if (fromFiat_ == bytes3("USD") && address(toToken_) == USDC)
       return FullMath.mulDiv(amount_, 10 ** 4, denominator);
 
     uint decimals = tokens[toToken_].decimals;
@@ -162,7 +162,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
   /// @return price with 6 decimals
   function getPrice(IERC20 token_, bytes3 fiat_) public view returns (uint256 price) {
     // first fetch market TWAP for Uniswap pool of token/USDC
-    if (address(token_) != address(USDC)) {
+    if (address(token_) != USDC) {
       Token memory token = tokens[token_];
       uint32[] memory secs = new uint32[](2);
       secs[0] = 300;
