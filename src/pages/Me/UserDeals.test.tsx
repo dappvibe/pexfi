@@ -17,6 +17,16 @@ vi.mock('@/hooks/useContract', () => ({
 // Mock models
 vi.mock('@/model/Deal.js', () => {
   return {
+    DealState: {
+      Created: 0,
+      Accepted: 1,
+      Funded: 2,
+      Paid: 3,
+      Disputed: 4,
+      Cancelled: 5,
+      Resolved: 6,
+      Released: 7,
+    },
     default: class Deal {
       // mocked constructor
       constructor(c) {
