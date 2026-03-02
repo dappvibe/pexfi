@@ -1,48 +1,51 @@
 export default class Offer {
-  static fetch(contract) {
+  static async fetch(contract) {
     const self = new Offer()
     self.contract = contract
     self.address = contract.target
-    return Promise.all([
-      self.contract.owner(),
-      self.contract.isSell(),
-      self.contract.token(),
-      self.contract.fiat(),
-      self.contract.method(),
-      self.contract.rate(),
-      self.contract.limits(),
-      self.contract.terms(),
-      self.contract.disabled(),
-    ]).then(([owner, isSell, token, fiat, method, rate, limits, terms, disabled]) => {
+    try {
+      const [owner, isSell, token, fiat, methods, rate, limits, terms, disabled] = await Promise.all([
+        self.contract.owner(),
+        self.contract.isSell(),
+        self.contract.token(),
+        self.contract.fiat(),
+        self.contract.methods(),
+        self.contract.rate(),
+        self.contract.limits(),
+        self.contract.terms(),
+        self.contract.disabled(),
+      ])
       self.owner = owner
       self.isSell = isSell
       self.token = token
       self.fiat = fiat
-      self.method = method
+      self.method = methods // keep singular for compatibility with other parts of app
       self.rate = Number(rate) / 10 ** 4
       self.min = Number(limits[0])
       self.max = Number(limits[1])
       self.terms = terms
       self.disabled = disabled
       return self
-    })
+    } catch (e) {
+      throw e
+    }
   }
 
   /**
    * @param response Response from the contract
    */
-  static hydrate(response) {
+  static from(response) {
     const self = new Offer()
-    self.id = Number(response[0])
-    self.owner = response[1]
-    self.isSell = response[2]
-    self.token = response[3]
-    self.fiat = response[4]
-    self.method = response[5]
-    self.rate = Number(response[6]) / 10 ** 4
-    self.min = Number(response[7])
-    self.max = Number(response[8])
-    self.terms = response[9]
+    self.owner = response.owner
+    self.isSell = response.isSell
+    self.token = response.token
+    self.fiat = response.fiat
+    self.method = response.method
+    self.rate = response.rate
+    self.min = response.min
+    self.max = response.max
+    self.terms = response.terms
+    self.disabled = response.disabled
     return self
   }
 
