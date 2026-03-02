@@ -35,7 +35,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
    * Offers may accept multiple methods.
    */
   bytes16[] public methods;
-  uint256 private disabledMethodsMask;
+  uint256 public disabledMethodsMask;
 
   uint8 public fee;
   mapping(address => bool) public offers;
@@ -81,7 +81,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
   function addMethods(bytes16[] calldata names_) external onlyOwner {
     for (uint i = 0; i < names_.length; i++) {
       methods.push(names_[i]);
-      emit MethodAdded(names_[i]);
+      emit MethodAdded(names_[i], methods.length - 1);
     }
   }
   function disableMethods(uint256 mask) external onlyOwner {
@@ -99,24 +99,27 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
   function createOffer(IOffer.OfferParams calldata params) external {
     if (address(tokens[params.token].pool) == address(0)) revert InvalidToken(params.token);
     if (address(fiats[params.fiat]) == address(0))        revert InvalidFiat(params.fiat);
+    if (params.methods <= 0)                              revert InvalidMethod(params.methods);
     if ((params.methods & disabledMethodsMask) != 0)      revert InvalidMethod(params.methods & disabledMethodsMask);
+    if (params.rate <= 0)                                 revert IOffer.InvalidRate();
+    if (params.limits.min >= params.limits.max)           revert IOffer.InvalidLimits();
 
     address impl = finder.getImplementationAddress(FinderConstants.OfferImplementation);
     IOffer offer = IOffer(Clones.clone(impl));
     offer.initialize(msg.sender, params);
 
-    require(!offers[address(offer)], InvalidArgument());
     offers[address(offer)] = true;
 
     emit OfferCreated(msg.sender, params.token, params.fiat, offer);
   }
 
-  function addDeal(IDeal deal, string calldata terms, string calldata paymentInstructions) external {
+  function addDeal(IDeal deal, bytes16 method, string calldata terms, string calldata paymentInstructions) external {
     require(offers[msg.sender], UnauthorizedAccount(msg.sender));
     deals[address(deal)] = true;
 
     IOffer offer = IOffer(deal.offer());
-    emit DealCreated(offer.owner(), deal.taker(), address(offer), address(deal), terms, paymentInstructions);
+    emit DealCreated(offer.owner(), deal.taker(), address(offer), address(deal), method, terms, paymentInstructions);
+
     IProfile profile = IProfile(finder.getImplementationAddress(FinderConstants.Profile));
     profile.grantRole("DEAL_ROLE", address(deal));
   }
