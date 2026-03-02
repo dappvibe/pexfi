@@ -6,21 +6,18 @@ import { buildModule } from '@nomicfoundation/hardhat-ignition/modules'
  *  2. Chainlink - to read fiat currency rates in relation to USD so that we can find price for WBTC/EUR and alike.
  *
  * These service addresses are passed as arguments files to ignition deployment.
- * In local dev environment you should run this module and build parameters json file with deployed addresses.
+ * In a local dev environment you should run this module and build a parameters json file with deployed addresses.
  */
 
 // Initial chainlink mocks values
 const RATES: Record<string, number> = {
-  USD: 1,
   EUR: 1.08,
-  GBP: 1.26,
 }
 
 export default buildModule('Mocks', (m) => {
   // --- 1. Tokens ---
   const tokens: Record<string, any> = {}
   const tokenList = [
-    ['WBTC', 8],
     ['WETH', 18],
     ['USDC', 6],
   ] as const
@@ -45,7 +42,6 @@ export default buildModule('Mocks', (m) => {
   }
 
   // --- 2. Uniswap ---
-  const poolBTC = m.contract('PoolBTC', [], { id: 'PoolBTC' })
   const poolETH = m.contract('PoolETH', [], { id: 'PoolETH' })
 
   // --- 3. Price Feeds ---
@@ -63,7 +59,6 @@ export default buildModule('Mocks', (m) => {
   return {
     ...tokens,
     ...priceFeeds,
-    poolBTC,
     poolETH
   }
 })
