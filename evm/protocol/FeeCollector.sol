@@ -31,8 +31,6 @@ contract FeeCollector is IFeeCollector {
   int24     private immutable _poolKeyTickSpacing;
   IHooks    private immutable _poolKeyHooks;
 
-  event Buyback(address indexed token, uint256 amountIn, uint256 amountPexfiOut);
-
   struct ExactInputSingleParams {
     PoolKey poolKey;
     bool zeroForOne;
