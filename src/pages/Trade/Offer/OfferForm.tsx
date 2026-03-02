@@ -1,9 +1,11 @@
 import { Button, Col, Form, Input, InputNumber, message, Radio, Row, Select, Skeleton, Space } from 'antd'
 import { useNavigate } from 'react-router-dom'
-import React, { useRef } from 'react'
+import React, { useEffect, useState } from 'react'
 import { padHex, stringToHex } from 'viem'
-import { useContract } from '@/hooks/useContract'
 import { useInventory } from '@/hooks/useInventory'
+import { useReadMarketGetPrice, useWriteMarketCreateOffer, useWatchMarketOfferCreatedEvent } from '@/wagmi'
+import { useAddress } from '@/hooks/useAddress'
+import { useAccount } from 'wagmi'
 
 const { TextArea } = Input
 
@@ -17,11 +19,47 @@ interface OfferFormProps {
 
 export default function OfferForm({ offer = null, setRate, setLimits, setTerms, toggleDisabled }: OfferFormProps) {
   const navigate = useNavigate()
-  const { Market, signed } = useContract()
-  const [lockSubmit, setLockSubmit] = React.useState(false)
+  const account = useAccount()
+  const marketAddress = useAddress('Market#Market')
+  const { writeContractAsync: createOffer } = useWriteMarketCreateOffer()
+  const [lockSubmit, setLockSubmit] = useState(false)
   const { tokens, fiats, methods } = useInventory()
-  const marketPrice = useRef(null)
   const [form] = Form.useForm()
+
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useWatchMarketOfferCreatedEvent({
+    address: marketAddress,
+    onLogs(logs) {
+      if (!isSubmitting) return
+      
+      logs.forEach(log => {
+        const { owner, offer: newOfferAddress } = log.args
+        if (owner?.toLowerCase() === account.address?.toLowerCase()) {
+          setIsSubmitting(false)
+          navigate(`/trade/offer/${newOfferAddress}`)
+        }
+      })
+    },
+  })
+
+  const [rateParams, setRateParams] = useState<{ token: `0x${string}`, fiat: `0x${string}` } | null>(null)
+  const { data: priceData } = useReadMarketGetPrice({
+    address: marketAddress,
+    args: rateParams ? [rateParams.token, rateParams.fiat] : undefined,
+    query: {
+      enabled: !!rateParams,
+    }
+  })
+
+  useEffect(() => {
+    if (priceData) {
+      const price = (Number(priceData) / 10 ** 6).toFixed(2)
+      const ratio = form.getFieldValue('rate') ?? 0
+      const current = Number(price) * (1 + ratio / 100)
+      form.setFieldValue('preview', current.toFixed(2))
+    }
+  }, [priceData, form])
 
   if (fiats.length === 0) return <Skeleton active />
 
@@ -65,8 +103,7 @@ export default function OfferForm({ offer = null, setRate, setLimits, setTerms, 
     }
   }
 
-  async function submit(val) {
-    // FIXME this causes rerender all form and selects flicker
+  async function onFinish(val) {
     setLockSubmit(true)
 
     val.min = Math.floor(val.min)
@@ -85,18 +122,16 @@ export default function OfferForm({ offer = null, setRate, setLimits, setTerms, 
     }
 
     try {
-      const market = await signed(Market)
-      const tx = await market.createOffer(params)
-      message.success('Offer submitted. You will be redirected shortly.')
-
-      const receipt = await tx.wait()
-      receipt.logs.forEach((log) => {
-        const OfferCreated = Market.interface.parseLog(log)
-        if (OfferCreated && OfferCreated.name == 'OfferCreated') {
-          message.success('Offer created')
-          navigate(`/trade/offer/${OfferCreated.args[3]}`)
-        }
+      setIsSubmitting(true)
+      await createOffer({
+        address: marketAddress,
+        args: [params],
       })
+      message.success('Offer submitted. You will be redirected shortly.')
+    } catch (e: any) {
+      setIsSubmitting(false)
+      console.error('Submission error:', e)
+      message.error(e.shortMessage || e.message || 'Failed to submit offer')
     } finally {
       setLockSubmit(false)
     }
@@ -110,22 +145,15 @@ export default function OfferForm({ offer = null, setRate, setLimits, setTerms, 
       if (!token) return
 
       const fiatBytes3 = padHex(stringToHex(fiat), { size: 3, dir: 'right' })
-      try {
-        let price: number | string = Number(await Market.getPrice(token.address, fiatBytes3))
-        price = (price / 10 ** 6).toFixed(2)
-        marketPrice.current = price
-        previewPrice()
-      } catch (e) {
-        console.error('fetchRate error:', e)
-      }
+      setRateParams({ token: token.address, fiat: fiatBytes3 })
     }
   }
 
   async function previewPrice() {
-    const ratio = form.getFieldValue('rate') ?? 0
-    if (marketPrice.current) {
-      // adjust price by ratio which is an unsigned percentage of margin from the current rate
-      const current = marketPrice.current * (1 + ratio / 100)
+    if (priceData) {
+      const price = (Number(priceData) / 10 ** 6).toFixed(2)
+      const ratio = form.getFieldValue('rate') ?? 0
+      const current = Number(price) * (1 + ratio / 100)
       form.setFieldValue('preview', current.toFixed(2))
     } else fetchRate()
   }
@@ -133,7 +161,7 @@ export default function OfferForm({ offer = null, setRate, setLimits, setTerms, 
   const required = [{ required: true, message: 'required' }]
 
   return (
-    <Form form={form} layout={'horizontal'} onFinish={submit} colon={false} onLoad={offer ? fetchRate : undefined}>
+    <Form form={form} layout={'horizontal'} onFinish={onFinish} colon={false} onLoad={offer ? fetchRate : undefined}>
       <Row>
         <Col>
           <Space wrap size={'middle'}>
