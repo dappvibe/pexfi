@@ -19,7 +19,7 @@ import {IMarket} from "./interfaces/IMarket.sol";
 import {IOffer} from "./interfaces/IOffer.sol";
 import {IDeal} from "./interfaces/IDeal.sol";
 import {IProfile} from "./interfaces/IProfile.sol";
-import {FinderConstants} from "./libraries/FinderConstants.sol";
+import {Services} from "./libraries/Services.sol";
 import {IChainlink} from "./interfaces/IChainlink.sol";
 
 contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
@@ -106,7 +106,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     if (params.rate <= 0)                                 revert IOffer.InvalidRate();
     if (params.limits.min >= params.limits.max)           revert IOffer.InvalidLimits();
 
-    address impl = finder.getImplementationAddress(FinderConstants.OfferImplementation);
+    address impl = finder.getImplementationAddress(Services.OfferImplementation);
     IOffer offer = IOffer(Clones.clone(impl));
     offer.initialize(msg.sender, params);
 
@@ -122,7 +122,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     IOffer offer = IOffer(deal.offer());
     emit DealCreated(offer.owner(), deal.taker(), address(offer), address(deal), method, terms, paymentInstructions);
 
-    IProfile profile = IProfile(finder.getImplementationAddress(FinderConstants.Profile));
+    IProfile profile = IProfile(finder.getImplementationAddress(Services.Profile));
     profile.grantRole("DEAL_ROLE", address(deal));
   }
 

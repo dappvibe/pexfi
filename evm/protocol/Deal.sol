@@ -5,7 +5,7 @@ import {IDeal} from "./interfaces/IDeal.sol";
 import {IMarket} from "./interfaces/IMarket.sol";
 import {IOffer} from "./interfaces/IOffer.sol";
 import {IProfile} from "./interfaces/IProfile.sol";
-import {FinderConstants} from "./libraries/FinderConstants.sol";
+import {Services} from "./libraries/Services.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -93,7 +93,7 @@ contract Deal is IDeal, ERC165, Initializable
   }
 
   function fund() external onlySeller stateBetween(IDeal.State.Accepted, IDeal.State.Accepted) {
-    IMarket(finder.getImplementationAddress(FinderConstants.Market)).fundDeal();
+    IMarket(finder.getImplementationAddress(Services.Market)).fundDeal();
     _state(IDeal.State.Funded);
   }
 
@@ -111,16 +111,16 @@ contract Deal is IDeal, ERC165, Initializable
   }
 
   function _release() internal {
-    IMarket market = IMarket(finder.getImplementationAddress(FinderConstants.Market));
+    IMarket market = IMarket(finder.getImplementationAddress(Services.Market));
     IERC20 token = offer.token();
     uint feeAmount = tokenAmount * market.fee() / 10000;
     token.safeTransfer(_buyer(), tokenAmount - feeAmount);
-    address feeCollector = finder.getImplementationAddress(FinderConstants.FeeCollector);
+    address feeCollector = finder.getImplementationAddress(Services.FeeCollector);
     token.safeTransfer(feeCollector, token.balanceOf(address(this)));
 
     _state(IDeal.State.Completed);
 
-    IProfile _profile = IProfile(finder.getImplementationAddress(FinderConstants.Profile));
+    IProfile _profile = IProfile(finder.getImplementationAddress(Services.Profile));
     uint $tokenId = _profile.ownerToTokenId(offer.owner());
     if ($tokenId != 0) {
       _profile.statsDealCompleted($tokenId);
@@ -143,7 +143,7 @@ contract Deal is IDeal, ERC165, Initializable
     if (state == IDeal.State.Initiated) {
       if (msg.sender != offer.owner()) {
         if (block.timestamp <= allowCancelUnacceptedAfter) revert IDeal.ActionNotAllowedInThisState(state);
-        IProfile _profile = IProfile(finder.getImplementationAddress(FinderConstants.Profile));
+        IProfile _profile = IProfile(finder.getImplementationAddress(Services.Profile));
         uint $tokenId = _profile.ownerToTokenId(offer.owner());
         if ($tokenId != 0) {
           _profile.statsDealExpired($tokenId);
@@ -172,7 +172,7 @@ contract Deal is IDeal, ERC165, Initializable
   }
 
   function assertionResolvedCallback(bytes32 assertionId, bool assertedTruthfully) external override {
-    require(msg.sender == finder.getImplementationAddress(FinderConstants.Oracle), IMarket.UnauthorizedAccount(msg.sender));
+    require(msg.sender == finder.getImplementationAddress(Services.Oracle), IMarket.UnauthorizedAccount(msg.sender));
     if (state != IDeal.State.Disputed) return;
 
     OptimisticOracleV3Interface _oov3 = OptimisticOracleV3Interface(msg.sender);
@@ -198,7 +198,7 @@ contract Deal is IDeal, ERC165, Initializable
   onlyMember
   stateBetween(IDeal.State.Resolved, IDeal.State.Completed)
   {
-    IProfile _profile = IProfile(finder.getImplementationAddress(FinderConstants.Profile));
+    IProfile _profile = IProfile(finder.getImplementationAddress(Services.Profile));
     if (msg.sender == offer.owner()) {
       require(!feedbackForTaker.given, IProfile.FeedbackAlreadyGiven());
       feedbackForTaker.given = true;
