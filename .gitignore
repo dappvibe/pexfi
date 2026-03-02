@@ -1,5 +1,3 @@
-src/wagmi/index.ts
-
 .env
 *.local
 
