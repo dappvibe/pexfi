@@ -33,7 +33,6 @@ contract Deal is IDeal, ERC165, Initializable
   FinderInterface  internal finder;
   IOffer   public offer;
   bool    public isPaid;
-  uint8   public method; // single chosen method FIXME just LOG this immutable data
 
   IDeal.Feedback public feedbackForOwner;
   IDeal.Feedback public feedbackForTaker;
