@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run build:evm && npm run wagmi:generate && npm run build:web",
-    "build:web": "npm run wagmi:generate && vite build",
+    "build": "npm run build:evm && npm run build:web",
+    "build:web": "vite build",
     "build:web:staging": "npm run build:web --mode staging",
     "build:web:prod": "npm run build:web --mode production",
     "build:evm": "hardhat compile",
