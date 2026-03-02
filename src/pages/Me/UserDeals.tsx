@@ -1,14 +1,23 @@
 import { Link } from 'react-router-dom'
 import { Empty, List, Skeleton, Tag } from 'antd'
 import React, { useEffect, useState } from 'react'
-import Deal from '@/model/Deal.js'
+import Deal, { DealState } from '@/model/Deal.js'
 import { useAccount } from 'wagmi'
 import { useContract } from '@/hooks/useContract'
 import Offer from '@/model/Offer.js'
 
-function StateTag(args) {
-  const index = ['Initiated', 'Accepted', 'Funded', 'Paid', 'Disputed', 'Canceled', 'Resolved', 'Completed']
-  return <Tag color={args.state === 7 ? 'green' : 'blue'}>{index[args.state]}</Tag>
+function StateTag({ state }: { state: number }) {
+  const stateNames = {
+    [DealState.Created]: 'Initiated',
+    [DealState.Accepted]: 'Accepted',
+    [DealState.Funded]: 'Funded',
+    [DealState.Paid]: 'Paid',
+    [DealState.Disputed]: 'Disputed',
+    [DealState.Cancelled]: 'Canceled',
+    [DealState.Resolved]: 'Resolved',
+    [DealState.Released]: 'Completed',
+  }
+  return <Tag color={state === DealState.Released ? 'green' : 'blue'}>{stateNames[state]}</Tag>
 }
 
 function DealItem({ deal }) {

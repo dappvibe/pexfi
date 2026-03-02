@@ -1,3 +1,14 @@
+export const DealState = {
+  Created: 0,
+  Accepted: 1,
+  Funded: 2,
+  Paid: 3,
+  Disputed: 4,
+  Cancelled: 5,
+  Resolved: 6,
+  Released: 7,
+}
+
 export default class Deal {
   constructor(contract) {
     this.contract = contract
@@ -32,7 +43,7 @@ export default class Deal {
         this.taker = taker
         this.tokenAmount = Number(tokenAmount)
         this.fiatAmount = Number(fiatAmount) / 10 ** 6 // FIXME test with large input
-        this.state = Number(state) // FIXME constants
+        this.state = Number(state)
         this.paymentInstructions = paymentInstructions
         this.allowCancelUnacceptedAfter = new Date(Number(allowCancelUnacceptedAfter) * 1000)
         this.allowCancelUnpaidAfter = new Date(Number(allowCancelUnpaidAfter) * 1000)
