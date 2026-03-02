@@ -11,6 +11,5 @@ library Services {
   bytes32 public constant IdentifierWhitelist = "IdentifierWhitelist";
   bytes32 public constant CollateralWhitelist = "CollateralWhitelist";
   bytes32 public constant FeeCollector = "FeeCollector";
-  bytes32 public constant Uniswap = "Uniswap";
   bytes32 public constant PexfiVault = "PexfiVault";
 }

@@ -1,5 +1,5 @@
 import { buildModule } from '@nomicfoundation/hardhat-ignition/modules'
-import { zeroAddress, stringToHex, padHex } from 'viem'
+import { zeroAddress, stringToHex, padHex, ethAddress } from 'viem'
 
 const SIX_MONTHS = 6 * 30 * 24 * 60 * 60
 const TWO_YEARS = 2 * 365 * 24 * 60 * 60
@@ -19,8 +19,6 @@ export default buildModule('Market', (m) => {
     id: 'ProfileProxy',
   })
   const Profile = m.contractAt('Profile', ProfileProxy)
-
-  const uniswap = m.getParameter('UniswapV3Factory') // factory (or mock) address
 
   // deploy
   const usdc = m.getParameter('usdc')
@@ -46,7 +44,6 @@ export default buildModule('Market', (m) => {
   })
   m.call(Finder, 'changeImplementationAddress', [bytes32('Market'), Market], { id: 'regMarket' })
   m.call(Finder, 'changeImplementationAddress', [bytes32('Profile'), Profile], { id: 'regProfile' })
-  m.call(Finder, 'changeImplementationAddress', [bytes32('Uniswap'), uniswap], { id: 'regUniswap' })
   m.call(Finder, 'changeImplementationAddress', [bytes32('Mediator'), m.getAccount(0)], { id: 'regMediator' })
 
   // Profile grants role to Market
