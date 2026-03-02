@@ -28,8 +28,10 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
 
   FinderInterface public finder;
 
-  mapping(IERC20 => Token)        public tokens;
-  mapping(bytes3  => IChainlink)  public fiats;
+  mapping(IERC20  => Token)      public tokens;
+
+  // @dev 3 bytes are packed in Offer storage even though here it is 32 bytes
+  mapping(bytes3  => IChainlink) public fiats;
 
   /**
    * Offers may accept multiple methods.
