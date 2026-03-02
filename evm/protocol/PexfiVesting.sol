@@ -9,7 +9,7 @@ import {FinderInterface} from "@uma/core/contracts/data-verification-mechanism/i
 import {OptimisticOracleV3Interface} from "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3Interface.sol";
 import {OptimisticOracleV3CallbackRecipientInterface} from "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3CallbackRecipientInterface.sol";
 
-import {FinderConstants} from "./libraries/FinderConstants.sol";
+import {Services} from "./libraries/Services.sol";
 import {IMarket} from "./interfaces/IMarket.sol";
 
 /// @dev Must replicate to avoid IERC20 version mismatch
@@ -52,7 +52,7 @@ contract PexfiVesting is VestingWalletCliff {
   VestingWalletCliff(cliffSeconds)
   {
     finder = FinderInterface(finder_);
-    token = IERC20(finder.getImplementationAddress(FinderConstants.PexfiVault));
+    token = IERC20(finder.getImplementationAddress(Services.PexfiVault));
   }
 
   bytes32 private constant PAID = keccak256("PAID");
@@ -68,7 +68,7 @@ contract PexfiVesting is VestingWalletCliff {
       IMarket.InvalidArgument()
     );
 
-    address oracleAddress = finder.getImplementationAddress(FinderConstants.Oracle);
+    address oracleAddress = finder.getImplementationAddress(Services.Oracle);
     IOptimisticOracleV3 oov3 = IOptimisticOracleV3(oracleAddress);
 
     uint bondAmount = oov3.getMinimumBond(address(token));

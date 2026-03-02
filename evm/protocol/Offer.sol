@@ -4,7 +4,7 @@ pragma solidity 0.8.34;
 import {IDeal} from "./interfaces/IDeal.sol";
 import {IMarket} from "./interfaces/IMarket.sol";
 import {IOffer} from "./interfaces/IOffer.sol";
-import {FinderConstants} from "./libraries/FinderConstants.sol";
+import {Services} from "./libraries/Services.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -61,7 +61,7 @@ contract Offer is IOffer, Initializable
 
     uint _tokenAmount = market.convert(params.fiatAmount, fiat, token, rate);
 
-    address impl = market.finder().getImplementationAddress(FinderConstants.DealImplementation);
+    address impl = market.finder().getImplementationAddress(Services.DealImplementation);
     IDeal deal = IDeal(Clones.clone(impl));
     deal.initialize(IDeal.DealParams({
       finder: address(market.finder()),
