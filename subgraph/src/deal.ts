@@ -3,8 +3,9 @@ import {Offer as OfferContract} from "../../.cache/subgraph/generated/templates/
 import {Deal as DealEntity, DealMessage, Feedback, Notification, NotificationEvent, Offer} from "../../.cache/subgraph/generated/schema"
 import {Address, Bytes, dataSource, log} from "@graphprotocol/graph-ts"
 import {Market as MarketContract} from "../../.cache/subgraph/generated/Market/Market";
+import {Finder as FinderContract} from "../../.cache/subgraph/generated/Market/Finder";
 import {updateProfileFor} from "./profile";
-import {FeedbackGiven} from "../../.cache/subgraph/generated/Market/Deal";
+import {FeedbackGiven} from "../../.cache/subgraph/generated/templates/Deal/Deal";
 
 export function fetchDeal(dealAddress: Address): DealEntity {
   let dealContract = DealContract.bind(dealAddress)
@@ -30,15 +31,11 @@ export function fetchDeal(dealAddress: Address): DealEntity {
   let fiatAmountResult = dealContract.try_fiatAmount()
   if (!fiatAmountResult.reverted) deal.fiatAmount = fiatAmountResult.value
 
-
-
   let allowCancelUnacceptedAfterResult = dealContract.try_allowCancelUnacceptedAfter();
   if (!allowCancelUnacceptedAfterResult.reverted) deal.allowCancelUnacceptedAfter = allowCancelUnacceptedAfterResult.value.toI32();
 
   let allowCancelUnpaidAfterResult = dealContract.try_allowCancelUnpaidAfter();
   if (!allowCancelUnpaidAfterResult.reverted) deal.allowCancelUnpaidAfter = allowCancelUnpaidAfterResult.value.toI32();
-
-
 
   return deal;
 }
@@ -53,11 +50,17 @@ function doUpdateProfile(deal: DealEntity): void {
   let context = dataSource.context();
   let marketAddress = context.getString('marketAddress')
   let marketContract = MarketContract.bind(Address.fromString(marketAddress))
-  let profileAddressResult = marketContract.try_profile()
-  if (profileAddressResult.reverted) {
+
+  let finderResult = marketContract.try_finder();
+  if (finderResult.reverted) {
     return
   }
 
+  let finderContract = FinderContract.bind(finderResult.value);
+  let profileAddressResult = finderContract.try_getImplementationAddress(Bytes.fromHexString("0x50726f66696c6500000000000000000000000000000000000000000000000000") as Bytes);
+  if (profileAddressResult.reverted) {
+    return;
+  }
   let profileAddress = profileAddressResult.value
 
   let offer = Offer.load(deal.offer)
@@ -120,9 +123,8 @@ export function handleDealState(event: DealStateEvent): void {
   notificationEvent.name = 'DealState';
   notificationEvent.arg0 = event.params.state.toString();
   notificationEvent.arg1 = event.params.sender.toHexString();
-  notificationEvent.save(); // at least one participant will be notified
+  notificationEvent.save();
 
-  // closures are not supported in assemblyscript so pass all args
   function notify(who: Bytes, event: DealStateEvent, notificationEvent: NotificationEvent): void {
     const notification = new Notification(event.transaction.hash.toHexString() + event.logIndex.toHexString() + "-" + who.toHexString());
     notification.createdAt = event.block.timestamp.toI32();
@@ -132,7 +134,6 @@ export function handleDealState(event: DealStateEvent): void {
     notification.save();
   }
 
-  // owner
   let dealContract = DealContract.bind(event.address);
   let offerResult = dealContract.try_offer();
   if (!offerResult.reverted) {
@@ -146,7 +147,6 @@ export function handleDealState(event: DealStateEvent): void {
     }
   }
 
-  // taker
   if (event.params.state > 0) {
     let takerResult = dealContract.try_taker();
     if (!takerResult.reverted) {
@@ -155,8 +155,6 @@ export function handleDealState(event: DealStateEvent): void {
       }
     }
   }
-
-
 }
 
 export function handleFeedbackGiven(event: FeedbackGiven): void {
@@ -170,9 +168,6 @@ export function handleFeedbackGiven(event: FeedbackGiven): void {
   let ownerResult = offerContract.try_owner()
   if (ownerResult.reverted) return
 
-  // event.params.to is the feedback recipient
-  // if recipient is taker → sender is owner → this is feedbackForTaker
-  // if recipient is owner → sender is taker → this is feedbackForOwner
   let takerResult = dealContract.try_taker()
   if (takerResult.reverted) return
 

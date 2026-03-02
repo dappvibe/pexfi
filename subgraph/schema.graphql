@@ -5,7 +5,7 @@ type Offer @entity(immutable: false) {
   isSell: Boolean!
   token: Token!
   fiat: Bytes!
-  method: Bytes!
+  methods: BigInt!
   rate: Int!
   minFiat: Int!
   maxFiat: Int!
@@ -13,14 +13,34 @@ type Offer @entity(immutable: false) {
   disabled: Boolean!
 
   # sorting order based on price factored by profile rating
-  ranging: Int!
+  ranging: BigInt!
 }
 
-type Token @entity(immutable: true) {
-  # bytes8 symbol hex used as PK
+type Token @entity(immutable: false) {
+  # address used as PK
   id: ID!
   address: Bytes!
+  name: String!
+  symbol: String!
   decimals: Int!
+  pool: Bytes!
+  removed: Boolean!
+}
+
+type Fiat @entity(immutable: false) {
+  # symbol used as PK
+  id: ID!
+  symbol: String!
+  feed: Bytes!
+  removed: Boolean!
+}
+
+type Method @entity(immutable: false) {
+  # index used as PK
+  id: ID!
+  name: String!
+  index: BigInt!
+  disabled: Boolean!
 }
 
 type Deal @entity(immutable: false) {
@@ -31,6 +51,7 @@ type Deal @entity(immutable: false) {
   taker: Bytes!
   tokenAmount: BigInt!
   fiatAmount: BigInt!
+  method: Bytes!
   terms: String
   paymentInstructions: String!
   allowCancelUnacceptedAfter: Int!
