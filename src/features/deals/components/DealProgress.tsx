@@ -1,6 +1,5 @@
-import { useDealContext } from '@/pages/Trade/Deal/Deal'
+import { useDealContext } from '@/features/deals/hooks/useDealContext'
 import { Steps } from 'antd'
-import React from 'react'
 
 export default function DealProgress() {
   const { deal } = useDealContext()

@@ -1,5 +1,5 @@
 import { Button, Form, Input, Radio, Result, Skeleton } from 'antd'
-import { useDealContext } from '@/pages/Trade/Deal/Deal'
+import { useDealContext } from '@/features/deals/hooks/useDealContext'
 import { useAccount, useWriteContract } from 'wagmi'
 import { dealAbi } from '@/wagmi'
 import { equal } from '@/utils'

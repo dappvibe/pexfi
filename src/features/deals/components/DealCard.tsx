@@ -1,11 +1,11 @@
 import { Card, Divider, Skeleton } from 'antd'
-import React, { useEffect, useState } from 'react'
-import { useDealContext } from '@/pages/Trade/Deal/Deal'
-import Controls from '@/pages/Trade/Deal/Controls'
+import { useEffect, useState } from 'react'
+import { useDealContext } from '@/features/deals/hooks/useDealContext'
+import Controls from '@/features/deals/components/Controls'
 import { useAccount } from 'wagmi'
 import { equal } from '@/utils'
-import DealProgress from '@/pages/Trade/Deal/DealProgress'
-import DealInfo from '@/pages/Trade/Deal/DealInfo'
+import DealProgress from '@/features/deals/components/DealProgress'
+import DealInfo from '@/features/deals/components/DealInfo'
 
 export default function DealCard() {
   const { deal, offer } = useDealContext()
