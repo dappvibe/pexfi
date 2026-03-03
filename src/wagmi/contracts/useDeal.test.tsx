@@ -22,7 +22,7 @@ vi.mock('@/shared/web3', () => ({
     tokens: {
       ETH: { decimals: 18, api: '0xToken', name: 'Ethereum', symbol: 'ETH', id: 1 },
     },
-    fiats: ['USD'],
+    fiats: { USD: { id: '0x5553440000000000000000000000000000000000000000000000000000000000', symbol: 'USD' } },
     methods: {},
   })),
 }))

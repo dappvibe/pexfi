@@ -6,7 +6,7 @@ interface OfferFormProps {
   offer?: any
   form: any
   tokens: Record<string, any>
-  fiats: string[]
+  fiats: Record<string, any>
   methods: Record<string, any>
   lockSubmit: boolean
   onFinish: (values: any) => Promise<void>
@@ -62,7 +62,7 @@ export default function OfferForm({
             </Form.Item>
             <Form.Item name="fiat" label={'for'} rules={required} initialValue={offer ? offer.fiat : undefined}>
               <Select showSearch style={{ width: 85 }} onChange={fetchRate} disabled={!!offer}>
-                {fiats.map((symbol) => (
+                {Object.keys(fiats).map((symbol) => (
                   <Select.Option key={symbol} value={symbol}>
                     {symbol}
                   </Select.Option>

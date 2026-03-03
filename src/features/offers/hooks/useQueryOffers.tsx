@@ -8,7 +8,9 @@ export type OffersFilter = {
   owner?: string
   token?: string
   fiat?: string
-  method?: string
+  methods?: string
+  minFiat_lte?: number
+  maxFiat_gte?: number
 }
 
 export type OffersRequestParams = {
@@ -35,7 +37,7 @@ export type Offer = {
   isSell: boolean
   token: Token
   fiat: string
-  method: string
+  methods: string
   // rate is just a multiplier, not a price. must be factored by market price to display the actual price
   rate: number
   minFiat: number
@@ -43,7 +45,7 @@ export type Offer = {
   terms: string
 }
 
-export type UseOffersResult = {
+export type UseQueryOffersResult = {
   offers: Offer[] | undefined
   // We know the number of records only if all are fetched
   totalCount: number | null
@@ -71,7 +73,7 @@ const GQL_OFFERS = gql`
         decimals
       }
       fiat
-      method
+      methods
       rate
       minFiat
       maxFiat
@@ -80,7 +82,7 @@ const GQL_OFFERS = gql`
   }
 `
 
-export function useOffers(params: OffersRequestParams): UseOffersResult {
+export function useQueryOffers(params: OffersRequestParams): UseQueryOffersResult {
   const { data, loading, error, fetchMore, refetch } = useQuery(GQL_OFFERS, {
     variables: {
       first: RECORDS_PER_FETCH,
@@ -93,24 +95,20 @@ export function useOffers(params: OffersRequestParams): UseOffersResult {
   const [totalCount, setTotalCount] = useState<number | null>(null)
   const [prevFilter, setPrevFilter] = useState(params.filter)
 
-  if (
-    params.filter.disabled !== prevFilter.disabled ||
-    params.filter.isSell !== prevFilter.isSell ||
-    params.filter.owner !== prevFilter.owner ||
-    params.filter.token !== prevFilter.token ||
-    params.filter.fiat !== prevFilter.fiat ||
-    params.filter.method !== prevFilter.method
-  ) {
+  // Re-trigger totalCount reset if filter changes
+  if (JSON.stringify(params.filter) !== JSON.stringify(prevFilter)) {
     setPrevFilter(params.filter)
     setTotalCount(null)
   }
 
   function loadMore() {
+    if (!data?.offers) return
     return fetchMore({
       variables: {
         skip: data.offers.length,
       },
       updateQuery: (prev, { fetchMoreResult }) => {
+        if (!fetchMoreResult) return prev
         if (fetchMoreResult.offers.length < RECORDS_PER_FETCH) {
           setTotalCount(prev.offers.length + fetchMoreResult.offers.length)
         } // fetched all

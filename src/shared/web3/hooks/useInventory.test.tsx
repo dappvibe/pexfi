@@ -1,7 +1,9 @@
+import React from 'react'
 import { renderHook, waitFor } from '@testing-library/react'
 import { useInventory } from './useInventory'
 import { MockedProvider } from '@apollo/client/testing/react'
 import { gql } from '@apollo/client'
+import { describe, it, expect } from 'vitest'
 
 const GET_INVENTORY = gql`
   query GetInventory {
@@ -97,8 +99,9 @@ describe('useInventory', () => {
     expect(tokens['WETH'].decimals).toBe(18)
 
     // Check Fiats
-    expect(fiats).toContain('USD')
-    expect(fiats).toContain('EUR')
+    expect(fiats['USD']).toBeDefined()
+    expect(fiats['EUR']).toBeDefined()
+    expect(fiats['USD'].id).toBe('0x5553440000000000000000000000000000000000000000000000000000000000')
 
     // Check Methods
     expect(methods['Bank Transfer']).toBeDefined()
@@ -130,7 +133,7 @@ describe('useInventory', () => {
     await waitFor(() => expect(result.current.loading).toBe(false))
 
     expect(result.current.tokens).toEqual({})
-    expect(result.current.fiats).toEqual([])
+    expect(result.current.fiats).toEqual({})
     expect(result.current.methods).toEqual({})
   })
 })

@@ -19,7 +19,7 @@ export default function OffersFilters({ setFilterAmount }) {
           <Select
             placeholder="Search to Select"
             showSearch
-            options={fiats.map((fiat) => ({ value: fiat }))}
+            options={Object.keys(fiats).map((symbol) => ({ value: symbol, label: symbol }))}
             defaultValue={fiat}
             onChange={(fiat) =>
               navigate(generatePath('/trade/:side/:token/:fiat/:method?', { side, token, fiat, method }))
