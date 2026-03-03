@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
 import Deal from '@/model/Deal.js'
 import Offer from '@/model/Offer.js'
-import { useContract } from '@/hooks/useContract'
+import { useContract } from '@/shared/web3'
 
 export function useUserDeals() {
   const { address } = useAccount()

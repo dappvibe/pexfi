@@ -1,6 +1,6 @@
 import { useDealContext } from '@/features/deals/hooks/useDealContext'
 import { Descriptions, Skeleton } from 'antd'
-import Username from '@/components/Username'
+import { Username } from '@/shared/web3'
 
 export default function DealInfo() {
   const { deal, offer } = useDealContext()

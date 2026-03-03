@@ -26,7 +26,7 @@ const mockInventory = {
     Paypal: { name: 'Paypal', group: 2 },
   },
 }
-vi.mock('@/hooks/useInventory', () => ({
+vi.mock('@/shared/web3', () => ({
   useInventory: vi.fn(() => mockInventory),
 }))
 

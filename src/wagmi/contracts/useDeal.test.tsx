@@ -17,7 +17,7 @@ vi.mock('wagmi', () => ({
   useWatchContractEvent: (config: any) => mockUseWatchContractEvent(config),
 }))
 
-vi.mock('@/hooks/useInventory', () => ({
+vi.mock('@/shared/web3', () => ({
   useInventory: vi.fn(() => ({
     tokens: {
       ETH: { decimals: 18, api: '0xToken', name: 'Ethereum', symbol: 'ETH', id: 1 },

@@ -1,6 +1,6 @@
 import { Menu } from 'antd'
 import { generatePath, Link, useParams } from 'react-router-dom'
-import { useInventory } from '@/hooks/useInventory'
+import { useInventory } from '@/shared/web3'
 
 export default function TokenNav() {
   let { side = 'sell', token = 'WETH', fiat = 'USD', method = null } = useParams()

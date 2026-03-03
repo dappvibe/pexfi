@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { Form, message } from 'antd'
 import { padHex, stringToHex } from 'viem'
 import { useAccount } from 'wagmi'
-import { useInventory } from '@/hooks/useInventory'
+import { useInventory } from '@/shared/web3'
 import { useReadMarketGetPrice, useWriteMarketCreateOffer, useWatchMarketOfferCreatedEvent } from '@/wagmi'
-import { useAddress } from '@/hooks/useAddress'
+import { useAddress } from '@/shared/web3'
 
 interface UseOfferFormParams {
   offer?: any

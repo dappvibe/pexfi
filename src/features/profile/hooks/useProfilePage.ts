@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { BigNumberish, ContractTransactionResponse } from 'ethers'
-import { useContract } from '@/hooks/useContract'
+import { useContract } from '@/shared/web3'
 
 export type ProfileStats = {
   createdAt: Date

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render } from '@testing-library/react'
-import Notifications from '@/components/Notifications'
+import Notifications from './Notifications'
 import { useAccount } from 'wagmi'
 
 // Mock wagmi

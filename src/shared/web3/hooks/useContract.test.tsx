@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { renderHook } from '@testing-library/react'
-import { useContract } from '@/hooks/useContract'
+import { useContract } from './useContract'
 import { ethers } from 'ethers'
 
 // Mock Wagmi

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { message } from 'antd'
 import { useOffers } from '@/features/offers/hooks/useOffers'
-import { useAddress } from '@/hooks/useAddress'
+import { useAddress } from '@/shared/web3'
 import { useReadMarketGetPrice } from '@/wagmi'
 
 export function useOffersList({ superFilter = null }: { superFilter?: any } = {}) {

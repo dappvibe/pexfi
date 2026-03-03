@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import OffersListPage from '@/features/offers/pages/OffersListPage'
 import { useOffers } from '@/features/offers/hooks/useOffers'
 import { useParams } from 'react-router-dom'
-import { useAddress } from '@/hooks/useAddress'
+import { useAddress } from '@/shared/web3'
 import { useReadMarketGetPrice } from '@/wagmi'
 
 // Mock third-party hooks
@@ -20,7 +20,7 @@ vi.mock('react-router-dom', () => ({
 }))
 
 // Mock custom hooks
-vi.mock('@/hooks/useAddress', () => ({
+vi.mock('@/shared/web3', () => ({
   useAddress: vi.fn(),
 }))
 

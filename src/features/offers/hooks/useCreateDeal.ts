@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Form, message } from 'antd'
 import { ethers } from 'ethers'
 import { useAccount } from 'wagmi'
-import { useContract } from '@/hooks/useContract'
+import { useContract } from '@/shared/web3'
 import { useOffer } from '@/features/offers/hooks/useOffer'
 
 export function useCreateDeal() {

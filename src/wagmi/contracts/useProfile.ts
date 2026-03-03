@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useReadContracts } from 'wagmi'
 import { Address } from 'viem'
 import { profileAbi } from '@/wagmi'
-import { useAddress } from '@/hooks/useAddress'
+import { useAddress } from '@/shared/web3'
 
 export type Profile = {
   address: Address
