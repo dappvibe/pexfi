@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import Faq from '@/pages/Home/Faq'
+import Faq from '@/features/landing/components/Faq'
 
-describe('Faq Component', () => {
+describe('Faq', () => {
   it('renders FAQ heading', () => {
     render(<Faq />)
     expect(screen.getByText('F.A.Q.')).toBeDefined()
@@ -10,11 +10,8 @@ describe('Faq Component', () => {
 
   it('renders questions', () => {
     render(<Faq />)
-    // Check for a few keys questions
     expect(screen.getByText('How to trade Bitcoin?')).toBeDefined()
     expect(screen.getByText('Do you need a license?')).toBeDefined()
-    expect(screen.getByText('Why Arbitrum?')).toBeDefined()
+    expect(screen.getByText('Are there any fees?')).toBeDefined()
   })
-
-  // We could test expansion if we wanted to be thorough, but checking rendering is sufficient for this static content.
 })
