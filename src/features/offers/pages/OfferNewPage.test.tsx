@@ -11,7 +11,7 @@ vi.mock('@/features/offers/hooks/useOfferForm', () => ({
     methods: {},
     inventoryLoading: false,
     lockSubmit: false,
-    onFinish: vi.fn(),
+    createOffer: vi.fn(),
     fetchRate: vi.fn(),
     previewPrice: vi.fn(),
     handleSetRate: vi.fn(),

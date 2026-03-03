@@ -6,6 +6,7 @@ import { usePublicClient } from 'wagmi'
 import { useInventory } from '@/shared/web3'
 import { useReadMarketGetPrice, useWriteMarketCreateOffer, marketAbi } from '@/wagmi'
 import { useAddress } from '@/shared/web3'
+import { useOffer } from './useOffer'
 
 interface UseOfferFormParams {
   offer?: any
@@ -19,10 +20,22 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
   const navigate = useNavigate()
   const publicClient = usePublicClient()
   const marketAddress = useAddress('Market#Market')
-  const { writeContractAsync: createOffer } = useWriteMarketCreateOffer()
+  const { writeContractAsync: createOfferTx } = useWriteMarketCreateOffer()
   const [lockSubmit, setLockSubmit] = useState(false)
   const { tokens, fiats, methods, loading: inventoryLoading } = useInventory()
   const [form] = Form.useForm()
+
+  const [newOfferAddress, setNewOfferAddress] = useState<string | undefined>()
+  // useOffer handles the polling/loading of the offer from the subgraph.
+  const { offer: createdOffer, isLoading: isSyncing } = useOffer(newOfferAddress, { pollInterval: 1000 })
+
+  useEffect(() => {
+    if (newOfferAddress && createdOffer && !isSyncing) {
+      // Redirect once the subgraph has indexed the new offer.
+      // This ensures the offer page has data to display.
+      navigate(`/trade/offer/${newOfferAddress}`)
+    }
+  }, [newOfferAddress, createdOffer, isSyncing, navigate])
 
   const [rateParams, setRateParams] = useState<{
     token: `0x${string}`
@@ -54,7 +67,7 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
       if (!token) return
 
       const fiatBytes3 = padHex(stringToHex(fiat), { size: 3, dir: 'right' })
-      setRateParams(prev => {
+      setRateParams((prev) => {
         if (prev?.token !== token.address || prev?.fiat !== fiatBytes3) {
           return { token: token.address, fiat: fiatBytes3 }
         }
@@ -78,7 +91,7 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
     } else fetchRate()
   }, [priceData, form, fetchRate])
 
-  async function handleSetRate() {
+  const handleSetRate = useCallback(async () => {
     if (!setRate) return
     try {
       await setRate(form.getFieldValue('rate'))
@@ -86,9 +99,9 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
     } catch (e: any) {
       message.error(e.message || 'Failed to update rate')
     }
-  }
+  }, [form, setRate])
 
-  async function handleSetLimits() {
+  const handleSetLimits = useCallback(async () => {
     if (!setLimits) return
     try {
       await setLimits(form.getFieldValue('min'), form.getFieldValue('max'))
@@ -96,9 +109,9 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
     } catch (e: any) {
       message.error(e.message || 'Failed to update limits')
     }
-  }
+  }, [form, setLimits])
 
-  async function handleSetTerms() {
+  const handleSetTerms = useCallback(async () => {
     if (!setTerms) return
     try {
       await setTerms(form.getFieldValue('terms'))
@@ -106,9 +119,9 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
     } catch (e: any) {
       message.error(e.message || 'Failed to update terms')
     }
-  }
+  }, [form, setTerms])
 
-  async function handleToggleDisabled() {
+  const handleToggleDisabled = useCallback(async () => {
     if (!toggleDisabled) return
     try {
       await toggleDisabled()
@@ -116,9 +129,9 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
     } catch (e: any) {
       message.error(e.message || 'Failed to toggle state')
     }
-  }
+  }, [toggleDisabled])
 
-  async function onFinish(val) {
+  async function createOffer(val: any) {
     setLockSubmit(true)
 
     val.min = Math.floor(val.min)
@@ -137,11 +150,11 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
     }
 
     try {
-      const hash = await createOffer({
+      const hash = await createOfferTx({
         address: marketAddress,
         args: [params],
       })
-      message.info('Offer submitted. You will be redirected shortly.')
+      message.info('Offer submitted. Waiting for confirmation...')
 
       const receipt = await publicClient?.waitForTransactionReceipt({ hash })
       if (receipt) {
@@ -151,14 +164,13 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
           logs: receipt.logs,
         })
         if (logs.length > 0) {
-          const newOfferAddress = (logs[0].args as any).offer
-          navigate(`/trade/offer/${newOfferAddress}`)
+          const offerAddress = (logs[0].args as any).offer
+          setNewOfferAddress(offerAddress)
         }
       }
     } catch (e: any) {
       console.error('Submission error:', e)
       message.error(e.shortMessage || e.message || 'Failed to submit offer')
-    } finally {
       setLockSubmit(false)
     }
   }
@@ -169,8 +181,8 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
     fiats,
     methods,
     inventoryLoading,
-    lockSubmit,
-    onFinish,
+    lockSubmit: lockSubmit || !!newOfferAddress,
+    createOffer,
     fetchRate,
     previewPrice,
     handleSetRate,
