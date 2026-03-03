@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { vi } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
-import OffersFilters from '@/pages/Trade/Offers/OffersFilters'
+import OffersFilters from '@/features/offers/components/OffersFilters'
 
 const mockInventory = {
   tokens: {

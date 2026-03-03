@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import Subnav from './Subnav'
+import OfferSubnav from '@/features/offers/components/OfferSubnav'
 
-describe('Subnav', () => {
+describe('OfferSubnav', () => {
   it('renders successfully', () => {
     const offer = {
       token: 'TST',
@@ -12,10 +12,11 @@ describe('Subnav', () => {
 
     render(
       <MemoryRouter>
-        <Subnav offer={offer} />
+        <OfferSubnav offer={offer} />
       </MemoryRouter>
     )
 
     expect(screen.getByText('Back to offers')).toBeTruthy()
   })
 })
+

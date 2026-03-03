@@ -1,6 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { useOffer } from './useOffer'
+import { useOffer } from '@/features/offers/hooks/useOffer'
 import OfferModel from '@/model/Offer'
 
 // Mocking dependencies

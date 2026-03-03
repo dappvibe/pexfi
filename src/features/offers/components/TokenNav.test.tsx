@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { vi } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
-import TokenNav from '@/pages/Trade/Offers/TokenNav'
+import TokenNav from '@/features/offers/components/TokenNav'
 
 // Mock useInventory
 // Mock useInventory
