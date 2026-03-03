@@ -1,13 +1,45 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { message } from 'antd'
-import { useOffers } from '@/features/offers/hooks/useOffers'
+import { useQueryOffers } from '@/features/offers/hooks/useQueryOffers'
 import { useAddress } from '@/shared/web3'
+import { useInventory } from '@/shared/web3'
 import { useReadMarketGetPrice } from '@/wagmi'
+import { Address } from 'viem'
 
 export function useOffersList({ superFilter = null }: { superFilter?: any } = {}) {
   const marketAddress = useAddress('Market#Market')
-  const { side = 'sell', token = 'WETH', fiat = 'USD', method = undefined } = useParams()
+  const { side = 'sell', token: tokenSymbol = 'WETH', fiat: fiatSymbol = 'USD', method: methodName = undefined } = useParams()
+  const { tokens, fiats, methods, loading: invLoading } = useInventory()
+
+  const [filterAmount, setFilterAmount] = useState<string>('')
+
+  const activeToken = tokens[tokenSymbol]
+  const activeFiat = fiats[fiatSymbol]
+  const activeMethod = methodName ? methods[methodName] : undefined
+
+  const filter = useMemo(() => {
+    if (superFilter) return superFilter
+
+    const f: any = {
+      disabled: false,
+      isSell: side.toLowerCase() === 'buy',
+    }
+
+    if (activeToken) f.token = activeToken.id
+    if (activeFiat) f.fiat = activeFiat.id
+    if (activeMethod) f.methods = activeMethod.index
+
+    if (filterAmount !== '') {
+      const amount = parseInt(filterAmount)
+      if (!isNaN(amount)) {
+        f.minFiat_lte = amount
+        f.maxFiat_gte = amount
+      }
+    }
+
+    return f
+  }, [superFilter, side, activeToken, activeFiat, activeMethod, filterAmount])
 
   const {
     offers: rawOffers,
@@ -15,14 +47,8 @@ export function useOffersList({ superFilter = null }: { superFilter?: any } = {}
     loadMore,
     loading: listLoading,
     error,
-  } = useOffers({
-    filter: superFilter || {
-      disabled: false,
-      isSell: side.toLowerCase() === 'buy',
-      token: token,
-      fiat: fiat,
-      method: method,
-    },
+  } = useQueryOffers({
+    filter: filter,
     order: side === 'buy' ? 'asc' : 'desc',
   })
 
@@ -33,18 +59,17 @@ export function useOffersList({ superFilter = null }: { superFilter?: any } = {}
     }
   }, [error])
 
-  const [allOffers, setAllOffers] = useState(null)
   const {
     data: marketPrice,
     isLoading: priceLoading,
     error: priceError,
   } = useReadMarketGetPrice({
     address: marketAddress,
-    args: [token as `0x${string}`, fiat as `0x${string}`],
+    args: activeToken && activeFiat ? [activeToken.address as Address, activeFiat.id.slice(0, 8) as `0x${string}`] : undefined,
     query: {
-      enabled: !!marketAddress,
+      enabled: !!marketAddress && !!activeToken && !!activeFiat,
       staleTime: 30000,
-      select: (data): number => Number(data) / 10000 / 100,
+      select: (data): number => Number(data) / 1000000, // Market price is 1e6
     },
   })
 
@@ -55,35 +80,22 @@ export function useOffersList({ superFilter = null }: { superFilter?: any } = {}
     }
   }, [priceError])
 
-  useEffect(() => {
-    if (!rawOffers || !marketPrice) return
-    const price = marketPrice as unknown as number
-    const offers = rawOffers.map((offer) => {
-      const rate = Number(offer.rate) / 10 ** 4
+  const offers = useMemo(() => {
+    if (!rawOffers || marketPrice === undefined) return []
+    const price = Number(marketPrice)
+    return rawOffers.map((offer) => {
+      const rate = Number(offer.rate) / 10000
       return {
         ...offer,
         rate: rate,
         price: (price * rate).toFixed(2),
       }
     })
-    setAllOffers(offers)
   }, [rawOffers, marketPrice])
 
-  const [offers, setOffers] = useState(null)
-  const [filterAmount, setFilterAmount] = useState('')
-
-  useEffect(() => {
-    if (!allOffers) return
-    if (filterAmount === '') {
-      setOffers(allOffers)
-    } else {
-      setOffers(allOffers.filter((offer) => offer.minFiat <= filterAmount && offer.maxFiat >= filterAmount))
-    }
-  }, [filterAmount, allOffers])
-
   return {
-    offers: offers || [],
-    loading: !error && !priceError && (offers === null || listLoading || priceLoading),
+    offers,
+    loading: !error && !priceError && (listLoading || priceLoading || invLoading),
     loadMore,
     totalOffers: totalCount,
     filterAmount,

@@ -32,7 +32,11 @@ const mockTokens = {
   USDT: { address: '0xTokenAddress', symbol: 'USDT', name: 'Tether USD', decimals: 6 },
   WETH: { address: '0xWETHAddress', symbol: 'WETH', name: 'Wrapped Ether', decimals: 18 },
 }
-const mockFiats = ['USD', 'EUR', 'GBP']
+const mockFiats = {
+  USD: { id: '0x5553440000000000000000000000000000000000000000000000000000000000', symbol: 'USD' },
+  EUR: { id: '0x4555520000000000000000000000000000000000000000000000000000000000', symbol: 'EUR' },
+  GBP: { id: '0x4742500000000000000000000000000000000000000000000000000000000000', symbol: 'GBP' },
+}
 const mockMethods = {
   'Bank Transfer': { name: 'Bank Transfer', group: 1, index: 0 },
   Paypal: { name: 'Paypal', group: 2, index: 1 },
@@ -81,7 +85,7 @@ describe('OfferForm', () => {
     const mockOffer = {
       address: '0xOfferAddress',
       isSell: true,
-      token: 'WETH',
+      token: { symbol: 'WETH' },
       fiat: 'EUR',
       method: 'Paypal',
       rate: 1.05,

@@ -46,9 +46,9 @@ export function useInventory() {
 
   if (loading || error || !data) {
     return {
-      tokens: {},
-      fiats: [],
-      methods: {},
+      tokens: {} as Record<string, Token>,
+      fiats: {} as Record<string, Fiat>,
+      methods: {} as Record<string, Method>,
       loading,
       error,
     }
@@ -59,7 +59,10 @@ export function useInventory() {
     return acc
   }, {})
 
-  const fiats = (data.fiats || []).map((f: Fiat) => f.symbol)
+  const fiats = (data.fiats || []).reduce((acc: Record<string, Fiat>, fiat: Fiat) => {
+    acc[fiat.symbol] = fiat
+    return acc
+  }, {})
 
   const methods = (data.methods || []).reduce((acc: Record<string, Method>, method: Method) => {
     acc[method.name] = method

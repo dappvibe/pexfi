@@ -20,7 +20,11 @@ const mockInventory = {
       decimals: 18,
     },
   },
-  fiats: ['USD', 'EUR', 'GBP'],
+  fiats: {
+    USD: { id: '0x5553440000000000000000000000000000000000000000000000000000000000', symbol: 'USD' },
+    EUR: { id: '0x4555520000000000000000000000000000000000000000000000000000000000', symbol: 'EUR' },
+    GBP: { id: '0x4742500000000000000000000000000000000000000000000000000000000000', symbol: 'GBP' },
+  },
   methods: {
     'Bank Transfer': { name: 'Bank Transfer', group: 1 },
     Paypal: { name: 'Paypal', group: 2 },
