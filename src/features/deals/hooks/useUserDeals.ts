@@ -1,43 +1,59 @@
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
 import { useAccount } from 'wagmi'
-import Deal from '@/model/Deal.js'
-import Offer from '@/model/Offer.js'
-import { useContract } from '@/shared/web3'
+import { gql } from '@apollo/client'
+import { useQuery } from '@apollo/client/react'
+
+const GQL_USER_DEALS = gql`
+  query UserDeals($address: Bytes!) {
+    deals(
+      where: { or: [{ taker: $address }, { offer_: { owner: $address } }] }
+      orderBy: createdAt
+      orderDirection: desc
+    ) {
+      id
+      createdAt
+      state
+      taker
+      tokenAmount
+      fiatAmount
+      method
+      offer {
+        id
+        owner
+        isSell
+        fiat
+        methods
+        token {
+          id
+          symbol
+          decimals
+        }
+      }
+    }
+  }
+`
 
 export function useUserDeals() {
   const { address } = useAccount()
-  const { Market, Deal: DealContract, Offer: OfferContract } = useContract()
-  const [deals, setDeals] = useState<any[] | undefined>(undefined)
 
-  useEffect(() => {
-    if (!address) return
+  const { data, loading, error, refetch } = useQuery(GQL_USER_DEALS, {
+    variables: { address: address?.toLowerCase() },
+    skip: !address,
+  })
 
-    Promise.all([
-      Market.queryFilter(Market.filters.DealCreated(address)), // as maker
-      Market.queryFilter(Market.filters.DealCreated(null, address)), // as taker
-    ]).then(([asOwner, asTaker]) => {
-      const fetching = asOwner.concat(asTaker).map((log) =>
-        new Deal(DealContract.attach(log.args[3])).fetch().then((deal) =>
-          Market.runner
-            .getBlock(log.blockHash)
-            .then((block) => {
-              deal.createdAt = block
-              return deal
-            })
-            .then((deal) =>
-              Offer.fetch(OfferContract.attach(deal.offer)).then((offer) => {
-                deal.offer = offer
-                return Market.token(offer.token).then((token) => {
-                  deal.tokenAmount /= 10 ** Number(token.decimals)
-                  return deal
-                })
-              })
-            )
-        )
-      )
-      Promise.all(fetching).then(setDeals)
-    })
-  }, [address])
+  const deals = useMemo(() => {
+    if (!data?.deals) return undefined
 
-  return { deals }
+    return data.deals.map((d: any) => ({
+      ...d,
+      tokenAmountFormatted: Number(BigInt(d.tokenAmount)) / 10 ** d.offer.token.decimals,
+      fiatAmountFormatted: Number(BigInt(d.fiatAmount)) / 10 ** 6,
+      offer: {
+        ...d.offer,
+        method: d.offer.methods.toString(),
+      }
+    }))
+  }, [data])
+
+  return { deals, loading, error, refetch }
 }

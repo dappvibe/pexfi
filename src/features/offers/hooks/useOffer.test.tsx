@@ -1,42 +1,37 @@
-import { renderHook, waitFor } from '@testing-library/react'
+import { renderHook, waitFor, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useOffer } from '@/features/offers/hooks/useOffer'
-import OfferModel from '@/model/Offer'
+import { gql } from '@apollo/client'
+import { useQuery } from '@apollo/client/react'
+import { 
+  useReadMarketGetPrice, 
+  useReadErc20Allowance,
+  useWriteOfferSetRate,
+  useWriteOfferSetLimits,
+  useWriteOfferSetTerms,
+  useWriteOfferSetDisabled
+} from '@/wagmi'
 
 // Mocking dependencies
-vi.mock('@/model/Offer', () => {
-  return {
-    default: {
-      fetch: vi.fn(),
-    }
-  }
-})
+vi.mock('@apollo/client', () => ({
+  gql: vi.fn((s) => s),
+}))
 
-const mockMarket = {
-  getPrice: vi.fn(),
-  token: vi.fn(),
-  target: '0xMarket',
-}
+vi.mock('@apollo/client/react', () => ({
+  useQuery: vi.fn(),
+}))
 
-const mockTokenInstance = {
-    allowance: vi.fn(),
-}
-
-const mockToken = {
-  attach: vi.fn().mockReturnValue(mockTokenInstance),
-}
-
-const mockOfferContract = {
-    attach: vi.fn(),
-}
+vi.mock('@/wagmi', () => ({
+  useReadMarketGetPrice: vi.fn(),
+  useReadErc20Allowance: vi.fn(),
+  useWriteOfferSetRate: vi.fn(),
+  useWriteOfferSetLimits: vi.fn(),
+  useWriteOfferSetTerms: vi.fn(),
+  useWriteOfferSetDisabled: vi.fn(),
+}))
 
 vi.mock('@/shared/web3', () => ({
-  useContract: () => ({
-    Market: mockMarket,
-    Offer: mockOfferContract,
-    Token: mockToken,
-    signed: vi.fn(),
-  }),
+  useAddress: vi.fn(() => '0xMarketAddress'),
 }))
 
 vi.mock('wagmi', async () => {
@@ -46,65 +41,88 @@ vi.mock('wagmi', async () => {
     }
 })
 
-describe('useOffer Performance', () => {
+describe('useOffer', () => {
     beforeEach(() => {
         vi.clearAllMocks()
+        
+        // Default mock for useQuery (Offer fetch)
+        vi.mocked(useQuery).mockReturnValue({
+            data: {
+                offer: {
+                    id: '0xoffer',
+                    owner: '0xowner',
+                    isSell: false,
+                    token: {
+                        id: '0xtoken',
+                        address: '0xtokenaddress',
+                        name: 'Token',
+                        symbol: 'TKN',
+                        decimals: 18,
+                    },
+                    fiat: 'USD',
+                    methods: '1',
+                    rate: 10100, // 1.01
+                    minFiat: 100,
+                    maxFiat: 1000,
+                    terms: 'Terms',
+                    disabled: false,
+                }
+            },
+            loading: false,
+            error: undefined,
+            refetch: vi.fn(),
+        } as any)
+
+        // Default mocks for wagmi hooks
+        vi.mocked(useReadMarketGetPrice).mockReturnValue({ data: 100000000n } as any) // $1000
+        vi.mocked(useReadErc20Allowance).mockReturnValue({ data: 500n, refetch: vi.fn() } as any)
+        vi.mocked(useWriteOfferSetRate).mockReturnValue({ writeContractAsync: vi.fn() } as any)
+        vi.mocked(useWriteOfferSetLimits).mockReturnValue({ writeContractAsync: vi.fn() } as any)
+        vi.mocked(useWriteOfferSetTerms).mockReturnValue({ writeContractAsync: vi.fn() } as any)
+        vi.mocked(useWriteOfferSetDisabled).mockReturnValue({ writeContractAsync: vi.fn() } as any)
     })
 
-    it('should fetch price and allowance', async () => {
-        // Setup delays
-        const priceDelay = 100
-        const allowanceDelay = 100
-
-        // Mock Offer fetch
-        const mockOffer = {
-            token: '0xToken',
-            fiat: 'USD',
-            isSell: false,
-            setPairPrice: vi.fn(),
-            address: '0xOffer'
-        }
-        // @ts-ignore
-        OfferModel.fetch.mockResolvedValue(mockOffer)
-        mockOfferContract.attach.mockReturnValue({})
-
-        // Mock Market.getPrice with delay
-        mockMarket.getPrice.mockImplementation(async () => {
-            await new Promise(resolve => setTimeout(resolve, priceDelay))
-            return 1000n
-        })
-
-        // Mock Market.token
-        mockMarket.token.mockResolvedValue(['0xTokenAddress'])
-
-        // Mock Token.allowance with delay
-        mockTokenInstance.allowance.mockImplementation(async () => {
-            await new Promise(resolve => setTimeout(resolve, allowanceDelay))
-            return 500n
-        })
-
-        const start = Date.now()
+    it('should fetch offer details and calculate price', async () => {
         const { result } = renderHook(() => useOffer('0xOffer', { fetchPrice: true, fetchAllowance: true }))
 
-        // Wait for final state
         await waitFor(() => {
             expect(result.current.offer).not.toBeNull()
-            // In the component, setAllowance(res). res is 500n.
-            expect(result.current.allowance).toBe(500n)
-        }, { timeout: 1000 })
+        })
 
-        const end = Date.now()
-        const duration = end - start
+        expect(result.current.offer?.rate).toBe(1.01)
+        expect(result.current.offer?.price).toBe('101.000') // basePrice 100 * 1.01
+        expect(result.current.allowance).toBe(500n)
+    })
 
-        console.log(`Duration: ${duration}ms`)
+    it('should handle write operations using wagmi hooks', async () => {
+        const mockSetRate = vi.fn()
+        vi.mocked(useWriteOfferSetRate).mockReturnValue({ writeContractAsync: mockSetRate } as any)
 
-        // With parallel implementation, it should take roughly max(priceDelay, allowanceDelay) + overhead.
-        // Sequential would be priceDelay + allowanceDelay + overhead.
+        const { result } = renderHook(() => useOffer('0xOffer'))
 
-        // Expectation for parallel: should be significantly less than sequential sum
-        expect(duration).toBeLessThan(priceDelay + allowanceDelay - 20)
+        await act(async () => {
+            await result.current.setRate(1.05)
+        })
 
-        // And should be reasonably close to the max delay (allowing for overhead)
-        expect(duration).toBeGreaterThanOrEqual(Math.max(priceDelay, allowanceDelay))
+        expect(mockSetRate).toHaveBeenCalledWith({
+            address: '0xOffer',
+            args: [10500],
+        })
+    })
+
+    it('should toggle disabled state', async () => {
+        const mockSetDisabled = vi.fn()
+        vi.mocked(useWriteOfferSetDisabled).mockReturnValue({ writeContractAsync: mockSetDisabled } as any)
+
+        const { result } = renderHook(() => useOffer('0xOffer'))
+
+        await act(async () => {
+            await result.current.toggleDisabled()
+        })
+
+        expect(mockSetDisabled).toHaveBeenCalledWith({
+            address: '0xOffer',
+            args: [true], // toggled from false
+        })
     })
 })

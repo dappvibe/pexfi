@@ -1,124 +1,196 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { useAccount, useChainId } from 'wagmi'
-import { padHex } from 'viem'
-import { useContract } from '@/shared/web3'
-import OfferModel from '@/model/Offer.js'
-import { ERC20, Offer } from '@/types'
+import { useCallback, useMemo, useState, useEffect } from 'react'
+import { useAccount } from 'wagmi'
+import { Address, padHex } from 'viem'
+import { gql } from '@apollo/client'
+import { useQuery } from '@apollo/client/react'
+import { useAddress } from '@/shared/web3'
+import {
+  useReadMarketGetPrice,
+  useReadErc20Allowance,
+  useWriteOfferSetRate,
+  useWriteOfferSetLimits,
+  useWriteOfferSetTerms,
+  useWriteOfferSetDisabled,
+} from '@/wagmi'
 
-import { abi as ERC20Abi } from '@artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
-import { ethers } from 'ethers'
+export type Token = {
+  address: Address
+  name: string
+  symbol: string
+  decimals: number
+}
+
+export type Offer = {
+  id: string
+  address: Address
+  owner: Address
+  isSell: boolean
+  token: Token | null
+  fiat: string
+  method: string // bitmask as string for compatibility
+  rate: number // normalized rate (e.g. 0.01 for 1%)
+  min: number
+  max: number
+  terms: string
+  disabled: boolean
+  price?: string // calculated price
+}
+
+const GQL_OFFER = gql`
+  query Offer($id: ID!) {
+    offer(id: $id) {
+      id
+      owner
+      isSell
+      token {
+        id
+        address
+        name
+        symbol
+        decimals
+      }
+      fiat
+      methods
+      rate
+      minFiat
+      maxFiat
+      terms
+      disabled
+    }
+  }
+`
 
 interface UseOfferOptions {
   fetchPrice?: boolean
   fetchAllowance?: boolean
 }
 
-export function useOffer(offerId: string, options: UseOfferOptions = {}) {
+export function useOffer(offerId: string | undefined, options: UseOfferOptions = {}) {
   const { fetchPrice = false, fetchAllowance = false } = options
-  const [offer, setOffer] = useState<any>(null)
-  const [allowance, setAllowance] = useState<bigint>(0n)
-  const [refetchTrigger, setRefetchTrigger] = useState(0)
-  const token = useRef<ERC20 | null>(null)
-  const chainId = useChainId()
   const account = useAccount()
-  const { signed, Market, Offer: OfferContract, Token } = useContract()
+  const marketAddress = useAddress('Market#Market')
 
-  const refetch = useCallback(() => {
-    setRefetchTrigger((prev) => prev + 1)
-  }, [])
+  const { data, loading, error, refetch } = useQuery(GQL_OFFER, {
+    variables: { id: offerId?.toLowerCase() },
+    skip: !offerId,
+  })
 
+  const rawOffer = data?.offer
+
+  // Fetch price if needed
+  const { data: marketPrice } = useReadMarketGetPrice({
+    address: marketAddress as Address,
+    args: rawOffer ? [rawOffer.token.address as Address, padHex(rawOffer.fiat as `0x${string}`, { size: 3, dir: 'right' })] : undefined,
+    query: { enabled: fetchPrice && !!rawOffer && !!marketAddress },
+  })
+
+  // Fetch allowance if needed
+  const { data: allowanceValue, refetch: refetchAllowance } = useReadErc20Allowance({
+    address: rawOffer?.token.address as Address,
+    args: account.address && marketAddress ? [account.address, marketAddress as Address] : undefined,
+    query: { enabled: fetchAllowance && !!rawOffer && !!account.address && !!marketAddress && !rawOffer.isSell },
+  })
+
+  const [allowance, setAllowance] = useState<bigint>(0n)
   useEffect(() => {
-    if (!offerId) {
-      setOffer(null)
-      return
+    if (allowanceValue !== undefined) {
+      setAllowance(allowanceValue as bigint)
+    }
+  }, [allowanceValue])
+
+  const offer = useMemo<Offer | null>(() => {
+    if (!rawOffer) return null
+
+    const normalizedRate = rawOffer.rate / 10000
+    let price: string | undefined
+    if (marketPrice !== undefined) {
+      const basePrice = Number((marketPrice as bigint) / 10000n) / 100
+      price = (basePrice * normalizedRate).toFixed(3)
     }
 
-    const fetchData = async () => {
-      try {
-        const offer = await OfferModel.fetch(OfferContract.attach(offerId))
-        if (!offer) {
-          setOffer(null)
-          return
-        }
-
-        const promises = []
-
-        if (fetchPrice) {
-          const fiatBytes3 = padHex(offer.fiat as `0x${string}`, { size: 3, dir: 'right' })
-          promises.push(
-            Market.getPrice(offer.token, fiatBytes3).then((price) => {
-              offer.setPairPrice(price)
-            })
-          )
-        }
-
-        if (fetchAllowance && account.address && !offer.isSell) {
-          token.current = new ethers.Contract(offer.token, ERC20Abi, Market.runner) as unknown as ERC20
-          promises.push(
-            token.current.allowance(account.address, Market.target).then((res) => {
-              setAllowance(res)
-            })
-          )
-        }
-
-        await Promise.all(promises)
-        setOffer(offer)
-      } catch (e) {
-        console.error('useOffer fetch error:', e)
-        setOffer(null)
-      }
+    return {
+      id: rawOffer.id,
+      address: rawOffer.id as Address,
+      owner: rawOffer.owner as Address,
+      isSell: rawOffer.isSell,
+      token: rawOffer.token
+        ? {
+            address: rawOffer.token.address as Address,
+            name: rawOffer.token.name,
+            symbol: rawOffer.token.symbol,
+            decimals: rawOffer.token.decimals,
+          }
+        : null,
+      fiat: rawOffer.fiat,
+      method: rawOffer.methods.toString(),
+      rate: normalizedRate,
+      min: rawOffer.minFiat,
+      max: rawOffer.maxFiat,
+      terms: rawOffer.terms,
+      disabled: rawOffer.disabled,
+      price,
     }
+  }, [rawOffer, marketPrice])
 
-    fetchData()
-  }, [offerId, chainId, account?.address, fetchPrice, fetchAllowance, Market, OfferContract, Token, refetchTrigger])
+  // Write hooks
+  const { writeContractAsync: setRateTx } = useWriteOfferSetRate()
+  const { writeContractAsync: setLimitsTx } = useWriteOfferSetLimits()
+  const { writeContractAsync: setTermsTx } = useWriteOfferSetTerms()
+  const { writeContractAsync: setDisabledTx } = useWriteOfferSetDisabled()
 
   const setRate = useCallback(
     async (rate: number) => {
-      if (!offer) return
-      const contract = (await signed(OfferContract.attach(offer.address))) as Offer
-      const tx = await contract.setRate(Math.floor(rate * 10 ** 4))
-      await tx.wait()
+      if (!offerId) return
+      await setRateTx({
+        address: offerId as Address,
+        args: [Math.floor(rate * 10000)],
+      })
       refetch()
     },
-    [offer, signed, OfferContract, refetch]
+    [offerId, setRateTx, refetch]
   )
 
   const setLimits = useCallback(
     async (min: number, max: number) => {
-      if (!offer) return
-      const contract = (await signed(OfferContract.attach(offer.address))) as Offer
-      const tx = await contract.setLimits({ min: BigInt(min), max: BigInt(max) })
-      await tx.wait()
+      if (!offerId) return
+      await setLimitsTx({
+        address: offerId as Address,
+        args: [{ min: Math.floor(min), max: Math.floor(max) }],
+      })
       refetch()
     },
-    [offer, signed, OfferContract, refetch]
+    [offerId, setLimitsTx, refetch]
   )
 
   const setTerms = useCallback(
     async (terms: string) => {
-      if (!offer) return
-      const contract = (await signed(OfferContract.attach(offer.address))) as Offer
-      const tx = await contract.setTerms(terms)
-      await tx.wait()
+      if (!offerId) return
+      await setTermsTx({
+        address: offerId as Address,
+        args: [terms],
+      })
       refetch()
     },
-    [offer, signed, OfferContract, refetch]
+    [offerId, setTermsTx, refetch]
   )
 
   const toggleDisabled = useCallback(async () => {
-    if (!offer) return
-    const contract = (await signed(OfferContract.attach(offer.address))) as Offer
-    const tx = await contract.setDisabled(!offer.disabled)
-    await tx.wait()
+    if (!offerId || !offer) return
+    await setDisabledTx({
+      address: offerId as Address,
+      args: [!offer.disabled],
+    })
     refetch()
-  }, [offer, signed, OfferContract, refetch])
+  }, [offerId, offer, setDisabledTx, refetch])
 
   return {
     offer,
     allowance,
     setAllowance,
-    token: token.current,
+    isLoading: loading,
+    error,
     refetch,
+    refetchAllowance,
     setRate,
     setLimits,
     setTerms,

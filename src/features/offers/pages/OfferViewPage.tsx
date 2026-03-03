@@ -39,7 +39,7 @@ export default function OfferViewPage() {
     <>
       <OfferSubnav offer={offer} />
       <Card
-        title={`You are ${offer.isSell ? 'buying' : 'selling'} ${offer.token} for ${offer.fiat} using ${offer.method}`}
+        title={`You are ${offer.isSell ? 'buying' : 'selling'} ${offer.token?.symbol} for ${offer.fiat} using ${offer.method}`}
       >
         <OfferDescription offer={offer} />
         <CreateDealForm
