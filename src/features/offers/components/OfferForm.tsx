@@ -98,7 +98,7 @@ export default function OfferForm({
                 onChange={previewPrice}
               />
             </Form.Item>
-            <Form.Item name={'preview'} initialValue={offer ? previewPrice() : undefined}>
+            <Form.Item name={'preview'}>
               <Input style={{ width: 150 }} prefix={'~'} suffix={form.getFieldValue('fiat')} disabled />
             </Form.Item>
             {offer && (

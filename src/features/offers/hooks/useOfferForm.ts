@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Form, message } from 'antd'
-import { padHex, stringToHex } from 'viem'
-import { useAccount } from 'wagmi'
+import { padHex, stringToHex, parseEventLogs } from 'viem'
+import { usePublicClient } from 'wagmi'
 import { useInventory } from '@/shared/web3'
-import { useReadMarketGetPrice, useWriteMarketCreateOffer, useWatchMarketOfferCreatedEvent } from '@/wagmi'
+import { useReadMarketGetPrice, useWriteMarketCreateOffer, marketAbi } from '@/wagmi'
 import { useAddress } from '@/shared/web3'
 
 interface UseOfferFormParams {
@@ -17,29 +17,12 @@ interface UseOfferFormParams {
 
 export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggleDisabled }: UseOfferFormParams = {}) {
   const navigate = useNavigate()
-  const account = useAccount()
+  const publicClient = usePublicClient()
   const marketAddress = useAddress('Market#Market')
   const { writeContractAsync: createOffer } = useWriteMarketCreateOffer()
   const [lockSubmit, setLockSubmit] = useState(false)
   const { tokens, fiats, methods, loading: inventoryLoading } = useInventory()
   const [form] = Form.useForm()
-
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  useWatchMarketOfferCreatedEvent({
-    address: marketAddress,
-    onLogs(logs) {
-      if (!isSubmitting) return
-
-      logs.forEach((log) => {
-        const { owner, offer: newOfferAddress } = log.args
-        if (owner?.toLowerCase() === account.address?.toLowerCase()) {
-          setIsSubmitting(false)
-          navigate(`/trade/offer/${newOfferAddress}`)
-        }
-      })
-    },
-  })
 
   const [rateParams, setRateParams] = useState<{
     token: `0x${string}`
@@ -63,7 +46,7 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
     }
   }, [priceData, form])
 
-  function fetchRate() {
+  const fetchRate = useCallback(() => {
     const symbol = form.getFieldValue('token')
     const fiat = form.getFieldValue('fiat')
     if (symbol && fiat) {
@@ -71,18 +54,29 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
       if (!token) return
 
       const fiatBytes3 = padHex(stringToHex(fiat), { size: 3, dir: 'right' })
-      setRateParams({ token: token.address, fiat: fiatBytes3 })
+      setRateParams(prev => {
+        if (prev?.token !== token.address || prev?.fiat !== fiatBytes3) {
+          return { token: token.address, fiat: fiatBytes3 }
+        }
+        return prev
+      })
     }
-  }
+  }, [form, tokens])
 
-  function previewPrice() {
+  useEffect(() => {
+    if (offer && tokens[offer.token?.symbol]) {
+      fetchRate()
+    }
+  }, [offer, tokens, fetchRate])
+
+  const previewPrice = useCallback(() => {
     if (priceData) {
       const price = (Number(priceData) / 10 ** 6).toFixed(2)
       const ratio = form.getFieldValue('rate') ?? 0
       const current = Number(price) * (1 + ratio / 100)
       form.setFieldValue('preview', current.toFixed(2))
     } else fetchRate()
-  }
+  }, [priceData, form, fetchRate])
 
   async function handleSetRate() {
     if (!setRate) return
@@ -143,14 +137,25 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
     }
 
     try {
-      setIsSubmitting(true)
-      await createOffer({
+      const hash = await createOffer({
         address: marketAddress,
         args: [params],
       })
-      message.success('Offer submitted. You will be redirected shortly.')
+      message.info('Offer submitted. You will be redirected shortly.')
+
+      const receipt = await publicClient?.waitForTransactionReceipt({ hash })
+      if (receipt) {
+        const logs = parseEventLogs({
+          abi: marketAbi,
+          eventName: 'OfferCreated',
+          logs: receipt.logs,
+        })
+        if (logs.length > 0) {
+          const newOfferAddress = (logs[0].args as any).offer
+          navigate(`/trade/offer/${newOfferAddress}`)
+        }
+      }
     } catch (e: any) {
-      setIsSubmitting(false)
       console.error('Submission error:', e)
       message.error(e.shortMessage || e.message || 'Failed to submit offer')
     } finally {
