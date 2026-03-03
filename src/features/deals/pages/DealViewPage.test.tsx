@@ -1,7 +1,8 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import DealPage, { useDealContext } from '@/pages/Trade/Deal/Deal'
+import DealViewPage from '@/features/deals/pages/DealViewPage'
+import { useDealContext } from '@/features/deals/hooks/useDealContext'
 import { DealState, useDeal } from '@/wagmi/contracts/useDeal'
 
 vi.mock('@/wagmi/contracts/useDeal', () => ({
@@ -26,7 +27,7 @@ vi.mock('@/wagmi/contracts/useProfile', () => ({
   useProfile: vi.fn(() => ({ profile: null, isLoading: false })),
 }))
 
-vi.mock('@/pages/Trade/Deal/DealCard', () => ({
+vi.mock('@/features/deals/components/DealCard', () => ({
   default: () => {
     const ctx = useDealContext()
     if (!ctx.deal) return <div>No Deal Data</div>
@@ -41,9 +42,10 @@ vi.mock('@/pages/Trade/Deal/DealCard', () => ({
   },
 }))
 
-vi.mock('@/pages/Trade/Deal/MessageBox', () => ({
+vi.mock('@/features/deals/components/MessageBox', () => ({
   default: () => <div data-testid="message-box">Message Box</div>,
 }))
+
 
 describe('DealPage', () => {
   const mockRefetch = vi.fn()
@@ -63,7 +65,7 @@ describe('DealPage', () => {
     const { container } = render(
       <MemoryRouter initialEntries={['/trade/deal/0x123']}>
         <Routes>
-          <Route path="/trade/deal/:dealId" element={<DealPage />} />
+          <Route path="/trade/deal/:dealId" element={<DealViewPage />} />
         </Routes>
       </MemoryRouter>
     )
@@ -104,7 +106,7 @@ describe('DealPage', () => {
     render(
       <MemoryRouter initialEntries={['/trade/deal/0x123']}>
         <Routes>
-          <Route path="/trade/deal/:dealId" element={<DealPage />} />
+          <Route path="/trade/deal/:dealId" element={<DealViewPage />} />
         </Routes>
       </MemoryRouter>
     )
@@ -130,7 +132,7 @@ describe('DealPage', () => {
     render(
       <MemoryRouter initialEntries={['/trade/deal/0x123']}>
         <Routes>
-          <Route path="/trade/deal/:dealId" element={<DealPage />} />
+          <Route path="/trade/deal/:dealId" element={<DealViewPage />} />
         </Routes>
       </MemoryRouter>
     )

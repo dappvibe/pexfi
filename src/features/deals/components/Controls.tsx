@@ -9,9 +9,9 @@ import {
   useWritePexfiVestingBond,
 } from '@/wagmi'
 import { message, Skeleton, Space, Statistic } from 'antd'
-import { useDealContext } from '@/pages/Trade/Deal/Deal'
+import { useDealContext } from '@/features/deals/hooks/useDealContext'
 import LoadingButton from '@/components/LoadingButton'
-import Feedback from '@/pages/Trade/Deal/Feedback'
+import Feedback from '@/features/deals/components/Feedback'
 import { equal } from '@/utils'
 import { DealState } from '@/wagmi/contracts/useDeal'
 import { useAddress } from '@/hooks/useAddress'
