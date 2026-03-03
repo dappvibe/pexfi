@@ -1,14 +1,13 @@
 import { expect, test } from '@tests/e2e/setup'
 
 test('Offer CRUD', async ({ page, setAccount }) => {
-  test.setTimeout(60000)
   // Set account BEFORE going to the page
   await page.goto('/')
   await setAccount(0)
 
   // 1. Create an offer
   await page.goto('/#/trade/offer/new')
-  
+
   // Wait for either the form or the skeleton
   await Promise.race([
     page.waitForSelector('#isSell', { timeout: 10000 }).catch(() => {}),
@@ -57,14 +56,14 @@ test('Offer CRUD', async ({ page, setAccount }) => {
 
   // 2. Read the offer
   await expect(page).toHaveURL(/.*\/trade\/offer\/0x[0-9A-f]{40}$/)
-  
+
   // Wait for skeleton to disappear again (data loaded)
   await expect(page.locator('.ant-skeleton')).not.toBeVisible({ timeout: 10000 })
   await page.waitForTimeout(2000) // increased stabilization delay for multiple async steps
 
   // Check if radio buttons are disabled
   await expect(page.locator('.ant-radio-button-input').first()).toBeDisabled()
-  
+
   await expect(page.getByLabel('token')).toBeDisabled()
   await expect(page.getByLabel('for')).toBeDisabled()
   await expect(page.getByLabel('using')).toBeDisabled()
