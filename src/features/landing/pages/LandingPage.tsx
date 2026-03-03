@@ -1,7 +1,7 @@
 import { Card, Col, Row } from 'antd'
-import Faq from '@/pages/Home/Faq'
+import Faq from '@/features/landing/components/Faq'
 
-export default function Home() {
+export default function LandingPage() {
   return (
     <>
       <header style={{ textAlign: 'center', marginBottom: '40px' }}>
