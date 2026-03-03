@@ -24,7 +24,21 @@ When a test fails:
 3.  **Take a Screenshot (if needed):** Use the `take_screenshot.cjs` script if you need to visually verify the page state.
 
 ### 3. Creating New Tests
-Follow the existing patterns in `tests/e2e/`. Use the custom setup in `tests/e2e/setup.ts` which provides utilities like `setAccount` for wallet interactions.
+Follow the existing patterns in `tests/e2e/`.
+- **Custom Setup:** Use `tests/e2e/setup.ts` which provides utilities like `setAccount` for wallet interactions.
+- **Fast Setup with Fixtures:** For faster test setup (bypassing the UI), use `createOffer` and `createDeal` from `@tests/e2e/fixtures`. These functions use direct JSON RPC calls via `viem`.
+
+Example usage:
+```typescript
+import { createOffer, createDeal } from '@tests/e2e/fixtures'
+
+test('full deal flow', async ({ page }) => {
+  const offer = await createOffer({ isSell: true }, 0)
+  const deal = await createDeal(offer, { fiatAmount: 100 }, 1)
+  await page.goto(`/#/trade/deal/${deal}`)
+  // ... continue with UI-based verification
+})
+```
 
 ## Environment Setup
 - **Frontend Startup:** The frontend runs via `docker compose up web`.
