@@ -2,8 +2,8 @@ import { createHashRouter, createRoutesFromElements, Navigate, Route, RouterProv
 import { Layout } from '@/features/layout'
 import { OffersListPage, OfferViewPage, OfferNewPage, UserOffersPage } from '@/features/offers'
 import { DealViewPage, UserDealsPage } from '@/features/deals'
+import { ProfilePage } from '@/features/profile'
 import Home from '@/pages/Home/Home'
-import Profile from '@/pages/Me/Profile'
 
 const router = createHashRouter(
   createRoutesFromElements(
@@ -16,9 +16,9 @@ const router = createHashRouter(
         <Route path={'offer/new'} element={<OfferNewPage />} />
         <Route path={'deal/:dealId'} element={<DealViewPage />} />
       </Route>
-      <Route path={'/profile/:profile'} element={<Profile />} />
+      <Route path={'/profile/:profile'} element={<ProfilePage />} />
       <Route path={'/me'}>
-        <Route index element={<Profile />} />
+        <Route index element={<ProfilePage />} />
         <Route path={'offers'} element={<UserOffersPage />} />
         <Route path={'deals'} element={<UserDealsPage />} />
       </Route>
