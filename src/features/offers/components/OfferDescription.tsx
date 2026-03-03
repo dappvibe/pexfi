@@ -1,8 +1,7 @@
 import Username from '@/components/Username'
 import { Descriptions } from 'antd'
-import React from 'react'
 
-export default function Description({ offer }) {
+export default function OfferDescription({ offer }) {
   return (
     <Descriptions
       items={[

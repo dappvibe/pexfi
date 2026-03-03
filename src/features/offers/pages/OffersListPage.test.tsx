@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
-import Offers from '@/pages/Trade/Offers/Offers'
-import { useOffers } from '@/hooks/useOffers'
+import OffersListPage from '@/features/offers/pages/OffersListPage'
+import { useOffers } from '@/features/offers/hooks/useOffers'
 import { useParams } from 'react-router-dom'
 import { useAddress } from '@/hooks/useAddress'
 import { useReadMarketGetPrice } from '@/wagmi'
@@ -24,12 +24,12 @@ vi.mock('@/hooks/useAddress', () => ({
   useAddress: vi.fn(),
 }))
 
-vi.mock('@/hooks/useOffers', () => ({
+vi.mock('@/features/offers/hooks/useOffers', () => ({
   useOffers: vi.fn(),
 }))
 
 // Mock Subcomponents
-vi.mock('@/pages/Trade/Offers/OffersTable', () => ({
+vi.mock('@/features/offers/components/OffersTable', () => ({
   default: ({ offers, loading }) => (
     <div data-testid="offers-table">
       Table: {offers.length} offers. Loading: {loading.toString()}
@@ -41,14 +41,14 @@ vi.mock('@/pages/Trade/Offers/OffersTable', () => ({
     </div>
   ),
 }))
-vi.mock('@/pages/Trade/Offers/OffersFilters', () => ({
+vi.mock('@/features/offers/components/OffersFilters', () => ({
   default: () => <div data-testid="offers-filters">Filters</div>,
 }))
-vi.mock('@/pages/Trade/Offers/TokenNav', () => ({
+vi.mock('@/features/offers/components/TokenNav', () => ({
   default: () => <div data-testid="token-nav">TokenNav</div>,
 }))
 
-describe('Offers Page', () => {
+describe('OffersListPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(useAddress).mockReturnValue('0xMarketAddress')
@@ -70,27 +70,21 @@ describe('Offers Page', () => {
     } as any)
 
     // Mock Market Price Query
-    // Price Loading
     vi.mocked(useReadMarketGetPrice).mockReturnValue({
       data: 100, // 100 USD per Token
       isLoading: false,
     } as any)
 
-    render(<Offers />)
+    render(<OffersListPage />)
 
     // Check Layout
     expect(screen.getByTestId('token-nav')).toBeDefined()
     expect(screen.getByTestId('offers-filters')).toBeDefined()
     expect(screen.getByTestId('offers-table')).toBeDefined()
 
-    // Check Price Calculation
-    // rawRate = 10000 -> 1.0
-    // marketPrice = 100
-    // calculatedPrice = 1.0 * 100 = 100.00
+    // rawRate = 10000 -> 1.0 | marketPrice = 100 | calculatedPrice = 1.0 * 100 = 100.00
     await waitFor(() => {
       expect(screen.getByText('Table: 1 offers. Loading: false')).toBeDefined()
-      // Check if price was calculated and passed to table
-      // We rendered price in mock table
       expect(screen.getByText('100.00')).toBeDefined()
     })
   })
@@ -98,16 +92,16 @@ describe('Offers Page', () => {
   it('handles loading state', async () => {
     vi.mocked(useOffers).mockReturnValue({
       offers: [],
-      loading: true, // List loading
+      loading: true,
       refetch: vi.fn(),
     } as any)
 
     vi.mocked(useReadMarketGetPrice).mockReturnValue({
       data: null,
-      isLoading: true, // Price loading
+      isLoading: true,
     } as any)
 
-    render(<Offers />)
+    render(<OffersListPage />)
 
     expect(screen.getByText(/Loading: true/)).toBeDefined()
   })

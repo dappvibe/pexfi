@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { renderHook } from '@testing-library/react'
-import { OffersRequestParams, useOffers } from '@/hooks/useOffers'
+import { OffersRequestParams, useOffers } from '@/features/offers/hooks/useOffers'
 
 // Mock useQuery
 const mockUseQuery = vi.fn()
