@@ -1,5 +1,5 @@
 import { createHashRouter, createRoutesFromElements, Navigate, Route, RouterProvider } from 'react-router-dom'
-import { Layout } from '@/features/layout'
+import { Layout } from '@/shared/layout'
 import { OffersListPage, OfferViewPage, OfferNewPage, UserOffersPage } from '@/features/offers'
 import { DealViewPage, UserDealsPage } from '@/features/deals'
 import { ProfilePage } from '@/features/profile'
