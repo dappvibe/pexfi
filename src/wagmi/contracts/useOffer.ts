@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Address } from 'viem'
+import { Address, hexToString, trim } from 'viem'
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
 
@@ -73,7 +73,7 @@ export function useOffer(address: Address | undefined) {
             decimals: d.token.decimals,
           }
         : null,
-      fiat: d.fiat,
+      fiat: hexToString(trim(d.fiat as `0x${string}`, { dir: 'right' })),
       method: d.methods.toString(),
       rate: BigInt(d.rate),
       minFiat: d.minFiat,

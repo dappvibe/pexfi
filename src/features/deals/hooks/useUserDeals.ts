@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useAccount } from 'wagmi'
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
+import { hexToString, trim } from 'viem'
 
 const GQL_USER_DEALS = gql`
   query UserDeals($address: Bytes!) {
@@ -50,6 +51,7 @@ export function useUserDeals() {
       fiatAmountFormatted: Number(BigInt(d.fiatAmount)) / 10 ** 6,
       offer: {
         ...d.offer,
+        fiat: hexToString(trim(d.offer.fiat as `0x${string}`, { dir: 'right' })),
         method: d.offer.methods.toString(),
       }
     }))
