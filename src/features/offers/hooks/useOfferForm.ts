@@ -95,7 +95,7 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
     if (!setRate) return
     try {
       await setRate(form.getFieldValue('rate'))
-      message.success('Updated')
+      message.success('Rate updated')
     } catch (e: any) {
       message.error(e.message || 'Failed to update rate')
     }
@@ -105,7 +105,7 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
     if (!setLimits) return
     try {
       await setLimits(form.getFieldValue('min'), form.getFieldValue('max'))
-      message.success('Updated')
+      message.success('Limits updated')
     } catch (e: any) {
       message.error(e.message || 'Failed to update limits')
     }
@@ -115,7 +115,7 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
     if (!setTerms) return
     try {
       await setTerms(form.getFieldValue('terms'))
-      message.success('Updated')
+      message.success('Terms updated')
     } catch (e: any) {
       message.error(e.message || 'Failed to update terms')
     }
@@ -125,7 +125,7 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
     if (!toggleDisabled) return
     try {
       await toggleDisabled()
-      message.success('Updated')
+      message.success('State updated')
     } catch (e: any) {
       message.error(e.message || 'Failed to toggle state')
     }

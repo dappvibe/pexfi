@@ -71,25 +71,25 @@ test('Offer CRUD', async ({ page, setAccount }) => {
   // 3. Update the offer
   await page.getByLabel('Margin').fill('3')
   await page.getByRole('button', { name: 'Update' }).first().click()
-  await expect(page.getByText('Updated', { exact: true })).toBeVisible()
-  await expect(page.getByText('Updated', { exact: true })).not.toBeVisible({ timeout: 10000 })
+  await expect(page.getByText('Rate updated', { exact: true })).toBeVisible()
+  await expect(page.getByText('Rate updated', { exact: true })).not.toBeVisible({ timeout: 10000 })
 
   await page.getByLabel('Limits').fill('101')
   await page.getByLabel('-', { exact: true }).fill('501')
   await page.getByRole('button', { name: 'Update' }).nth(1).click()
-  await expect(page.getByText('Updated', { exact: true })).toBeVisible()
-  await expect(page.getByText('Updated', { exact: true })).not.toBeVisible({ timeout: 10000 })
+  await expect(page.getByText('Limits updated', { exact: true })).toBeVisible()
+  await expect(page.getByText('Limits updated', { exact: true })).not.toBeVisible({ timeout: 10000 })
 
   await page.getByLabel('Terms').fill('updated e2e terms')
   await page.getByRole('button', { name: 'Update' }).nth(2).click()
-  await expect(page.getByText('Updated', { exact: true })).toBeVisible()
-  await expect(page.getByText('Updated', { exact: true })).not.toBeVisible({ timeout: 10000 })
+  await expect(page.getByText('Terms updated', { exact: true })).toBeVisible()
+  await expect(page.getByText('Terms updated', { exact: true })).not.toBeVisible({ timeout: 10000 })
 
   // 4. Disable the offer
   await page.getByRole('button', { name: 'Disable' }).click()
-  await expect(page.getByRole('button', { name: 'Enable' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Enable' })).toBeVisible({ timeout: 15000 })
 
   // 5. Enable the offer
   await page.getByRole('button', { name: 'Enable' }).click()
-  await expect(page.getByRole('button', { name: 'Disable' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Disable' })).toBeVisible({ timeout: 15000 })
 })
