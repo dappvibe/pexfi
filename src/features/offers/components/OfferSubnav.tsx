@@ -9,7 +9,7 @@ export default function OfferSubnav({ offer }) {
       items={[
         {
           title: (
-            <Link to={`/trade/sell/${offer.token}/${offer.fiat}/${offer.method}`}>
+            <Link to={`/trade/sell/${offer.token?.symbol}/${offer.fiat}/${offer.method}`}>
               <Space>
                 <DoubleLeftOutlined />
                 Back to offers

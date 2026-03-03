@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import UserDealsPage from '@/features/deals/pages/UserDealsPage'
 import { MemoryRouter } from 'react-router-dom'
 import { useAccount } from 'wagmi'
@@ -19,7 +20,7 @@ describe('UserDealsPage', () => {
   })
 
   it('renders skeleton while loading', () => {
-    vi.mocked(useUserDeals).mockReturnValue({ deals: undefined })
+    vi.mocked(useUserDeals).mockReturnValue({ deals: undefined } as any)
 
     const { container } = render(
       <MemoryRouter>
@@ -31,7 +32,7 @@ describe('UserDealsPage', () => {
   })
 
   it('renders empty state when no deals', async () => {
-    vi.mocked(useUserDeals).mockReturnValue({ deals: [] })
+    vi.mocked(useUserDeals).mockReturnValue({ deals: [] } as any)
 
     render(
       <MemoryRouter>
@@ -40,23 +41,30 @@ describe('UserDealsPage', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getAllByText(/No data/i).length).toBeGreaterThan(0)
+      // AntD Empty component text can appear multiple times (title, description)
+      expect(screen.queryAllByText(/No Data/i).length).toBeGreaterThan(0)
     })
   })
 
   it('renders list of deals', async () => {
     const mockDeals = [
       {
-        contract: { target: '0xDeal1' },
-        seller: '0xOther',
-        tokenAmount: 1,
-        fiatAmount: 100,
+        id: '0xDeal1',
+        taker: '0xAlice',
+        tokenAmountFormatted: 1,
+        fiatAmountFormatted: 100,
         state: 0,
-        offer: { token: 'WETH', fiat: 'USD', method: 'Bank' },
-        createdAt: { timestamp: 1000 },
+        offer: { 
+          owner: '0xOther',
+          isSell: true, // Alice is taker, offer is sell -> Alice is buying
+          token: { symbol: 'WETH' }, 
+          fiat: 'USD', 
+          method: 'Bank' 
+        },
+        createdAt: 1000,
       },
     ]
-    vi.mocked(useUserDeals).mockReturnValue({ deals: mockDeals })
+    vi.mocked(useUserDeals).mockReturnValue({ deals: mockDeals } as any)
 
     render(
       <MemoryRouter>

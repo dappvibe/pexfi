@@ -27,7 +27,7 @@ export default function CreateDealForm({
         <Form.Item name={'tokenAmount'}>
           <Input
             placeholder={'Crypto Amount'}
-            suffix={offer.token}
+            suffix={offer.token?.symbol}
             disabled={offer.disabled}
             onChange={(e) => syncFiatAmount(e.target.value)}
           />
