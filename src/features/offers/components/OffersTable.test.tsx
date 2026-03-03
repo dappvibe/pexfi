@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { vi } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
-import OffersTable from '@/pages/Trade/Offers/OffersTable'
+import OffersTable from '@/features/offers/components/OffersTable'
 import { Providers } from '@/Providers'
 
 import { useAccount } from 'wagmi'

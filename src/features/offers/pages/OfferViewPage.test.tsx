@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import OfferPage from '@/pages/Trade/Offer/Offer'
+import OfferViewPage from '@/features/offers/pages/OfferViewPage'
 import { useAccount } from 'wagmi'
 import { useContract } from '@/hooks/useContract'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
@@ -19,6 +19,30 @@ vi.mock('@/hooks/useContract', () => ({
   useContract: vi.fn(),
 }))
 
+// Mock useAddress to avoid @/types dependency
+vi.mock('@/hooks/useAddress', () => ({
+  useAddress: vi.fn(() => '0xMarketAddress'),
+}))
+
+// Mock useOfferForm — it depends on wagmi/contract hooks not needed for these tests
+vi.mock('@/features/offers/hooks/useOfferForm', () => ({
+  useOfferForm: vi.fn(() => ({
+    form: {},
+    tokens: {},
+    fiats: [],
+    methods: {},
+    inventoryLoading: false,
+    lockSubmit: false,
+    onFinish: vi.fn(),
+    fetchRate: vi.fn(),
+    previewPrice: vi.fn(),
+    handleSetRate: vi.fn(),
+    handleSetLimits: vi.fn(),
+    handleSetTerms: vi.fn(),
+    handleToggleDisabled: vi.fn(),
+  })),
+}))
+
 // Mock models
 vi.mock('@/model/Offer.js', () => ({
   default: {
@@ -26,17 +50,17 @@ vi.mock('@/model/Offer.js', () => ({
   },
 }))
 
-// Mock Subnav and Description to simplify testing
-vi.mock('@/pages/Trade/Offer/Subnav', () => ({
+// Mock Subcomponents
+vi.mock('@/features/offers/components/OfferSubnav', () => ({
   default: () => <div data-testid="subnav">Subnav</div>,
 }))
-vi.mock('@/pages/Trade/Offer/Description', () => ({
+vi.mock('@/features/offers/components/OfferDescription', () => ({
   default: () => <div data-testid="description">Description</div>,
 }))
 
-describe('OfferPage', () => {
+describe('OfferViewPage', () => {
   const mockMarket = {
-    getPrice: vi.fn().mockResolvedValue(100n), // 100 wei price? or scaled?
+    getPrice: vi.fn().mockResolvedValue(100n),
     token: vi.fn().mockResolvedValue(['0xTokenAddr']),
     target: '0xMarket',
     interface: {
@@ -63,7 +87,7 @@ describe('OfferPage', () => {
     render(
       <MemoryRouter initialEntries={[`/trade/offer/${offerId}`]}>
         <Routes>
-          <Route path="/trade/offer/:offerId" element={<OfferPage />} />
+          <Route path="/trade/offer/:offerId" element={<OfferViewPage />} />
         </Routes>
       </MemoryRouter>
     )
@@ -88,6 +112,7 @@ describe('OfferPage', () => {
       max: 100,
       isSell: true,
       method: 'Bank',
+      owner: '0xOtherOwner',
       setPairPrice: vi.fn(),
     }
     mockOffer.setPairPrice.mockImplementation(() => mockOffer)
@@ -110,17 +135,17 @@ describe('OfferPage', () => {
       address: '0xOfferAddr',
       token: 'TST',
       fiat: 'USD',
-      price: 2, // 1 TST = 2 USD
+      price: 2,
       min: 10,
       max: 100,
-      isSell: true, // Alice Selling TST, User Buying TST (User sends Fiat)
+      isSell: true,
       method: 'Bank',
+      owner: '0xOtherOwner',
       setPairPrice: vi.fn(),
     }
     mockOffer.setPairPrice.mockImplementation(() => mockOffer)
     vi.mocked(Offer.fetch).mockResolvedValue(mockOffer as any)
 
-    // Mock Factory create
     const mockSignedOffer = {
       createDeal: vi.fn().mockResolvedValue({
         wait: vi.fn().mockResolvedValue({ logs: [] }),
@@ -132,7 +157,6 @@ describe('OfferPage', () => {
 
     await waitFor(() => screen.getByPlaceholderText('Fiat Amount'))
 
-    // Input Fiat Amount
     const fiatInput = screen.getByPlaceholderText('Fiat Amount')
     fireEvent.change(fiatInput, { target: { value: '20' } }) // 20 USD
 
@@ -142,7 +166,6 @@ describe('OfferPage', () => {
       expect(finalInput.value).toBe('10.00000000')
     })
 
-    // Submit
     const submitBtn = screen.getByText('Open Deal')
     fireEvent.click(submitBtn)
 

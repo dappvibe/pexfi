@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom'
 import { Breadcrumb, Space } from 'antd'
 import { DoubleLeftOutlined } from '@ant-design/icons'
-import React from 'react'
 
-export default function Subnav({ offer }) {
+export default function OfferSubnav({ offer }) {
   return (
     <Breadcrumb
       style={{ margin: '10px 20px' }}
