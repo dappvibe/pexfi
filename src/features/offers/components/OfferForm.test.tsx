@@ -48,7 +48,7 @@ describe('OfferForm', () => {
   })
 
   describe('New Offer Mode', () => {
-    it('renders all fields enabled and calls onFinish on submit', async () => {
+    it('renders all fields enabled and calls createOffer on submit', async () => {
       const user = userEvent.setup()
       const { Form } = await import('antd')
       const Wrapper = () => {
@@ -62,7 +62,7 @@ describe('OfferForm', () => {
                 fiats={mockFiats}
                 methods={mockMethods}
                 lockSubmit={false}
-                onFinish={mockOnFinish}
+                createOffer={mockOnFinish}
                 fetchRate={mockFetchRate}
                 previewPrice={mockPreviewPrice}
               />
@@ -108,7 +108,7 @@ describe('OfferForm', () => {
               fiats={mockFiats}
               methods={mockMethods}
               lockSubmit={false}
-              onFinish={mockOnFinish}
+              createOffer={mockOnFinish}
               fetchRate={mockFetchRate}
               previewPrice={mockPreviewPrice}
               handleSetRate={mockSetRate}
@@ -142,7 +142,7 @@ describe('OfferForm', () => {
               fiats={mockFiats}
               methods={mockMethods}
               lockSubmit={false}
-              onFinish={mockOnFinish}
+              createOffer={mockOnFinish}
               fetchRate={mockFetchRate}
               previewPrice={mockPreviewPrice}
               handleSetRate={mockSetRate}
@@ -176,7 +176,7 @@ describe('OfferForm', () => {
               fiats={mockFiats}
               methods={mockMethods}
               lockSubmit={false}
-              onFinish={mockOnFinish}
+              createOffer={mockOnFinish}
               fetchRate={mockFetchRate}
               previewPrice={mockPreviewPrice}
               handleSetRate={mockSetRate}

@@ -9,7 +9,7 @@ interface OfferFormProps {
   fiats: Record<string, any>
   methods: Record<string, any>
   lockSubmit: boolean
-  onFinish: (values: any) => Promise<void>
+  createOffer: (values: any) => Promise<void>
   fetchRate: () => void
   previewPrice: () => void
   handleSetRate?: () => Promise<void>
@@ -27,7 +27,7 @@ export default function OfferForm({
   fiats,
   methods,
   lockSubmit,
-  onFinish,
+  createOffer,
   fetchRate,
   previewPrice,
   handleSetRate,
@@ -36,7 +36,13 @@ export default function OfferForm({
   handleToggleDisabled,
 }: OfferFormProps) {
   return (
-    <Form form={form} layout={'horizontal'} onFinish={onFinish} colon={false} onLoad={offer ? fetchRate : undefined}>
+    <Form
+      form={form}
+      layout={'horizontal'}
+      onFinish={createOffer}
+      colon={false}
+      onLoad={offer ? fetchRate : undefined}
+    >
       <Row>
         <Col>
           <Space wrap size={'middle'}>
