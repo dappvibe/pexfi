@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import OfferViewPage from '@/features/offers/pages/OfferViewPage'
 import { useAccount } from 'wagmi'
-import { useContract } from '@/hooks/useContract'
+import { useContract } from '@/shared/web3'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import Offer from '@/model/Offer.js' // Mocked
 
@@ -15,12 +15,8 @@ vi.mock('wagmi', () => ({
 }))
 
 // Mock hooks
-vi.mock('@/hooks/useContract', () => ({
+vi.mock('@/shared/web3', () => ({
   useContract: vi.fn(),
-}))
-
-// Mock useAddress to avoid @/types dependency
-vi.mock('@/hooks/useAddress', () => ({
   useAddress: vi.fn(() => '0xMarketAddress'),
 }))
 

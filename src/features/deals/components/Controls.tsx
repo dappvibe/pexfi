@@ -10,11 +10,11 @@ import {
 } from '@/wagmi'
 import { message, Skeleton, Space, Statistic } from 'antd'
 import { useDealContext } from '@/features/deals/hooks/useDealContext'
-import LoadingButton from '@/components/LoadingButton'
+import { LoadingButton } from '@/shared/ui'
 import Feedback from '@/features/deals/components/Feedback'
 import { equal } from '@/utils'
 import { DealState } from '@/wagmi/contracts/useDeal'
-import { useAddress } from '@/hooks/useAddress'
+import { useAddress } from '@/shared/web3'
 import { maxUint256, stringToHex } from 'viem'
 
 interface DealButtonProps {

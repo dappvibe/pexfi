@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useChainId, usePublicClient, useReadContract, useReadContracts, useWatchContractEvent } from 'wagmi'
 import { Address, formatUnits } from 'viem'
 import { dealAbi, offerAbi } from '@/wagmi'
-import { useInventory } from '@/hooks/useInventory'
+import { useInventory } from '@/shared/web3'
 
 export enum DealState {
   Created = 0,

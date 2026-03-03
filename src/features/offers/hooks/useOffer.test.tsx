@@ -30,7 +30,7 @@ const mockOfferContract = {
     attach: vi.fn(),
 }
 
-vi.mock('@/hooks/useContract', () => ({
+vi.mock('@/shared/web3', () => ({
   useContract: () => ({
     Market: mockMarket,
     Offer: mockOfferContract,

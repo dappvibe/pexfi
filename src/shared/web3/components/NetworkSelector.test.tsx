@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
-import NetworkSelector, { NetworkSelectorAll } from '@/components/NetworkSelector'
+import NetworkSelector, { NetworkSelectorAll } from './NetworkSelector'
 import { useChainId, useSwitchChain } from 'wagmi'
 import { arbitrum, arbitrumSepolia } from 'wagmi/chains'
 

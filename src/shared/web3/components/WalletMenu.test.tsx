@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
-import WalletMenu from '@/components/WalletMenu'
+import WalletMenu from './WalletMenu'
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
 
 // Mock wagmi

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import Username from '@/components/Username'
+import Username from './Username'
 
 // Mock formatAddress util if needed, but it's pure
 vi.mock('@/utils', () => ({

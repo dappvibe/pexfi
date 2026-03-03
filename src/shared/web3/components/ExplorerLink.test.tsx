@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import ExplorerLink from '@/components/ExplorerLink'
+import ExplorerLink from './ExplorerLink'
 
 describe('ExplorerLink', () => {
   it('renders link with address', () => {

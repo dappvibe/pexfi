@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAccount, useChainId } from 'wagmi'
 import { padHex } from 'viem'
-import { useContract } from '@/hooks/useContract'
+import { useContract } from '@/shared/web3'
 import OfferModel from '@/model/Offer.js'
 import { ERC20, Offer } from '@/types'
 
