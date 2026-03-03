@@ -27,7 +27,7 @@ export function useOffersList({ superFilter = null }: { superFilter?: any } = {}
     }
 
     if (activeToken) f.token = activeToken.id
-    if (activeFiat) f.fiat = activeFiat.id
+    if (fiatSymbol) f.fiat = padHex(stringToHex(fiatSymbol), { size: 3, dir: 'right' })
     if (activeMethod) f.methods = activeMethod.index
 
     if (filterAmount !== '') {
