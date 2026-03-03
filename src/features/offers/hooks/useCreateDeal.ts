@@ -25,6 +25,7 @@ export function useCreateDeal() {
   } = useOffer(offerId, {
     fetchPrice: true,
     fetchAllowance: true,
+    pollInterval: 2000,
   })
 
   const [form] = Form.useForm()
