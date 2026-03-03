@@ -1,22 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import Home from '@/pages/Home/Home'
+import LandingPage from '@/features/landing/pages/LandingPage'
 
-// Mock Faq component to test Home in isolation (optional, but good practice if Faq is complex)
-// However, Faq is simple, so we can test integration or mock it.
-// Let's mock it to focus on Home structure.
-vi.mock('@/pages/Home/Faq', () => ({
+vi.mock('@/features/landing/components/Faq', () => ({
   default: () => <div data-testid="faq-section">Mocked FAQ</div>,
 }))
 
-describe('Home Page', () => {
+describe('LandingPage', () => {
   it('renders main heading', () => {
-    render(<Home />)
+    render(<LandingPage />)
     expect(screen.getByText(/Fully Decentralized P2P Crypto Marketplace/i)).toBeDefined()
   })
 
   it('renders feature cards', () => {
-    render(<Home />)
+    render(<LandingPage />)
     expect(screen.getByText('Unstoppable')).toBeDefined()
     expect(screen.getByText('Non-custodial')).toBeDefined()
     expect(screen.getByText('Anonymous')).toBeDefined()
@@ -26,7 +23,7 @@ describe('Home Page', () => {
   })
 
   it('renders FAQ section', () => {
-    render(<Home />)
+    render(<LandingPage />)
     expect(screen.getByTestId('faq-section')).toBeDefined()
   })
 })

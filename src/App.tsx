@@ -3,12 +3,12 @@ import { Layout } from '@/features/layout'
 import { OffersListPage, OfferViewPage, OfferNewPage, UserOffersPage } from '@/features/offers'
 import { DealViewPage, UserDealsPage } from '@/features/deals'
 import { ProfilePage } from '@/features/profile'
-import Home from '@/pages/Home/Home'
+import { LandingPage } from '@/features/landing'
 
 const router = createHashRouter(
   createRoutesFromElements(
     <Route element={<Layout />}>
-      <Route index element={<Home />} />
+      <Route index element={<LandingPage />} />
       <Route path={'/trade'}>
         <Route index element={<Navigate to={'/trade/sell'} />} />
         <Route path=":side/:token?/:fiat?/:method?" element={<OffersListPage />} />
