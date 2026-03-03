@@ -51,7 +51,7 @@ export default function OfferForm({
                 <Radio.Button value={true}>Sell</Radio.Button>
               </Radio.Group>
             </Form.Item>
-            <Form.Item name="token" label={'token'} rules={required} initialValue={offer ? offer.token : undefined}>
+            <Form.Item name="token" label={'token'} rules={required} initialValue={offer ? offer.token?.symbol : undefined}>
               <Select showSearch style={{ width: 85 }} onChange={fetchRate} disabled={!!offer}>
                 {Object.keys(tokens).map((key) => (
                   <Select.Option key={key} value={key}>

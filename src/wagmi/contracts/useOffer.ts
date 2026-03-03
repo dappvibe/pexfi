@@ -1,8 +1,7 @@
 import { useMemo } from 'react'
-import { useReadContracts, useWatchContractEvent } from 'wagmi'
 import { Address } from 'viem'
-import { offerAbi } from '@/wagmi'
-import { useInventory } from '@/shared/web3'
+import { gql } from '@apollo/client'
+import { useQuery } from '@apollo/client/react'
 
 export type Token = {
   address: Address
@@ -12,13 +11,13 @@ export type Token = {
 }
 
 export type Offer = {
+  id: string
   address: Address
   owner: Address
   isSell: boolean
-  tokenId: number
   token: Token | null
   fiat: string
-  method: string
+  method: string // alias for methods bitmask
   rate: bigint
   minFiat: number
   maxFiat: number
@@ -26,69 +25,63 @@ export type Offer = {
   disabled: boolean
 }
 
-export function useOffer(address: Address | undefined) {
-  const { tokens } = useInventory()
-  const offerContract = address ? ({ address, abi: offerAbi } as const) : null
+const GQL_OFFER = gql`
+  query Offer($id: ID!) {
+    offer(id: $id) {
+      id
+      owner
+      isSell
+      token {
+        id
+        address
+        name
+        symbol
+        decimals
+      }
+      fiat
+      methods
+      rate
+      minFiat
+      maxFiat
+      terms
+      disabled
+    }
+  }
+`
 
-  const {
-    data: offerData,
-    isLoading,
-    error,
-    refetch,
-  } = useReadContracts({
-    contracts: offerContract
-      ? [
-          { ...offerContract, functionName: 'owner' },
-          { ...offerContract, functionName: 'isSell' },
-          { ...offerContract, functionName: 'token' },
-          { ...offerContract, functionName: 'fiat' },
-          { ...offerContract, functionName: 'method' },
-          { ...offerContract, functionName: 'rate' },
-          { ...offerContract, functionName: 'limits' },
-          { ...offerContract, functionName: 'terms' },
-          { ...offerContract, functionName: 'disabled' },
-        ]
-      : [],
-    query: { enabled: !!address },
+export function useOffer(address: Address | undefined) {
+  const { data, loading, error, refetch } = useQuery(GQL_OFFER, {
+    variables: { id: address?.toLowerCase() },
+    skip: !address,
   })
 
   const offer = useMemo<Offer | null>(() => {
-    if (!offerData || !address || offerData.some((d) => d.status === 'failure')) return null
+    if (!data?.offer) return null
 
-    const limitsResult = offerData[6].result as readonly [number, number] | undefined
-    const tokenSymbol = offerData[2].result as string
-    const tokenFromInventory = tokens[tokenSymbol]
+    const { offer: d } = data
 
     return {
-      address,
-      owner: offerData[0].result as Address,
-      isSell: offerData[1].result as boolean,
-      tokenId: tokenFromInventory?.id ?? 0,
-      token: tokenFromInventory
+      id: d.id,
+      address: d.id as Address,
+      owner: d.owner as Address,
+      isSell: d.isSell,
+      token: d.token
         ? {
-            address: tokenFromInventory.api as Address,
-            name: tokenFromInventory.name,
-            symbol: tokenFromInventory.symbol,
-            decimals: tokenFromInventory.decimals,
+            address: d.token.address as Address,
+            name: d.token.name,
+            symbol: d.token.symbol,
+            decimals: d.token.decimals,
           }
         : null,
-      fiat: offerData[3].result as string,
-      method: offerData[4].result as string,
-      rate: BigInt(offerData[5].result as number),
-      minFiat: limitsResult ? Number(limitsResult[0]) : 0,
-      maxFiat: limitsResult ? Number(limitsResult[1]) : 0,
-      terms: offerData[7].result as string,
-      disabled: offerData[8].result as boolean,
+      fiat: d.fiat,
+      method: d.methods.toString(),
+      rate: BigInt(d.rate),
+      minFiat: d.minFiat,
+      maxFiat: d.maxFiat,
+      terms: d.terms,
+      disabled: d.disabled,
     }
-  }, [offerData, tokens, address])
+  }, [data])
 
-  useWatchContractEvent({
-    address,
-    abi: offerAbi,
-    eventName: 'OfferUpdated',
-    onLogs: () => refetch(),
-    enabled: !!address,
-  })
-
-  return { offer, isLoading, error, refetch }
+  return { offer, isLoading: loading, error, refetch }
 }
