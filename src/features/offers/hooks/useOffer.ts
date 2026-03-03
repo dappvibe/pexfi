@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState, useEffect } from 'react'
 import { useAccount } from 'wagmi'
-import { Address, padHex } from 'viem'
+import { Address, padHex, hexToString, trim } from 'viem'
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
 import { useAddress } from '@/shared/web3'
@@ -121,7 +121,7 @@ export function useOffer(offerId: string | undefined, options: UseOfferOptions =
             decimals: rawOffer.token.decimals,
           }
         : null,
-      fiat: rawOffer.fiat,
+      fiat: hexToString(trim(rawOffer.fiat as `0x${string}`, { dir: 'right' })),
       method: rawOffer.methods.toString(),
       rate: normalizedRate,
       min: rawOffer.minFiat,

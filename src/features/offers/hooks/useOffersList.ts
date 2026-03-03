@@ -5,7 +5,7 @@ import { useQueryOffers } from '@/features/offers/hooks/useQueryOffers'
 import { useAddress } from '@/shared/web3'
 import { useInventory } from '@/shared/web3'
 import { useReadMarketGetPrice } from '@/wagmi'
-import { Address } from 'viem'
+import { Address, padHex, stringToHex, hexToString, trim } from 'viem'
 
 export function useOffersList({ superFilter = null }: { superFilter?: any } = {}) {
   const marketAddress = useAddress('Market#Market')
@@ -65,7 +65,7 @@ export function useOffersList({ superFilter = null }: { superFilter?: any } = {}
     error: priceError,
   } = useReadMarketGetPrice({
     address: marketAddress,
-    args: activeToken && activeFiat ? [activeToken.address as Address, activeFiat.id.slice(0, 8) as `0x${string}`] : undefined,
+    args: activeToken && activeFiat ? [activeToken.address as Address, padHex(stringToHex(fiatSymbol), { size: 3, dir: 'right' })] : undefined,
     query: {
       enabled: !!marketAddress && !!activeToken && !!activeFiat,
       staleTime: 30000,
@@ -87,6 +87,7 @@ export function useOffersList({ superFilter = null }: { superFilter?: any } = {}
       const rate = Number(offer.rate) / 10000
       return {
         ...offer,
+        fiat: hexToString(trim(offer.fiat as `0x${string}`, { dir: 'right' })),
         rate: rate,
         price: (price * rate).toFixed(2),
       }
