@@ -63,17 +63,25 @@ const GQL_OFFER = gql`
 interface UseOfferOptions {
   fetchPrice?: boolean
   fetchAllowance?: boolean
+  pollInterval?: number
 }
 
 export function useOffer(offerId: string | undefined, options: UseOfferOptions = {}) {
-  const { fetchPrice = false, fetchAllowance = false } = options
+  const { fetchPrice = false, fetchAllowance = false, pollInterval = 0 } = options
   const account = useAccount()
   const marketAddress = useAddress('Market#Market')
 
-  const { data, loading, error, refetch } = useQuery(GQL_OFFER, {
+  const { data, loading, error, refetch, stopPolling } = useQuery(GQL_OFFER, {
     variables: { id: offerId?.toLowerCase() },
     skip: !offerId,
+    pollInterval,
   })
+
+  useEffect(() => {
+    if (data?.offer && pollInterval > 0) {
+      stopPolling()
+    }
+  }, [data, pollInterval, stopPolling])
 
   const rawOffer = data?.offer
 
