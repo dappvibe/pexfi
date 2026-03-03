@@ -28,7 +28,7 @@ export async function createOfferOnPage(page: Page, params: OfferParams = {}): P
     isSell: false,
     token: 'WETH',
     fiat: 'EUR',
-    method: 'SEPA',
+    method: 'Bank Transfer',
     margin: '2',
     limitMin: '100',
     limitMax: '500',
