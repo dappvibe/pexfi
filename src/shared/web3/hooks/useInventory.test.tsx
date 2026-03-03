@@ -1,5 +1,5 @@
 import { renderHook, waitFor } from '@testing-library/react'
-import { useInventory } from '@/hooks/useInventory'
+import { useInventory } from './useInventory'
 import { MockedProvider } from '@apollo/client/testing/react'
 import { gql } from '@apollo/client'
 

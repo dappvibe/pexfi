@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useReadContracts, useWatchContractEvent } from 'wagmi'
 import { Address } from 'viem'
 import { offerAbi } from '@/wagmi'
-import { useInventory } from '@/hooks/useInventory'
+import { useInventory } from '@/shared/web3'
 
 export type Token = {
   address: Address

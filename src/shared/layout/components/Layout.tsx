@@ -2,8 +2,7 @@ import { Layout as AntLayout } from 'antd'
 import Topnav from './Topnav'
 import { Outlet } from 'react-router-dom'
 import { Footer } from 'antd/es/layout/layout.js'
-import { Announcement } from '@/components/Announcement'
-import ChatWidget from '@/components/ChatWidget'
+import { Announcement, ChatWidget } from '@/shared/ui'
 import { Helmet } from '@dr.pogodin/react-helmet'
 
 const { Header, Content } = AntLayout

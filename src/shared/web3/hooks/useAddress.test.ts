@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react'
 import { useChainId } from 'wagmi'
-import { useAddress } from '@/hooks/useAddress'
+import { useAddress } from './useAddress'
 import addresses from '@deployments/chain-31337/deployed_addresses.json'
 
 vi.mock('wagmi', () => ({

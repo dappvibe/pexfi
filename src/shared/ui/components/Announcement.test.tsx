@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { Announcement } from '@/components/Announcement'
+import { Announcement } from './Announcement'
 import { useChainId, useChains } from 'wagmi'
 
 // Mock wagmi

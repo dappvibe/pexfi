@@ -1,6 +1,6 @@
 import { Card, Descriptions, Result } from 'antd'
-import Username from '@/components/Username'
-import LoadingButton from '@/components/LoadingButton'
+import { Username } from '@/shared/web3'
+import { LoadingButton } from '@/shared/ui'
 import { useProfilePage } from '@/features/profile/hooks/useProfilePage'
 
 export default function ProfilePage() {

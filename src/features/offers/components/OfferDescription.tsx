@@ -1,4 +1,4 @@
-import Username from '@/components/Username'
+import { Username } from '@/shared/web3'
 import { Descriptions } from 'antd'
 
 export default function OfferDescription({ offer }) {
