@@ -11,10 +11,11 @@ This skill provides guidance and tools for running and maintaining end-to-end te
 
 ### 1. Running Tests
 To run tests, use the following commands:
-- **Run all tests:** `npx playwright test --reporter=line`
-- **Run a specific test file:** `npx playwright test tests/e2e/path/to/test.ts --reporter=line`
+- **Run all tests:** `npx playwright test --reporter=line --headed`
+- **Run a specific test file:** `npx playwright test tests/e2e/path/to/test.ts --reporter=line --headed`
 - **Always use line reporter:** Add `--reporter=line` to see output in the CLI.
-- **Debug a test:** `npx playwright test --debug`
+- **Always use headed mode:** Add `--headed` to ensure the browser is visible for debugging and consistent behavior.
+- **Debug a test:** `npx playwright test --debug --headed`
 
 **CRITICAL: Use Single Worker**
 End-to-end tests **MUST** run with a single worker (`workers: 1`) to prevent nonce collisions on the local blockchain node (Anvil/Hardhat). Parallel execution will cause transactions to fail with "Nonce too low" errors.
