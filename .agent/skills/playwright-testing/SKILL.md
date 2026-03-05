@@ -1,6 +1,6 @@
 ---
 name: playwright-testing
-description: End-to-end (e2e) testing with Playwright. Use when Gemini CLI needs to run, debug, or create browser-based tests, take screenshots, or verify UI flows in a web application.
+description: End-to-end (e2e) GUI testing with Playwright. Use when agent needs to run, debug, or create browser-based tests, take screenshots, or verify UI flows in a web application.
 ---
 
 # Playwright Testing
@@ -18,7 +18,8 @@ To run tests, use the following commands:
 - **Debug a test:** `npx playwright test --debug --headed`
 
 **CRITICAL: Use Single Worker**
-End-to-end tests **MUST** run with a single worker (`workers: 1`) to prevent nonce collisions on the local blockchain node (Anvil/Hardhat). Parallel execution will cause transactions to fail with "Nonce too low" errors.
+1. End-to-end tests **MUST** run with a single worker (`workers: 1`) to prevent nonce collisions on the local blockchain node (Anvil/Hardhat). Parallel execution will cause transactions to fail with "Nonce too low" errors.
+2. You MUST run tests with `--headed` flag, so that your pair programmer can see test flow on workstation.
 
 ### 2. Debugging Failures
 When a test fails:
