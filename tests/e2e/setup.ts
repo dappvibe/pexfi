@@ -104,6 +104,9 @@ export const test = base.extend<{
       contexts.push(ctx)
 
       const page = await ctx.newPage()
+      page.on('console', (msg) => {
+        console.error(`[Browser Console] ${msg.text()}`)
+      })
       await page.addInitScript(() => {
         window.E2E = true
       })
