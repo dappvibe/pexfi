@@ -5,7 +5,7 @@ import { Address, decodeEventLog } from 'viem'
 import { useAccount, usePublicClient } from 'wagmi'
 import { useAddress } from '@/shared/web3'
 import { useOffer } from '@/features/offers/hooks/useOffer'
-import { useDeal } from '@/features/deals/hooks/useDeal'
+import { useUserDeals } from '@/features/deals/hooks/useUserDeals'
 import { marketAbi, useWriteErc20Approve, useWriteOfferCreateDeal } from '@/wagmi'
 
 export function useCreateDeal() {
@@ -33,7 +33,9 @@ export function useCreateDeal() {
   const [lockButton, setLockButton] = useState(false)
   const [newDealAddress, setNewDealAddress] = useState<string | undefined>()
 
-  const { deal: createdDeal, isLoading: isSyncing } = useDeal(newDealAddress, { pollInterval: 1000 })
+  const { deals, loading: isSyncingDeals } = useUserDeals({ pollInterval: 1000 })
+  const createdDeal = deals?.find((d: any) => d.id.toLowerCase() === newDealAddress?.toLowerCase())
+  const isSyncing = isSyncingDeals || (!!newDealAddress && !createdDeal)
 
   useEffect(() => {
     if (newDealAddress && createdDeal && !isSyncing) {

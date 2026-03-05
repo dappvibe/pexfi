@@ -7,7 +7,7 @@ import { useDealPage } from '@/features/deals/hooks/useDealPage'
 export default function DealViewPage() {
   const { deal, offer, ownerProfile, takerProfile, isLoading, refetch } = useDealPage()
 
-  if (!deal) return <Skeleton active />
+  if (!deal || !offer) return <Skeleton active />
 
   return (
     <DealContext.Provider value={{ deal, offer, ownerProfile, takerProfile, isLoading, refetch }}>
