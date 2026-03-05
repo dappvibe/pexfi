@@ -9,7 +9,12 @@ import { Address, padHex, stringToHex, hexToString, trim } from 'viem'
 
 export function useOffersList({ superFilter = null }: { superFilter?: any } = {}) {
   const marketAddress = useAddress('Market#Market')
-  const { side = 'sell', token: tokenSymbol = 'WETH', fiat: fiatSymbol = 'USD', method: methodName = undefined } = useParams()
+  const {
+    side = 'sell',
+    token: tokenSymbol = 'WETH',
+    fiat: fiatSymbol = 'USD',
+    method: methodName = undefined,
+  } = useParams()
   const { tokens, fiats, methods, loading: invLoading } = useInventory()
 
   const [filterAmount, setFilterAmount] = useState<string>('')
@@ -65,7 +70,10 @@ export function useOffersList({ superFilter = null }: { superFilter?: any } = {}
     error: priceError,
   } = useReadMarketGetPrice({
     address: marketAddress,
-    args: activeToken && activeFiat ? [activeToken.address as Address, padHex(stringToHex(fiatSymbol), { size: 3, dir: 'right' })] : undefined,
+    args:
+      activeToken && activeFiat
+        ? [activeToken.address as Address, padHex(stringToHex(fiatSymbol), { size: 3, dir: 'right' })]
+        : undefined,
     query: {
       enabled: !!marketAddress && !!activeToken && !!activeFiat,
       staleTime: 30000,
@@ -85,14 +93,25 @@ export function useOffersList({ superFilter = null }: { superFilter?: any } = {}
     const price = Number(marketPrice)
     return rawOffers.map((offer) => {
       const rate = Number(offer.rate) / 10000
+
+      let methodName = offer.methods?.toString() || ''
+      if (offer.methods) {
+        const mask = BigInt(offer.methods)
+        const found = Object.values(methods).find((m: any) => (mask & (1n << BigInt(m.index))) !== 0n)
+        if (found) {
+          methodName = (found as any).name
+        }
+      }
+
       return {
         ...offer,
         fiat: hexToString(trim(offer.fiat as `0x${string}`, { dir: 'right' })),
         rate: rate,
         price: (price * rate).toFixed(2),
+        method: methodName,
       }
     })
-  }, [rawOffers, marketPrice])
+  }, [rawOffers, marketPrice, methods])
 
   return {
     offers,
