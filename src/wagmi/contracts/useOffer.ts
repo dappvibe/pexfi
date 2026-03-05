@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Address, hexToString, trim } from 'viem'
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
@@ -49,11 +49,21 @@ const GQL_OFFER = gql`
   }
 `
 
-export function useOffer(address: Address | undefined) {
-  const { data, loading, error, refetch } = useQuery(GQL_OFFER, {
+interface UseOfferOptions {
+  pollInterval?: number
+}
+
+export function useOffer(address: Address | undefined, options: UseOfferOptions = {}) {
+  const { pollInterval = 0 } = options
+  const { data, loading, error, refetch, stopPolling } = useQuery(GQL_OFFER, {
     variables: { id: address?.toLowerCase() },
     skip: !address,
+    pollInterval,
   })
+
+  useEffect(() => {
+    return () => stopPolling()
+  }, [stopPolling])
 
   const offer = useMemo<Offer | null>(() => {
     if (!data?.offer) return null

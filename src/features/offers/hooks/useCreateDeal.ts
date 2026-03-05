@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Form, message } from 'antd'
 import { Address, decodeEventLog } from 'viem'
 import { useAccount, usePublicClient } from 'wagmi'
 import { useAddress } from '@/shared/web3'
 import { useOffer } from '@/features/offers/hooks/useOffer'
+import { useDeal } from '@/features/deals/hooks/useDeal'
 import { marketAbi, useWriteErc20Approve, useWriteOfferCreateDeal } from '@/wagmi'
 
 export function useCreateDeal() {
@@ -30,6 +31,15 @@ export function useCreateDeal() {
 
   const [form] = Form.useForm()
   const [lockButton, setLockButton] = useState(false)
+  const [newDealAddress, setNewDealAddress] = useState<string | undefined>()
+
+  const { deal: createdDeal, isLoading: isSyncing } = useDeal(newDealAddress, { pollInterval: 1000 })
+
+  useEffect(() => {
+    if (newDealAddress && createdDeal && !isSyncing) {
+      navigate(`/trade/deal/${newDealAddress}`)
+    }
+  }, [newDealAddress, createdDeal, isSyncing, navigate])
 
   const { writeContractAsync: approveTx } = useWriteErc20Approve()
   const { writeContractAsync: createDealTx } = useWriteOfferCreateDeal()
@@ -72,7 +82,7 @@ export function useCreateDeal() {
         ],
       })
 
-      message.info('Deal submitted. You will be redirected shortly.')
+      message.info('Deal submitted. Waiting for confirmation...')
       const receipt = await publicClient?.waitForTransactionReceipt({ hash })
 
       if (receipt) {
@@ -85,7 +95,7 @@ export function useCreateDeal() {
             })
             if (event.eventName === 'DealCreated') {
               const dealAddress = (event.args as any).deal
-              navigate(`/trade/deal/${dealAddress}`)
+              setNewDealAddress(dealAddress)
               break
             }
           } catch (e) {
@@ -127,7 +137,7 @@ export function useCreateDeal() {
     offer,
     form,
     isOwner,
-    lockButton,
+    lockButton: lockButton || !!newDealAddress,
     submitLabel,
     submitDisabled,
     createDeal,
