@@ -27,10 +27,12 @@ export async function fund(party: PartyContext) {
 
 export async function markPaid(party: PartyContext) {
   await party.page.getByRole('button', { name: 'Paid' }).click()
+  await expect(party.page.locator('span').filter({ hasText: 'Paid' })).toBeVisible({ timeout: 15000 })
 }
 
 export async function release(party: PartyContext) {
   await party.page.getByRole('button', { name: 'Release' }).click()
+  await expect(party.page.locator('span').filter({ hasText: 'Released' })).toBeVisible({ timeout: 15000 })
 }
 
 export async function dispute(party: PartyContext) {
