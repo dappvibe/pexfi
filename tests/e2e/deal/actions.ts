@@ -7,7 +7,21 @@ export async function accept(party: PartyContext) {
 }
 
 export async function fund(party: PartyContext) {
-  await party.page.getByRole('button', { name: 'Fund' }).click()
+  const fundButton = party.page.getByRole('button', { name: 'Fund' })
+  const approveButton = party.page.getByRole('button', { name: 'Approve' })
+  const actionButton = fundButton.or(approveButton)
+  await expect(actionButton).toBeVisible()
+  const buttonText = await actionButton.textContent()
+  if (buttonText?.trim() === 'Approve') {
+    await approveButton.click()
+    await expect(approveButton).not.toBeVisible({ timeout: 15000 })
+    await expect(fundButton).toBeVisible({ timeout: 15000 })
+  }
+
+
+
+
+  await fundButton.click()
   await expect(party.page.locator('span').filter({ hasText: 'Funded' })).toBeVisible()
 }
 
