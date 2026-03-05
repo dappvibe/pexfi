@@ -18,7 +18,6 @@ export enum DealState {
 export type Feedback = {
   given: boolean
   upvote: boolean
-  message: string
 }
 
 export type Message = {
@@ -73,27 +72,35 @@ export function useDeal(address: Address | undefined) {
           { ...dealContract, functionName: 'taker' },
           { ...dealContract, functionName: 'tokenAmount' },
           { ...dealContract, functionName: 'fiatAmount' },
-          { ...dealContract, functionName: 'terms' },
-          { ...dealContract, functionName: 'paymentInstructions' },
           { ...dealContract, functionName: 'allowCancelUnacceptedAfter' },
           { ...dealContract, functionName: 'allowCancelUnpaidAfter' },
           { ...dealContract, functionName: 'feedbackForOwner' },
           { ...dealContract, functionName: 'feedbackForTaker' },
         ]
       : [],
-    query: { enabled: !!address },
+    query: {
+      enabled: !!address,
+      refetchInterval: 2000,
+      refetchIntervalInBackground: true,
+    },
   })
 
   const offerAddress = data?.[1]?.result as Address | undefined
 
   // Deal contract stores only offer address, not token. We need decimals to format tokenAmount.
   // Reading offer.token (symbol) is the simplest way without composing hooks or complicating the page.
-  const { data: offerTokenSymbol } = useReadContract({
+  const { data: offerTokenSymbol, refetch: refetchOfferTokenSymbol } = useReadContract({
     address: offerAddress,
     abi: offerAbi,
     functionName: 'token',
     query: { enabled: !!offerAddress },
   })
+
+  useEffect(() => {
+    if (offerAddress) {
+      refetchOfferTokenSymbol()
+    }
+  }, [offerAddress, refetchOfferTokenSymbol])
 
   useEffect(() => {
     setMessages([])
@@ -140,16 +147,16 @@ export function useDeal(address: Address | undefined) {
 
     const fetchedState = Number(data[0].result) as DealState
     const currentState = state ?? fetchedState
-    const allowCancelUnacceptedAfter = new Date(Number(data[7].result) * 1000)
-    const allowCancelUnpaidAfter = new Date(Number(data[8].result) * 1000)
+    const allowCancelUnacceptedAfter = new Date(Number(data[5].result) * 1000)
+    const allowCancelUnpaidAfter = new Date(Number(data[6].result) * 1000)
     const now = new Date()
 
     const taker = data[2].result as Address
-    const feedbackOwner = data[9].result as [boolean, boolean, string] | undefined
-    const feedbackTaker = data[10].result as [boolean, boolean, string] | undefined
+    const feedbackOwner = data[7].result as [boolean, boolean] | undefined
+    const feedbackTaker = data[8].result as [boolean, boolean] | undefined
 
-    const parseFeedback = (fb: [boolean, boolean, string] | undefined): Feedback | null =>
-      fb?.[0] ? { given: fb[0], upvote: fb[1], message: fb[2] } : null
+    const parseFeedback = (fb: [boolean, boolean] | undefined): Feedback | null =>
+      fb?.[0] ? { given: fb[0], upvote: fb[1] } : null
 
     const tokenAmount = data[3].result as bigint
     const fiatAmount = data[4].result as bigint
@@ -164,11 +171,11 @@ export function useDeal(address: Address | undefined) {
       offer: data[1].result as Address,
       taker,
       tokenAmount,
-      tokenAmountFormatted: formatUnits(tokenAmount, decimals),
+      tokenAmountFormatted: Number(formatUnits(tokenAmount, decimals)),
       fiatAmount,
-      fiatAmountFormatted: formatUnits(fiatAmount, 6),
-      terms: data[5].result as string,
-      paymentInstructions: data[6].result as string,
+      fiatAmountFormatted: Number(formatUnits(fiatAmount, 6)),
+      terms: '',
+      paymentInstructions: '',
       allowCancelUnacceptedAfter,
       allowCancelUnpaidAfter,
       feedbackForOwner: feedback.forOwner ?? parseFeedback(feedbackOwner),
@@ -200,8 +207,8 @@ export function useDeal(address: Address | undefined) {
     onLogs: (logs) => {
       const log = logs[0]
       if (!log?.args) return
-      const { to, upvote, message } = log.args as { to: Address; upvote: boolean; message: string }
-      const fb: Feedback = { given: true, upvote, message }
+      const { to, upvote } = log.args as { to: Address; upvote: boolean }
+      const fb: Feedback = { given: true, upvote }
       const taker = data?.[2]?.result as Address | undefined
       setFeedback((prev) => ({
         ...prev,

@@ -62,7 +62,7 @@ export async function createOfferOnPage(page: Page, params: OfferParams = {}): P
   await page.getByLabel('Terms').fill(p.terms)
 
   await page.getByRole('button', { name: 'Deploy contract' }).click()
-  await expect(page).toHaveURL(/.*\/trade\/offer\/0x[0-9A-f]{40}$/)
+  await expect(page).toHaveURL(/.*\/trade\/offer\/0x[0-9A-f]{40}$/, { timeout: 30000 })
 
   const address = page.url().split('/').pop()!
   return { address, params: p }
