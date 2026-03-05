@@ -3,7 +3,7 @@ import { useAccount, usePublicClient } from 'wagmi'
 import { Address, padHex, hexToString, trim } from 'viem'
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
-import { useAddress } from '@/shared/web3'
+import { useAddress, useInventory } from '@/shared/web3'
 import {
   useReadMarketGetPrice,
   useReadErc20Allowance,
@@ -70,6 +70,7 @@ export function useOffer(offerId: string | undefined, options: UseOfferOptions =
   const { fetchPrice = false, fetchAllowance = false, pollInterval = 0 } = options
   const account = useAccount()
   const marketAddress = useAddress('Market#Market')
+  const { methods } = useInventory()
 
   const { data, loading, error, refetch, stopPolling } = useQuery(GQL_OFFER, {
     variables: { id: offerId?.toLowerCase() },
@@ -87,7 +88,9 @@ export function useOffer(offerId: string | undefined, options: UseOfferOptions =
   // Fetch price if needed
   const { data: marketPrice } = useReadMarketGetPrice({
     address: marketAddress as Address,
-    args: rawOffer ? [rawOffer.token.address as Address, padHex(rawOffer.fiat as `0x${string}`, { size: 3, dir: 'right' })] : undefined,
+    args: rawOffer
+      ? [rawOffer.token.address as Address, padHex(rawOffer.fiat as `0x${string}`, { size: 3, dir: 'right' })]
+      : undefined,
     query: { enabled: fetchPrice && !!rawOffer && !!marketAddress },
   })
 
@@ -115,6 +118,15 @@ export function useOffer(offerId: string | undefined, options: UseOfferOptions =
       price = (basePrice * normalizedRate).toFixed(3)
     }
 
+    let methodName = rawOffer.methods.toString()
+    if (rawOffer.methods) {
+      const mask = BigInt(rawOffer.methods)
+      const found = Object.values(methods).find((m: any) => (mask & (1n << BigInt(m.index))) !== 0n)
+      if (found) {
+        methodName = (found as any).name
+      }
+    }
+
     return {
       id: rawOffer.id,
       address: rawOffer.id as Address,
@@ -129,7 +141,7 @@ export function useOffer(offerId: string | undefined, options: UseOfferOptions =
           }
         : null,
       fiat: hexToString(trim(rawOffer.fiat as `0x${string}`, { dir: 'right' })),
-      method: rawOffer.methods.toString(),
+      method: methodName,
       rate: normalizedRate,
       min: rawOffer.minFiat,
       max: rawOffer.maxFiat,
@@ -137,7 +149,7 @@ export function useOffer(offerId: string | undefined, options: UseOfferOptions =
       disabled: rawOffer.disabled,
       price,
     }
-  }, [rawOffer, marketPrice])
+  }, [rawOffer, marketPrice, methods])
 
   // Write hooks
   const { writeContractAsync: setRateTx } = useWriteOfferSetRate()
@@ -155,7 +167,7 @@ export function useOffer(offerId: string | undefined, options: UseOfferOptions =
       })
       await publicClient?.waitForTransactionReceipt({ hash })
       // Small delay to allow subgraph to pick up the change
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      await new Promise((resolve) => setTimeout(resolve, 2000))
       await refetch()
     },
     [offerId, setRateTx, refetch, publicClient]
@@ -169,7 +181,7 @@ export function useOffer(offerId: string | undefined, options: UseOfferOptions =
         args: [{ min: Math.floor(min), max: Math.floor(max) }],
       })
       await publicClient?.waitForTransactionReceipt({ hash })
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      await new Promise((resolve) => setTimeout(resolve, 2000))
       await refetch()
     },
     [offerId, setLimitsTx, refetch, publicClient]
@@ -183,7 +195,7 @@ export function useOffer(offerId: string | undefined, options: UseOfferOptions =
         args: [terms],
       })
       await publicClient?.waitForTransactionReceipt({ hash })
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      await new Promise((resolve) => setTimeout(resolve, 2000))
       await refetch()
     },
     [offerId, setTermsTx, refetch, publicClient]
@@ -196,7 +208,7 @@ export function useOffer(offerId: string | undefined, options: UseOfferOptions =
       args: [!offer.disabled],
     })
     await publicClient?.waitForTransactionReceipt({ hash })
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    await new Promise((resolve) => setTimeout(resolve, 2000))
     await refetch()
   }, [offerId, offer, setDisabledTx, refetch, publicClient])
 

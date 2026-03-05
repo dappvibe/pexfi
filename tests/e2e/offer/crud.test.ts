@@ -45,9 +45,21 @@ test.describe('Offer CRUD', () => {
   test('Update', async ({ page, setAccount, createOffer }) => {
     await page.goto('/')
     await setAccount(0)
-    await createOffer()
-    
+    await createOffer({
+      token: 'WETH',
+      fiat: 'EUR',
+      method: 'Bank Transfer',
+    })
+
     await expect(page.locator('.ant-skeleton')).not.toBeVisible()
+
+    await expect(page.locator('.ant-radio-button-input').first()).toBeDisabled()
+    await expect(page.locator('.ant-form-item-control:has(#token)')).toContainText('WETH')
+    await expect(page.locator('#token')).toBeDisabled()
+    await expect(page.locator('.ant-form-item-control:has(#fiat)')).toContainText('EUR')
+    await expect(page.locator('#fiat')).toBeDisabled()
+    await expect(page.locator('.ant-form-item-control:has(#method)')).toContainText('Bank Transfer')
+    await expect(page.locator('#method')).toBeDisabled()
 
     await page.getByLabel('Margin').fill('3')
     await page.getByRole('button', { name: 'Update' }).first().click()
@@ -70,7 +82,7 @@ test.describe('Offer CRUD', () => {
     await page.goto('/')
     await setAccount(0)
     await createOffer()
-    
+
     await expect(page.locator('.ant-skeleton')).not.toBeVisible()
 
     await page.getByRole('button', { name: 'Disable' }).click()
