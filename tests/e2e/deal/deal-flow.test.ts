@@ -33,6 +33,11 @@ test.describe.serial('Deal flow', () => {
     await expect(taker.page.locator('#root').getByText('Accepted')).toBeVisible()
 
     await fund(taker)
+    // Taker is seller, they should see "Waiting for payment"
+    await expect(taker.page.getByText('Waiting for payment')).toBeVisible()
+    // Maker is buyer, they should see "Paid" button
+    await expect(maker.page.getByRole('button', { name: 'Paid' })).toBeVisible()
+    await expect(maker.page.getByText('Waiting for payment')).not.toBeVisible()
     await markPaid(maker)
     await release(taker)
 
@@ -65,6 +70,11 @@ test.describe.serial('Deal flow', () => {
     await expect(taker.page.locator('#root').getByText('Accepted')).toBeVisible()
 
     await fund(maker)
+    // Maker is seller, they should see "Waiting for payment"
+    await expect(maker.page.getByText('Waiting for payment')).toBeVisible()
+    // Taker is buyer, they should see "Paid" button
+    await expect(taker.page.getByRole('button', { name: 'Paid' })).toBeVisible()
+    await expect(taker.page.getByText('Waiting for payment')).not.toBeVisible()
     await markPaid(taker)
     await release(maker)
 

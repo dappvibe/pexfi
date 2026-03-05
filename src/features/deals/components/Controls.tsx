@@ -115,10 +115,10 @@ export default function Controls() {
 
   if (!address || !offer) return <Skeleton active />
 
-  const isOwner = () => equal(address, offer.owner)
-  const isTaker = () => equal(address, deal.taker)
-  const isBuyer = () => (offer.isSell && isTaker()) || (!offer.isSell && isOwner())
-  const isSeller = () => (offer.isSell && isOwner()) || (!offer.isSell && isTaker())
+  const isOwner = equal(address, offer.owner)
+  const isTaker = equal(address, deal.taker)
+  const isBuyer = (offer.isSell && isTaker) || (!offer.isSell && isOwner)
+  const isSeller = (offer.isSell && isOwner) || (!offer.isSell && isTaker)
 
   const hasEnoughStPexfi = (stPexfiBalance ?? 0n) >= 100000n * 10n ** 18n
   const canResolve = () => hasEnoughStPexfi || equal(address, vestingOwner)
@@ -165,23 +165,24 @@ export default function Controls() {
     countAccept: (
       <span>
         Waiting for acceptance:{' '}
-        <Statistic.Countdown value={deal.allowCancelUnacceptedAfter} />
+        <Statistic.Timer type="countdown" value={deal.allowCancelUnacceptedAfter} />
       </span>
     ),
     countFund: (
       <span>
         Waiting for funding:{' '}
-        <Statistic.Countdown value={deal.allowCancelUnacceptedAfter} />
+        <Statistic.Timer type="countdown" value={deal.allowCancelUnacceptedAfter} />
       </span>
     ),
     countPaid: (
       <span>
-        Waiting for payment: <Statistic.Countdown value={deal.allowCancelUnpaidAfter} />
+        Waiting for payment:{' '}
+        <Statistic.Timer type="countdown" value={deal.allowCancelUnpaidAfter} />
       </span>
     ),
     countCancel: (
       <span>
-        Cancel in <Statistic.Countdown value={deal.allowCancelUnpaidAfter} />
+        Cancel in <Statistic.Timer type="countdown" value={deal.allowCancelUnpaidAfter} />
       </span>
     ),
     accept: (
@@ -260,11 +261,11 @@ export default function Controls() {
 
   switch (deal.state) {
     case DealState.Created:
-      if (isOwner()) {
+      if (isOwner) {
         controls.push(action.accept)
         controls.push(action.cancel)
       }
-      if (isTaker()) {
+      if (isTaker) {
         if (deal.allowCancelUnacceptedAfter > new Date()) {
           controls.push(action.countAccept)
         } else {
@@ -275,45 +276,45 @@ export default function Controls() {
 
     case DealState.Accepted:
       // Seller cannot cancel after accepting - must fund or wait for timeout
-      if (isSeller()) {
+      if (isSeller) {
         controls.push(action.fund)
       }
-      if (isBuyer()) {
+      if (isBuyer) {
         controls.push(action.countFund)
       }
       break
 
     case DealState.Funded:
-      if (isSeller()) {
+      if (isSeller) {
         if (deal.allowCancelUnpaidAfter > new Date()) {
           controls.push(action.countPaid)
         } else {
           controls.push(action.cancel)
         }
       }
-      if (isBuyer()) {
+      if (isBuyer) {
         controls.push(action.paid)
         controls.push(action.cancel)
       }
       break
 
     case DealState.Paid:
-      if (isSeller()) {
+      if (isSeller) {
         controls.push(action.release)
         controls.push(action.dispute)
       }
-      if (isBuyer()) {
+      if (isBuyer) {
         controls.push(action.dispute)
         controls.push(action.cancel)
       }
       break
 
     case DealState.Disputed:
-      if (isSeller()) {
+      if (isSeller) {
         controls.push(action.release)
         controls.push(action.cancel)
       }
-      if (isBuyer()) {
+      if (isBuyer) {
         controls.push(action.cancel)
       }
       if (vestingOwner && canResolve()) {
