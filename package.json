@@ -16,7 +16,9 @@
     "test": "vitest",
     "test:web": "vitest run",
     "test:evm": "npx hardhat test",
+    "test:e2e": "playwright test --reporter=line --headed",
     "lint": "eslint . --ext js,jsx,ts,tsx",
+
     "subgraph:codegen": "npx graph codegen subgraph/subgraph.yaml -o .cache/subgraph/generated"
   },
   "dependencies": {
