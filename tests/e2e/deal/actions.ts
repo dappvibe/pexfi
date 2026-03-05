@@ -56,7 +56,10 @@ export async function expectMessage(party: PartyContext, text: string) {
 }
 
 export async function leaveFeedback(party: PartyContext, positive: boolean, comment: string) {
-  await party.page.locator('label').filter({ hasText: positive ? 'Good' : 'Bad' }).click()
+  const text = positive ? 'Good' : 'Bad'
+  const label = party.page.getByText(text, { exact: true })
+  await expect(label).toBeVisible({ timeout: 15000 })
+  await label.click()
   await party.page.getByPlaceholder('Comments').fill(comment)
   await party.page.getByRole('button', { name: 'Submit' }).click()
   await expect(party.page.getByText('Feedback submitted!')).toBeVisible()
