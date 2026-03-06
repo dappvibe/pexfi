@@ -68,6 +68,42 @@ test.describe('Offers List', () => {
     expect(btnText).toBe('Buy')
   })
 
+  test('should filter by method', async ({ page }) => {
+    // Both offers created in beforeAll have methods: 1n by default (index 0).
+    // Let's create another offer with a different method (e.g. methods: 2n - index 1)
+    const otherMethodOffer = await createOffer({
+      isSell: false,
+      fiat: 'USD',
+      methods: 2n
+    }, 5)
+    
+    // Give time for indexing
+    await new Promise(resolve => setTimeout(resolve, 5000))
+
+    // Navigate to the method filter for index 0 (which should be "Bank Transfer" or whatever 1n maps to)
+    // Actually, we can check by navigating first to the non-filtered list,
+    // getting the text of the method tag from the first offer, and then navigating to that.
+    await page.goto('/#/trade/sell/USDC/USD')
+    
+    const rowOld = page.locator(`tr[data-row-key="${sellOfferAddress.toLowerCase()}"]`)
+    const rowNew = page.locator(`tr[data-row-key="${otherMethodOffer.toLowerCase()}"]`)
+    
+    await expect(rowOld).toBeVisible({ timeout: 10000 })
+    await expect(rowNew).toBeVisible({ timeout: 10000 })
+    
+    // Get the method text from the rowOld
+    const methodTag = rowOld.locator('.ant-tag').first()
+    const methodText = await methodTag.innerText()
+    
+    // Now filter by this specific method
+    await page.goto(`/#/trade/sell/USDC/USD/${encodeURIComponent(methodText)}`)
+    
+    // rowOld should still be visible because it matches the method
+    await expect(rowOld).toBeVisible({ timeout: 10000 })
+    // rowNew should NOT be visible because it has methods: 2n (which is a different method index)
+    await expect(rowNew).not.toBeVisible({ timeout: 10000 })
+  })
+
   test('should filter by amount', async ({ page }) => {
     await page.goto('/#/trade/sell/USDC/USD')
     

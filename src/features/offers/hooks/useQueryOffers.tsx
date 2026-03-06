@@ -9,6 +9,7 @@ export type OffersFilter = {
   token?: string
   fiat?: string
   methods?: string
+  methods_in?: string[]
   minFiat_lte?: number
   maxFiat_gte?: number
 }
