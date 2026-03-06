@@ -1,4 +1,5 @@
 import { createHashRouter, createRoutesFromElements, Navigate, Route, RouterProvider } from 'react-router-dom'
+import { Analytics } from '@vercel/analytics/react'
 import Layout from '@/layout'
 import Home from '@/pages/Home/Home'
 import Profile from '@/pages/Me/Profile'
@@ -31,7 +32,12 @@ const router = createHashRouter(
 )
 
 const App = () => {
-  return <RouterProvider router={router} />
+  return (
+    <>
+      <RouterProvider router={router} />
+      <Analytics />
+    </>
+  )
 }
 
 export default App
