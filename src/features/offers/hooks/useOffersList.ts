@@ -33,7 +33,7 @@ export function useOffersList({ superFilter = null }: { superFilter?: any } = {}
 
     if (activeToken) f.token = activeToken.id
     if (fiatSymbol) f.fiat = padHex(stringToHex(fiatSymbol), { size: 3, dir: 'right' })
-    if (activeMethod) f.methods = activeMethod.index
+    // Method filtering is done client-side due to bitmask
 
     if (filterAmount !== '') {
       const amount = parseInt(filterAmount)
@@ -91,7 +91,16 @@ export function useOffersList({ superFilter = null }: { superFilter?: any } = {}
   const offers = useMemo(() => {
     if (!rawOffers || marketPrice === undefined) return []
     const price = Number(marketPrice)
-    return rawOffers.map((offer) => {
+
+    const filteredOffers = activeMethod
+      ? rawOffers.filter((offer) => {
+          const mask = BigInt(offer.methods || 0)
+          const targetBit = 1n << BigInt(activeMethod.index)
+          return (mask & targetBit) !== 0n
+        })
+      : rawOffers
+
+    return filteredOffers.map((offer) => {
       const rate = Number(offer.rate) / 10000
 
       let methodName = offer.methods?.toString() || ''
