@@ -14,7 +14,7 @@ export type Profile = {
 }
 
 export function useProfile(address: Address | undefined) {
-  const profileAddress = useAddress('Profile#Profile')
+  const profileAddress = useAddress('Market#Profile')
 
   const { data, isLoading, error, refetch } = useReadContracts({
     contracts:
