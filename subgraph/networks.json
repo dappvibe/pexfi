@@ -7,8 +7,8 @@
   },
   "sepolia":  {
     "Market": {
-      "address": "0xf86ee8ea9A0912ca373178e4E49A8A8DAC4bDC08",
-      "startBlock": 10400916
+      "address": "0x7700aD9484F16662010B2dDd5b56A0b6F8c4c3b3",
+      "startBlock": 10402947
     }
   },
   "arbitrum-one": {
