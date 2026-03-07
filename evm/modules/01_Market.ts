@@ -67,7 +67,7 @@ export default buildModule('Market', (m) => {
     id: 'regPexfiVault',
   })
   const beneficiary = m.getAccount(0)
-  const startTimestamp = Math.floor(Date.now() / 1000)
+  const startTimestamp = 1772864758 // mar 7
   const pexfiVesting = m.contract('PexfiVesting', [beneficiary, startTimestamp, TWO_YEARS, SIX_MONTHS, Finder], {
     after: [regPexfiVault],
   })
