@@ -4,20 +4,14 @@ graph.pexfi.com {
     }
 
     handle @options {
-        @origin_allowed {
-            header_regexp Origin "(https://www.pexfi.com|https://pexfi.com)"
-        }
-        header @origin_allowed Access-Control-Allow-Origin "{header.Origin}"
+        header Access-Control-Allow-Origin "*"
         header Access-Control-Allow-Methods "GET, POST, OPTIONS"
         header Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
         header Access-Control-Max-Age "3600"
         respond "" 204
     }
 
-    @origin_allowed {
-        header_regexp Origin "(https://www.pexfi.com|https://pexfi.com)"
-    }
-    header @origin_allowed Access-Control-Allow-Origin "{header.Origin}"
+    header Access-Control-Allow-Origin "*"
     header Access-Control-Allow-Methods "GET, POST, OPTIONS"
     header Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
 
