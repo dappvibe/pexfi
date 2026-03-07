@@ -119,5 +119,6 @@ export function fetchAndSaveOffer(target: Address, market: Address): OfferEntity
 }
 
 export function handleOfferUpdated(event: OfferUpdated): void {
+  log.info("OfferUpdated: address={}", [event.address.toHexString()]);
   fetchAndSaveOffer(event.address, Address.fromString(dataSource.context().getString('marketAddress')))
 }
