@@ -1,0 +1,19 @@
+{
+  "Market#AddressWhitelist": "0x495783D1A7e94F8b6Ff60A0278F6B242184d4C64",
+  "Market#DealImplementation": "0x85C4b6f7E0585B115aC6dd5afdf57E074C27A752",
+  "Market#Finder": "0x0054d8FfECcbdb1d938D8931DFc6EC28e83CA6ae",
+  "Market#IdentifierWhitelist": "0x5348d68515DAE7919a5bC1ACC87ee8D7819940B4",
+  "Market#MarketV0": "0x61ae51405dbb02fB6161C30a81487d6F238cED5c",
+  "Market#OfferImplementation": "0x6FF53e1774581A3dC583489Ce4E4634950a77FD4",
+  "Market#PexfiToken": "0xCd89F57F8F61e9683DDf72F26B551055c6D7c850",
+  "Market#ProfileV0": "0xe7Db0Af459BE954B44F9604A8F4e828ee80F7488",
+  "Market#Store": "0xe032dF993aa187bA8851Cf080D4Ad30542352e5f",
+  "Market#PexfiVault": "0xa4d1813420F8F5fB296aCEa1Df93CCd3c9C1a6D6",
+  "Market#FeeCollector": "0x0cd8433F46CFFfD9cbeccDaADd4bD4Ea6CB2562F",
+  "Market#MarketProxy": "0xf86ee8ea9A0912ca373178e4E49A8A8DAC4bDC08",
+  "Market#OptimisticOracleV3": "0xAfAD263E077bF08Dae06E5d653fad3D080732C95",
+  "Market#ProfileProxy": "0xB3FEc32e27835013ddC38cf0449AD938Ec719e1E",
+  "Market#Market": "0xf86ee8ea9A0912ca373178e4E49A8A8DAC4bDC08",
+  "Market#Profile": "0xB3FEc32e27835013ddC38cf0449AD938Ec719e1E",
+  "Market#PexfiVesting": "0xEfE7C5C5d93b1a6cC427679a034067dA17F9dcd1"
+}
