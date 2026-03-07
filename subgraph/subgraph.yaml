@@ -6,11 +6,11 @@ schema:
 dataSources:
   - kind: ethereum
     name: Market
-    network: hardhat
+    network: sepolia
     source:
       abi: Market
-      address: "0x851356ae760d987E095750cCeb3bC6014560891C"
-      startBlock: 0
+      address: "0xf86ee8ea9A0912ca373178e4E49A8A8DAC4bDC08"
+      startBlock: 10400916
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -56,7 +56,7 @@ dataSources:
 templates:
   - kind: ethereum/contract
     name: Offer
-    network: hardhat
+    network: sepolia
     source:
       abi: Offer
     mapping:
@@ -82,7 +82,7 @@ templates:
       file: ./src/offer.ts
   - kind: ethereum/contract
     name: Deal
-    network: hardhat
+    network: sepolia
     source:
       abi: Deal
     mapping:
