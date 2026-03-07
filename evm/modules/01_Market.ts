@@ -56,7 +56,6 @@ export default buildModule('Market', (m) => {
   })
   m.call(Finder, 'changeImplementationAddress', [bytes32('Market'), Market], { id: 'regMarket' })
   m.call(Finder, 'changeImplementationAddress', [bytes32('Profile'), Profile], { id: 'regProfile' })
-  m.call(Finder, 'changeImplementationAddress', [bytes32('Mediator'), m.getAccount(0)], { id: 'regMediator' })
 
   // Profile grants role to Market
   m.call(Profile, 'grantRole', [bytes32('MARKET_ROLE'), MarketProxy])
