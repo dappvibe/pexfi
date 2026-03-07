@@ -19,14 +19,14 @@ export const Announcement: React.FC = () => {
       {testnet && (
         <Alert
           style={{ marginTop: 10, marginBottom: 10 }}
-          message="This is a testnet. Tokens have no value here."
+          message="You are on testnet. Tokens have no value here."
           type="error"
           showIcon
         />
       )}
       <Alert
         message={
-          "Welcome to Priveer's MVP! Your feedback is valuable at this stage! We plan on a design overhaul once funding allows us to expand the team."
+          <>This is fully functional preview of onchain noncustodial no-KYC crypto P2P marketplace. <a href="https://x.com/pexficom" target="_blank">Stay tuned!</a></>
         }
         style={{ marginTop: 10, marginBottom: 10 }}
         type={'info'}
