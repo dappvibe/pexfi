@@ -2,7 +2,7 @@ import {OfferUpdated} from "../../.cache/subgraph/generated/templates/Offer/Offe
 import {Offer as OfferEntity, Token} from "../../.cache/subgraph/generated/schema";
 import {Offer as OfferContract} from "../../.cache/subgraph/generated/Market/Offer"
 import {Token as TokenContract} from "../../.cache/subgraph/generated/Market/Token"
-import {Address, BigInt, Bytes, dataSource} from '@graphprotocol/graph-ts';
+import {Address, BigInt, Bytes, dataSource, log} from '@graphprotocol/graph-ts';
 import {Market as MarketContract} from "../../.cache/subgraph/generated/Market/Market";
 import {Finder as FinderContract} from "../../.cache/subgraph/generated/Market/Finder";
 import {getRangingModifier, updateProfileFor} from "./profile";
