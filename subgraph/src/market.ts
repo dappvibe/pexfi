@@ -26,6 +26,7 @@ function bytesToString(bytes: Bytes): string {
 }
 
 export function handleTokenAdded(event: TokenAdded): void {
+  log.info("TokenAdded: address={}", [event.params.address_.toHexString()]);
   let token = Token.load(event.params.address_.toHexString());
   if (!token) {
     token = new Token(event.params.address_.toHexString());
@@ -65,6 +66,7 @@ export function handleTokenAdded(event: TokenAdded): void {
 }
 
 export function handleTokenRemoved(event: TokenRemoved): void {
+  log.info("TokenRemoved: address={}", [event.params.address_.toHexString()]);
   let token = Token.load(event.params.address_.toHexString());
   if (token) {
     token.removed = true;
@@ -73,6 +75,7 @@ export function handleTokenRemoved(event: TokenRemoved): void {
 }
 
 export function handleFiatAdded(event: FiatAdded): void {
+  log.info("FiatAdded: symbol={}, feed={}", [bytesToString(event.params.symbol), event.params.feed.toHexString()]);
   let fiat = Fiat.load(event.params.symbol.toHexString());
   if (!fiat) {
     fiat = new Fiat(event.params.symbol.toHexString());
@@ -84,6 +87,7 @@ export function handleFiatAdded(event: FiatAdded): void {
 }
 
 export function handleFiatRemoved(event: FiatRemoved): void {
+  log.info("FiatRemoved: symbol={}", [bytesToString(event.params.symbol)]);
   let fiat = Fiat.load(event.params.symbol.toHexString());
   if (fiat) {
     fiat.removed = true;
@@ -92,6 +96,7 @@ export function handleFiatRemoved(event: FiatRemoved): void {
 }
 
 export function handleMethodAdded(event: MethodAdded): void {
+  log.info("MethodAdded: index={}, name={}", [event.params.index.toString(), bytesToString(event.params.name)]);
   let method = new Method(event.params.index.toString());
   method.name = bytesToString(event.params.name);
   method.index = event.params.index;
@@ -100,6 +105,7 @@ export function handleMethodAdded(event: MethodAdded): void {
 }
 
 export function handleMethodsDisabledMask(event: MethodsDisabledMask): void {
+  log.info("MethodsDisabledMask: mask={}", [event.params.mask.toString()]);
   let mask = event.params.mask;
   for (let i = 0; i < 256; i++) {
     let method = Method.load(i.toString());
@@ -112,6 +118,12 @@ export function handleMethodsDisabledMask(event: MethodsDisabledMask): void {
 }
 
 export function handleOfferCreated(event: OfferCreatedEvent): void {
+  log.info("OfferCreated: offer={}, owner={}, fiat={}, token={}", [
+    event.params.offer.toHexString(),
+    event.params.owner.toHexString(),
+    bytesToString(event.params.fiat),
+    event.params.token.toHexString()
+  ]);
   // start indexing the offer and delegate first fetch
   let context = new DataSourceContext()
   context.setString('marketAddress', event.address.toHexString())
@@ -121,6 +133,15 @@ export function handleOfferCreated(event: OfferCreatedEvent): void {
 }
 
 export function handleDealCreated(event: DealCreated): void {
+  log.info("DealCreated: deal={}, offer={}, taker={}, owner={}, method={}, terms={}, payment={}", [
+    event.params.deal.toHexString(),
+    event.params.offer.toHexString(),
+    event.params.taker.toHexString(),
+    event.params.owner.toHexString(),
+    event.params.method.toHexString(),
+    event.params.terms,
+    event.params.paymentInstructions
+  ]);
   let deal = fetchDeal(event.params.deal);
   deal.createdAt = event.block.timestamp.toI32();
   deal.terms = event.params.terms;

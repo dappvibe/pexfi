@@ -73,6 +73,11 @@ function doUpdateProfile(deal: DealEntity): void {
 }
 
 export function handleMessage(event: Message): void {
+  log.info("Message: deal={}, sender={}, message={}", [
+    event.address.toHexString(),
+    event.params.sender.toHexString(),
+    event.params.message
+  ]);
   let msg = new DealMessage(Bytes.fromUTF8(event.transaction.hash.toHexString() + event.logIndex.toHexString()))
   msg.sender = event.params.sender
   msg.message = event.params.message
@@ -117,6 +122,11 @@ export function handleMessage(event: Message): void {
 }
 
 export function handleDealState(event: DealStateEvent): void {
+  log.info("DealState: deal={}, state={}, sender={}", [
+    event.address.toHexString(),
+    event.params.state.toString(),
+    event.params.sender.toHexString()
+  ]);
   indexDealAndProfile(event.address)
 
   const notificationEvent = new NotificationEvent(event.transaction.hash.toHexString() + event.logIndex.toHexString());
@@ -158,6 +168,12 @@ export function handleDealState(event: DealStateEvent): void {
 }
 
 export function handleFeedbackGiven(event: FeedbackGiven): void {
+  log.info("FeedbackGiven: deal={}, to={}, upvote={}, message={}", [
+    event.address.toHexString(),
+    event.params.to.toHexString(),
+    event.params.upvote ? "true" : "false",
+    event.params.message
+  ]);
   let deal = fetchDeal(event.address)
 
   let dealContract = DealContract.bind(event.address)
