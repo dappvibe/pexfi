@@ -36,6 +36,8 @@ services:
       - -c
       - |
         npx graph create -g http://subgraph-node:8020 hardhat
+        npm ci
+        npx hardhat compile
         npm run subgraph:codegen
         npx graph deploy hardhat subgraph/subgraph.yaml --network hardhat -g http://subgraph-node:8020 --ipfs http://ipfs:5001 -l v0.0.1 --network-file subgraph/networks.json -o .cache/subgraph/build
     depends_on:
