@@ -137,7 +137,7 @@ export function handleDealCreated(event: DealCreated): void {
     event.params.deal.toHexString(),
     event.params.offer.toHexString(),
     event.params.taker.toHexString(),
-    event.params.owner.toHexString(),
+    event.params.offerOwner.toHexString(),
     event.params.method.toHexString(),
     event.params.terms,
     event.params.paymentInstructions
