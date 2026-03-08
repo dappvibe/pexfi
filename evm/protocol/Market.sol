@@ -169,10 +169,24 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
       secs[1] = 0;
       (int56[] memory tickCumulatives,) = token.pool.observe(secs);
       int56 tickCumulativesDelta = tickCumulatives[1] - tickCumulatives[0];
-      uint160 sqrtPriceX96 = TickMath.getSqrtPriceAtTick(int24(tickCumulativesDelta / 300));
 
-      // price of token_ in USDC (6 decimals)
-      price = FullMath.mulDiv(uint256(sqrtPriceX96) * uint256(sqrtPriceX96), 10 ** token.decimals, 1 << 192);
+      // Fix Solidity's negative division rounding
+      int24 meanTick = int24(tickCumulativesDelta / 300);
+      if (tickCumulativesDelta < 0 && (tickCumulativesDelta % 300 != 0)) {
+        meanTick--;
+      }
+
+      uint160 sqrtPriceX96 = TickMath.getSqrtPriceAtTick(meanTick);
+      uint256 ratioX192 = uint256(sqrtPriceX96) * uint256(sqrtPriceX96);
+
+      // 2. Check token sorting to determine math direction
+      address token0 = IUniswapV3Pool(token.pool).token0();
+      if (address(token_) == token0) {
+        // price of token_ in USDC (6 decimals)
+        price = FullMath.mulDiv(ratioX192, 10 ** token.decimals, 1 << 192);
+      } else {
+        price = FullMath.mulDiv(1 << 192, 10 ** token.decimals, ratioX192);
+      }
     } else {
       price = 10 ** 6;
     }

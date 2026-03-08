@@ -11,8 +11,8 @@ export default buildModule('Mock', (m) => {
   }
 
   const uniswap = m.contract('MockUniswapV3Factory', [])
-  m.call(uniswap, 'setPool', [tokens['WBTC'], m.contract('PoolBTC')], { id: 'poolBTC' })
-  m.call(uniswap, 'setPool', [tokens['WETH'], m.contract('PoolETH')], { id: 'poolWETH' })
+  m.call(uniswap, 'setPool', [tokens['WBTC'], m.contract('PoolBTC', [tokens['WBTC'], tokens['USDT']])], { id: 'poolBTC' })
+  m.call(uniswap, 'setPool', [tokens['WETH'], m.contract('PoolETH', [tokens['WETH'], tokens['USDT']])], { id: 'poolWETH' })
 
   return { uniswap, ...tokens }
 })

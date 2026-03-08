@@ -164,6 +164,20 @@ describe('Market', () => {
       assert.strictEqual(price, 1000000n)
     })
 
+    test('getPrice() for WETH should return non-zero price', async () => {
+      const price = await Market.read.getPrice([WETH.address, bytes3('USD')])
+      assert.ok(price > 0n, 'Price should be non-zero')
+    })
+
+    test('pool should have token0 and token1', async () => {
+      const info = await Market.read.tokens([WETH.address])
+      const pool = await viem.getContractAt('PoolETH', info[0])
+      const token0 = await pool.read.token0()
+      const token1 = await pool.read.token1()
+      assert.strictEqual(getAddress(token0), getAddress(USDC.address))
+      assert.strictEqual(getAddress(token1), getAddress(WETH.address))
+    })
+
     test('convert() should calculate correct amount', async () => {
       const amount = await Market.read.convert([100n * 10n ** 6n, bytes3('USD'), USDC.address, 10000n])
       assert.strictEqual(amount, 100n * 10n ** 6n)
