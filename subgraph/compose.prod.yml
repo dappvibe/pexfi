@@ -32,17 +32,17 @@ services:
     environment:
       node_id: default
       ipfs: 'ipfs:5001'
+      postgres_host: postgres
+      postgres_user: graph-node
+      postgres_pass: let-me-in
+      postgres_db: graph-node
+      ethereum: 'sepolia:https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY}'
       GRAPH_LOG: debug
-      GRAPH_NODE_CONFIG: /config.toml
-      GOOGLE_RPC_KEY: ${GOOGLE_RPC_KEY}
-      INFURA_KEY: ${INFURA_KEY}
-      ETHEREUM_POLLING_INTERVAL: 1000
+      ETHEREUM_POLLING_INTERVAL: 12000
       GRAPH_ETHEREUM_REQUEST_RETRIES: 3
       ETHEREUM_BLOCK_BATCH_SIZE: 1
-      GRAPH_ETHEREUM_BLOCK_INGESTOR_MAX_CONCURRENT_JSON_RPC_CALLS_FOR_TXN_RECEIPTS: 10
+      GRAPH_ETHEREUM_BLOCK_INGESTOR_MAX_CONCURRENT_JSON_RPC_CALLS_FOR_TXN_RECEIPTS: 1
       GRAPH_ETHEREUM_FETCH_TXN_RECEIPTS_IN_BATCHES: 'true'
-    volumes:
-      - ./config.toml:/config.toml
 
   postgres:
     restart: unless-stopped
