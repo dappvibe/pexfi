@@ -16,4 +16,4 @@ provider = [
 [[deployment.rule]]
 indexers = ["default"]
 get_logs_max_block_range = 10
-max_parallel_requests = 3
+max_parallel_requests = 1
