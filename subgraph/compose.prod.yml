@@ -37,7 +37,6 @@ services:
       ALCHEMY_KEY: ${ALCHEMY_KEY}
       ETHEREUM_POLLING_INTERVAL: 1000
       GRAPH_ETHEREUM_REQUEST_RETRIES: 3
-      GRAPH_ETHEREUM_MAX_BLOCK_RANGE_SIZE: 10
       ETHEREUM_BLOCK_BATCH_SIZE: 5
     volumes:
       - ./config.toml:/config.toml
