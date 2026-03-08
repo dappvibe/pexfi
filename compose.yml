@@ -90,11 +90,12 @@ services:
     environment:
       node_id: default
       ipfs: 'ipfs:5001'
-      GRAPH_LOG: info
-      GRAPH_NODE_CONFIG: /config.toml
-      GOOGLE_RPC_KEY: ${GOOGLE_RPC_KEY}
-    volumes:
-      - ./subgraph/config.toml:/config.toml
+      postgres_host: postgres
+      postgres_user: graph-node
+      postgres_pass: let-me-in
+      postgres_db: graph-node
+      ethereum: 'hardhat:http://evm:8545'
+      GRAPH_LOG: debug
 
   blockscout-backend:
     depends_on:
