@@ -32,7 +32,7 @@ services:
     environment:
       node_id: default
       ipfs: 'ipfs:5001'
-      GRAPH_LOG: info
+      GRAPH_LOG: debug
       GRAPH_NODE_CONFIG: /config.toml
       GOOGLE_RPC_KEY: ${GOOGLE_RPC_KEY}
       ETHEREUM_POLLING_INTERVAL: 1000
