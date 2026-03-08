@@ -42,7 +42,7 @@ export default buildModule('Mocks', (m) => {
   }
 
   // --- 2. Uniswap ---
-  const poolETH = m.contract('PoolETH', [], { id: 'PoolETH' })
+  const poolETH = m.contract('PoolETH', [tokens['USDC'], tokens['WETH']], { id: 'PoolETH' })
   const universalRouter = m.contract('UniswapUniversalRouterMock', [], { id: 'UniswapUniversalRouter' })
 
   // --- 3. Price Feeds ---
