@@ -9,7 +9,7 @@ ingestor = "default"
 [chains.sepolia]
 shard = "primary"
 provider = [
-  { label = "google", details = { type = "web3", features = ['archive'], transport = "rpc", url = "https://blockchain.googleapis.com/v1/projects/pexfi-com/locations/us-central1/endpoints/ethereum-sepolia/rpc?key=${GOOGLE_RPC_KEY}" } },
+  { label = "infura", details = { type = "web3", features = ['archive'], transport = "rpc", url = "https://sepolia.infura.io/v3/${INFURA_KEY}" } },
 ]
 
 [deployment]
