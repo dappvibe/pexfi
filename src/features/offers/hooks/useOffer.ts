@@ -3,7 +3,7 @@ import { useAccount, usePublicClient } from 'wagmi'
 import { Address, padHex, hexToString, trim } from 'viem'
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
-import { useAddress, useInventory } from '@/shared/web3'
+import { useAddress, useInventory, type Token } from '@/shared/web3'
 import {
   useReadMarketGetPrice,
   useReadErc20Allowance,
@@ -13,12 +13,6 @@ import {
   useWriteOfferSetDisabled,
 } from '@/wagmi'
 
-export type Token = {
-  address: Address
-  name: string
-  symbol: string
-  decimals: number
-}
 
 export type Offer = {
   id: string

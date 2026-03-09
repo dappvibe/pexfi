@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { message } from 'antd'
 import { useDeal } from '@/wagmi/contracts/useDeal'
-import { useOffer } from '@/wagmi/contracts/useOffer'
+import { useOffer } from '@/features/offers/hooks/useOffer'
 import { useProfile } from '@/wagmi/contracts/useProfile'
 
 export function useDealPage() {

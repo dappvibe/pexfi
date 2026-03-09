@@ -43,9 +43,13 @@ export function useUserDeals(options: { pollInterval?: number } = {}) {
     pollInterval: options.pollInterval,
   })
 
-  
+
   useEffect(() => {
-    return () => stopPolling()
+    return () => {
+      if (stopPolling) {
+        stopPolling()
+      }
+    }
   }, [stopPolling])
 
   const deals = useMemo(() => {
@@ -57,7 +61,7 @@ export function useUserDeals(options: { pollInterval?: number } = {}) {
       fiatAmountFormatted: Number(BigInt(d.fiatAmount)) / 10 ** 6,
       offer: {
         ...d.offer,
-        fiat: hexToString(trim(d.offer.fiat as `0x${string}`, { dir: 'right' })),
+        fiat: hexToString(trim((d.offer.fiat as `0x${string}`) || '0x00', { dir: 'right' })),
         method: d.offer.methods.toString(),
       }
     }))
