@@ -3,7 +3,7 @@ import { useAccount, usePublicClient } from 'wagmi'
 import { Address, padHex, hexToString, trim } from 'viem'
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
-import { useAddress, useInventory, type Token } from '@/shared/web3'
+import { useAddress, useInventory, decodeMethod, type Token } from '@/shared/web3'
 import {
   useReadMarketGetPrice,
   useReadErc20Allowance,
@@ -60,13 +60,39 @@ interface UseOfferOptions {
   pollInterval?: number
 }
 
+interface RawToken {
+  id: string
+  address: string
+  name: string
+  symbol: string
+  decimals: number
+}
+
+interface RawOffer {
+  id: string
+  owner: string
+  isSell: boolean
+  token: RawToken | null
+  fiat: string
+  methods: string
+  rate: number
+  minFiat: number
+  maxFiat: number
+  terms: string
+  disabled: boolean
+}
+
+interface OfferQueryResult {
+  offer: RawOffer | null
+}
+
 export function useOffer(offerId: string | undefined, options: UseOfferOptions = {}) {
   const { fetchPrice = false, fetchAllowance = false, pollInterval = 0 } = options
   const account = useAccount()
   const marketAddress = useAddress('Market#Market')
   const { methods } = useInventory()
 
-  const { data, loading, error, refetch, stopPolling } = useQuery(GQL_OFFER, {
+  const { data, loading, error, refetch, stopPolling } = useQuery<OfferQueryResult>(GQL_OFFER, {
     variables: { id: offerId?.toLowerCase() },
     skip: !offerId,
     pollInterval,
@@ -116,14 +142,6 @@ export function useOffer(offerId: string | undefined, options: UseOfferOptions =
       price = (basePrice * normalizedRate).toFixed(3)
     }
 
-    let methodName = rawOffer.methods.toString()
-    if (rawOffer.methods) {
-      const mask = BigInt(rawOffer.methods)
-      const found = Object.values(methods).find((m: any) => (mask & (1n << BigInt(m.index))) !== 0n)
-      if (found) {
-        methodName = (found as any).name
-      }
-    }
 
     return {
       id: rawOffer.id,
@@ -132,6 +150,7 @@ export function useOffer(offerId: string | undefined, options: UseOfferOptions =
       isSell: rawOffer.isSell,
       token: rawOffer.token
         ? {
+            id: rawOffer.token.id,
             address: rawOffer.token.address as Address,
             name: rawOffer.token.name,
             symbol: rawOffer.token.symbol,
@@ -139,7 +158,7 @@ export function useOffer(offerId: string | undefined, options: UseOfferOptions =
           }
         : null,
       fiat: hexToString(trim(rawOffer.fiat as `0x${string}`, { dir: 'right' })),
-      method: methodName,
+      method: decodeMethod(rawOffer.methods, methods),
       rate: normalizedRate,
       min: rawOffer.minFiat,
       max: rawOffer.maxFiat,

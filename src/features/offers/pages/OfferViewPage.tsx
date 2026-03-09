@@ -1,32 +1,47 @@
 import { Card, Skeleton } from 'antd'
+import { useParams } from 'react-router-dom'
+import { useAccount } from 'wagmi'
 import OfferSubnav from '@/features/offers/components/OfferSubnav'
 import OfferDescription from '@/features/offers/components/OfferDescription'
 import OfferForm from '@/features/offers/components/OfferForm'
 import CreateDealForm from '@/features/offers/components/CreateDealForm'
 import { useCreateDeal } from '@/features/offers/hooks/useCreateDeal'
+import { useOffer } from '@/features/offers/hooks/useOffer'
 import { useOfferForm } from '@/features/offers/hooks/useOfferForm'
 import { Helmet } from '@dr.pogodin/react-helmet'
 
 export default function OfferViewPage() {
+  const { offerId } = useParams()
+  const { address } = useAccount()
   const {
     offer,
+    allowance,
+    refetchAllowance,
+    setRate,
+    setLimits,
+    setTerms,
+    toggleDisabled,
+  } = useOffer(offerId, {
+    fetchPrice: true,
+    fetchAllowance: true,
+    pollInterval: 2000,
+  })
+
+  const {
     form,
-    isOwner,
     lockButton,
     submitLabel,
     submitDisabled,
     createDeal,
     syncTokenAmount,
     syncFiatAmount,
-    setRate,
-    setLimits,
-    setTerms,
-    toggleDisabled,
-  } = useCreateDeal()
+  } = useCreateDeal({ offer, allowance, refetchAllowance })
 
   const offerForm = useOfferForm({ offer, setRate, setLimits, setTerms, toggleDisabled })
 
   if (!offer) return <Skeleton active />
+
+  const isOwner = !!address && !!offer && offer.owner.toLowerCase() === address.toLowerCase()
 
   if (isOwner) {
     return (
@@ -58,8 +73,8 @@ export default function OfferViewPage() {
           form={form}
           lockButton={lockButton}
           submitLabel={submitLabel}
-          submitDisabled={submitDisabled}
-          onFinish={(values) => createDeal(offer, values)}
+          submitDisabled={submitDisabled || !address}
+          onFinish={(values) => createDeal(values)}
           syncTokenAmount={syncTokenAmount}
           syncFiatAmount={syncFiatAmount}
         />
