@@ -1,5 +1,6 @@
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
+import { Address } from 'viem'
 
 const GET_INVENTORY = gql`
   query GetInventory {
@@ -24,7 +25,7 @@ const GET_INVENTORY = gql`
 
 export interface Token {
   id: string
-  address: string
+  address: Address
   name: string
   symbol: string
   decimals: number

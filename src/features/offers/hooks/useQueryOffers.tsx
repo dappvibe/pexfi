@@ -1,6 +1,7 @@
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
 import { useState } from 'react'
+import { type Token } from '@/shared/web3'
 
 export type OffersFilter = {
   disabled?: boolean
@@ -20,11 +21,6 @@ export type OffersRequestParams = {
   order: 'asc' | 'desc'
 }
 
-export type Token = {
-  id: string
-  name: string
-  decimals: number
-}
 
 export type Offer = {
   id: string
@@ -36,7 +32,7 @@ export type Offer = {
     rating: number
   } | null
   isSell: boolean
-  token: Token
+  token: Pick<Token, 'id' | 'name' | 'decimals'>
   fiat: string
   methods: string
   // rate is just a multiplier, not a price. must be factored by market price to display the actual price

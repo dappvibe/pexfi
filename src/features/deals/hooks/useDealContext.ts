@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react'
 import { Deal } from '@/wagmi/contracts/useDeal'
-import { Offer } from '@/wagmi/contracts/useOffer'
+import { Offer } from '@/features/offers/hooks/useOffer'
 import { Profile } from '@/wagmi/contracts/useProfile'
 
 export type DealContextValue = {
