@@ -1,15 +1,14 @@
-import { Avatar, Button, Col, Menu, Modal, Row } from 'antd'
-import { useState } from 'react'
+import { Avatar, Col, Menu, Row } from 'antd'
 import { formatAddress } from '@/utils'
 import { Link } from 'react-router-dom'
-import { useAccount, useConnect, useDisconnect } from 'wagmi'
+import { ConnectButton, useActiveAccount } from 'thirdweb/react'
+import { client } from '@/thirdweb'
+import { defineChain } from 'thirdweb'
+import { mainnet, sepolia, hardhat } from 'thirdweb/chains'
 
 export default function WalletMenu() {
-  const { connectors, connect } = useConnect()
-  const { disconnect } = useDisconnect()
-  const { address } = useAccount()
-
-  const [modalOpen, setModalOpen] = useState(false)
+  const account = useActiveAccount()
+  const address = account?.address
 
   const renderUserMenu = (address: string) => {
     const userMenuItems = [
@@ -17,8 +16,6 @@ export default function WalletMenu() {
       { label: <Link to={'/me/offers'}>My Offers</Link>, key: 'my-offers' },
       { label: <Link to={'/me/deals'}>My Deals</Link>, key: 'my-deals' },
       { label: <Link to={'/me'}>Profile</Link>, key: 'profile' },
-      { type: 'divider' },
-      { label: 'Disconnect', key: 'disconnect', onClick: disconnect },
     ]
 
     return [
@@ -39,46 +36,32 @@ export default function WalletMenu() {
     ]
   }
 
-  const renderConnectWalletModal = () => (
-    <Modal open={modalOpen} onCancel={() => setModalOpen(false)} title={'Your Browser Wallets'} footer={null}>
-      {connectors.length > 0 ? (
-        connectors.map((connector) => (
-          <Button
-            type={'primary'}
-            key={connector.uid}
-            onClick={() => {
-              connect({ connector })
-              setModalOpen(false)
-            }}
-          >
-            {connector.name}
-          </Button>
-        ))
-      ) : (
-        <div>
-          There are no wallet extensions in your browser.
-          <br />
-          We recommend{' '}
-          <a target="_blank" href="https://metamask.io">
-            MetaMask
-          </a>
-          .
-        </div>
-      )}
-    </Modal>
-  )
-
   if (address) {
     const userMenu = renderUserMenu(address)
     return (
-      <Menu items={userMenu} theme={'dark'} mode={'horizontal'} triggerSubMenuAction={'hover'} selectable={false} />
-    )
-  } else {
-    return (
-      <>
-        <Button onClick={() => setModalOpen(true)}>Connect Wallet</Button>
-        {modalOpen && renderConnectWalletModal()}
-      </>
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <Menu items={userMenu} theme={'dark'} mode={'horizontal'} triggerSubMenuAction={'hover'} selectable={false} style={{ minWidth: 200 }} />
+        <ConnectButton
+          client={client}
+          theme={'dark'}
+          detailsButton={{
+            displayBalanceToken: {
+              [hardhat.id]: "0x...", // placeholder if needed
+            }
+          }}
+        />
+      </div>
     )
   }
+
+  return (
+    <ConnectButton
+      client={client}
+      chains={[mainnet, sepolia, hardhat]}
+      theme={'dark'}
+      connectButton={{
+        label: 'Connect Wallet',
+      }}
+    />
+  )
 }
