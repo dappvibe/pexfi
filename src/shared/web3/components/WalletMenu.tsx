@@ -1,10 +1,30 @@
-import { Avatar, Col, Menu, Row } from 'antd'
+import { Avatar, Button, Col, Menu, Popover, Row } from 'antd'
 import { formatAddress } from '@/utils'
 import { Link } from 'react-router-dom'
-import { ConnectButton, useActiveAccount } from 'thirdweb/react'
+import { ConnectButton, ConnectEmbed, useActiveAccount, darkTheme } from 'thirdweb/react'
 import { client } from '@/thirdweb'
-import { defineChain } from 'thirdweb'
 import { mainnet, sepolia, hardhat } from 'thirdweb/chains'
+import { createWallet } from 'thirdweb/wallets'
+import { WalletOutlined } from '@ant-design/icons'
+
+const wallets = [
+  createWallet('io.metamask'),
+  createWallet('com.coinbase.wallet'),
+  createWallet('me.rainbow'),
+  createWallet('io.rabby'),
+  createWallet('io.zerion.wallet'),
+  createWallet('com.brave.wallet'),
+  createWallet('walletConnect'),
+]
+
+const customTheme = darkTheme({
+  fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  colors: {
+    accentText: '#1890ff',
+    accentButtonBg: '#1890ff',
+    modalBg: '#141414',
+  },
+})
 
 export default function WalletMenu() {
   const account = useActiveAccount()
@@ -43,25 +63,40 @@ export default function WalletMenu() {
         <Menu items={userMenu} theme={'dark'} mode={'horizontal'} triggerSubMenuAction={'hover'} selectable={false} style={{ minWidth: 200 }} />
         <ConnectButton
           client={client}
-          theme={'dark'}
+          theme={customTheme}
+          wallets={wallets}
           detailsButton={{
             displayBalanceToken: {
-              [hardhat.id]: "0x...", // placeholder if needed
-            }
+              [hardhat.id]: '0x...', // placeholder if needed
+            },
           }}
         />
       </div>
     )
   }
 
+  const connectContent = (
+    <div style={{ width: '320px' }}>
+      <ConnectEmbed
+        client={client}
+        theme={customTheme}
+        wallets={wallets}
+        chains={[mainnet, sepolia, hardhat]}
+        modalSize="compact"
+        className="pexfi-connect-embed"
+        header={{
+          title: 'Connect to PEXFI',
+          showThirdwebBranding: false,
+        }}
+      />
+    </div>
+  )
+
   return (
-    <ConnectButton
-      client={client}
-      chains={[mainnet, sepolia, hardhat]}
-      theme={'dark'}
-      connectButton={{
-        label: 'Connect Wallet',
-      }}
-    />
+    <Popover content={connectContent} trigger="click" placement="bottomRight" overlayInnerStyle={{ padding: 0, backgroundColor: '#141414', border: '1px solid #303030' }}>
+      <Button type="primary" icon={<WalletOutlined />} style={{ borderRadius: '8px', fontWeight: 600, height: '40px' }}>
+        Connect Wallet
+      </Button>
+    </Popover>
   )
 }
