@@ -1,15 +1,30 @@
 import { Avatar, Button, Divider, Flex, Space, Table, Tag } from 'antd'
+import type { ColumnType } from 'antd/es/table'
 import { Link, useParams } from 'react-router-dom'
-import PropTypes from 'prop-types'
 import { Username } from '@/shared/web3'
 import { formatMoney } from '@/utils'
 import { useAccount } from 'wagmi'
+import { type Offer } from '@/features/offers/hooks/useQueryOffers'
 
-export default function OffersTable({ offers, loading, loadMore, totalOffers }) {
+type MappedOffer = Offer & {
+  method: string
+  price: string
+  fiat: string
+  rate: number
+}
+
+interface OffersTableProps {
+  offers: MappedOffer[]
+  loading: boolean
+  loadMore: () => void
+  totalOffers: number | null
+}
+
+export default function OffersTable({ offers, loading, loadMore, totalOffers }: OffersTableProps) {
   const { address } = useAccount()
   let { side = 'sell', token = 'WETH', fiat = 'USD', method = null } = useParams()
 
-  const columns: any = [
+  const columns: ColumnType<MappedOffer>[] = [
     {
       title: '',
       width: 0,
@@ -75,7 +90,7 @@ export default function OffersTable({ offers, loading, loadMore, totalOffers }) 
 
   return (
     <>
-      <Divider orientation={'left'}></Divider>
+
       <Table
         columns={columns}
         dataSource={offers}
@@ -100,6 +115,4 @@ export default function OffersTable({ offers, loading, loadMore, totalOffers }) 
   )
 }
 
-OffersTable.propTypes = {
-  offers: PropTypes.array.isRequired,
-}
+
