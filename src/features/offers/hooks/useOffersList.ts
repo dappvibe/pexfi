@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { message } from 'antd'
 import { useQueryOffers } from '@/features/offers/hooks/useQueryOffers'
 import { useAddress } from '@/shared/web3'
-import { useInventory } from '@/shared/web3'
+import { useInventory, decodeMethod } from '@/shared/web3'
 import { useReadMarketGetPrice } from '@/wagmi'
 import { Address, padHex, stringToHex, hexToString, trim } from 'viem'
 
@@ -103,21 +103,12 @@ export function useOffersList({ superFilter = null }: { superFilter?: any } = {}
     return filteredOffers.map((offer) => {
       const rate = Number(offer.rate) / 10000
 
-      let methodName = offer.methods?.toString() || ''
-      if (offer.methods) {
-        const mask = BigInt(offer.methods)
-        const found = Object.values(methods).find((m: any) => (mask & (1n << BigInt(m.index))) !== 0n)
-        if (found) {
-          methodName = (found as any).name
-        }
-      }
-
       return {
         ...offer,
         fiat: hexToString(trim((offer.fiat as `0x${string}`) || '0x00', { dir: 'right' })),
         rate: rate,
         price: (price * rate).toFixed(2),
-        method: methodName,
+        method: decodeMethod(offer.methods, methods),
       }
     })
   }, [rawOffers, marketPrice, methods])
