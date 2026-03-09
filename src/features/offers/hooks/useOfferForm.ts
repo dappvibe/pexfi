@@ -155,7 +155,7 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
         address: marketAddress,
         args: [params],
       })
-      message.info('Offer submitted. Waiting for confirmation...')
+      message.loading({ content: 'Offer submitted. Waiting for confirmation...', key: 'createOffer', duration: 0 })
 
       const receipt = await publicClient?.waitForTransactionReceipt({ hash })
       if (receipt) {
@@ -167,11 +167,15 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
         if (logs.length > 0) {
           const offerAddress = (logs[0].args as any).offer
           setNewOfferAddress(offerAddress)
+          message.success({ content: 'Offer confirmed! Syncing...', key: 'createOffer', duration: 2 })
         }
       }
     } catch (e: any) {
       console.error('Submission error:', e)
-      message.error(e.shortMessage || e.message || 'Failed to submit offer')
+      message.error({
+        content: e.shortMessage || e.message || 'Failed to submit offer',
+        key: 'createOffer',
+      })
       setLockSubmit(false)
     }
   }

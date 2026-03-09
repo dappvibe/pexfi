@@ -40,6 +40,7 @@ export function useCreateDeal({ offer, allowance, refetchAllowance }: UseCreateD
     if (!offer || allowance > 0n || offer.isSell) return
 
     try {
+      message.loading({ content: `Approving ${offer.token?.symbol}...`, key: 'createDeal', duration: 0 })
       const hash = await approveTx({
         address: offer.token?.address as Address,
         args: [marketAddress as Address, BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')],
@@ -47,7 +48,7 @@ export function useCreateDeal({ offer, allowance, refetchAllowance }: UseCreateD
       await publicClient?.waitForTransactionReceipt({ hash })
       await refetchAllowance()
     } catch (e: any) {
-      message.error(e.shortMessage || 'Approval failed')
+      message.error({ content: e.shortMessage || 'Approval failed', key: 'createDeal' })
       throw e
     }
   }
@@ -60,6 +61,7 @@ export function useCreateDeal({ offer, allowance, refetchAllowance }: UseCreateD
       await approve()
 
       const amount = BigInt(Math.floor(values['fiatAmount'] * 10 ** 6))
+      message.loading({ content: 'Deal submitted. Waiting for confirmation...', key: 'createDeal', duration: 0 })
       const hash = await createDealTx({
         address: offer.address,
         args: [
@@ -72,7 +74,6 @@ export function useCreateDeal({ offer, allowance, refetchAllowance }: UseCreateD
         ],
       })
 
-      message.info('Deal submitted. Waiting for confirmation...')
       const receipt = await publicClient?.waitForTransactionReceipt({ hash })
 
       if (receipt) {
@@ -86,6 +87,7 @@ export function useCreateDeal({ offer, allowance, refetchAllowance }: UseCreateD
             if (event.eventName === 'DealCreated') {
               const dealAddress = (event.args as any).deal
               setNewDealAddress(dealAddress)
+              message.success({ content: 'Deal created! Syncing...', key: 'createDeal', duration: 2 })
               break
             }
           } catch (e) {
@@ -94,7 +96,10 @@ export function useCreateDeal({ offer, allowance, refetchAllowance }: UseCreateD
         }
       }
     } catch (e: any) {
-      message.error(e.shortMessage || 'Failed to create deal')
+      message.error({
+        content: e.shortMessage || 'Failed to create deal',
+        key: 'createDeal',
+      })
     } finally {
       setLockButton(false)
     }
