@@ -1,9 +1,17 @@
 import { Card, Col, Row } from 'antd'
+import { Helmet } from '@dr.pogodin/react-helmet'
 import Faq from '@/features/landing/components/Faq'
 
 export default function LandingPage() {
   return (
     <>
+      <Helmet>
+        <title>PEXFI - Onchain P2P Marketplace</title>
+        <meta
+          name="description"
+          content="Trade ERC20 tokens securely and censorship-resistant — entirely on-chain. Fully Decentralized P2P Crypto Marketplace."
+        />
+      </Helmet>
       <header style={{ textAlign: 'center', marginBottom: '40px' }}>
         <h1>Fully Decentralized P2P Crypto Marketplace</h1>
         <p>Trade ERC20 tokens securely and censorship-resistant — entirely on-chain.</p>
