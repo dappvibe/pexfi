@@ -6,6 +6,7 @@ import { useAddress } from '@/shared/web3'
 import { useInventory, decodeMethod } from '@/shared/web3'
 import { useReadMarketGetPrice } from '@/wagmi'
 import { Address, padHex, stringToHex, hexToString, trim } from 'viem'
+import { normalizeMarketPrice } from '@/utils'
 
 export function useOffersList({ superFilter = null }: { superFilter?: any } = {}) {
   const marketAddress = useAddress('Market#Market')
@@ -90,7 +91,7 @@ export function useOffersList({ superFilter = null }: { superFilter?: any } = {}
 
   const offers = useMemo(() => {
     if (!rawOffers || marketPrice === undefined) return []
-    const price = Number(marketPrice)
+    const price = normalizeMarketPrice(marketPrice)
 
     const filteredOffers = activeMethod
       ? rawOffers.filter((offer) => {
