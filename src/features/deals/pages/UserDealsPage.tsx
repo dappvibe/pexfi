@@ -44,9 +44,9 @@ function DealItem({ deal }: { deal: any }) {
 }
 
 export default function UserDealsPage() {
-  const { deals } = useUserDeals()
+  const { deals, loading } = useUserDeals()
 
-  if (deals === undefined) return <Skeleton active />
+  if (loading || deals === undefined) return <Skeleton active />
   if (deals.length === 0) return <Empty />
 
   return (
