@@ -59,13 +59,14 @@ describe('OffersListPage', () => {
       fiats: { USD: { id: '0x5553440000000000000000000000000000000000000000000000000000000000', symbol: 'USD' } },
       methods: {},
       loading: false,
+      error: undefined,
     } as any)
   })
 
   it('renders subcomponents and calculates prices', async () => {
     // Mock Offers Data
     const rawOffers = [
-      { id: '1', rate: 10000, minFiat: 10, maxFiat: 100 }, // Rate 1.0 (with 4 decimals)
+      { id: '1', rate: 10000, minFiat: 10, maxFiat: 100, fiat: '0x555344' }, // Rate 1.0 (with 4 decimals)
     ]
     vi.mocked(useQueryOffers).mockReturnValue({
       offers: rawOffers,

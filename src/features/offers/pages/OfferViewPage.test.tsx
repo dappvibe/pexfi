@@ -5,8 +5,8 @@ import { useAccount, usePublicClient } from 'wagmi'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
-import { 
-  useReadMarketGetPrice, 
+import {
+  useReadMarketGetPrice,
   useReadErc20Allowance,
   useWriteOfferCreateDeal,
   useWriteErc20Approve
@@ -44,7 +44,14 @@ vi.mock('@/wagmi', () => ({
 // Mock hooks
 vi.mock('@/shared/web3', () => ({
   useAddress: vi.fn(() => '0xMarketAddress'),
-  useInventory: vi.fn(() => ({ tokens: {}, loading: false })),
+  useInventory: vi.fn(() => ({
+    tokens: {},
+    methods: {
+      '1': { index: '0', name: 'Method' }
+    },
+    loading: false,
+    error: undefined,
+  })),
 }))
 
 // Mock useOfferForm
@@ -114,7 +121,7 @@ describe('OfferViewPage', () => {
           owner: '0xOtherOwner',
           isSell: true,
           token: { id: 'TST', symbol: 'TST', address: '0xToken', decimals: 18, name: 'Test' },
-          fiat: 'USD',
+          fiat: '0x555344', // USD
           methods: '1',
           rate: 10000,
           minFiat: 10,
@@ -147,7 +154,7 @@ describe('OfferViewPage', () => {
           owner: '0xOtherOwner',
           isSell: true,
           token: { id: 'TST', symbol: 'TST', address: '0xToken', decimals: 18, name: 'Test' },
-          fiat: 'USD',
+          fiat: '0x555344', // USD
           methods: '1',
           rate: 10000,
           minFiat: 10,

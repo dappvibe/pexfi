@@ -6,19 +6,9 @@ import { Providers } from '@/Providers'
 
 import { useAccount } from 'wagmi'
 
-// Mock useParams by rendering inside a Route
-vi.mock('react-router-dom', async (importOriginal) => {
-  const actual = await importOriginal()
-  return {
-    ...actual,
-    useParams: vi.fn(() => ({
-      side: 'sell',
-      token: 'WETH',
-      fiat: 'USD',
-      method: null,
-    })),
-  }
-})
+vi.mock('@/shared/web3', () => ({
+  Username: ({ address }: { address: string }) => <span data-testid="username">{address}</span>,
+}))
 
 describe('OffersTable', () => {
   const mockOffers = [

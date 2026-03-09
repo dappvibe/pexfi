@@ -3,8 +3,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useOffer } from '@/features/offers/hooks/useOffer'
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
-import { 
-  useReadMarketGetPrice, 
+import {
+  useReadMarketGetPrice,
   useReadErc20Allowance,
   useWriteOfferSetRate,
   useWriteOfferSetLimits,
@@ -32,19 +32,29 @@ vi.mock('@/wagmi', () => ({
 
 vi.mock('@/shared/web3', () => ({
   useAddress: vi.fn(() => '0xMarketAddress'),
+  useInventory: vi.fn(() => ({
+    methods: {
+      '1': { index: '0', name: 'Method' },
+    },
+    tokens: {},
+    fiats: {},
+  })),
 }))
 
 vi.mock('wagmi', async () => {
     return {
         useChainId: () => 31337,
         useAccount: () => ({ address: '0xUser', isConnected: true }),
+        usePublicClient: () => ({
+            waitForTransactionReceipt: vi.fn().mockResolvedValue({ logs: [] }),
+        }),
     }
 })
 
 describe('useOffer', () => {
     beforeEach(() => {
         vi.clearAllMocks()
-        
+
         // Default mock for useQuery (Offer fetch)
         vi.mocked(useQuery).mockReturnValue({
             data: {
@@ -59,7 +69,7 @@ describe('useOffer', () => {
                         symbol: 'TKN',
                         decimals: 18,
                     },
-                    fiat: 'USD',
+                    fiat: '0x555344', // USD
                     methods: '1',
                     rate: 10100, // 1.01
                     minFiat: 100,

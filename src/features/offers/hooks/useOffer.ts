@@ -80,7 +80,11 @@ export function useOffer(offerId: string | undefined, options: UseOfferOptions =
   })
 
   useEffect(() => {
-    return () => stopPolling()
+    return () => {
+      if (stopPolling) {
+        stopPolling()
+      }
+    }
   }, [stopPolling])
 
   const rawOffer = data?.offer

@@ -19,12 +19,18 @@ vi.mock('@/wagmi/contracts/useDeal', () => ({
   },
 }))
 
-vi.mock('@/wagmi/contracts/useOffer', () => ({
-  useOffer: vi.fn(() => ({ offer: null, isLoading: false })),
+vi.mock('@/features/offers/hooks/useOffer', () => ({
+  useOffer: vi.fn((offerAddress) => ({
+    offer: offerAddress ? { id: offerAddress, owner: '0xowner' } : null,
+    isLoading: false,
+  })),
 }))
 
 vi.mock('@/wagmi/contracts/useProfile', () => ({
-  useProfile: vi.fn(() => ({ profile: null, isLoading: false })),
+  useProfile: vi.fn((address) => ({
+    profile: address ? { id: address, username: 'user' } : null,
+    isLoading: false,
+  })),
 }))
 
 vi.mock('@/features/deals/components/DealCard', () => ({
