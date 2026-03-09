@@ -1,33 +1,23 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Form, message } from 'antd'
 import { Address, decodeEventLog } from 'viem'
-import { useAccount, usePublicClient } from 'wagmi'
+import { usePublicClient } from 'wagmi'
 import { useAddress } from '@/shared/web3'
-import { useOffer } from '@/features/offers/hooks/useOffer'
+import { type Offer } from '@/features/offers/hooks/useOffer'
 import { useUserDeals } from '@/features/deals/hooks/useUserDeals'
 import { marketAbi, useWriteErc20Approve, useWriteOfferCreateDeal } from '@/wagmi'
 
-export function useCreateDeal() {
+interface UseCreateDealProps {
+  offer: Offer | null
+  allowance: bigint
+  refetchAllowance: () => Promise<any>
+}
+
+export function useCreateDeal({ offer, allowance, refetchAllowance }: UseCreateDealProps) {
   const navigate = useNavigate()
-  const account = useAccount()
   const publicClient = usePublicClient()
   const marketAddress = useAddress('Market#Market')
-
-  const { offerId } = useParams()
-  const {
-    offer,
-    allowance,
-    refetchAllowance,
-    setRate,
-    setLimits,
-    setTerms,
-    toggleDisabled,
-  } = useOffer(offerId, {
-    fetchPrice: true,
-    fetchAllowance: true,
-    pollInterval: 2000,
-  })
 
   const [form] = Form.useForm()
   const [lockButton, setLockButton] = useState(false)
@@ -46,8 +36,6 @@ export function useCreateDeal() {
   const { writeContractAsync: approveTx } = useWriteErc20Approve()
   const { writeContractAsync: createDealTx } = useWriteOfferCreateDeal()
 
-  const isOwner = !!account.address && !!offer && offer.owner.toLowerCase() === account.address.toLowerCase()
-
   async function approve() {
     if (!offer || allowance > 0n || offer.isSell) return
 
@@ -64,7 +52,7 @@ export function useCreateDeal() {
     }
   }
 
-  async function createDeal(_offer: any, values: any) {
+  async function createDeal(values: any) {
     if (!offer || !marketAddress) return
     setLockButton(true)
 
@@ -79,7 +67,7 @@ export function useCreateDeal() {
           {
             fiatAmount: amount,
             paymentInstructions: values['paymentInstructions'] ?? '',
-            method: 0, // TODO: handle method selection if needed, current implementation had it hardcoded or missing in params
+            method: 0, // TODO: handle method selection if needed
           },
         ],
       })
@@ -126,7 +114,7 @@ export function useCreateDeal() {
   }
 
   let submitLabel = 'Open Deal'
-  let submitDisabled = !account.address
+  let submitDisabled = false // Caller should handle account check if needed, or we can keep it here
   if (offer && !offer.isSell && !allowance) {
     submitLabel = `Approve ${offer.token?.symbol}`
   }
@@ -136,18 +124,12 @@ export function useCreateDeal() {
   }
 
   return {
-    offer,
     form,
-    isOwner,
     lockButton: lockButton || !!newDealAddress,
     submitLabel,
     submitDisabled,
     createDeal,
     syncTokenAmount,
     syncFiatAmount,
-    setRate,
-    setLimits,
-    setTerms,
-    toggleDisabled,
   }
 }
