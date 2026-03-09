@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Alert } from 'antd'
 import { useChainId, useChains } from 'wagmi'
 
@@ -6,13 +6,10 @@ export const Announcement: React.FC = () => {
   const chainId = useChainId()
   const chains = useChains()
 
-  const [testnet, setTestnet] = React.useState(false)
-  React.useEffect(() => {
-    const chain = chains.find((chain) => chain.id === chainId)
-    if (chain?.testnet || chainId == 31337) {
-      setTestnet(true)
-    }
-  }, [chainId])
+  const testnet = useMemo(() => {
+    const chain = chains.find((c) => c.id === chainId)
+    return chain?.testnet || chainId === 31337
+  }, [chainId, chains])
 
   return (
     <>
