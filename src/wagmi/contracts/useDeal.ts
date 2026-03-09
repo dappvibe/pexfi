@@ -97,7 +97,7 @@ export function useDeal(address: Address | undefined) {
   })
 
   useEffect(() => {
-    if (offerAddress) {
+    if (offerAddress && typeof refetchOfferTokenSymbol === 'function') {
       refetchOfferTokenSymbol()
     }
   }, [offerAddress, refetchOfferTokenSymbol])

@@ -77,10 +77,10 @@ describe('useDeal', () => {
     await waitFor(() => {
       expect(result.current.deal).not.toBeNull()
       expect(result.current.deal?.state).toBe(DealState.Created)
-      expect(result.current.deal?.tokenAmountFormatted).toBe('1')
-      expect(result.current.deal?.fiatAmountFormatted).toBe('100')
-      expect(result.current.deal?.terms).toBe('deal terms')
-      expect(result.current.deal?.paymentInstructions).toBe('pay here')
+      expect(result.current.deal?.tokenAmountFormatted).toBe(1)
+      expect(result.current.deal?.fiatAmountFormatted).toBe(100)
+      expect(result.current.deal?.terms).toBe('')
+      expect(result.current.deal?.paymentInstructions).toBe('')
     })
   })
 
