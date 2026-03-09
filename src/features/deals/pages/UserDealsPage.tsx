@@ -3,6 +3,7 @@ import { Empty, List, Skeleton, Tag } from 'antd'
 import { useAccount } from 'wagmi'
 import { useUserDeals } from '@/features/deals/hooks/useUserDeals'
 import { equal } from '@/utils'
+import { Helmet } from '@dr.pogodin/react-helmet'
 
 function StateTag({ state }: { state: number }) {
   const labels = ['Initiated', 'Accepted', 'Funded', 'Paid', 'Disputed', 'Canceled', 'Resolved', 'Completed']
@@ -49,10 +50,16 @@ export default function UserDealsPage() {
   if (deals.length === 0) return <Empty />
 
   return (
-    <List itemLayout={'vertical'} bordered={true}>
-      {deals.map((deal: any, i: number) => (
-        <DealItem key={i} deal={deal} />
-      ))}
-    </List>
+    <>
+      <Helmet>
+        <title>My Deals - PEXFI</title>
+        <meta name="description" content="Manage your P2P crypto trading deals on PEXFI." />
+      </Helmet>
+      <List itemLayout={'vertical'} bordered={true}>
+        {deals.map((deal: any, i: number) => (
+          <DealItem key={i} deal={deal} />
+        ))}
+      </List>
+    </>
   )
 }

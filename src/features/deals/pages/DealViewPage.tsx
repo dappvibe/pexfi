@@ -3,6 +3,7 @@ import { DealContext } from '@/features/deals/hooks/useDealContext'
 import DealCard from '@/features/deals/components/DealCard'
 import MessageBox from '@/features/deals/components/MessageBox'
 import { useDealPage } from '@/features/deals/hooks/useDealPage'
+import { Helmet } from '@dr.pogodin/react-helmet'
 
 export default function DealViewPage() {
   const { deal, offer, ownerProfile, takerProfile, isLoading, refetch } = useDealPage()
@@ -11,6 +12,10 @@ export default function DealViewPage() {
 
   return (
     <DealContext.Provider value={{ deal, offer, ownerProfile, takerProfile, isLoading, refetch }}>
+      <Helmet>
+        <title>Deal #{deal.id?.toString() || 'Loading'} - PEXFI</title>
+        <meta name="description" content={`View details for Deal #${deal.id?.toString() || ''} on PEXFI.`} />
+      </Helmet>
       <Row gutter={5}>
         <Col span={16}>
           <DealCard />
