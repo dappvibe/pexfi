@@ -1,5 +1,5 @@
 import { Card, Divider, Skeleton } from 'antd'
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
 import { useDealContext } from '@/features/deals/hooks/useDealContext'
 import Controls from '@/features/deals/components/Controls'
 import { useAccount } from 'wagmi'
@@ -11,19 +11,14 @@ export default function DealCard() {
   const { deal, offer } = useDealContext()
   const { address } = useAccount()
 
-  const [title, setTitle] = useState<string>('')
-  useEffect(() => {
-    if (!deal || !offer || !address) return
-    let newTitle: string = ''
-    if (equal(offer.owner, address)) {
-      newTitle += offer.isSell ? 'Selling' : 'Buying'
-    } else if (equal(deal.taker, address)) {
-      newTitle += offer.isSell ? 'Buying' : 'Selling'
-    }
-    newTitle += ' ' + (offer.token?.symbol || 'Token')
-    newTitle += ' for ' + offer.fiat
-    newTitle += ' using ' + offer.method
-    setTitle(newTitle)
+  const title = useMemo(() => {
+    if (!deal || !offer || !address) return ''
+    const verb = equal(offer.owner, address)
+      ? offer.isSell ? 'Selling' : 'Buying'
+      : equal(deal.taker, address)
+        ? offer.isSell ? 'Buying' : 'Selling'
+        : ''
+    return `${verb} ${offer.token?.symbol || 'Token'} for ${offer.fiat} using ${offer.method}`
   }, [address, deal, offer])
 
   if (!offer) return <Skeleton active />
