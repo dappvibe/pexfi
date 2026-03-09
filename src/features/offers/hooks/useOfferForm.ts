@@ -7,6 +7,7 @@ import { useInventory } from '@/shared/web3'
 import { useReadMarketGetPrice, useWriteMarketCreateOffer, marketAbi } from '@/wagmi'
 import { useAddress } from '@/shared/web3'
 import { useOffer } from './useOffer'
+import { normalizeMarketPrice } from '@/utils'
 
 interface UseOfferFormParams {
   offer?: any
@@ -52,7 +53,7 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
 
   useEffect(() => {
     if (priceData) {
-      const price = (Number(priceData) / 10 ** 6).toFixed(2)
+      const price = normalizeMarketPrice(priceData).toFixed(2)
       const ratio = form.getFieldValue('rate') ?? 0
       const current = Number(price) * (1 + ratio / 100)
       form.setFieldValue('preview', current.toFixed(2))
@@ -84,7 +85,7 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
 
   const previewPrice = useCallback(() => {
     if (priceData) {
-      const price = (Number(priceData) / 10 ** 6).toFixed(2)
+      const price = normalizeMarketPrice(priceData).toFixed(2)
       const ratio = form.getFieldValue('rate') ?? 0
       const current = Number(price) * (1 + ratio / 100)
       form.setFieldValue('preview', current.toFixed(2))

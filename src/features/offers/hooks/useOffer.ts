@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState, useEffect } from 'react'
 import { useAccount, usePublicClient } from 'wagmi'
 import { Address, padHex, hexToString, trim } from 'viem'
+import { normalizeMarketPrice } from '@/utils'
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
 import { useAddress, useInventory, decodeMethod, type Token } from '@/shared/web3'
@@ -138,7 +139,7 @@ export function useOffer(offerId: string | undefined, options: UseOfferOptions =
     const normalizedRate = rawOffer.rate / 10000
     let price: string | undefined
     if (marketPrice !== undefined) {
-      const basePrice = Number((marketPrice as bigint) / 10000n) / 100
+      const basePrice = normalizeMarketPrice(marketPrice as bigint)
       price = (basePrice * normalizedRate).toFixed(3)
     }
 
