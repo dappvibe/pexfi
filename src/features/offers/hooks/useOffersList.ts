@@ -114,7 +114,7 @@ export function useOffersList({ superFilter = null }: { superFilter?: any } = {}
 
       return {
         ...offer,
-        fiat: hexToString(trim(offer.fiat as `0x${string}`, { dir: 'right' })),
+        fiat: hexToString(trim((offer.fiat as `0x${string}`) || '0x00', { dir: 'right' })),
         rate: rate,
         price: (price * rate).toFixed(2),
         method: methodName,
