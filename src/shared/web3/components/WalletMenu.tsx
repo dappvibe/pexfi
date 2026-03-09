@@ -3,9 +3,16 @@ import { useState } from 'react'
 import { formatAddress } from '@/utils'
 import { Link } from 'react-router-dom'
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
+import { track } from '@vercel/analytics'
 
 export default function WalletMenu() {
-  const { connectors, connect } = useConnect()
+  const { connectors, connect } = useConnect({
+    mutation: {
+      onSuccess: (data) => {
+        track('Wallet Connected', { connector: data.connector.name })
+      },
+    },
+  })
   const { disconnect } = useDisconnect()
   const { address } = useAccount()
 
