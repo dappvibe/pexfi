@@ -1,6 +1,7 @@
 import { Layout as AntLayout } from 'antd'
 import Topnav from './Topnav'
 import { Outlet } from 'react-router-dom'
+import { Analytics } from '@vercel/analytics/react'
 import { Footer } from 'antd/es/layout/layout.js'
 import { Announcement, ChatWidget } from '@/shared/ui'
 import { Helmet } from '@dr.pogodin/react-helmet'
@@ -26,6 +27,17 @@ export default function Layout() {
       </Content>
       <Footer />
       <ChatWidget />
+      <Analytics
+        beforeSend={(event) => {
+          if (!window.location.hash) return event
+          const url = new URL(event.url)
+          url.pathname = window.location.hash.replace('#', '')
+          return {
+            ...event,
+            url: url.toString()
+          }
+        }}
+      />
     </AntLayout>
   )
 }
