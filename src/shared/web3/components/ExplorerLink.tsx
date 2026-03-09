@@ -1,18 +1,18 @@
-import PropTypes from 'prop-types'
+import { Address } from 'viem'
+import { useChains } from 'wagmi'
 
-export default function ExplorerLink({ children, address, tx = false }) {
-  //const explorer = 'https://arbiscan.io/address/';
-  const explorer = 'http://localhost/address/'
+interface ExplorerLinkProps {
+  children: React.ReactNode
+  address: Address
+}
+
+export default function ExplorerLink({ children, address }: ExplorerLinkProps) {
+  const chains = useChains()
+  const explorer = chains[0]?.blockExplorers?.default?.url ?? 'http://localhost'
 
   return (
-    <a href={explorer + address} target={'_blank'}>
+    <a href={`${explorer}/address/${address}`} target="_blank">
       {children}
     </a>
   )
-}
-
-ExplorerLink.propTypes = {
-  children: PropTypes.node.isRequired,
-  address: PropTypes.string.isRequired,
-  tx: PropTypes.bool,
 }

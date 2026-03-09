@@ -1,17 +1,21 @@
-import PropTypes from 'prop-types'
 import { formatAddress } from '@/utils'
 import { Avatar, Space } from 'antd'
 import { Link } from 'react-router-dom'
 
-export default function Username({ address, avatar = false, profile = null }) {
-  let trades, rating
-  if (profile) {
-    trades = profile.dealsCompleted
-    rating = profile.rating
-  } else {
-    trades = '-'
-    rating = '??'
-  }
+interface Profile {
+  dealsCompleted: number
+  rating: number
+}
+
+interface UsernameProps {
+  address: string
+  avatar?: boolean
+  profile?: Profile | null
+}
+
+export default function Username({ address, avatar = false, profile = null }: UsernameProps) {
+  const trades = profile?.dealsCompleted ?? '-'
+  const rating = profile?.rating ?? '??'
 
   const link = (
     <Link to={'/profile/' + address}>
@@ -27,9 +31,4 @@ export default function Username({ address, avatar = false, profile = null }) {
       </Space>
     )
   } else return link
-}
-
-Username.propTypes = {
-  address: PropTypes.string.isRequired,
-  avatar: PropTypes.bool,
 }
