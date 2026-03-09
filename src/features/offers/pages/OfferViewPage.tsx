@@ -5,6 +5,7 @@ import OfferForm from '@/features/offers/components/OfferForm'
 import CreateDealForm from '@/features/offers/components/CreateDealForm'
 import { useCreateDeal } from '@/features/offers/hooks/useCreateDeal'
 import { useOfferForm } from '@/features/offers/hooks/useOfferForm'
+import { Helmet } from '@dr.pogodin/react-helmet'
 
 export default function OfferViewPage() {
   const {
@@ -29,14 +30,24 @@ export default function OfferViewPage() {
 
   if (isOwner) {
     return (
-      <Card title={'Update offer'}>
-        <OfferForm offer={offer} {...offerForm} />
-      </Card>
+      <>
+        <Helmet>
+          <title>Update offer - PEXFI</title>
+          <meta name="description" content={`Update offer details for ${offer.token?.symbol} on PEXFI.`} />
+        </Helmet>
+        <Card title={'Update offer'}>
+          <OfferForm offer={offer} {...offerForm} />
+        </Card>
+      </>
     )
   }
 
   return (
     <>
+      <Helmet>
+        <title>{offer.isSell ? 'Buy' : 'Sell'} {offer.token?.symbol} for {offer.fiat} - PEXFI</title>
+        <meta name="description" content={`View offer details for ${offer.token?.symbol} on PEXFI.`} />
+      </Helmet>
       <OfferSubnav offer={offer} />
       <Card
         title={`You are ${offer.isSell ? 'buying' : 'selling'} ${offer.token?.symbol} for ${offer.fiat} using ${offer.method}`}
