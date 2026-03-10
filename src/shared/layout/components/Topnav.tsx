@@ -1,6 +1,6 @@
 import { Col, Menu, Row } from 'antd'
 import { generatePath, Link, useParams } from 'react-router-dom'
-import { WalletMenu, NetworkSelector, Notifications } from '@/shared/web3'
+import { Notifications, WalletMenu } from '@/shared/web3'
 import logo from '@/assets/images/logo.png'
 
 export default function Topnav() {
@@ -17,8 +17,8 @@ export default function Topnav() {
     },
     {
       key: 'docs',
-      label: <a href={'/docs'}>Learn</a>
-    }
+      label: <a href={'/docs'}>Learn</a>,
+    },
   ]
 
   return (
@@ -33,9 +33,6 @@ export default function Topnav() {
       </Col>
       <Col>
         <Row>
-          <Col xs={0} sm={12}>
-            <NetworkSelector />
-          </Col>
           <Col xs={24} sm={12}>
             <WalletMenu />
           </Col>
