@@ -32,16 +32,10 @@ export default function Topnav() {
         <Menu mode={'horizontal'} theme={'dark'} items={navItems} defaultSelectedKeys={[params.side]} />
       </Col>
       <Col>
-        <Row>
-          <Col xs={24} sm={12}>
-            <WalletMenu />
-          </Col>
-          <Col xs={0}>
-            {' '}
-            {/* It only shows popups, no bell icon. */}
-            <Notifications />
-          </Col>
-        </Row>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <WalletMenu />
+          <Notifications />
+        </div>
       </Col>
     </Row>
   )
