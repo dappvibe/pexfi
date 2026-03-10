@@ -54,46 +54,47 @@ export default function WalletMenu() {
     const userMenu = renderUserMenu(address)
     menu = (
         <Menu
-          items={userMenuItems}
+          items={userMenu}
           theme={'dark'}
           mode={'horizontal'}
-          selectable={true}
+          selectable={false}
+          style={{ minWidth: '150px' }}
         />
     )
   }
 
   return (
-    <>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
       {menu}
-    <ConnectButton
-      client={thirdwebClient}
-      appMetadata={{
-        name: 'PEXFI P2P',
-        url: 'https://pexfi.com',
-        description: 'onchain P2P marketplace',
-      }}
-      chains={chains}
-      connectButton={{ className: 'wallet-connect-button', label: 'Connect' }}
-      connectModal={{
-        size: 'wide',
-        showThirdwebBranding: false,
-        title: 'Connect to PEXFI',
-      }}
-      detailsButton={{}}
-      detailsModal={{
-        assetTabs: ['token'],
-        hideBuyFunds: true,
-        manageWallet: { allowLinkingProfiles: false },
-        showTestnetFaucet: true,
-        networkSelector: {
-          onSwitch: (chain) => switchChain({ chainId: chain.id }),
-        },
-      }}
-      onConnect={() => connect({ connector })}
-      onDisconnect={() => disconnect()}
-      theme={darkTheme({})}
-      wallets={wallets}
-    />
-    </>
+      <ConnectButton
+        client={thirdwebClient}
+        appMetadata={{
+          name: 'PEXFI P2P',
+          url: 'https://pexfi.com',
+          description: 'onchain P2P marketplace',
+        }}
+        chains={chains}
+        connectButton={{ className: 'wallet-connect-button', label: 'Connect' }}
+        connectModal={{
+          size: 'wide',
+          showThirdwebBranding: false,
+          title: 'Connect to PEXFI',
+        }}
+        detailsButton={{}}
+        detailsModal={{
+          assetTabs: ['token'],
+          hideBuyFunds: true,
+          manageWallet: { allowLinkingProfiles: false },
+          showTestnetFaucet: true,
+          networkSelector: {
+            onSwitch: (chain) => switchChain({ chainId: chain.id }),
+          },
+        }}
+        onConnect={() => connect({ connector })}
+        onDisconnect={() => disconnect()}
+        theme={darkTheme({})}
+        wallets={wallets}
+      />
+    </div>
   )
 }
