@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { useAccount, useConfig } from 'wagmi'
+import { useActiveAccount } from 'thirdweb/react'
 import { waitForTransactionReceipt } from '@wagmi/core'
 import {
   useReadProfileOwnerToTokenId,
@@ -23,8 +24,9 @@ export type ProfileStats = {
 
 export function useProfilePage() {
   const { address: connectedAddress } = useAccount()
+  const activeAccount = useActiveAccount()
   const { profile } = useParams()
-  const address = (profile as `0x${string}`) || connectedAddress
+  const address = (profile as `0x${string}`) || connectedAddress || activeAccount?.address
   const profileAddress = useAddress('Market#Profile')
 
   const config = useConfig()

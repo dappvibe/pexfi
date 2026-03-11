@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Empty, List, Skeleton, Tag } from 'antd'
 import { useAccount } from 'wagmi'
+import { useActiveAccount } from 'thirdweb/react'
 import { useUserDeals } from '@/features/deals/hooks/useUserDeals'
 import { equal } from '@/utils'
 import { Helmet } from '@dr.pogodin/react-helmet'
@@ -11,7 +12,9 @@ function StateTag({ state }: { state: number }) {
 }
 
 function DealItem({ deal }: { deal: any }) {
-  const { address } = useAccount()
+  const { address: wagmiAddress } = useAccount()
+  const activeAccount = useActiveAccount()
+  const address = wagmiAddress || activeAccount?.address
 
   function time(timestamp: number) {
     return new Date(timestamp * 1000).toLocaleString()
@@ -44,10 +47,16 @@ function DealItem({ deal }: { deal: any }) {
 }
 
 export default function UserDealsPage() {
-  const { isConnected } = useAccount()
+  const { isConnected, isConnecting, isReconnecting, address: wagmiAddress } = useAccount()
+  const activeAccount = useActiveAccount()
   const { deals, loading, error } = useUserDeals()
 
-  if (!isConnected) {
+  const address = wagmiAddress || activeAccount?.address
+  const reallyConnected = isConnected || !!address
+
+  if (isConnecting || isReconnecting) return <Skeleton active />
+
+  if (!reallyConnected) {
     return (
       <>
         <Helmet>

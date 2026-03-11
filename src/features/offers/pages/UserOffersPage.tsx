@@ -1,12 +1,18 @@
 import OffersListPage from '@/features/offers/pages/OffersListPage'
 import { useAccount } from 'wagmi'
+import { useActiveAccount } from 'thirdweb/react'
 import { Helmet } from '@dr.pogodin/react-helmet'
-import { Empty } from 'antd'
+import { Empty, Skeleton } from 'antd'
 
 export default function UserOffersPage() {
-  const { address, isConnected } = useAccount()
+  const { address: wagmiAddress, isConnected, isConnecting, isReconnecting } = useAccount()
+  const activeAccount = useActiveAccount()
+  const address = wagmiAddress || activeAccount?.address
+  const reallyConnected = isConnected || !!address
 
-  if (!isConnected) {
+  if (isConnecting || isReconnecting) return <Skeleton active />
+
+  if (!reallyConnected) {
     return (
       <>
         <Helmet>
