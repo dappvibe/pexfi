@@ -1,4 +1,4 @@
-import { formatAddress } from '@/utils'
+import { shortenAddress } from 'thirdweb/utils'
 import { Avatar, Space } from 'antd'
 import { Link } from 'react-router-dom'
 
@@ -19,7 +19,7 @@ export default function Username({ address, avatar = false, profile = null }: Us
 
   const link = (
     <Link to={'/profile/' + address}>
-      {formatAddress(address)} ({trades}; {rating}%)
+      {shortenAddress(address)} ({trades}; {rating}%)
     </Link>
   )
 

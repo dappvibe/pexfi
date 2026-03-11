@@ -1,10 +1,5 @@
 import { isAddressEqual, type Address } from 'viem'
 
-export const formatAddress = (addr: string): string => {
-  const s = addr.slice(0, 2) + addr.slice(2)
-  return `${s.substring(0, 6)}...${s.substring(38)}`
-}
-
 const currencyFormatterCache = new Map<string, Intl.NumberFormat>()
 
 export const formatMoney = (currency: string, amount: number): string => {
