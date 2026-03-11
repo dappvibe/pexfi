@@ -4,12 +4,18 @@ import { LoadingButton } from '@/shared/ui'
 import { useProfilePage } from '@/features/profile/hooks/useProfilePage'
 import { Helmet } from '@dr.pogodin/react-helmet'
 import { useAccount } from 'wagmi'
+import { useActiveAccount } from 'thirdweb/react'
 
 export default function ProfilePage() {
-  const { isConnected } = useAccount()
+  const { isConnected, isConnecting, isReconnecting, address: connectedAddress } = useAccount()
+  const activeAccount = useActiveAccount()
   const { address, tokenId, stats, isOwnProfile, create, rating, loading } = useProfilePage()
 
-  if (isOwnProfile && !isConnected) {
+  const reallyConnected = isConnected || !!connectedAddress || !!activeAccount
+
+  if (isOwnProfile && (isConnecting || isReconnecting)) return <Skeleton active />
+
+  if (isOwnProfile && !reallyConnected) {
     return (
       <>
         <Helmet>
