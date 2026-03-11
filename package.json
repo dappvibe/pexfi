@@ -27,12 +27,14 @@
     "@tanstack/query-sync-storage-persister": "^5.90.18",
     "@tanstack/react-query": "^5.90.16",
     "@tanstack/react-query-persist-client": "^5.90.18",
+    "@thirdweb-dev/wagmi-adapter": "^0.2.208",
     "@vercel/analytics": "^1.6.1",
     "antd": "^6.1.4",
     "graphql": "^16.12.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-router-dom": "^7.11.0",
+    "thirdweb": "^5.119.1",
     "wagmi": "^3.1.4"
   },
   "devDependencies": {

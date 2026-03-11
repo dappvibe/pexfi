@@ -1,33 +1,36 @@
-import { Avatar, Button, Col, Menu, Modal, Row } from 'antd'
-import { useState } from 'react'
+import { Avatar, Col, Menu, Row } from 'antd'
 import { formatAddress } from '@/utils'
 import { Link } from 'react-router-dom'
-import { useAccount, useConnect, useDisconnect } from 'wagmi'
-import { track } from '@vercel/analytics'
+import { ConnectButton, darkTheme } from 'thirdweb/react'
+import { hardhat } from 'thirdweb/chains'
+import { createWallet } from 'thirdweb/wallets'
+import { useConnect, useConnection, useDisconnect, useSwitchChain } from 'wagmi'
+import { thirdwebClient } from '@/wagmi.config.ts'
+
+const wallets = [
+  createWallet('io.metamask'),
+  createWallet('com.brave.wallet'),
+  createWallet('com.coinbase.wallet'),
+  createWallet('me.rainbow'),
+  createWallet('io.rabby'),
+  createWallet('io.zerion.wallet'),
+]
 
 export default function WalletMenu() {
-  const { connectors, connect } = useConnect({
-    mutation: {
-      onSuccess: (data) => {
-        track('Wallet Connected', { connector: data.connector.name })
-      },
-    },
-  })
+  const { connect, connectors } = useConnect()
   const { disconnect } = useDisconnect()
-  const { address } = useAccount()
+  const { address } = useConnection()
+  const { chains, switchChain } = useSwitchChain()
 
-  const [modalOpen, setModalOpen] = useState(false)
+  const connector = connectors.find((c) => c.id === 'in-app-wallet' || c.type === 'inAppWallet')
 
+  const userMenuItems = [
+    { label: <Link to={'/trade/offer/new'}>Create Offer</Link>, key: 'create-offer' },
+    { label: <Link to={'/me/offers'}>My Offers</Link>, key: 'my-offers' },
+    { label: <Link to={'/me/deals'}>My Deals</Link>, key: 'my-deals' },
+    { label: <Link to={'/me'}>Profile</Link>, key: 'profile' },
+  ]
   const renderUserMenu = (address: string) => {
-    const userMenuItems = [
-      { label: <Link to={'/trade/offer/new'}>Create Offer</Link>, key: 'create-offer' },
-      { label: <Link to={'/me/offers'}>My Offers</Link>, key: 'my-offers' },
-      { label: <Link to={'/me/deals'}>My Deals</Link>, key: 'my-deals' },
-      { label: <Link to={'/me'}>Profile</Link>, key: 'profile' },
-      { type: 'divider' },
-      { label: 'Disconnect', key: 'disconnect', onClick: disconnect },
-    ]
-
     return [
       {
         key: address,
@@ -46,46 +49,52 @@ export default function WalletMenu() {
     ]
   }
 
-  const renderConnectWalletModal = () => (
-    <Modal open={modalOpen} onCancel={() => setModalOpen(false)} title={'Your Browser Wallets'} footer={null}>
-      {connectors.length > 0 ? (
-        connectors.map((connector) => (
-          <Button
-            type={'primary'}
-            key={connector.uid}
-            onClick={() => {
-              connect({ connector })
-              setModalOpen(false)
-            }}
-          >
-            {connector.name}
-          </Button>
-        ))
-      ) : (
-        <div>
-          There are no wallet extensions in your browser.
-          <br />
-          We recommend{' '}
-          <a target="_blank" href="https://metamask.io">
-            MetaMask
-          </a>
-          .
-        </div>
-      )}
-    </Modal>
-  )
-
+  let menu;
   if (address) {
     const userMenu = renderUserMenu(address)
-    return (
-      <Menu items={userMenu} theme={'dark'} mode={'horizontal'} triggerSubMenuAction={'hover'} selectable={false} />
-    )
-  } else {
-    return (
-      <>
-        <Button onClick={() => setModalOpen(true)}>Connect Wallet</Button>
-        {modalOpen && renderConnectWalletModal()}
-      </>
+    menu = (
+        <Menu
+          items={userMenu}
+          theme={'dark'}
+          mode={'horizontal'}
+          selectable={false}
+          style={{ minWidth: '150px' }}
+        />
     )
   }
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      {menu}
+      <ConnectButton
+        client={thirdwebClient}
+        appMetadata={{
+          name: 'PEXFI P2P',
+          url: 'https://pexfi.com',
+          description: 'onchain P2P marketplace',
+        }}
+        chains={chains}
+        connectButton={{ className: 'wallet-connect-button', label: 'Connect' }}
+        connectModal={{
+          size: 'wide',
+          showThirdwebBranding: false,
+          title: 'Connect to PEXFI',
+        }}
+        detailsButton={{}}
+        detailsModal={{
+          assetTabs: ['token'],
+          hideBuyFunds: true,
+          manageWallet: { allowLinkingProfiles: false },
+          showTestnetFaucet: true,
+          networkSelector: {
+            onSwitch: (chain) => switchChain({ chainId: chain.id }),
+          },
+        }}
+        onConnect={() => connect({ connector })}
+        onDisconnect={() => disconnect()}
+        theme={darkTheme({})}
+        wallets={wallets}
+      />
+    </div>
+  )
 }

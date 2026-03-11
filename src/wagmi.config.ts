@@ -1,5 +1,7 @@
 import { createConfig, fallback, http, webSocket } from 'wagmi'
 import { Chain, hardhat, mainnet, sepolia } from 'wagmi/chains'
+import { createThirdwebClient } from 'thirdweb'
+import { inAppWalletConnector } from '@thirdweb-dev/wagmi-adapter'
 
 const chains: Chain[] = []
 switch (import.meta.env.MODE) {
@@ -25,13 +27,21 @@ const transports = {
   [hardhat.id]: webSocket('ws://localhost:8545'),
 }
 
+export const thirdwebClient = createThirdwebClient({ clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID })
+
 // E2E Testing Support: This is required to be here to automate provider in VITE env
 const connectors = window.E2E
-  ? [await import('@tests/e2e/wallet').then((m) => {
-      m.install()
-      return m.connector()
-    })]
-  : []
+  ? [
+      await import('@tests/e2e/wallet').then((m) => {
+        m.install()
+        return m.connector()
+      }),
+    ]
+  : [
+      inAppWalletConnector({
+        client: thirdwebClient,
+      }),
+    ]
 
 export const config = createConfig({
   chains: chains as [Chain, ...Chain[]],
