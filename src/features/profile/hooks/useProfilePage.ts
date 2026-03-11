@@ -29,7 +29,7 @@ export function useProfilePage() {
 
   const config = useConfig()
 
-  const { data: tokenId, refetch: refetchTokenId } = useReadProfileOwnerToTokenId({
+  const { data: tokenId, refetch: refetchTokenId, isLoading: isTokenLoading } = useReadProfileOwnerToTokenId({
     address: profileAddress,
     args: address ? [address] : undefined,
     query: {
@@ -37,7 +37,7 @@ export function useProfilePage() {
     },
   })
 
-  const { data: rawStats, refetch: refetchStats } = useReadProfileStats({
+  const { data: rawStats, refetch: refetchStats, isLoading: isStatsLoading } = useReadProfileStats({
     address: profileAddress,
     args: tokenId ? [tokenId] : undefined,
     query: {
@@ -83,5 +83,6 @@ export function useProfilePage() {
     isOwnProfile: !profile,
     create,
     rating,
+    loading: isTokenLoading || isStatsLoading,
   }
 }
