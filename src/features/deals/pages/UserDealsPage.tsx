@@ -44,10 +44,24 @@ function DealItem({ deal }: { deal: any }) {
 }
 
 export default function UserDealsPage() {
-  const { deals, loading } = useUserDeals()
+  const { isConnected } = useAccount()
+  const { deals, loading, error } = useUserDeals()
 
-  if (loading || deals === undefined) return <Skeleton active />
-  if (deals.length === 0) return <Empty />
+  if (!isConnected) {
+    return (
+      <>
+        <Helmet>
+          <title>My Deals - PEXFI</title>
+          <meta name="description" content="Manage your P2P crypto trading deals on PEXFI." />
+        </Helmet>
+        <Empty description="Please connect your wallet to view your deals" />
+      </>
+    )
+  }
+
+  if (loading) return <Skeleton active />
+  if (error) return <Empty description={`Failed to load deals: ${error.message}`} />
+  if (deals === undefined || deals.length === 0) return <Empty description="You don't have any deals yet" />
 
   return (
     <>

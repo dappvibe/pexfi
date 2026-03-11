@@ -1,11 +1,27 @@
-import { Card, Descriptions, Result } from 'antd'
+import { Card, Descriptions, Result, Skeleton } from 'antd'
 import { Username } from '@/shared/web3'
 import { LoadingButton } from '@/shared/ui'
 import { useProfilePage } from '@/features/profile/hooks/useProfilePage'
 import { Helmet } from '@dr.pogodin/react-helmet'
+import { useAccount } from 'wagmi'
 
 export default function ProfilePage() {
-  const { address, tokenId, stats, isOwnProfile, create, rating } = useProfilePage()
+  const { isConnected } = useAccount()
+  const { address, tokenId, stats, isOwnProfile, create, rating, loading } = useProfilePage()
+
+  if (isOwnProfile && !isConnected) {
+    return (
+      <>
+        <Helmet>
+          <title>My Profile - PEXFI</title>
+          <meta name="description" content="View your PEXFI user profile." />
+        </Helmet>
+        <Result title={'Please connect your wallet to view your profile'} />
+      </>
+    )
+  }
+
+  if (loading) return <Skeleton active />
 
   if (tokenId && stats) {
     return (
