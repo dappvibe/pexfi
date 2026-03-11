@@ -1,5 +1,3 @@
-export { default as ExplorerLink } from './components/ExplorerLink'
-export { default as NetworkSelector } from './components/NetworkSelector'
 export { default as Notifications } from './components/Notifications'
 export { default as Username } from './components/Username'
 export { default as WalletMenu } from './components/WalletMenu'
