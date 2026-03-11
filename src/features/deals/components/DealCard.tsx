@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import { useDealContext } from '@/features/deals/hooks/useDealContext'
 import Controls from '@/features/deals/components/Controls'
 import { useAccount } from 'wagmi'
-import { equal } from '@/utils'
+import { isAddressEqual } from 'viem'
 import DealProgress from '@/features/deals/components/DealProgress'
 import DealInfo from '@/features/deals/components/DealInfo'
 
@@ -13,9 +13,9 @@ export default function DealCard() {
 
   const title = useMemo(() => {
     if (!deal || !offer || !address) return ''
-    const verb = equal(offer.owner, address)
+    const verb = isAddressEqual(offer.owner, address)
       ? offer.isSell ? 'Selling' : 'Buying'
-      : equal(deal.taker, address)
+      : isAddressEqual(deal.taker, address)
         ? offer.isSell ? 'Buying' : 'Selling'
         : ''
     return `${verb} ${offer.token?.symbol || 'Token'} for ${offer.fiat} using ${offer.method}`
