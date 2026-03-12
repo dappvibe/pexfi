@@ -1,61 +1,35 @@
 ---
 title: 'Wallets & Access'
-description: 'Connecting to PEXFI: Self-Custody vs Smart Wallets'
+description: 'How to connect and access the PEXFI platform'
 icon: 'id-card'
 ---
 
 # Accessing PEXFI
 
-**PEXFI is a Web3-native protocol. Your wallet is your identity.**
+PEXFI is a decentralized, Web3-native protocol. On our platform, your wallet is your identity, your login, and your secure vault.
 
-We prioritize **self-custody**, meaning you retain absolute control over your assets at all times. We do not store passwords, emails, or personal data.
+We prioritize absolute self-custody. This means you retain full control over your assets at all times. PEXFI does not store passwords, emails, or any personal data that could compromise your security or privacy.
 
-## Option 1: Self-Custody (Recommended)
+## Connecting Your Wallet
 
-For maximum security and sovereignty, we recommend connecting directly with your own Web3 wallet.
-
-### Supported Wallets
-
-- **MetaMask** (Browser Extension & Mobile)
-- **Rabby** (Optimized for security)
-- **WalletConnect** (Connect any mobile wallet)
-- **Hardware Wallets** (Ledger/Trezor via generic interfaces)
+PEXFI is designed to be compatible with any standard Web3 wallet. Whether you prefer a browser extension, a mobile app, or a hardware wallet, you can seamlessly connect to the platform.
 
 ### How to Connect
 
-1.  Click the **Connect Wallet** button in the top right.
-2.  Select your provider.
-3.  Sign the secure prompt on your device.
+1.  **Click Connect**: Locate and click the **Connect Wallet** button in the top right corner of the application.
+2.  **Select Your Provider**: Choose your preferred wallet provider from the list. If your wallet is not explicitly listed, you can usually connect via **WalletConnect**.
+3.  **Authorize**: Follow the prompts on your device to authorize the connection. This process establishes your identity on the platform without ever sharing your private keys.
 
 <Note>
-  **Security Tip**: PEXFI will *never* ask for your seed phrase. All transactions require your explicit approval.
+  **Security First**: PEXFI will *never* ask for your seed phrase or private keys. Every action on the platform that involves your funds will require your explicit approval and signature within your wallet.
 </Note>
 
-## Option 2: Smart Wallet (Ease of Use)
+## Why No Username or Password?
 
-For users who are new to crypto or prefer a simplified experience, PEXFI offers a **Smart Wallet** solution.
+Traditional account systems rely on centralized databases which are vulnerable to hacks, data breaches, and administrative interference. By using cryptographic keys:
 
-**What is it?**
-A Smart Wallet is a contract-based account that abstracts away some complexities of key management while maintaining partial self-custody principles.
+- **Sovereignty**: You are the only person who can authorize transactions or manage your account.
+- **Security**: There is no central database of passwords to be compromised.
+- **Independence**: PEXFI cannot lock you out of your own funds because we do not hold your keys.
 
-**How it works:**
-
-- **Creation**: We deploy a smart contract wallet for you associated with your social login (email/Google).
-- **Funding**: To execute transactions, you must deposit a small amount of crypto (ETH or any supported token) to the wallet address to cover network gas fees.
-- **Routing**: You input commands via the UI, and the wallet executes them.
-- **Auto-Forwarding**: Configure automatic forwarding of settled funds to a "Cold Storage" address.
-
-<Warning>
-  While Smart Wallets offer convenience, they rely on account abstraction layers. For strictly sovereign usage, Option 1
-  is superior.
-</Warning>
-
-## Why No Username/Password?
-
-Traditional accounts are insecure.
-
-- Passwords are stolen.
-- Databases are hacked.
-- Admins can lock you out.
-
-By using cryptography (keys), **you are the only person on Earth** who can authorize a trade from your account. PEXFI cannot freeze you out because we do not hold your keys.
+By connecting your wallet, you are utilizing the most secure and transparent method available for interacting with financial protocols.
