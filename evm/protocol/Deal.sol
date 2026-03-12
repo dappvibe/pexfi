@@ -149,8 +149,7 @@ contract Deal is IDeal, ERC165, Initializable
           _profile.statsDealExpired($tokenId);
         }
       }
-    } else if (state == IDeal.State.Accepted) {
-      require(msg.sender == _buyer(), IMarket.UnauthorizedAccount(msg.sender));
+    } else if (state == IDeal.State.Accepted || state == IDeal.State.Funded) {
       if (block.timestamp <= allowCancelUnpaidAfter) revert IDeal.ActionNotAllowedInThisState(state);
     } else {
       revert IDeal.ActionNotAllowedInThisState(state);
