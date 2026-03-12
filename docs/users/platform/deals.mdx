@@ -1,75 +1,65 @@
 ---
-title: 'Deals'
-description: 'Understanding the deal lifecycle'
+title: 'Deals & Escrow'
+description: 'How secure peer-to-peer trades work on PEXFI'
 icon: 'handshake'
 ---
 
-# Deals
+# Trading with Confidence
 
-A deal is an active trade between two parties, secured by a smart contract escrow.
+Every trade on PEXFI is powered by a **Smart Contract Escrow**. This ensures that tokens are safely locked until the payment is confirmed, protecting both the buyer and the seller.
 
-## Deal Lifecycle
+## How a Deal Works
 
-```mermaid
-stateDiagram-v2
-    [*] --> Created: Buyer accepts offer
-    Created --> Funded: Seller deposits tokens
-    Funded --> PaymentSent: Buyer confirms fiat sent
-    PaymentSent --> Completed: Seller releases tokens
-    PaymentSent --> Disputed: Either party disputes
-    Disputed --> Completed: Arbitrator decides
-    Funded --> Cancelled: Buyer cancels
-    Created --> Cancelled: Either party cancels
-    Completed --> [*]
-    Cancelled --> [*]
-```
+A deal is the journey from finding an offer to receiving your tokens. It follows a simple, secure process:
 
-## Deal States
+### 1. Initiation
+When a buyer accepts an offer, a unique **Deal Contract** is created on the blockchain. This contract acts as a neutral "vault" for the trade.
 
-| State            | Description                                       |
-| ---------------- | ------------------------------------------------- |
-| **Created**      | Deal initiated, waiting for seller to fund escrow |
-| **Funded**       | Tokens locked in escrow, waiting for fiat payment |
-| **Payment Sent** | Buyer claims to have sent fiat                    |
-| **Completed**    | Trade successful, tokens released to buyer        |
-| **Disputed**     | Conflict escalated to arbitrator                  |
-| **Cancelled**    | Trade cancelled, tokens returned to seller        |
+### 2. Escrow Funding
+The seller deposits the tokens into the Deal Contract. Once funded, the tokens are **locked**—the seller cannot withdraw them, and the buyer cannot take them yet. This provides proof to the buyer that the seller has the assets.
 
-## Taking Part in a Deal
+### 3. Payment & Confirmation
+The buyer sends the payment (e.g., via bank transfer) directly to the seller using the agreed-upon method. Once sent, the buyer marks the deal as "Payment Sent."
 
-### As a Buyer
+### 4. Release
+The seller verifies the receipt of funds in their account and clicks **Release**. The Deal Contract instantly transfers the tokens from the escrow vault to the buyer's wallet.
 
-1. Find an offer in the marketplace
-2. Enter the amount you want to trade
-3. Accept the offer — a deal contract is created
-4. Wait for seller to fund the escrow
-5. Send fiat payment using agreed method
-6. Mark payment as sent in the deal
-7. Receive tokens when seller confirms
+---
 
-### As a Seller
+## Your Role in a Deal
 
-1. Wait for buyers to accept your offer
-2. Review the deal details
-3. Fund the escrow with tokens
-4. Wait for buyer's fiat payment
-5. Verify payment received in your account
-6. Release tokens to buyer
+Whether you are buying or selling, the process is streamlined to keep you informed at every step.
 
-## On-Chain Messaging
+<Tabs>
+  <Tab title="As a Buyer">
+    - **Accept an Offer**: Choose a deal and enter your amount.
+    - **Wait for Funding**: Ensure the seller has locked the tokens in escrow before sending any money.
+    - **Send Payment**: Use the provided payment details to send your fiat.
+    - **Confirm Payment**: Mark the deal as "Payment Sent" on PEXFI to protect your claim.
+    - **Receive Tokens**: Once the seller releases, the tokens appear in your wallet.
+  </Tab>
+  <Tab title="As a Seller">
+    - **Review the Deal**: See who wants to trade with you.
+    - **Fund Escrow**: Deposit your tokens into the deal contract to start the clock.
+    - **Verify Payment**: Check your bank or payment app for the incoming transfer.
+    - **Release Tokens**: Click "Release" only after you have confirmed the funds are safely in your possession.
+  </Tab>
+</Tabs>
 
-Each deal has a built-in message board on the blockchain:
+## Secure On-Chain Messaging
 
-- Share payment details securely
-- Coordinate with your counterparty
-- All messages are recorded for dispute resolution
+Every deal includes a private, **on-chain message board**. This is your official line of communication:
 
-<Tip>Keep all communication within the deal. Off-platform messages may not be considered in disputes.</Tip>
+- **Coordinate**: Share payment details or ask questions directly within the deal.
+- **Evidence**: In the rare case of a dispute, these messages serve as a permanent record for mediators.
+- **Privacy**: Your conversation is tied to the deal and remains accessible to the parties involved.
 
-## Cancellation
+<Note>
+  **Pro Tip**: Always keep your communication inside the PEXFI deal chat. If a dispute arises, mediators can only review messages sent through the platform.
+</Note>
 
-Either party can cancel a deal before completion:
+## Cancellation & Protection
 
-- **Before funding** — No tokens at risk
-- **After funding** — Tokens return to seller (if buyer cancels)
-- **After payment sent** — May require dispute resolution
+- **Flexibility**: Deals can be cancelled by either party if the trade hasn't progressed too far.
+- **Safety**: If a buyer cancels after funding, the tokens are returned to the seller.
+- **Disputes**: If a disagreement occurs after payment is sent, our mediation system ensures a fair resolution based on on-chain evidence.
