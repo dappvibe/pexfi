@@ -57,18 +57,6 @@
             ]
           }
         ]
-      },
-      {
-        "tab": "Developers",
-        "groups": [
-          {
-            "group": " ",
-            "pages": [
-              "developers/overview",
-              "developers/architecture"
-            ]
-          }
-        ]
       }
     ],
     "global": {
