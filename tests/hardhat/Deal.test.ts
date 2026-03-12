@@ -216,9 +216,14 @@ describe('Deal', () => {
       )
     })
 
-    test('buyer cannot cancel', async () => {
+    test('member cannot cancel before timeout', async () => {
       await viem.assertions.revertWithCustomError(
         dealToBuy.write.cancel({ account: taker }),
+        dealToBuy,
+        'ActionNotAllowedInThisState'
+      )
+      await viem.assertions.revertWithCustomError(
+        dealToBuy.write.cancel({ account: maker }),
         dealToBuy,
         'ActionNotAllowedInThisState'
       )
@@ -227,14 +232,31 @@ describe('Deal', () => {
         dealToSell,
         'ActionNotAllowedInThisState'
       )
+      await viem.assertions.revertWithCustomError(
+        dealToSell.write.cancel({ account: taker }),
+        dealToSell,
+        'ActionNotAllowedInThisState'
+      )
     })
 
-    test('buyer can cancel after timeout', async () => {
+    test('member can cancel after timeout', async () => {
       const snapshot = await takeSnapshot()
       await networkHelpers.time.increase(60 * 60 + 1)
       await viem.assertions.emitWithArgs(dealToBuy.write.cancel({ account: taker }), dealToBuy, 'DealState', [5, taker])
-      await viem.assertions.emitWithArgs(dealToSell.write.cancel({ account: maker }), dealToSell, 'DealState', [5, maker])
       await snapshot.restore()
+      const snapshot2 = await takeSnapshot()
+      await networkHelpers.time.increase(60 * 60 + 1)
+      await viem.assertions.emitWithArgs(dealToBuy.write.cancel({ account: maker }), dealToBuy, 'DealState', [5, maker])
+      await snapshot2.restore()
+      
+      const snapshot3 = await takeSnapshot()
+      await networkHelpers.time.increase(60 * 60 + 1)
+      await viem.assertions.emitWithArgs(dealToSell.write.cancel({ account: maker }), dealToSell, 'DealState', [5, maker])
+      await snapshot3.restore()
+      const snapshot4 = await takeSnapshot()
+      await networkHelpers.time.increase(60 * 60 + 1)
+      await viem.assertions.emitWithArgs(dealToSell.write.cancel({ account: taker }), dealToSell, 'DealState', [5, taker])
+      await snapshot4.restore()
     })
 
     test('fund() transfers token from seller to deal', async () => {
@@ -266,17 +288,35 @@ describe('Deal', () => {
   })
 
   describe('Deal Funded', () => {
-    test('buyer cannot cancel', async () => {
+    test('member cannot cancel before timeout', async () => {
       await viem.assertions.revertWithCustomError(
         dealToBuy.write.cancel({ account: taker }),
         dealToBuy,
         'ActionNotAllowedInThisState'
       )
       await viem.assertions.revertWithCustomError(
-        dealToSell.write.cancel({ account: maker }),
-        dealToSell,
+        dealToBuy.write.cancel({ account: maker }),
+        dealToBuy,
         'ActionNotAllowedInThisState'
       )
+    })
+
+    test('member can cancel after timeout and seller gets tokens back', async () => {
+      const snapshot = await takeSnapshot()
+      const amount = await dealToBuy.read.tokenAmount()
+      const seller = maker
+      const buyer = taker
+      const initialBalance = await WETH.read.balanceOf([seller])
+      
+      await networkHelpers.time.increase(60 * 60 + 1)
+      
+      const tx = await dealToBuy.write.cancel({ account: seller })
+      await viem.assertions.emitWithArgs(tx, dealToBuy, 'DealState', [5, seller])
+      await viem.assertions.emitWithArgs(tx, WETH, 'Transfer', [dealToBuy.address, seller, amount])
+      
+      assert.strictEqual(await WETH.read.balanceOf([seller]), initialBalance + amount)
+      
+      await snapshot.restore()
     })
 
     test('seller cannot call paid()', async () => {
