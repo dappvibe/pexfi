@@ -48,6 +48,7 @@
     "@nomicfoundation/hardhat-verify": "^3.0.9",
     "@nomicfoundation/hardhat-viem": "^3.0.2",
     "@nomicfoundation/hardhat-viem-assertions": "^3.0.5",
+    "@openzeppelin/contracts": "^5.4.0",
     "@openzeppelin/contracts-upgradeable": "^5.4.0",
     "@playwright/test": "^1.48.2",
     "@testing-library/dom": "^10.4.1",
