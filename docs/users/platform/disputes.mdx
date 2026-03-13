@@ -1,111 +1,56 @@
 ---
-title: 'Disputes'
-description: 'Resolving trade conflicts'
+title: 'Fair Dispute Resolution'
+sidebarTitle: 'Disputes'
+description: 'How PEXFI ensures fast and fair conflict resolution using game-theory and decentralized arbitration.'
 icon: 'scale-balanced'
 ---
 
-# Dispute Resolution
+# Trust the Process: Fair Arbitration
 
-When trades don't go as planned, PEXFI's dispute system helps resolve conflicts fairly.
+In any peer-to-peer marketplace, disputes can happen. PEXFI handles these moments differently than traditional platforms. Instead of slow, opaque "support tickets," we use a decentralized, **UMA-style protocol** that ensures every conflict is resolved quickly and fairly based on truth.
+
+## Why Our System is Fair
+
+Our arbitration is built on powerful economic incentives that protect you:
+
+- **Economic Honesty**: Arbitrators (mediators) are financially incentivized to make the correct, honest decision. If they attempt to cheat or favor one side unfairly, they risk losing their own staked assets.
+- **Checked and Balanced**: No single person has the final word. Every proposed resolution can be challenged by other participants. This constant oversight ensures that only the truth prevails.
+- **Speed through Efficiency**: Because mediators want to earn rewards and avoid challenges, they are motivated to review evidence and propose fair outcomes as quickly as possible.
+
+---
 
 ## When to Open a Dispute
 
-Open a dispute if:
+You should initiate a dispute if a trade cannot be completed normally. Common reasons include:
 
-- Buyer claims payment was sent but seller disagrees
-- Seller claims payment wasn't received
-- Payment amount doesn't match
-- One party is unresponsive
-- Suspected fraud or scam attempt
+- **Payment Discrepancies**: You sent the payment, but the seller hasn't released the tokens.
+- **Unresponsive Counterparty**: Your trade partner has stopped communicating during an active deal.
+- **Verification Issues**: The payment received doesn't match the agreed amount or the sender's details.
 
-<Warning>Don't open disputes for minor delays. Allow reasonable time for responses and payment processing.</Warning>
+<Note>
+  **Patience First**: We recommend allowing a reasonable amount of time for bank transfers to clear and for your partner to respond before escalating to a dispute.
+</Note>
 
-## How Disputes Work
+## How to Win a Dispute
 
-```mermaid
-flowchart TD
-    A[Trade Conflict] --> B[Open Dispute]
-    B --> C[Submit Evidence]
-    C --> D[Arbitrator Reviews]
-    D --> E{Decision}
-    E -->|Buyer Wins| F[Tokens to Buyer]
-    E -->|Seller Wins| G[Tokens to Seller]
-```
+In our decentralized system, **evidence is everything**. To ensure a favorable outcome, you must provide clear proof of your actions:
 
-### Step 1: Open Dispute
+### Key Evidence to Provide
+- **Payment Receipts**: Clear screenshots or PDFs of your bank transfer or payment app confirmation.
+- **On-Chain Chat**: Keep all your coordination inside the PEXFI deal messenger. Our mediators use these logs as the primary source of truth.
+- **Timestamps**: Ensure your evidence shows exactly when the payment was initiated and completed.
 
-Either party can initiate a dispute from the deal page. This:
+### The Resolution Process
+Once a dispute is active, the process is straightforward:
+1. **Evidence Review**: Mediators examine the deal messages and the proof provided by both parties.
+2. **Proposed Outcome**: A mediator proposes to either **Release** the tokens to the buyer or **Cancel** them back to the seller.
+3. **Final Settlement**: After a short window for potential challenges, the Deal Contract automatically executes the decision.
 
-- Pauses the trade
-- Notifies both parties
-- Assigns an arbitrator
+---
 
-### Step 2: Submit Evidence
+## Security & Protection
 
-Provide documentation to support your case:
+- **Vault Security**: During a dispute, the tokens remain safely locked in the Deal Contract's escrow. Neither the mediator nor PEXFI can ever take these funds for themselves.
+- **Fraud Prevention**: Our system is designed to make fraud unprofitable. Scammers cannot win against clear, on-chain evidence and economically motivated mediators.
 
-| Evidence Type   | Examples                              |
-| --------------- | ------------------------------------- |
-| Payment Proof   | Transaction receipts, bank statements |
-| Communication   | Screenshots of messages               |
-| Timestamps      | When actions were taken               |
-| Account Details | Matching payment information          |
-
-<Tip>The more evidence you provide, the easier it is for the arbitrator to decide.</Tip>
-
-### Step 3: Arbitrator Review
-
-An arbitrator examines:
-
-- On-chain deal messages
-- Submitted evidence
-- Transaction history
-- Reputation of both parties
-
-### Step 4: Resolution
-
-The arbitrator can only:
-
-- Release tokens to the **buyer**
-- Return tokens to the **seller**
-
-<Note>Arbitrators cannot take funds for themselves or send them elsewhere.</Note>
-
-## Fraud Prevention
-
-PEXFI employs multiple fraud mitigation strategies:
-
-### Payment Fraud
-
-- Use irreversible payment methods when possible
-- Verify payment sender matches deal participant
-- Wait for payment to fully clear before releasing
-
-### Non-Release Scams
-
-- Escrow ensures funds are locked
-- Arbitrator can force release with evidence
-
-### Identity Fraud
-
-- Trade only through the platform
-- Verify wallet addresses match
-- Trust reputation, not display names
-
-## Avoiding Disputes
-
-<Steps>
-  <Step title="Clear Communication">Discuss terms before starting</Step>
-  <Step title="Follow Instructions">Use correct payment details</Step>
-  <Step title="Be Patient">Allow time for payment processing</Step>
-  <Step title="Document Everything">Keep records in the deal chat</Step>
-</Steps>
-
-## Arbitrator Selection
-
-Currently, arbitrators are vetted by the platform. Future plans include:
-
-- Decentralized arbitrator pool
-- Staking requirements for arbitrators
-- Community governance over dispute policies
-- Multi-arbitrator consensus for large disputes
+**With PEXFI, you aren't just trading with a stranger—you're trading within a system designed to protect the truth.**
