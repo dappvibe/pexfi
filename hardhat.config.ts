@@ -61,13 +61,13 @@ export default defineConfig({
 
   chainDescriptors: {
     31337: {
-      name: "Localhost",
-      chainType: "generic",
+      name: 'Localhost',
+      chainType: 'generic',
       blockExplorers: {
         etherscan: {
-          name: "Localhost Explorer",
-          url: "http://localhost",
-          apiUrl: "http://localhost/api",
+          name: 'Localhost Explorer',
+          url: 'http://localhost',
+          apiUrl: 'http://localhost/api',
         },
       },
     },
@@ -91,6 +91,10 @@ export default defineConfig({
             settings: { optimizer: { enabled: true, runs: 200 }, viaIR: false },
           },
           {
+            version: '0.8.26',
+            settings: { optimizer: { enabled: true, runs: 200 }, viaIR: false },
+          },
+          {
             version: '0.8.16',
             settings: { optimizer: { enabled: true, runs: 1000 } },
           },
@@ -100,6 +104,10 @@ export default defineConfig({
         compilers: [
           {
             version: '0.8.34',
+            settings: { optimizer: { enabled: true, runs: 1000 }, viaIR: true },
+          },
+          {
+            version: '0.8.26',
             settings: { optimizer: { enabled: true, runs: 1000 }, viaIR: true },
           },
           {
@@ -117,6 +125,8 @@ export default defineConfig({
       '@uma/core/contracts/data-verification-mechanism/implementation/Store.sol',
       '@uma/core/contracts/data-verification-mechanism/implementation/IdentifierWhitelist.sol',
       '@uma/core/contracts/common/implementation/AddressWhitelist.sol',
+      '@uniswap/v4-core/src/interfaces/IPoolManager.sol',
+      '@uniswap/v4-core/src/PoolManager.sol',
     ],
   },
   warnings: {

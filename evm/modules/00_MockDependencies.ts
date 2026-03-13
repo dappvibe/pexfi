@@ -42,6 +42,8 @@ export default buildModule('Mocks', (m) => {
   }
 
   // --- 2. Uniswap ---
+  const poolManager = m.contract('PoolManager', [m.getAccount(0)], { id: 'UniswapV4PoolManager' })
+  const positionManager = m.contract('MockPositionManager', [poolManager], { id: 'UniswapV4PositionManager' })
   const poolETH = m.contract('PoolETH', [tokens['USDC'], tokens['WETH']], { id: 'PoolETH' })
   const universalRouter = m.contract('UniswapUniversalRouterMock', [], { id: 'UniswapUniversalRouter' })
 
@@ -61,6 +63,8 @@ export default buildModule('Mocks', (m) => {
     ...tokens,
     ...priceFeeds,
     poolETH,
-    universalRouter
+    universalRouter,
+    poolManager,
+    positionManager
   }
 })

@@ -3,7 +3,7 @@ import * as assert from 'node:assert'
 import hre from 'hardhat'
 import MocksModule from '@evm/modules/00_MockDependencies.ts'
 import MarketModule from '@evm/modules/01_Market.ts'
-import { getAddress, stringToHex, padHex, ethAddress } from 'viem'
+import { getAddress, stringToHex, padHex, ethAddress, zeroAddress } from 'viem'
 
 /**
  * With HardHat v3 you must hre.network.connect() to have access to viem and network helpers such as takeSnapshot.
@@ -20,6 +20,8 @@ export default async function deploy() {
   // 2. Prepare parameters to wire Market up to local mocks
   const parameters = {
     Market: {
+      UniswapV4PoolManager: mocks.poolManager.address,
+      UniswapV4PositionManager: mocks.positionManager.address,
       uniswapUniversalRouter: mocks.universalRouter.address,
       weth_address: mocks.WETH.address,
       weth_pool: mocks.poolETH.address,

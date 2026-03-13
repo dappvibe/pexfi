@@ -10,7 +10,6 @@ import MocksModule from '../modules/00_MockDependencies'
  */
 async function main() {
   const { ignition } = await hre.network.connect()
-  console.log(`Querying Ignition for deployed mocks on network: ${hre.network.name}...`)
 
   // ignition.deploy() will return already deployed contracts if they exist in the deployment cache
   // and haven't changed. This is the "query" mechanism for Ignition.
@@ -18,6 +17,8 @@ async function main() {
 
   const params = {
     Market: {
+      UniswapV4PoolManager: mocks.poolManager.address,
+      UniswapV4PositionManager: mocks.positionManager.address,
       ContinuousClearingAuctionFactory: ethAddress, // placeholder
       uniswapUniversalRouter: mocks.universalRouter.address,
       weth_address: mocks.WETH.address,
