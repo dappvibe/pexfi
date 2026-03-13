@@ -20,7 +20,7 @@ contract Profile is IProfile, UUPSUpgradeable, AccessControlUpgradeable, ERC721U
 
   function initialize() initializer external
   {
-    __ERC721_init("Reputation Token", "REP");
+    __ERC721_init("PEXFI User Reputation", "PEXFIUSER");
     _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     _setRoleAdmin(DEAL_ROLE, MARKET_ROLE);
     _nextTokenId = 1;
