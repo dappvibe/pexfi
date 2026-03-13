@@ -2,7 +2,7 @@ import { Menu } from 'antd'
 import { generatePath, Link, useParams } from 'react-router-dom'
 import { useInventory } from '@/shared/web3'
 
-export default function TokenNav() {
+export default function TokenNav({ style }: { style?: React.CSSProperties }) {
   let { side = 'sell', token = 'WETH', fiat = 'USD', method = null } = useParams()
   const { tokens } = useInventory()
 
@@ -17,5 +17,5 @@ export default function TokenNav() {
     }
   })
 
-  return <Menu mode={'horizontal'} items={tokensMenu} selectedKeys={[token]} />
+  return <Menu mode={'horizontal'} items={tokensMenu} selectedKeys={[token]} style={style} />
 }

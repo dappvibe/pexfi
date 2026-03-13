@@ -9,7 +9,7 @@ export default function OffersFilters({ setFilterAmount }) {
   const { side = 'sell', token = 'WETH', fiat = 'USD', method = undefined } = useParams()
 
   return (
-    <Space style={{ margin: '10px 0 0 10px' }}>
+    <Space>
       <Input
         placeholder={'Amount'}
         style={{ maxWidth: 200 }}
