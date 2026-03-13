@@ -72,7 +72,7 @@ export default buildModule('Market', (m) => {
     after: [regPexfiVault],
   })
 
-  const stakeAmount = 160_000n * 10n ** 18n
+  const stakeAmount = 200n * 10n ** 18n
   const approveVault = m.call(pexfi, 'approve', [pexfiVault, stakeAmount], { id: 'approveVaultForStaking' })
   m.call(pexfiVault, 'deposit', [stakeAmount, pexfiVesting], {
     id: 'depositStake',
@@ -109,9 +109,9 @@ export default buildModule('Market', (m) => {
     id: 'collateralWhitelist',
   })
   m.call(CollateralWhitelist, 'addToWhitelist', [pexfiVault])
-  // With OOv3 defaults (50% burn), Minimum Bond = Final Fee * 2 = 160,000 tokens.
+  // With OOv3 defaults (50% burn), Minimum Bond = Final Fee * 2 = 200,000 tokens.
   // This ensures only the deployer can assert/dispute initially.
-  const initialFinalFee = 80_000n * 10n ** 18n
+  const initialFinalFee = 100_000n * 10n ** 18n
   m.call(Store, 'setFinalFee', [pexfiVault, { rawValue: initialFinalFee }])
 
   // Placeholder Oracle address — syncUmaParams requires it at deploy time.
