@@ -87,7 +87,7 @@ export default buildModule('Market', (m) => {
     pexfi,
     universalRouter,
     m.getParameter('weth_address'),
-    [zeroAddress, pexfi, 3000, 60, zeroAddress],
+    [zeroAddress, pexfi, 10000, 60, zeroAddress],
   ])
   m.call(Finder, 'changeImplementationAddress', [bytes32('FeeCollector'), feeCollector], {
     id: 'regFeeCollector',
