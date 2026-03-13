@@ -1,5 +1,5 @@
 import { buildModule } from '@nomicfoundation/hardhat-ignition/modules'
-import { zeroAddress, stringToHex, padHex, ethAddress } from 'viem'
+import { ethAddress, padHex, stringToHex, zeroAddress } from 'viem'
 
 const SIX_MONTHS = 6 * 30 * 24 * 60 * 60
 const TWO_YEARS = 2 * 365 * 24 * 60 * 60
@@ -32,11 +32,13 @@ export default buildModule('Market', (m) => {
   const Market = m.contractAt('Market', MarketProxy)
 
   // post-deploy data population
-  m.call(Market, 'addToken', [
-    m.getParameter('weth_address'),
-    { decimals: 18, pool: m.getParameter('weth_pool') },
-  ], { id: 'WETH' })
-  m.call(Market, 'addToken', [
+  m.call(Market, 'addToken', [m.getParameter('weth_address'), { decimals: 18, pool: m.getParameter('weth_pool') }], {
+    id: 'WETH',
+  })
+  m.call(
+    Market,
+    'addToken',
+    [
       m.getParameter('usdc'),
       { decimals: 6, pool: ethAddress }, // any non-zero pool, USDC is never converted
     ],
@@ -93,6 +95,29 @@ export default buildModule('Market', (m) => {
     id: 'regFeeCollector',
   })
 
+  // --- Uniswap v4 Pool & Locker ---
+  const poolManagerAddress = m.getParameter('UniswapV4PoolManager')
+  const positionManagerAddress = m.getParameter('UniswapV4PositionManager')
+  const poolManager = m.contractAt('IPoolManager', poolManagerAddress)
+
+  // Starting price: 0.00025 ETH per PEXFI
+  const sqrtPriceX96 = 5010830076006782168103456864888n
+  const poolKey = {
+    currency0: zeroAddress, // Native ETH
+    currency1: pexfi, // PEXFI token
+    fee: 10000, // 1%
+    tickSpacing: 200,
+    hooks: zeroAddress,
+  }
+
+  m.call(poolManager, 'initialize', [poolKey, sqrtPriceX96], {
+    id: 'initializePexfiPool',
+  })
+
+  const pexfiAntiRugpull = m.contract('PexfiAntiRugpull', [positionManagerAddress, beneficiary], {
+    id: 'PexfiAntiRugpull',
+  })
+
   // --- Oracle Setup ---
 
   const Store = m.contract('Store', [{ rawValue: 0 }, { rawValue: 0 }, zeroAddress])
@@ -134,6 +159,7 @@ export default buildModule('Market', (m) => {
     pexfi,
     pexfiVault,
     pexfiVesting,
+    pexfiAntiRugpull,
     feeCollector,
     OOv3,
     Finder,
