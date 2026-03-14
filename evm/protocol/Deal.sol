@@ -4,7 +4,6 @@ pragma solidity 0.8.34;
 import {IDeal} from "./interfaces/IDeal.sol";
 import {IMarket} from "./interfaces/IMarket.sol";
 import {IOffer} from "./interfaces/IOffer.sol";
-import {IProfile} from "./interfaces/IProfile.sol";
 import {Services} from "./libraries/Services.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -33,9 +32,6 @@ contract Deal is IDeal, ERC165, Initializable
   FinderInterface  internal finder;
   IOffer   public offer;
   bool    public isPaid;
-
-  IDeal.Feedback public feedbackForOwner;
-  IDeal.Feedback public feedbackForTaker;
 
   function _seller() internal view returns (address) {
     return offer.isSell() ? offer.owner() : taker;
@@ -119,16 +115,6 @@ contract Deal is IDeal, ERC165, Initializable
     token.safeTransfer(feeCollector, token.balanceOf(address(this)));
 
     _state(IDeal.State.Completed);
-
-    IProfile _profile = IProfile(finder.getImplementationAddress(Services.Profile));
-    uint $tokenId = _profile.ownerToTokenId(offer.owner());
-    if ($tokenId != 0) {
-      _profile.statsDealCompleted($tokenId);
-    }
-    $tokenId = _profile.ownerToTokenId(taker);
-    if ($tokenId != 0) {
-      _profile.statsDealCompleted($tokenId);
-    }
   }
 
   function cancel() external stateBetween(IDeal.State.Initiated, IDeal.State.Resolved) {
@@ -143,14 +129,8 @@ contract Deal is IDeal, ERC165, Initializable
     if (state == IDeal.State.Initiated) {
       if (msg.sender != offer.owner()) {
         if (block.timestamp <= allowCancelUnacceptedAfter) revert IDeal.ActionNotAllowedInThisState(state);
-        IProfile _profile = IProfile(finder.getImplementationAddress(Services.Profile));
-        uint $tokenId = _profile.ownerToTokenId(offer.owner());
-        if ($tokenId != 0) {
-          _profile.statsDealExpired($tokenId);
-        }
       }
-    } else if (state == IDeal.State.Accepted) {
-      require(msg.sender == _buyer(), IMarket.UnauthorizedAccount(msg.sender));
+    } else if (state == IDeal.State.Accepted || state == IDeal.State.Funded) {
       if (block.timestamp <= allowCancelUnpaidAfter) revert IDeal.ActionNotAllowedInThisState(state);
     } else {
       revert IDeal.ActionNotAllowedInThisState(state);
@@ -178,12 +158,16 @@ contract Deal is IDeal, ERC165, Initializable
     OptimisticOracleV3Interface _oov3 = OptimisticOracleV3Interface(msg.sender);
     OptimisticOracleV3Interface.Assertion memory assertion = _oov3.getAssertion(assertionId);
 
+    bytes32 resolution;
     if (assertion.domainId == RESOLVE_PAID) {
       isPaid = assertedTruthfully;
+      resolution = isPaid ? RESOLVE_PAID : RESOLVE_NOT_PAID;
     } else if (assertion.domainId == RESOLVE_NOT_PAID) {
       isPaid = !assertedTruthfully;
+      resolution = isPaid ? RESOLVE_PAID : RESOLVE_NOT_PAID;
     }
 
+    emit DisputeResolved(resolution);
     _state(IDeal.State.Resolved);
   }
 
@@ -198,25 +182,10 @@ contract Deal is IDeal, ERC165, Initializable
   onlyMember
   stateBetween(IDeal.State.Resolved, IDeal.State.Completed)
   {
-    IProfile _profile = IProfile(finder.getImplementationAddress(Services.Profile));
     if (msg.sender == offer.owner()) {
-      require(!feedbackForTaker.given, IProfile.FeedbackAlreadyGiven());
-      feedbackForTaker.given = true;
-      feedbackForTaker.upvote = upvote;
-      uint $tokenId = _profile.ownerToTokenId(taker);
-      if ($tokenId != 0) {
-        _profile.statsVote($tokenId, upvote);
-      }
       emit FeedbackGiven(taker, upvote, message_);
     }
     else if (msg.sender == taker) {
-      require(!feedbackForOwner.given, IProfile.FeedbackAlreadyGiven());
-      feedbackForOwner.given = true;
-      feedbackForOwner.upvote = upvote;
-      uint $tokenId = _profile.ownerToTokenId(offer.owner());
-      if ($tokenId != 0) {
-        _profile.statsVote($tokenId, upvote);
-      }
       emit FeedbackGiven(offer.owner(), upvote, message_);
     }
   }

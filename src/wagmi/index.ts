@@ -18,7 +18,6 @@ export const dealAbi = [
     ],
     name: 'ActionNotAllowedInThisState',
   },
-  { type: 'error', inputs: [], name: 'FeedbackAlreadyGiven' },
   { type: 'error', inputs: [], name: 'InvalidInitialization' },
   {
     type: 'error',
@@ -54,6 +53,19 @@ export const dealAbi = [
       },
     ],
     name: 'DealState',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'domainId',
+        internalType: 'bytes32',
+        type: 'bytes32',
+        indexed: false,
+      },
+    ],
+    name: 'DisputeResolved',
   },
   {
     type: 'event',
@@ -163,26 +175,6 @@ export const dealAbi = [
     name: 'feedback',
     outputs: [],
     stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'feedbackForOwner',
-    outputs: [
-      { name: 'given', internalType: 'bool', type: 'bool' },
-      { name: 'upvote', internalType: 'bool', type: 'bool' },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'feedbackForTaker',
-    outputs: [
-      { name: 'given', internalType: 'bool', type: 'bool' },
-      { name: 'upvote', internalType: 'bool', type: 'bool' },
-    ],
-    stateMutability: 'view',
   },
   {
     type: 'function',
@@ -2114,15 +2106,6 @@ export const pexfiVestingAbi = [
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const profileAbi = [
-  { type: 'error', inputs: [], name: 'AccessControlBadConfirmation' },
-  {
-    type: 'error',
-    inputs: [
-      { name: 'account', internalType: 'address', type: 'address' },
-      { name: 'neededRole', internalType: 'bytes32', type: 'bytes32' },
-    ],
-    name: 'AccessControlUnauthorizedAccount',
-  },
   {
     type: 'error',
     inputs: [{ name: 'target', internalType: 'address', type: 'address' }],
@@ -2187,6 +2170,16 @@ export const profileAbi = [
   { type: 'error', inputs: [], name: 'FeedbackAlreadyGiven' },
   { type: 'error', inputs: [], name: 'InvalidInitialization' },
   { type: 'error', inputs: [], name: 'NotInitializing' },
+  {
+    type: 'error',
+    inputs: [{ name: 'owner', internalType: 'address', type: 'address' }],
+    name: 'OwnableInvalidOwner',
+  },
+  {
+    type: 'error',
+    inputs: [{ name: 'account', internalType: 'address', type: 'address' }],
+    name: 'OwnableUnauthorizedAccount',
+  },
   { type: 'error', inputs: [], name: 'ProfileAlreadyExists' },
   { type: 'error', inputs: [], name: 'UUPSUnauthorizedCallContext' },
   {
@@ -2194,6 +2187,7 @@ export const profileAbi = [
     inputs: [{ name: 'slot', internalType: 'bytes32', type: 'bytes32' }],
     name: 'UUPSUnsupportedProxiableUUID',
   },
+  { type: 'error', inputs: [], name: 'UnauthorizedAccount' },
   {
     type: 'event',
     anonymous: false,
@@ -2256,61 +2250,20 @@ export const profileAbi = [
     type: 'event',
     anonymous: false,
     inputs: [
-      { name: 'role', internalType: 'bytes32', type: 'bytes32', indexed: true },
       {
-        name: 'previousAdminRole',
-        internalType: 'bytes32',
-        type: 'bytes32',
-        indexed: true,
-      },
-      {
-        name: 'newAdminRole',
-        internalType: 'bytes32',
-        type: 'bytes32',
-        indexed: true,
-      },
-    ],
-    name: 'RoleAdminChanged',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      { name: 'role', internalType: 'bytes32', type: 'bytes32', indexed: true },
-      {
-        name: 'account',
+        name: 'previousOwner',
         internalType: 'address',
         type: 'address',
         indexed: true,
       },
       {
-        name: 'sender',
+        name: 'newOwner',
         internalType: 'address',
         type: 'address',
         indexed: true,
       },
     ],
-    name: 'RoleGranted',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      { name: 'role', internalType: 'bytes32', type: 'bytes32', indexed: true },
-      {
-        name: 'account',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'sender',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-    ],
-    name: 'RoleRevoked',
+    name: 'OwnershipTransferred',
   },
   {
     type: 'event',
@@ -2332,6 +2285,20 @@ export const profileAbi = [
     anonymous: false,
     inputs: [
       {
+        name: 'tokenId',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: true,
+      },
+      { name: 'info', internalType: 'string', type: 'string', indexed: false },
+    ],
+    name: 'UpdatedInfo',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
         name: 'implementation',
         internalType: 'address',
         type: 'address',
@@ -2339,13 +2306,6 @@ export const profileAbi = [
       },
     ],
     name: 'Upgraded',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'DEFAULT_ADMIN_ROLE',
-    outputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
-    stateMutability: 'view',
   },
   {
     type: 'function',
@@ -2380,33 +2340,6 @@ export const profileAbi = [
   },
   {
     type: 'function',
-    inputs: [{ name: 'role', internalType: 'bytes32', type: 'bytes32' }],
-    name: 'getRoleAdmin',
-    outputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'role', internalType: 'bytes32', type: 'bytes32' },
-      { name: 'account', internalType: 'address', type: 'address' },
-    ],
-    name: 'grantRole',
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'role', internalType: 'bytes32', type: 'bytes32' },
-      { name: 'account', internalType: 'address', type: 'address' },
-    ],
-    name: 'hasRole',
-    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
     inputs: [],
     name: 'initialize',
     outputs: [],
@@ -2427,6 +2360,13 @@ export const profileAbi = [
     inputs: [],
     name: 'name',
     outputs: [{ name: '', internalType: 'string', type: 'string' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'owner',
+    outputs: [{ name: '', internalType: 'address', type: 'address' }],
     stateMutability: 'view',
   },
   {
@@ -2459,21 +2399,8 @@ export const profileAbi = [
   },
   {
     type: 'function',
-    inputs: [
-      { name: 'role', internalType: 'bytes32', type: 'bytes32' },
-      { name: 'callerConfirmation', internalType: 'address', type: 'address' },
-    ],
-    name: 'renounceRole',
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'role', internalType: 'bytes32', type: 'bytes32' },
-      { name: 'account', internalType: 'address', type: 'address' },
-    ],
-    name: 'revokeRole',
+    inputs: [],
+    name: 'renounceOwnership',
     outputs: [],
     stateMutability: 'nonpayable',
   },
@@ -2512,91 +2439,6 @@ export const profileAbi = [
   },
   {
     type: 'function',
-    inputs: [{ name: 'tokenId_', internalType: 'uint256', type: 'uint256' }],
-    name: 'stats',
-    outputs: [
-      {
-        name: '',
-        internalType: 'struct IProfile.Stats',
-        type: 'tuple',
-        components: [
-          { name: 'createdAt', internalType: 'uint32', type: 'uint32' },
-          { name: 'upvotes', internalType: 'uint32', type: 'uint32' },
-          { name: 'downvotes', internalType: 'uint32', type: 'uint32' },
-          { name: 'volumeUSD', internalType: 'uint32', type: 'uint32' },
-          { name: 'avgPaymentTime', internalType: 'uint32', type: 'uint32' },
-          { name: 'avgReleaseTime', internalType: 'uint32', type: 'uint32' },
-          { name: 'dealsCompleted', internalType: 'uint32', type: 'uint32' },
-          { name: 'dealsExpired', internalType: 'uint32', type: 'uint32' },
-          { name: 'disputesLost', internalType: 'uint32', type: 'uint32' },
-        ],
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'tokenId_', internalType: 'uint256', type: 'uint256' },
-      { name: '_dealTime', internalType: 'uint32', type: 'uint32' },
-    ],
-    name: 'statsAvgPaymentTime',
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'tokenId_', internalType: 'uint256', type: 'uint256' },
-      { name: '_dealTime', internalType: 'uint32', type: 'uint32' },
-    ],
-    name: 'statsAvgReleaseTime',
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    inputs: [{ name: 'tokenId_', internalType: 'uint256', type: 'uint256' }],
-    name: 'statsDealCompleted',
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    inputs: [{ name: 'tokenId_', internalType: 'uint256', type: 'uint256' }],
-    name: 'statsDealExpired',
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    inputs: [{ name: 'tokenId_', internalType: 'uint256', type: 'uint256' }],
-    name: 'statsDisputeLost',
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'tokenId_', internalType: 'uint256', type: 'uint256' },
-      { name: '_volumeUSD', internalType: 'uint32', type: 'uint32' },
-    ],
-    name: 'statsVolumeUSD',
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'tokenId_', internalType: 'uint256', type: 'uint256' },
-      { name: 'up_', internalType: 'bool', type: 'bool' },
-    ],
-    name: 'statsVote',
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
     inputs: [{ name: 'interfaceId', internalType: 'bytes4', type: 'bytes4' }],
     name: 'supportsInterface',
     outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
@@ -2624,6 +2466,23 @@ export const profileAbi = [
       { name: 'tokenId', internalType: 'uint256', type: 'uint256' },
     ],
     name: 'transferFrom',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'newOwner', internalType: 'address', type: 'address' }],
+    name: 'transferOwnership',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'tokenId_', internalType: 'uint256', type: 'uint256' },
+      { name: 'info_', internalType: 'string', type: 'string' },
+    ],
+    name: 'updateInfo',
     outputs: [],
     stateMutability: 'nonpayable',
   },
@@ -2766,22 +2625,6 @@ export const useReadDealAllowCancelUnpaidAfter =
     abi: dealAbi,
     functionName: 'allowCancelUnpaidAfter',
   })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link dealAbi}__ and `functionName` set to `"feedbackForOwner"`
- */
-export const useReadDealFeedbackForOwner = /*#__PURE__*/ createUseReadContract({
-  abi: dealAbi,
-  functionName: 'feedbackForOwner',
-})
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link dealAbi}__ and `functionName` set to `"feedbackForTaker"`
- */
-export const useReadDealFeedbackForTaker = /*#__PURE__*/ createUseReadContract({
-  abi: dealAbi,
-  functionName: 'feedbackForTaker',
-})
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link dealAbi}__ and `functionName` set to `"fiatAmount"`
@@ -3047,6 +2890,15 @@ export const useWatchDealDealStateEvent =
   /*#__PURE__*/ createUseWatchContractEvent({
     abi: dealAbi,
     eventName: 'DealState',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link dealAbi}__ and `eventName` set to `"DisputeResolved"`
+ */
+export const useWatchDealDisputeResolvedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: dealAbi,
+    eventName: 'DisputeResolved',
   })
 
 /**
@@ -4663,15 +4515,6 @@ export const useReadProfile = /*#__PURE__*/ createUseReadContract({
 })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"DEFAULT_ADMIN_ROLE"`
- */
-export const useReadProfileDefaultAdminRole =
-  /*#__PURE__*/ createUseReadContract({
-    abi: profileAbi,
-    functionName: 'DEFAULT_ADMIN_ROLE',
-  })
-
-/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"UPGRADE_INTERFACE_VERSION"`
  */
 export const useReadProfileUpgradeInterfaceVersion =
@@ -4697,22 +4540,6 @@ export const useReadProfileGetApproved = /*#__PURE__*/ createUseReadContract({
 })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"getRoleAdmin"`
- */
-export const useReadProfileGetRoleAdmin = /*#__PURE__*/ createUseReadContract({
-  abi: profileAbi,
-  functionName: 'getRoleAdmin',
-})
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"hasRole"`
- */
-export const useReadProfileHasRole = /*#__PURE__*/ createUseReadContract({
-  abi: profileAbi,
-  functionName: 'hasRole',
-})
-
-/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"isApprovedForAll"`
  */
 export const useReadProfileIsApprovedForAll =
@@ -4727,6 +4554,14 @@ export const useReadProfileIsApprovedForAll =
 export const useReadProfileName = /*#__PURE__*/ createUseReadContract({
   abi: profileAbi,
   functionName: 'name',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"owner"`
+ */
+export const useReadProfileOwner = /*#__PURE__*/ createUseReadContract({
+  abi: profileAbi,
+  functionName: 'owner',
 })
 
 /**
@@ -4750,14 +4585,6 @@ export const useReadProfileOwnerToTokenId = /*#__PURE__*/ createUseReadContract(
 export const useReadProfileProxiableUuid = /*#__PURE__*/ createUseReadContract({
   abi: profileAbi,
   functionName: 'proxiableUUID',
-})
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"stats"`
- */
-export const useReadProfileStats = /*#__PURE__*/ createUseReadContract({
-  abi: profileAbi,
-  functionName: 'stats',
 })
 
 /**
@@ -4801,14 +4628,6 @@ export const useWriteProfileApprove = /*#__PURE__*/ createUseWriteContract({
 })
 
 /**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"grantRole"`
- */
-export const useWriteProfileGrantRole = /*#__PURE__*/ createUseWriteContract({
-  abi: profileAbi,
-  functionName: 'grantRole',
-})
-
-/**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"initialize"`
  */
 export const useWriteProfileInitialize = /*#__PURE__*/ createUseWriteContract({
@@ -4825,19 +4644,13 @@ export const useWriteProfileRegister = /*#__PURE__*/ createUseWriteContract({
 })
 
 /**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"renounceRole"`
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"renounceOwnership"`
  */
-export const useWriteProfileRenounceRole = /*#__PURE__*/ createUseWriteContract(
-  { abi: profileAbi, functionName: 'renounceRole' },
-)
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"revokeRole"`
- */
-export const useWriteProfileRevokeRole = /*#__PURE__*/ createUseWriteContract({
-  abi: profileAbi,
-  functionName: 'revokeRole',
-})
+export const useWriteProfileRenounceOwnership =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: profileAbi,
+    functionName: 'renounceOwnership',
+  })
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"safeTransferFrom"`
@@ -4858,73 +4671,28 @@ export const useWriteProfileSetApprovalForAll =
   })
 
 /**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"statsAvgPaymentTime"`
- */
-export const useWriteProfileStatsAvgPaymentTime =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: profileAbi,
-    functionName: 'statsAvgPaymentTime',
-  })
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"statsAvgReleaseTime"`
- */
-export const useWriteProfileStatsAvgReleaseTime =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: profileAbi,
-    functionName: 'statsAvgReleaseTime',
-  })
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"statsDealCompleted"`
- */
-export const useWriteProfileStatsDealCompleted =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: profileAbi,
-    functionName: 'statsDealCompleted',
-  })
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"statsDealExpired"`
- */
-export const useWriteProfileStatsDealExpired =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: profileAbi,
-    functionName: 'statsDealExpired',
-  })
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"statsDisputeLost"`
- */
-export const useWriteProfileStatsDisputeLost =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: profileAbi,
-    functionName: 'statsDisputeLost',
-  })
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"statsVolumeUSD"`
- */
-export const useWriteProfileStatsVolumeUsd =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: profileAbi,
-    functionName: 'statsVolumeUSD',
-  })
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"statsVote"`
- */
-export const useWriteProfileStatsVote = /*#__PURE__*/ createUseWriteContract({
-  abi: profileAbi,
-  functionName: 'statsVote',
-})
-
-/**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"transferFrom"`
  */
 export const useWriteProfileTransferFrom = /*#__PURE__*/ createUseWriteContract(
   { abi: profileAbi, functionName: 'transferFrom' },
 )
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"transferOwnership"`
+ */
+export const useWriteProfileTransferOwnership =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: profileAbi,
+    functionName: 'transferOwnership',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"updateInfo"`
+ */
+export const useWriteProfileUpdateInfo = /*#__PURE__*/ createUseWriteContract({
+  abi: profileAbi,
+  functionName: 'updateInfo',
+})
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"upgradeToAndCall"`
@@ -4952,15 +4720,6 @@ export const useSimulateProfileApprove =
   })
 
 /**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"grantRole"`
- */
-export const useSimulateProfileGrantRole =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: profileAbi,
-    functionName: 'grantRole',
-  })
-
-/**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"initialize"`
  */
 export const useSimulateProfileInitialize =
@@ -4979,21 +4738,12 @@ export const useSimulateProfileRegister =
   })
 
 /**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"renounceRole"`
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"renounceOwnership"`
  */
-export const useSimulateProfileRenounceRole =
+export const useSimulateProfileRenounceOwnership =
   /*#__PURE__*/ createUseSimulateContract({
     abi: profileAbi,
-    functionName: 'renounceRole',
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"revokeRole"`
- */
-export const useSimulateProfileRevokeRole =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: profileAbi,
-    functionName: 'revokeRole',
+    functionName: 'renounceOwnership',
   })
 
 /**
@@ -5015,75 +4765,30 @@ export const useSimulateProfileSetApprovalForAll =
   })
 
 /**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"statsAvgPaymentTime"`
- */
-export const useSimulateProfileStatsAvgPaymentTime =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: profileAbi,
-    functionName: 'statsAvgPaymentTime',
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"statsAvgReleaseTime"`
- */
-export const useSimulateProfileStatsAvgReleaseTime =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: profileAbi,
-    functionName: 'statsAvgReleaseTime',
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"statsDealCompleted"`
- */
-export const useSimulateProfileStatsDealCompleted =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: profileAbi,
-    functionName: 'statsDealCompleted',
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"statsDealExpired"`
- */
-export const useSimulateProfileStatsDealExpired =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: profileAbi,
-    functionName: 'statsDealExpired',
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"statsDisputeLost"`
- */
-export const useSimulateProfileStatsDisputeLost =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: profileAbi,
-    functionName: 'statsDisputeLost',
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"statsVolumeUSD"`
- */
-export const useSimulateProfileStatsVolumeUsd =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: profileAbi,
-    functionName: 'statsVolumeUSD',
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"statsVote"`
- */
-export const useSimulateProfileStatsVote =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: profileAbi,
-    functionName: 'statsVote',
-  })
-
-/**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"transferFrom"`
  */
 export const useSimulateProfileTransferFrom =
   /*#__PURE__*/ createUseSimulateContract({
     abi: profileAbi,
     functionName: 'transferFrom',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"transferOwnership"`
+ */
+export const useSimulateProfileTransferOwnership =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: profileAbi,
+    functionName: 'transferOwnership',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link profileAbi}__ and `functionName` set to `"updateInfo"`
+ */
+export const useSimulateProfileUpdateInfo =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: profileAbi,
+    functionName: 'updateInfo',
   })
 
 /**
@@ -5130,30 +4835,12 @@ export const useWatchProfileInitializedEvent =
   })
 
 /**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link profileAbi}__ and `eventName` set to `"RoleAdminChanged"`
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link profileAbi}__ and `eventName` set to `"OwnershipTransferred"`
  */
-export const useWatchProfileRoleAdminChangedEvent =
+export const useWatchProfileOwnershipTransferredEvent =
   /*#__PURE__*/ createUseWatchContractEvent({
     abi: profileAbi,
-    eventName: 'RoleAdminChanged',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link profileAbi}__ and `eventName` set to `"RoleGranted"`
- */
-export const useWatchProfileRoleGrantedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: profileAbi,
-    eventName: 'RoleGranted',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link profileAbi}__ and `eventName` set to `"RoleRevoked"`
- */
-export const useWatchProfileRoleRevokedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: profileAbi,
-    eventName: 'RoleRevoked',
+    eventName: 'OwnershipTransferred',
   })
 
 /**
@@ -5163,6 +4850,15 @@ export const useWatchProfileTransferEvent =
   /*#__PURE__*/ createUseWatchContractEvent({
     abi: profileAbi,
     eventName: 'Transfer',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link profileAbi}__ and `eventName` set to `"UpdatedInfo"`
+ */
+export const useWatchProfileUpdatedInfoEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: profileAbi,
+    eventName: 'UpdatedInfo',
   })
 
 /**

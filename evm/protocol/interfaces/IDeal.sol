@@ -13,6 +13,7 @@ interface IDeal is OptimisticOracleV3CallbackRecipientInterface {
   event DealState(State state, address sender);
   event Message(address sender, string message);
   event FeedbackGiven(address to, bool upvote, string message);
+  event DisputeResolved(bytes32 domainId);
 
   enum State {
     Initiated,
@@ -31,11 +32,6 @@ interface IDeal is OptimisticOracleV3CallbackRecipientInterface {
     address taker;
     uint256 tokenAmount;
     uint256 fiatAmount;
-  }
-
-  struct Feedback {
-    bool given;
-    bool upvote;
   }
 
   function initialize(DealParams calldata params) external;
@@ -71,8 +67,4 @@ interface IDeal is OptimisticOracleV3CallbackRecipientInterface {
   function offer() external view returns (IOffer);
 
   function isPaid() external view returns (bool);
-
-  function feedbackForOwner() external view returns (bool given, bool upvote);
-
-  function feedbackForTaker() external view returns (bool given, bool upvote);
 }
