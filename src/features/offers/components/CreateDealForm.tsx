@@ -1,4 +1,4 @@
-import { Button, Form, Input, Space } from 'antd'
+import { Button, Form, Input, Space, Select } from 'antd'
 
 interface CreateDealFormProps {
   offer: any
@@ -57,6 +57,22 @@ export default function CreateDealForm({
           />
         </Form.Item>
       </Space>
+      {offer.availableMethods?.length > 0 && (
+        <Form.Item
+          name={'method'}
+          label={'Payment Method'}
+          rules={[{ required: true, message: 'Please select a payment method' }]}
+          initialValue={offer.availableMethods[0].index}
+        >
+          <Select placeholder={'Select payment method'}>
+            {offer.availableMethods.map((m: any) => (
+              <Select.Option key={m.index} value={m.index}>
+                {m.name}
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
+      )}
       <Form.Item name={'paymentInstructions'}>
         <Input.TextArea placeholder={'Payment instructions'} disabled={offer.disabled} />
       </Form.Item>

@@ -11,6 +11,7 @@ export default function OfferDescription({ offer }) {
         },
         { label: 'Price', children: offer.price },
         { label: 'Limits', children: `${offer.min} - ${offer.max}` },
+        { label: 'Methods', children: offer.method },
         { label: 'Terms', children: offer.terms || <i>None</i> },
       ]}
     />

@@ -15,6 +15,8 @@ import {
 } from '@/wagmi'
 
 
+import { Method } from '@/shared/web3'
+
 export type Offer = {
   id: string
   address: Address
@@ -23,6 +25,7 @@ export type Offer = {
   token: Token | null
   fiat: string
   method: string // bitmask as string for compatibility
+  availableMethods: Method[]
   rate: number // normalized rate (e.g. 0.01 for 1%)
   min: number
   max: number
@@ -144,6 +147,11 @@ export function useOffer(offerId: string | undefined, options: UseOfferOptions =
     }
 
 
+    const m = BigInt(rawOffer.methods || 0)
+    const availableMethods = Object.values(methods).filter(
+      (method) => (m & (1n << BigInt(method.index))) !== 0n
+    )
+
     return {
       id: rawOffer.id,
       address: rawOffer.id as Address,
@@ -160,6 +168,7 @@ export function useOffer(offerId: string | undefined, options: UseOfferOptions =
         : null,
       fiat: hexToString(trim(rawOffer.fiat as `0x${string}`, { dir: 'right' })),
       method: decodeMethod(rawOffer.methods, methods),
+      availableMethods,
       rate: normalizedRate,
       min: rawOffer.minFiat,
       max: rawOffer.maxFiat,

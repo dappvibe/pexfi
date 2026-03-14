@@ -18,7 +18,7 @@ export default function DealCard() {
       : isAddressEqual(deal.taker, address)
         ? offer.isSell ? 'Buying' : 'Selling'
         : ''
-    return `${verb} ${offer.token?.symbol || 'Token'} for ${offer.fiat} using ${offer.method}`
+    return `${verb} ${offer.token?.symbol || 'Token'} for ${offer.fiat} using ${deal.method || offer.method}`
   }, [address, deal, offer])
 
   if (!offer) return <Skeleton active />

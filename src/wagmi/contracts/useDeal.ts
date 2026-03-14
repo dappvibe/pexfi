@@ -40,6 +40,7 @@ export type Deal = {
   tokenAmountFormatted: number
   fiatAmount: bigint
   fiatAmountFormatted: number
+  method: string
   terms: string
   paymentInstructions: string
   allowCancelUnacceptedAfter: Date

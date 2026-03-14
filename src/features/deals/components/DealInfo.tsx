@@ -25,7 +25,7 @@ export default function DealInfo() {
       label: 'Seller',
       children: !offer.isSell ? <Username address={deal.taker} /> : <Username address={offer.owner} />,
     },
-    { key: 6, label: 'Method', children: offer.method },
+    { key: 6, label: 'Method', children: deal.method || offer.method },
     {
       key: 7,
       label: 'Payment instructions',

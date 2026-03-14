@@ -69,7 +69,7 @@ export function useCreateDeal({ offer, allowance, refetchAllowance }: UseCreateD
           {
             fiatAmount: amount,
             paymentInstructions: values['paymentInstructions'] ?? '',
-            method: 0, // TODO: handle method selection if needed
+            method: Number(values['method'] ?? 0),
           },
         ],
       })
