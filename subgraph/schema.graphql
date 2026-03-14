@@ -69,25 +69,23 @@ type DealMessage @entity(immutable: true) {
 
 # Rep NFT
 type Profile @entity(immutable: false) {
+  # owner address used as PK
   id: ID!
+  tokenId: BigInt!
   createdAt: Int!
+  info: String
   # used in offers sorting
   goodstanding: Boolean!
   rating: Int!
   upvotes: Int!
   downvotes: Int!
-  volumeUSD: Int!
   dealsCompleted: Int!
-  dealsExpired: Int!
   disputesLost: Int!
-  avgPaymentTime: Int!
-  avgReleaseTime: Int!
 }
 
 type Feedback @entity(immutable: false) {
   id: ID!
-  given: Boolean
-  upvote: Boolean
+  upvote: Boolean!
   message: String!
 }
 
