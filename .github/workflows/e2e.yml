@@ -4,7 +4,12 @@ on:
   push:
     branches:
       - '**'
-  pull_request:
+    paths:
+      - 'evm/**'
+      - 'package.json'
+      - 'src/**'
+      - 'tests/e2e/**'
+      - 'subgraph/**'
 
 jobs:
   e2e:
