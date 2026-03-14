@@ -38,6 +38,7 @@ export default function ProfilePage() {
         </Helmet>
         <Card title={'Profile token ID: ' + tokenId}>
           <Descriptions layout={'vertical'} title={<Username address={address} avatar />}>
+            {stats.info && <Descriptions.Item label={'Info'}>{stats.info}</Descriptions.Item>}
             <Descriptions.Item label={'Registered'}>{stats.createdAt.toLocaleString()}</Descriptions.Item>
           <Descriptions.Item label={'Rating'}>{rating(stats.upvotes, stats.downvotes)}</Descriptions.Item>
           <Descriptions.Item label={'Deals completed'}>{stats.dealsCompleted}</Descriptions.Item>

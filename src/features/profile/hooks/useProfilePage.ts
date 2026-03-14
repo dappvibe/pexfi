@@ -4,14 +4,14 @@ import { useAccount, useConfig } from 'wagmi'
 import { useActiveAccount } from 'thirdweb/react'
 import { waitForTransactionReceipt } from '@wagmi/core'
 import {
-  useReadProfileOwnerToTokenId,
-  useReadProfileStats,
   useWriteProfileRegister,
 } from '@/wagmi'
 import { useAddress } from '@/shared/web3'
+import { useQueryProfile } from '@/features/profile/hooks/useQueryProfile'
 
 export type ProfileStats = {
   createdAt: Date
+  info: string | null
   upvotes: number
   downvotes: number
   volumeUSD: number
@@ -25,51 +25,37 @@ export type ProfileStats = {
 export function useProfilePage() {
   const { address: connectedAddress } = useAccount()
   const activeAccount = useActiveAccount()
-  const { profile } = useParams()
-  const address = (profile as `0x${string}`) || connectedAddress || activeAccount?.address
+  const { profile: profileParam } = useParams()
+  const address = (profileParam as `0x${string}`) || connectedAddress || activeAccount?.address
   const profileAddress = useAddress('Market#Profile')
 
   const config = useConfig()
 
-  const { data: tokenId, refetch: refetchTokenId, isLoading: isTokenLoading } = useReadProfileOwnerToTokenId({
-    address: profileAddress,
-    args: address ? [address] : undefined,
-    query: {
-      enabled: !!address && !!profileAddress,
-    },
-  })
-
-  const { data: rawStats, refetch: refetchStats, isLoading: isStatsLoading } = useReadProfileStats({
-    address: profileAddress,
-    args: tokenId ? [tokenId] : undefined,
-    query: {
-      enabled: !!tokenId && tokenId > 0n && !!profileAddress,
-    },
-  })
+  const { profile, loading: isProfileLoading, refetch: refetchProfile } = useQueryProfile(address)
 
   const { writeContractAsync: register } = useWriteProfileRegister()
 
   const stats = useMemo<ProfileStats | null>(() => {
-    if (!rawStats) return null
+    if (!profile) return null
     return {
-      createdAt: new Date(Number(rawStats.createdAt) * 1000),
-      upvotes: Number(rawStats.upvotes),
-      downvotes: Number(rawStats.downvotes),
-      volumeUSD: Number(rawStats.volumeUSD),
-      dealsCompleted: Number(rawStats.dealsCompleted),
-      dealsExpired: Number(rawStats.dealsExpired),
-      disputesLost: Number(rawStats.disputesLost),
-      avgPaymentTime: Number(rawStats.avgPaymentTime),
-      avgReleaseTime: Number(rawStats.avgReleaseTime),
+      upvotes: profile.upvotes,
+      downvotes: profile.downvotes,
+      volumeUSD: profile.volumeUSD,
+      avgPaymentTime: profile.avgPaymentTime,
+      avgReleaseTime: profile.avgReleaseTime,
+      dealsCompleted: profile.dealsCompleted,
+      dealsExpired: profile.dealsExpired,
+      disputesLost: profile.disputesLost,
+      info: profile.info,
+      createdAt: new Date(profile.createdAt * 1000),
     }
-  }, [rawStats])
+  }, [profile])
 
   async function create() {
     if (!profileAddress) return
     const hash = await register({ address: profileAddress })
     await waitForTransactionReceipt(config, { hash })
-    await refetchTokenId()
-    await refetchStats()
+    await refetchProfile()
   }
 
   function rating(upvotes: number, downvotes: number) {
@@ -80,11 +66,11 @@ export function useProfilePage() {
 
   return {
     address,
-    tokenId: tokenId === 0n ? null : tokenId,
+    tokenId: profile ? BigInt(profile.id) : null,
     stats,
-    isOwnProfile: !profile,
+    isOwnProfile: !profileParam,
     create,
     rating,
-    loading: isTokenLoading || isStatsLoading,
+    loading: isProfileLoading,
   }
 }

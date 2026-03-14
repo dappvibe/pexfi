@@ -2,7 +2,7 @@ import {OfferUpdated} from "../../.cache/subgraph/generated/templates/Offer/Offe
 import {Offer as OfferEntity, Token} from "../../.cache/subgraph/generated/schema";
 import {Offer as OfferContract} from "../../.cache/subgraph/generated/Market/Offer"
 import {Token as TokenContract} from "../../.cache/subgraph/generated/Market/Token"
-import {Address, BigInt, Bytes, dataSource, log} from '@graphprotocol/graph-ts';
+import {Address, BigInt, Bytes, dataSource, log, DataSourceContext} from '@graphprotocol/graph-ts';
 import {Market as MarketContract} from "../../.cache/subgraph/generated/Market/Market";
 import {Finder as FinderContract} from "../../.cache/subgraph/generated/Market/Finder";
 import {getRangingModifier, updateProfileFor} from "./profile";
@@ -101,7 +101,9 @@ export function fetchAndSaveOffer(target: Address, market: Address): OfferEntity
     let profileAddressResult = finderContract.try_getImplementationAddress(Bytes.fromHexString("0x50726f66696c6500000000000000000000000000000000000000000000000000") as Bytes);
     if (!profileAddressResult.reverted) {
       const profile = updateProfileFor(profileAddressResult.value, Address.fromBytes(offer.owner));
-      offer.profile = profile ? profile.id : null;
+      if (profile) {
+        offer.profile = profile.id;
+      }
       let modifier = BigInt.fromI32(getRangingModifier(profile));
       let rate = BigInt.fromI32(offer.rate);
       if (offer.isSell) {

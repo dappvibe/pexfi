@@ -4,9 +4,11 @@ pragma solidity 0.8.34;
 interface IProfile {
   error FeedbackAlreadyGiven();
   error ProfileAlreadyExists();
+  error UnauthorizedAccount();
+
+  event UpdatedInfo(string info);
 
   struct Stats {
-    uint32 createdAt;
     uint32 upvotes;
     uint32 downvotes;
     uint32 volumeUSD;
@@ -32,8 +34,6 @@ interface IProfile {
   function statsAvgPaymentTime(uint256 tokenId_, uint32 _dealTime) external;
 
   function statsAvgReleaseTime(uint256 tokenId_, uint32 _dealTime) external;
-
-  function stats(uint256 tokenId) external view returns (Stats memory);
 
   function ownerToTokenId(address owner) external view returns (uint256);
 

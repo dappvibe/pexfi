@@ -1,7 +1,7 @@
 import {Deal as DealContract, DealState as DealStateEvent, Message} from "../../.cache/subgraph/generated/templates/Deal/Deal"
 import {Offer as OfferContract} from "../../.cache/subgraph/generated/templates/Offer/Offer"
 import {Deal as DealEntity, DealMessage, Feedback, Notification, NotificationEvent, Offer} from "../../.cache/subgraph/generated/schema"
-import {Address, Bytes, dataSource, log} from "@graphprotocol/graph-ts"
+import {Address, BigInt, Bytes, dataSource, log} from "@graphprotocol/graph-ts"
 import {Market as MarketContract} from "../../.cache/subgraph/generated/Market/Market";
 import {Finder as FinderContract} from "../../.cache/subgraph/generated/Market/Finder";
 import {updateProfileFor} from "./profile";

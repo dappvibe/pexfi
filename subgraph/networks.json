@@ -1,7 +1,11 @@
 {
   "hardhat": {
     "Market": {
-      "address": "0x851356ae760d987E095750cCeb3bC6014560891C",
+      "address": "0x57238a079Cb87d04De3570dc32Fd9aCad23dba0C",
+      "startBlock": 0
+    },
+    "Profile": {
+      "address": "0x3a622DB2db50f463dF562Dc5F341545A64C580fc",
       "startBlock": 0
     }
   },
@@ -9,11 +13,19 @@
     "Market": {
       "address": "0x57238a079Cb87d04De3570dc32Fd9aCad23dba0C",
       "startBlock": 10439859
+    },
+    "Profile": {
+      "address": "0x3a622DB2db50f463dF562Dc5F341545A64C580fc",
+      "startBlock": 10439859
     }
   },
   "arbitrum-one": {
     "Market": {
       "address": "0xB82008565FdC7e44609fA118A4a681E92581e680",
+      "startBlock": 0
+    },
+    "Profile": {
+      "address": "0x3a622DB2db50f463dF562Dc5F341545A64C580fc",
       "startBlock": 0
     }
   }

@@ -70,7 +70,9 @@ type DealMessage @entity(immutable: true) {
 # Rep NFT
 type Profile @entity(immutable: false) {
   id: ID!
+  owner: Bytes!
   createdAt: Int!
+  info: String
   # used in offers sorting
   goodstanding: Boolean!
   rating: Int!
