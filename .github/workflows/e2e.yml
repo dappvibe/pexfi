@@ -5,8 +5,9 @@ on:
     branches:
       - '**'
     paths:
-      - 'evm/**'
       - 'package.json'
+      - 'compose.yml'
+      - 'evm/**'
       - 'src/**'
       - 'tests/e2e/**'
       - 'subgraph/**'
