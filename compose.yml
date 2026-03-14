@@ -3,10 +3,12 @@ services:
   all:
     image: alpine
     depends_on:
-      - evm
-      - subgraph
-      - web
-      - blockscout
+      evm:
+        condition: service_healthy
+      subgraph:
+        condition: service_completed_successfully
+      web:
+        condition: service_healthy
 
   # Blockchain
   evm:
@@ -20,7 +22,7 @@ services:
       ANVIL_IP_ADDR: '0.0.0.0'
     command: anvil --gas-limit 100000000 --host 0.0.0.0
     healthcheck:
-      test: ['CMD', 'nc', '-z', 'localhost', '8545']
+      test: ["CMD-SHELL", "nc -z localhost 8545 || exit 1"]
       interval: 5s
       timeout: 2s
       retries: 5
@@ -35,11 +37,14 @@ services:
       - /bin/sh
       - -c
       - |
+        npx --yes wait-on tcp:subgraph-node:8020
         npx graph create -g http://subgraph-node:8020 hardhat
         npx graph deploy hardhat subgraph/subgraph.yaml --network hardhat -g http://subgraph-node:8020 --ipfs http://ipfs:5001 -l v0.0.5 --network-file subgraph/networks.json -o .cache/subgraph/build
     depends_on:
-      - subgraph-node
-      - evm
+      subgraph-node:
+        condition: service_started
+      evm:
+        condition: service_healthy
 
   # Frontend Dev Web Server
   web:
@@ -53,17 +58,30 @@ services:
       - HOST=0.0.0.0
     command: npm run dev -- --host
     depends_on:
-      - evm
-      - subgraph-node
+      evm:
+        condition: service_healthy
+      subgraph-node:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5173/ || wget -qO- http://localhost:5173/ || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   blockscout:
     depends_on:
-      - redis-db
-      - blockscout-user-ops-indexer
-      - blockscout-sig-provider
-      - blockscout-visualizer
-      - blockscout-backend
-      - blockscout-frontend
+      redis-db:
+        condition: service_healthy
+      blockscout-user-ops-indexer:
+        condition: service_started
+      blockscout-sig-provider:
+        condition: service_started
+      blockscout-visualizer:
+        condition: service_started
+      blockscout-backend:
+        condition: service_healthy
+      blockscout-frontend:
+        condition: service_healthy
     image: nginx
     ports:
       - "80:80"
@@ -72,6 +90,11 @@ services:
     environment:
       BACK_PROXY_PASS: 'http://blockscout-backend:4000'
       FRONT_PROXY_PASS: 'http://blockscout-frontend:3000'
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/ || wget -qO- http://localhost/ || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 
   # --- Subservices (runs automatically by compose) ---
@@ -84,9 +107,12 @@ services:
       - '8030:8030'
       - '8040:8040'
     depends_on:
-      - ipfs
-      - postgres
-      - evm
+      ipfs:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      evm:
+        condition: service_healthy
     environment:
       node_id: default
       ipfs: 'ipfs:5001'
@@ -99,8 +125,10 @@ services:
 
   blockscout-backend:
     depends_on:
-      - redis-db
-      - postgres
+      redis-db:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
     image: ghcr.io/blockscout/blockscout:latest
     stop_grace_period: 5m
     command: sh -c "bin/blockscout eval \"Elixir.Explorer.ReleaseTasks.create_and_migrate()\" && bin/blockscout start"
@@ -127,6 +155,12 @@ services:
       INDEXER_DISABLE_PENDING_TRANSACTIONS_FETCHER: 'true'
       NFT_MEDIA_HANDLER_ENABLED: 'false'
       TXS_STATS_ENABLED: 'false'
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4000/api/v2/stats || wget -qO- http://localhost:4000/api/v2/stats || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 2m
 
   blockscout-frontend:
     image: ghcr.io/blockscout/frontend:latest
@@ -134,7 +168,8 @@ services:
     env_file:
       - ./blockscout/docker-compose/envs/common-frontend.env
     depends_on:
-      - blockscout-backend
+      blockscout-backend:
+        condition: service_healthy
     environment:
       NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID: ${WALLET_CONNECT_PROJECT_ID}
       NEXT_PUBLIC_NETWORK_RPC_URL: 'http://localhost:8545'
@@ -142,6 +177,11 @@ services:
       NEXT_PUBLIC_NETWORK_NAME: localhost
       NEXT_PUBLIC_NETWORK_SHORT_NAME: localhost
       NEXT_PUBLIC_HOMEPAGE_CHARTS: '[]'
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/ || wget -qO- http://localhost:3000/ || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   blockscout-visualizer:
     image: ghcr.io/blockscout/visualizer:${VISUALIZER_DOCKER_TAG:-latest}
@@ -155,7 +195,8 @@ services:
 
   blockscout-user-ops-indexer:
     depends_on:
-      - blockscout-backend
+      blockscout-backend:
+        condition: service_healthy
     image: ghcr.io/blockscout/user-ops-indexer:${USER_OPS_INDEXER_DOCKER_TAG:-latest}
     platform: linux/amd64
     env_file:
@@ -170,6 +211,11 @@ services:
     command: redis-server
     volumes:
       - blockscout:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   postgres:
     image: postgres:17
@@ -184,6 +230,11 @@ services:
     volumes:
       # Postgres uses /var/lib/postgresql/data. Data will be stored in volume root under 'data/'
       - subgraph:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U graph-node -d graph-node"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   ipfs:
     image: ipfs/kubo:v0.17.0
@@ -192,6 +243,11 @@ services:
     volumes:
       # IPFS uses /data/ipfs. Data will be stored in volume root under 'ipfs/'
       - subgraph:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5001/api/v0/version || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   subgraph:
