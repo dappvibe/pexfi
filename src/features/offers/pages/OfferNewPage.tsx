@@ -1,12 +1,22 @@
 import { Card, Skeleton } from 'antd'
-import OfferForm from '@/features/offers/components/OfferForm'
-import { useOfferForm } from '@/features/offers/hooks/useOfferForm'
+import CreateOfferForm from '@/features/offers/components/CreateOfferForm'
+import { useCreateOfferForm } from '@/features/offers/hooks/useCreateOfferForm'
 import { Helmet } from '@dr.pogodin/react-helmet'
 
 export default function OfferNewPage() {
-  const offerForm = useOfferForm()
+  const {
+    form,
+    tokens,
+    fiats,
+    methods,
+    inventoryLoading,
+    lockSubmit,
+    onSubmit,
+    onRateChange,
+    previewPrice,
+  } = useCreateOfferForm()
 
-  if (offerForm.inventoryLoading) return <Skeleton active />
+  if (inventoryLoading) return <Skeleton active />
 
   return (
     <>
@@ -15,7 +25,16 @@ export default function OfferNewPage() {
         <meta name="description" content="Create a new P2P crypto trading offer on PEXFI." />
       </Helmet>
       <Card title={'Publish an Offer'}>
-        <OfferForm {...offerForm} />
+        <CreateOfferForm
+          form={form}
+          tokens={tokens}
+          fiats={fiats}
+          methods={methods}
+          lockSubmit={lockSubmit}
+          onSubmit={onSubmit}
+          onRateChange={onRateChange}
+          previewPrice={previewPrice}
+        />
       </Card>
     </>
   )

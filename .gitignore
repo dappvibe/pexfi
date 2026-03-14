@@ -1,26 +1,52 @@
-.env
-*.local
-
-# Build Outputs
-.cache/
-
-evm/deployments/chain-31337/
-evm/ignition/parameters/hardhat.json
-evm/ignition/parameters/localhost.json
-evm/types/
-
-# Solidity Submodules
-evm/lib/
-
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-pnpm-debug.log*
-lerna-debug.log*
-
+```
 # Dependencies
 node_modules/
-.npm
-jspm_packages/
+
+# Build outputs
+dist/
+build/
+*.js
+*.ts
+*.tsx
+
+# Environment variables
+.env
+.env.local
+*.env.*
+
+# IDE specific
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+
+# Python cache (if any Python files exist in project)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Coverage reports
+coverage/
+htmlcov/
+.coverage
+
+# Distribution / packaging
+*.tar.gz
+*.zip
+*.egg-info/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Testing
+.nyc_output/
+coverage.xml
+```

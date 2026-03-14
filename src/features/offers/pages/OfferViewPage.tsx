@@ -3,11 +3,11 @@ import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import OfferSubnav from '@/features/offers/components/OfferSubnav'
 import OfferDescription from '@/features/offers/components/OfferDescription'
-import OfferForm from '@/features/offers/components/OfferForm'
+import EditOfferForm from '@/features/offers/components/EditOfferForm'
 import CreateDealForm from '@/features/offers/components/CreateDealForm'
 import { useCreateDeal } from '@/features/offers/hooks/useCreateDeal'
 import { useOffer } from '@/features/offers/hooks/useOffer'
-import { useOfferForm } from '@/features/offers/hooks/useOfferForm'
+import { useEditOfferForm } from '@/features/offers/hooks/useEditOfferForm'
 import { Helmet } from '@dr.pogodin/react-helmet'
 
 export default function OfferViewPage() {
@@ -37,9 +37,21 @@ export default function OfferViewPage() {
     syncFiatAmount,
   } = useCreateDeal({ offer, allowance, refetchAllowance })
 
-  const offerForm = useOfferForm({ offer, setRate, setLimits, setTerms, toggleDisabled })
+  const {
+    form: editForm,
+    tokens,
+    fiats,
+    methods,
+    inventoryLoading,
+    onRateChange,
+    previewPrice,
+    handleSetRate,
+    handleSetLimits,
+    handleSetTerms,
+    handleToggleDisabled,
+  } = useEditOfferForm({ offer, setRate, setLimits, setTerms, toggleDisabled })
 
-  if (!offer) return <Skeleton active />
+  if (!offer || inventoryLoading) return <Skeleton active />
 
   const isOwner = !!address && !!offer && offer.owner.toLowerCase() === address.toLowerCase()
 
@@ -51,7 +63,19 @@ export default function OfferViewPage() {
           <meta name="description" content={`Update offer details for ${offer.token?.symbol} on PEXFI.`} />
         </Helmet>
         <Card title={'Update offer'}>
-          <OfferForm offer={offer} {...offerForm} />
+          <EditOfferForm
+            offer={offer}
+            form={editForm}
+            tokens={tokens}
+            fiats={fiats}
+            methods={methods}
+            onRateChange={onRateChange}
+            previewPrice={previewPrice}
+            handleSetRate={handleSetRate}
+            handleSetLimits={handleSetLimits}
+            handleSetTerms={handleSetTerms}
+            handleToggleDisabled={handleToggleDisabled}
+          />
         </Card>
       </>
     )
