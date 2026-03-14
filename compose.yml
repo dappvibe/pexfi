@@ -22,7 +22,7 @@ services:
       ANVIL_IP_ADDR: '0.0.0.0'
     command: anvil --gas-limit 100000000 --host 0.0.0.0
     healthcheck:
-      test: ["CMD-SHELL", "cast block-number --rpc-url http://localhost:8545 || exit 1"]
+      test: ["CMD-SHELL", "cast block-number --rpc-url http://localhost:8545"]
       interval: 5s
       timeout: 2s
       retries: 5
