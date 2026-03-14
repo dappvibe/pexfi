@@ -6,7 +6,7 @@ schema:
 dataSources:
   - kind: ethereum
     name: Market
-    network: sepolia
+    network: 11155111
     source:
       abi: Market
       address: "0x7700aD9484F16662010B2dDd5b56A0b6F8c4c3b3"
@@ -55,7 +55,7 @@ dataSources:
       file: ./src/market.ts
   - kind: ethereum/contract
     name: Profile
-    network: hardhat
+    network: 31337
     source:
       abi: Profile
       address: "0x3a622DB2db50f463dF562Dc5F341545A64C580fc"
@@ -78,7 +78,7 @@ dataSources:
 templates:
   - kind: ethereum/contract
     name: Offer
-    network: sepolia
+    network: 11155111
     source:
       abi: Offer
     mapping:
@@ -104,7 +104,7 @@ templates:
       file: ./src/offer.ts
   - kind: ethereum/contract
     name: Deal
-    network: sepolia
+    network: 11155111
     source:
       abi: Deal
     mapping:
