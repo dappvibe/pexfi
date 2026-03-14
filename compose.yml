@@ -9,8 +9,6 @@ services:
         condition: service_completed_successfully
       web:
         condition: service_healthy
-      blockscout:
-        condition: service_healthy
 
   # Blockchain
   evm:
@@ -124,7 +122,7 @@ services:
       ethereum: 'hardhat:http://evm:8545'
       GRAPH_LOG: debug
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8020/ || wget -qO- http://localhost:8020/ || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8040/ || wget -qO- http://localhost:8040/ || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -166,6 +164,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+      start_period: 2m
 
   blockscout-frontend:
     image: ghcr.io/blockscout/frontend:latest
