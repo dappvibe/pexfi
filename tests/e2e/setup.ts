@@ -77,9 +77,6 @@ export const test = base.extend<{
     page.on('console', (msg) => {
       console.error(`[Browser Console] ${msg.text()}`)
     })
-    await page.addInitScript(() => {
-      window.E2E = true
-    })
     await use(page)
   },
 
@@ -106,9 +103,6 @@ export const test = base.extend<{
       const page = await ctx.newPage()
       page.on('console', (msg) => {
         console.error(`[Browser Console] ${msg.text()}`)
-      })
-      await page.addInitScript(() => {
-        window.E2E = true
       })
       await page.goto(`/#${startPage}`)
       await page.waitForFunction(() => typeof window.setAccount === 'function')
