@@ -30,7 +30,7 @@ const transports = {
 export const thirdwebClient = createThirdwebClient({ clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID })
 
 // E2E Testing Support: This is required to be here to automate provider in VITE env
-const connectors = window.E2E
+const connectors = typeof window !== 'undefined' && ((window as any).webdriver || window.navigator?.webdriver)
   ? [
       await import('@tests/e2e/wallet').then((m) => {
         m.install()
