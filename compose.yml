@@ -37,12 +37,11 @@ services:
       - /bin/sh
       - -c
       - |
-        npx --yes wait-on tcp:subgraph-node:8020
         npx graph create -g http://subgraph-node:8020 hardhat
         npx graph deploy hardhat subgraph/subgraph.yaml --network hardhat -g http://subgraph-node:8020 --ipfs http://ipfs:5001 -l v0.0.5 --network-file subgraph/networks.json -o .cache/subgraph/build
     depends_on:
       subgraph-node:
-        condition: service_started
+        condition: service_healthy
       evm:
         condition: service_healthy
 
@@ -61,7 +60,7 @@ services:
       evm:
         condition: service_healthy
       subgraph-node:
-        condition: service_started
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:5173/ || wget -qO- http://localhost:5173/ || exit 1"]
       interval: 5s
@@ -122,6 +121,11 @@ services:
       postgres_db: graph-node
       ethereum: 'hardhat:http://evm:8545'
       GRAPH_LOG: debug
+    healthcheck:
+      test: ["CMD-SHELL", "printf 'GET / HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' | nc localhost 8020 | grep -q '200 OK' || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   blockscout-backend:
     depends_on:
