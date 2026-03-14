@@ -40,6 +40,7 @@ export type Deal = {
   tokenAmountFormatted: number
   fiatAmount: bigint
   fiatAmountFormatted: number
+  method: string
   terms: string
   paymentInstructions: string
   allowCancelUnacceptedAfter: Date
@@ -74,8 +75,6 @@ export function useDeal(address: Address | undefined) {
           { ...dealContract, functionName: 'fiatAmount' },
           { ...dealContract, functionName: 'allowCancelUnacceptedAfter' },
           { ...dealContract, functionName: 'allowCancelUnpaidAfter' },
-          { ...dealContract, functionName: 'feedbackForOwner' },
-          { ...dealContract, functionName: 'feedbackForTaker' },
         ]
       : [],
     query: {
@@ -88,7 +87,6 @@ export function useDeal(address: Address | undefined) {
   const offerAddress = data?.[1]?.result as Address | undefined
 
   // Deal contract stores only offer address, not token. We need decimals to format tokenAmount.
-  // Reading offer.token (symbol) is the simplest way without composing hooks or complicating the page.
   const { data: offerTokenSymbol, refetch: refetchOfferTokenSymbol } = useReadContract({
     address: offerAddress,
     abi: offerAbi,
@@ -107,8 +105,6 @@ export function useDeal(address: Address | undefined) {
     setState(null)
     setFeedback({})
     refetch()
-    // refetch is memoized so:
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chainId])
 
   useEffect(() => {
@@ -152,16 +148,10 @@ export function useDeal(address: Address | undefined) {
     const now = new Date()
 
     const taker = data[2].result as Address
-    const feedbackOwner = data[7].result as [boolean, boolean] | undefined
-    const feedbackTaker = data[8].result as [boolean, boolean] | undefined
-
-    const parseFeedback = (fb: [boolean, boolean] | undefined): Feedback | null =>
-      fb?.[0] ? { given: fb[0], upvote: fb[1] } : null
 
     const tokenAmount = data[3].result as bigint
     const fiatAmount = data[4].result as bigint
 
-    // offer.token() returns string symbol directly
     const tokenSymbol = offerTokenSymbol as string | undefined
     const decimals = (tokenSymbol && tokens[tokenSymbol]?.decimals) ?? 18
 
@@ -178,8 +168,8 @@ export function useDeal(address: Address | undefined) {
       paymentInstructions: '',
       allowCancelUnacceptedAfter,
       allowCancelUnpaidAfter,
-      feedbackForOwner: feedback.forOwner ?? parseFeedback(feedbackOwner),
-      feedbackForTaker: feedback.forTaker ?? parseFeedback(feedbackTaker),
+      feedbackForOwner: feedback.forOwner ?? null,
+      feedbackForTaker: feedback.forTaker ?? null,
       messages,
       isFinal: currentState >= DealState.Cancelled,
       canCancelUnaccepted: currentState === DealState.Created && now >= allowCancelUnacceptedAfter,

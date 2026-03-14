@@ -121,9 +121,6 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
 
     IOffer offer = IOffer(deal.offer());
     emit DealCreated(offer.owner(), deal.taker(), address(offer), address(deal), method, terms, paymentInstructions);
-
-    IProfile profile = IProfile(finder.getImplementationAddress(Services.Profile));
-    profile.grantRole("DEAL_ROLE", address(deal));
   }
 
   /// @dev Method is in Market so that users provide allowance in single place instead of each Offer
