@@ -55,6 +55,9 @@ jobs:
         run: npx playwright install-deps
         if: steps.playwright-cache.outputs.cache-hit == 'true'
 
+      - name: Create .cache directory to prevent Docker root ownership
+        run: mkdir -p .cache
+
       - name: Start core services (EVM and Web)
         run: docker compose up --wait evm web
 

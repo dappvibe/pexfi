@@ -22,10 +22,10 @@ services:
       ANVIL_IP_ADDR: '0.0.0.0'
     command: anvil --gas-limit 100000000 --host 0.0.0.0
     healthcheck:
-      test: ["CMD-SHELL", "cast block-number --rpc-url http://localhost:8545"]
+      test: ["CMD-SHELL", "cast rpc eth_chainId --rpc-url http://127.0.0.1:8545 || exit 1"]
       interval: 5s
-      timeout: 2s
-      retries: 5
+      timeout: 5s
+      retries: 10
 
   # Subgraph Stack
   subgraph:
