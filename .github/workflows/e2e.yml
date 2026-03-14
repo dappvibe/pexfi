@@ -1,0 +1,83 @@
+name: E2E Tests
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    env:
+      VITE_ALCHEMY_KEY: ${{ secrets.VITE_ALCHEMY_KEY }}
+      WALLET_CONNECT_PROJECT_ID: ${{ secrets.WALLET_CONNECT_PROJECT_ID }}
+      VITE_THIRDWEB_CLIENT_ID: ${{ secrets.VITE_THIRDWEB_CLIENT_ID }}
+      VITE_CRISP_ID: ${{ secrets.VITE_CRISP_ID }}
+      NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID: ${{ secrets.WALLET_CONNECT_PROJECT_ID }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Get Playwright version
+        id: playwright-version
+        run: echo "PLAYWRIGHT_VERSION=$(npx playwright --version | awk '{print $2}')" >> $GITHUB_ENV
+
+      - name: Cache playwright binaries
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+
+      - name: Install Playwright OS Dependencies
+        run: npx playwright install-deps
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+
+      - name: Start core services (EVM and Web)
+        run: docker compose up --wait evm web
+
+      - name: Deploy Mock Dependencies
+        run: npx hardhat ignition deploy evm/modules/00_MockDependencies.ts --network localhost --build-profile=default
+
+      - name: Run local params
+        run: npx hardhat run evm/ignition/localparams.ts --network localhost
+
+      - name: Deploy Market
+        run: npx hardhat ignition deploy evm/modules/01_Market.ts --parameters evm/ignition/parameters/localhost.json --network localhost --build-profile=default
+
+      - name: Start Subgraph service
+        run: docker compose up --wait subgraph
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: .cache/playwright/report/
+          retention-days: 30
+
+      - name: Upload Playwright results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-results
+          path: .cache/playwright/results/
+          retention-days: 30
