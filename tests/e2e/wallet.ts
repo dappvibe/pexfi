@@ -24,6 +24,7 @@ export const connector = () => e2eConnector({
 
 declare global {
   interface Window {
+    E2E: boolean
     provider: typeof provider
     setAccount: (id: number) => void
     setChain: (id: number) => void
