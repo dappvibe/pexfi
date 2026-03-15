@@ -124,16 +124,20 @@ export function useDeal(address: Address | undefined) {
         toBlock: 'latest',
       })
       .then(async (logs) => {
-        const parsed = await Promise.all(
-          logs.map(async (log) => {
-            const block = await publicClient.getBlock({ blockHash: log.blockHash! })
-            return {
-              sender: log.args.sender as Address,
-              message: log.args.message as string,
-              timestamp: Number(block.timestamp),
-            }
+        const blockHashToTimestamp = new Map<string, number>()
+        const uniqueBlockHashes = [...new Set(logs.map((log) => log.blockHash!))]
+        await Promise.all(
+          uniqueBlockHashes.map(async (hash) => {
+            const block = await publicClient.getBlock({ blockHash: hash })
+            blockHashToTimestamp.set(hash, Number(block.timestamp))
           })
         )
+
+        const parsed = logs.map((log) => ({
+          sender: log.args.sender as Address,
+          message: log.args.message as string,
+          timestamp: blockHashToTimestamp.get(log.blockHash!)!,
+        }))
         setMessages(parsed)
       })
   }, [address, publicClient])
