@@ -11,7 +11,7 @@ test.describe.serial('Deal cancellation', () => {
     await taker.setAccount(1)
     await taker.page.getByPlaceholder('Crypto Amount').fill('0.1')
     await taker.page.getByPlaceholder('Fiat Amount').fill('150')
-    await taker.page.getByRole('button', { name: 'Open Deal' }).click()
+    await taker.page.getByRole('button', { name: /Approve.*|Open Deal/ }).click()
     await taker.page.waitForURL(/\/trade\/deal\/0x[a-fA-F0-9]{40}/)
     const dealAddress = taker.page.url().split('/').pop()
     await maker.page.goto('/#/trade/deal/' + dealAddress)
