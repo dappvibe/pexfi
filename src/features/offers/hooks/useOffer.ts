@@ -1,18 +1,10 @@
-import { useCallback, useMemo, useState, useEffect } from 'react'
-import { useAccount, usePublicClient } from 'wagmi'
+import { useMemo, useEffect } from 'react'
 import { Address, padHex, hexToString, trim } from 'viem'
 import { normalizeMarketPrice } from '@/utils'
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
 import { useAddress, useInventory, decodeMethod, type Token } from '@/shared/web3'
-import {
-  useReadMarketGetPrice,
-  useReadErc20Allowance,
-  useWriteOfferSetRate,
-  useWriteOfferSetLimits,
-  useWriteOfferSetTerms,
-  useWriteOfferSetDisabled,
-} from '@/wagmi'
+import { useReadMarketGetPrice } from '@/wagmi'
 
 
 export type Offer = {
@@ -57,7 +49,6 @@ const GQL_OFFER = gql`
 
 interface UseOfferOptions {
   fetchPrice?: boolean
-  fetchAllowance?: boolean
   pollInterval?: number
 }
 
@@ -88,8 +79,7 @@ interface OfferQueryResult {
 }
 
 export function useOffer(offerId: string | undefined, options: UseOfferOptions = {}) {
-  const { fetchPrice = false, fetchAllowance = false, pollInterval = 0 } = options
-  const account = useAccount()
+  const { fetchPrice = false, pollInterval = 0 } = options
   const marketAddress = useAddress('Market#Market')
   const { methods } = useInventory()
 
@@ -119,20 +109,6 @@ export function useOffer(offerId: string | undefined, options: UseOfferOptions =
     query: { enabled: fetchPrice && !!rawOffer && !!marketAddress },
   })
 
-  // Fetch allowance if needed
-  const { data: allowanceValue, refetch: refetchAllowance } = useReadErc20Allowance({
-    address: rawOffer?.token.address as Address,
-    args: account.address && marketAddress ? [account.address, marketAddress as Address] : undefined,
-    query: { enabled: fetchAllowance && !!rawOffer && !!account.address && !!marketAddress && !rawOffer.isSell },
-  })
-
-  const [allowance, setAllowance] = useState<bigint>(0n)
-  useEffect(() => {
-    if (allowanceValue !== undefined) {
-      setAllowance(allowanceValue as bigint)
-    }
-  }, [allowanceValue])
-
   const offer = useMemo<Offer | null>(() => {
     if (!rawOffer) return null
 
@@ -142,7 +118,6 @@ export function useOffer(offerId: string | undefined, options: UseOfferOptions =
       const basePrice = normalizeMarketPrice(marketPrice as bigint)
       price = (basePrice * normalizedRate).toFixed(3)
     }
-
 
     return {
       id: rawOffer.id,
@@ -169,78 +144,10 @@ export function useOffer(offerId: string | undefined, options: UseOfferOptions =
     }
   }, [rawOffer, marketPrice, methods])
 
-  // Write hooks
-  const { writeContractAsync: setRateTx } = useWriteOfferSetRate()
-  const { writeContractAsync: setLimitsTx } = useWriteOfferSetLimits()
-  const { writeContractAsync: setTermsTx } = useWriteOfferSetTerms()
-  const { writeContractAsync: setDisabledTx } = useWriteOfferSetDisabled()
-  const publicClient = usePublicClient()
-
-  const setRate = useCallback(
-    async (rate: number) => {
-      if (!offerId) return
-      const hash = await setRateTx({
-        address: offerId as Address,
-        args: [Math.floor(rate * 10000)],
-      })
-      await publicClient?.waitForTransactionReceipt({ hash })
-      // Small delay to allow subgraph to pick up the change
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      await refetch()
-    },
-    [offerId, setRateTx, refetch, publicClient]
-  )
-
-  const setLimits = useCallback(
-    async (min: number, max: number) => {
-      if (!offerId) return
-      const hash = await setLimitsTx({
-        address: offerId as Address,
-        args: [{ min: Math.floor(min), max: Math.floor(max) }],
-      })
-      await publicClient?.waitForTransactionReceipt({ hash })
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      await refetch()
-    },
-    [offerId, setLimitsTx, refetch, publicClient]
-  )
-
-  const setTerms = useCallback(
-    async (terms: string) => {
-      if (!offerId) return
-      const hash = await setTermsTx({
-        address: offerId as Address,
-        args: [terms],
-      })
-      await publicClient?.waitForTransactionReceipt({ hash })
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      await refetch()
-    },
-    [offerId, setTermsTx, refetch, publicClient]
-  )
-
-  const toggleDisabled = useCallback(async () => {
-    if (!offerId || !offer) return
-    const hash = await setDisabledTx({
-      address: offerId as Address,
-      args: [!offer.disabled],
-    })
-    await publicClient?.waitForTransactionReceipt({ hash })
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    await refetch()
-  }, [offerId, offer, setDisabledTx, refetch, publicClient])
-
   return {
     offer,
-    allowance,
-    setAllowance,
     isLoading: loading,
     error,
     refetch,
-    refetchAllowance,
-    setRate,
-    setLimits,
-    setTerms,
-    toggleDisabled,
   }
 }

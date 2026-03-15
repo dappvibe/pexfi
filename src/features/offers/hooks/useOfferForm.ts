@@ -1,3 +1,4 @@
+import { useOfferActions } from './useOfferActions'
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Form, message } from 'antd'
@@ -10,14 +11,13 @@ import { useOffer } from './useOffer'
 import { normalizeMarketPrice } from '@/utils'
 
 interface UseOfferFormParams {
+  offerId?: string
   offer?: any
-  setRate?: (rate: number) => Promise<void>
-  setLimits?: (min: number, max: number) => Promise<void>
-  setTerms?: (terms: string) => Promise<void>
-  toggleDisabled?: () => Promise<void>
+  refetch?: () => void
 }
 
-export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggleDisabled }: UseOfferFormParams = {}) {
+export function useOfferForm({ offerId, offer = null, refetch = () => {} }: UseOfferFormParams = {}) {
+  const { setRate, setLimits, setTerms, toggleDisabled } = useOfferActions(offerId, offer, refetch)
   const navigate = useNavigate()
   const publicClient = usePublicClient()
   const marketAddress = useAddress('Market#Market')

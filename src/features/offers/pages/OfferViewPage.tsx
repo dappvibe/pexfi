@@ -7,25 +7,20 @@ import OfferForm from '@/features/offers/components/OfferForm'
 import CreateDealForm from '@/features/offers/components/CreateDealForm'
 import { useCreateDeal } from '@/features/offers/hooks/useCreateDeal'
 import { useOffer } from '@/features/offers/hooks/useOffer'
+import { useOfferAllowance } from '@/features/offers/hooks/useOfferAllowance'
 import { useOfferForm } from '@/features/offers/hooks/useOfferForm'
 import { Helmet } from '@dr.pogodin/react-helmet'
 
 export default function OfferViewPage() {
   const { offerId } = useParams()
   const { address } = useAccount()
-  const {
-    offer,
-    allowance,
-    refetchAllowance,
-    setRate,
-    setLimits,
-    setTerms,
-    toggleDisabled,
-  } = useOffer(offerId, {
+
+  const { offer, refetch } = useOffer(offerId, {
     fetchPrice: true,
-    fetchAllowance: true,
     pollInterval: 2000,
   })
+
+  const { allowance, refetchAllowance } = useOfferAllowance(offer, true)
 
   const {
     form,
@@ -37,7 +32,7 @@ export default function OfferViewPage() {
     syncFiatAmount,
   } = useCreateDeal({ offer, allowance, refetchAllowance })
 
-  const offerForm = useOfferForm({ offer, setRate, setLimits, setTerms, toggleDisabled })
+  const offerForm = useOfferForm({ offerId, offer, refetch })
 
   if (!offer) return <Skeleton active />
 
