@@ -80,20 +80,8 @@ jobs:
       - name: Create .cache directory to prevent Docker root ownership
         run: mkdir -p .cache
 
-      - name: Start EVM node
-        run: docker compose up --wait evm
-
-      - name: Deploy Mock Dependencies
-        run: npx hardhat ignition deploy evm/modules/00_MockDependencies.ts --network localhost --build-profile=default
-
-      - name: Generate parameters.json
-        run: npx hardhat run evm/ignition/localparams.ts --network localhost
-
-      - name: Deploy Market
-        run: npx hardhat ignition deploy evm/modules/01_Market.ts --parameters evm/ignition/parameters/localhost.json --network localhost --build-profile=default
-
-      - name: Start Subgraph service
-        run: docker compose up --wait subgraph
+      - name: Start docker stack
+        run: docker compose up all --wait --wait-timeout 120
 
       - name: Build Web for E2E
         run: npm run build:web -- --mode development
