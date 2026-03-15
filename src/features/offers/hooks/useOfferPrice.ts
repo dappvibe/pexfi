@@ -7,7 +7,7 @@ import { useAddress } from '@/shared/web3'
 export function useOfferPrice(offer: { token?: { address: string } | null, fiat: string, rate: number } | null | undefined, enabled: boolean = true) {
   const marketAddress = useAddress('Market#Market')
 
-  let marketArgs: [`0x${string}`, `0x${string}`] | undefined
+  let marketArgs: [Address, Address] | undefined
   if (offer && offer.token) {
     marketArgs = [offer.token.address as Address, padHex(stringToHex(offer.fiat), { size: 3, dir: 'right' })]
   }

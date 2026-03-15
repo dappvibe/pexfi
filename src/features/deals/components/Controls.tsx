@@ -8,10 +8,10 @@ import Feedback from '@/features/deals/components/Feedback'
 import { equal } from '@/utils'
 import { DealState } from '@/features/deals/hooks/useReadDeal'
 import { useAddress } from '@/shared/web3'
-import { maxUint256, stringToHex } from 'viem'
+import { Address, maxUint256, stringToHex } from 'viem'
 
 interface DealButtonProps {
-  dealAddress: `0x${string}`
+  dealAddress: Address
   functionName: 'accept' | 'fund' | 'paid' | 'release' | 'dispute' | 'cancel'
   label: React.ReactNode
   successMessage?: string
