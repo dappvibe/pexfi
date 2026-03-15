@@ -1,19 +1,12 @@
 import React from 'react'
 import { useAccount, useReadContract, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
-import {
-  dealAbi,
-  erc20Abi,
-  useReadPexfiVaultBalanceOf,
-  useReadPexfiVestingOwner,
-  useSimulateDeal,
-  useWritePexfiVestingBond,
-} from '@/wagmi'
+import { dealAbi, erc20Abi, useReadPexfiVaultBalanceOf, useReadPexfiVestingOwner, useSimulateDeal, useWritePexfiVestingBond } from '@/wagmi'
 import { message, Skeleton, Space, Statistic } from 'antd'
 import { useDealContext } from '@/features/deals/hooks/useDealContext'
 import { LoadingButton } from '@/shared/ui'
 import Feedback from '@/features/deals/components/Feedback'
 import { equal } from '@/utils'
-import { DealState } from '@/wagmi/contracts/useDeal'
+import { DealState } from '@/features/deals/hooks/useReadDeal'
 import { useAddress } from '@/shared/web3'
 import { maxUint256, stringToHex } from 'viem'
 

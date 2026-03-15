@@ -7,7 +7,7 @@ import { equal } from '@/utils'
 import { dealAbi } from '@/wagmi'
 
 export default function MessageBox() {
-  const { deal, offer } = useDealContext()
+  const { deal, offer, messages } = useDealContext()
   const [lockSubmit, setLockSubmit] = useState(false)
   const { address } = useAccount()
   const [form] = useForm()
@@ -65,7 +65,7 @@ export default function MessageBox() {
       <List
         size="small"
         bordered
-        dataSource={deal.messages}
+        dataSource={messages}
         renderItem={(msg) => (
           <List.Item>
             <b>{getSenderLabel(msg.sender)}</b>
