@@ -104,18 +104,27 @@ jobs:
       - name: Dump Docker logs
         if: always()
         run: |
-          docker logs pexfi-evm-1 > .cache/evm.log 2>&1 || true
-          docker logs pexfi-subgraph-1 > .cache/subgraph.log 2>&1 || true
-          docker logs pexfi-subgraph-node-1 > .cache/subgraph-node.log 2>&1 || true
-          docker logs pexfi-postgres-1 > .cache/postgres.log 2>&1 || true
-          docker logs pexfi-ipfs-1 > .cache/ipfs.log 2>&1 || true
+          for service in evm subgraph subgraph-node postgres ipfs; do
+            container=$(docker ps -a --format '{{.Names}}' | grep -i $service | head -n 1)
+            if [ -n "$container" ]; then
+              echo "Extracting logs for $container"
+              docker logs "$container" > .cache/${service}.log 2>&1 || true
+            else
+              echo "Container for $service not found" > .cache/${service}.log
+            fi
+          done
 
       - name: Upload Docker logs
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: docker-compose-logs
-          path: .cache/*.log
+          path: |
+            .cache/evm.log
+            .cache/subgraph.log
+            .cache/subgraph-node.log
+            .cache/postgres.log
+            .cache/ipfs.log
           retention-days: 30
 
       - name: Upload Playwright report
