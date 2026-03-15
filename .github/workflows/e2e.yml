@@ -8,6 +8,7 @@ on:
       - '.github/workflows/e2e.yml'
       - 'package.json'
       - 'compose.yml'
+      - 'playwright.config.ts'
       - 'evm/**'
       - 'src/**'
       - 'tests/e2e/**'
