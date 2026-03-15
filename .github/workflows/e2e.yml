@@ -39,8 +39,7 @@ jobs:
         with:
           path: node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          save-always: 'true'
 
       - name: Install dependencies
         if: steps.npm-cache.outputs.cache-hit != 'true'
@@ -56,6 +55,7 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+          save-always: 'true'
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
@@ -83,9 +83,6 @@ jobs:
       - name: Start Subgraph service
         run: docker compose up --wait subgraph
 
-      - name: Wait for Subgraph to sync
-        run: sleep 15
-
       - name: Build Web for E2E
         run: npm run build:web -- --mode development
 
@@ -94,7 +91,17 @@ jobs:
 
       - name: Dump Docker logs
         if: always()
-        run: docker compose logs evm subgraph subgraph-node postgres ipfs > .cache/docker-compose-logs.txt
+        run: |
+          docker logs pexfi-evm-1 > .cache/evm.log 2>&1 || true
+          docker logs pexfi-subgraph-1 > .cache/subgraph.log 2>&1 || true
+          docker logs pexfi-subgraph-node-1 > .cache/subgraph-node.log 2>&1 || true
+          docker logs pexfi-postgres-1 > .cache/postgres.log 2>&1 || true
+          docker logs pexfi-ipfs-1 > .cache/ipfs.log 2>&1 || true
+          cat .cache/subgraph.log > .cache/docker-compose-logs.txt
+          cat .cache/subgraph-node.log >> .cache/docker-compose-logs.txt
+          cat .cache/evm.log >> .cache/docker-compose-logs.txt
+          cat .cache/postgres.log >> .cache/docker-compose-logs.txt
+          cat .cache/ipfs.log >> .cache/docker-compose-logs.txt
 
       - name: Upload Docker logs
         uses: actions/upload-artifact@v4
