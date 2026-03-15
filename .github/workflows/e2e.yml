@@ -80,11 +80,11 @@ jobs:
       - name: Deploy Market
         run: npx hardhat ignition deploy evm/modules/01_Market.ts --parameters evm/ignition/parameters/localhost.json --network localhost --build-profile=default
 
-      - name: Generate Subgraph Networks JSON
-        run: npx tsx subgraph/generate-networks.json.ts
-
       - name: Start Subgraph service
         run: docker compose up --wait subgraph
+
+      - name: Wait for Subgraph to sync
+        run: sleep 15
 
       - name: Build Web for E2E
         run: npm run build:web -- --mode development
@@ -94,7 +94,7 @@ jobs:
 
       - name: Dump Docker logs
         if: always()
-        run: docker compose logs > .cache/docker-compose-logs.txt
+        run: docker compose logs evm subgraph subgraph-node postgres ipfs > .cache/docker-compose-logs.txt
 
       - name: Upload Docker logs
         uses: actions/upload-artifact@v4
