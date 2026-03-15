@@ -5,10 +5,19 @@ services:
     depends_on:
       evm:
         condition: service_healthy
+      deploy:
+        condition: service_completed_successfully
       subgraph:
         condition: service_completed_successfully
+      subgraph-node:
+        condition: service_healthy
       web:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
+      ipfs:
+        condition: service_healthy
+    command: tail -f /dev/null
 
   # Blockchain
   evm:
@@ -26,6 +35,22 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  deploy:
+    image: node:22
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npx hardhat ignition deploy evm/modules/00_MockDependencies.ts --network compose --build-profile=default
+        npx hardhat run evm/ignition/localparams.ts --network compose
+        npx hardhat ignition deploy evm/modules/01_Market.ts --parameters evm/ignition/parameters/localhost.json --network compose --build-profile=default
+    depends_on:
+      evm:
+        condition: service_healthy
 
   # Subgraph Stack
   subgraph:
@@ -45,18 +70,15 @@ services:
         echo "Waiting for subgraph to sync..."
         node -e "
           const url = 'http://subgraph-node:8030/graphql';
-          const query = { query: '{ indexingStatuses(subgraphs: [\"hardhat\"]) { synced fatalError { message } } }' };
+          const query = { query: '{ indexingStatuses { synced } }' };
           const poll = async () => {
             while(true) {
               try {
                 const res = await fetch(url, { method: 'POST', body: JSON.stringify(query), headers: { 'Content-Type': 'application/json' } });
                 const json = await res.json();
+                console.log(JSON.stringify(json));
                 const status = json?.data?.indexingStatuses?.[0];
                 if (status) {
-                  if (status.fatalError) {
-                    console.error('Fatal subgraph error:', status.fatalError.message);
-                    process.exit(1);
-                  }
                   if (status.synced) {
                     console.log('Subgraph successfully synced!');
                     process.exit(0);
@@ -71,8 +93,8 @@ services:
     depends_on:
       subgraph-node:
         condition: service_healthy
-      evm:
-        condition: service_healthy
+      deploy:
+        condition: service_completed_successfully
 
   # Frontend Dev Web Server
   web:
@@ -91,10 +113,10 @@ services:
       subgraph-node:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:5173/ || wget -qO- http://localhost:5173/ || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:5173/ || exit 1"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 20
 
   blockscout:
     depends_on:
