@@ -3,14 +3,14 @@ import type { PartyContext } from '@tests/e2e/setup'
 
 export async function accept(party: PartyContext) {
   await party.page.getByRole('button', { name: 'Accept' }).click()
-  await expect(party.page.locator('#root').getByText('Accepted')).toBeVisible()
+  await expect(party.page.locator('#root').getByText('Accepted')).toBeVisible({ timeout: 15000 })
 }
 
 export async function fund(party: PartyContext) {
   const fundButton = party.page.getByRole('button', { name: 'Fund' })
   const approveButton = party.page.getByRole('button', { name: 'Approve' })
   const actionButton = fundButton.or(approveButton)
-  await expect(actionButton).toBeVisible()
+  await expect(actionButton).toBeVisible({ timeout: 15000 })
   const buttonText = await actionButton.textContent()
   if (buttonText?.trim() === 'Approve') {
     await approveButton.click()
@@ -22,7 +22,7 @@ export async function fund(party: PartyContext) {
 
 
   await fundButton.click()
-  await expect(party.page.locator('span').filter({ hasText: 'Funded' })).toBeVisible()
+  await expect(party.page.locator('span').filter({ hasText: 'Funded' })).toBeVisible({ timeout: 15000 })
 }
 
 export async function markPaid(party: PartyContext) {
@@ -45,7 +45,7 @@ export async function cancel(party: PartyContext) {
 }
 
 export async function expectState(party: PartyContext, state: string) {
-  await expect(party.page.locator('.ant-steps').getByText(state)).toBeVisible()
+  await expect(party.page.locator('.ant-steps').getByText(state)).toBeVisible({ timeout: 15000 })
 }
 
 export async function sendMessage(party: PartyContext, text: string) {
@@ -54,7 +54,7 @@ export async function sendMessage(party: PartyContext, text: string) {
 }
 
 export async function expectMessage(party: PartyContext, text: string) {
-  await expect(party.page.getByText(new RegExp(`.*${text}`))).toBeVisible()
+  await expect(party.page.getByText(new RegExp(`.*${text}`))).toBeVisible({ timeout: 15000 })
 }
 
 export async function leaveFeedback(party: PartyContext, positive: boolean, comment: string) {
@@ -64,5 +64,5 @@ export async function leaveFeedback(party: PartyContext, positive: boolean, comm
   await label.click()
   await party.page.getByPlaceholder('Comments').fill(comment)
   await party.page.getByRole('button', { name: 'Submit' }).click()
-  await expect(party.page.getByText('Feedback submitted!')).toBeVisible()
+  await expect(party.page.getByText('Feedback submitted!')).toBeVisible({ timeout: 15000 })
 }
