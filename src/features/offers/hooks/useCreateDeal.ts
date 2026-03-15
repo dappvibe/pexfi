@@ -6,7 +6,7 @@ import { usePublicClient } from 'wagmi'
 import { useAddress } from '@/shared/web3'
 import { type Offer } from '@/features/offers/hooks/useQueryOffer.ts'
 import { useUserDeals } from '@/features/deals/hooks/useUserDeals'
-import { marketAbi, useWriteErc20Approve, useWriteOfferCreateDeal } from '@/wagmi'
+import { marketAbi, useWriteOfferCreateDeal } from '@/wagmi'
 
 interface UseCreateDealProps {
   offer: Offer | null
@@ -38,7 +38,6 @@ export function useCreateDeal({ offer }: UseCreateDealProps) {
     setLockButton(true)
 
     try {
-
       const amount = BigInt(Math.floor(values['fiatAmount'] * 10 ** 6))
       message.loading({ content: 'Deal submitted. Waiting for confirmation...', key: 'createDeal', duration: 0 })
       const hash = await createDealTx({

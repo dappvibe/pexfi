@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { message } from 'antd'
 import { useReadDeal } from './useReadDeal'
 import { useQueryOffer } from '@/features/offers/hooks/useQueryOffer.ts'
+import { useOfferPrice } from '@/features/offers/hooks/useOfferPrice'
 import { useQueryProfile } from '@/features/profile/hooks/useQueryProfile'
 import { useDealSubgraph } from '@/features/deals/hooks/useDealSubgraph'
 
@@ -10,7 +11,11 @@ export function useDealPage() {
   const { dealId } = useParams()
 
   const { deal: contractDeal, isLoading: dealLoading, error, refetch } = useReadDeal(dealId as `0x${string}`)
-  const { offer, isLoading: offerLoading } = useQueryOffer(contractDeal?.offer)
+  const { offer: baseOffer, isLoading: offerLoading } = useQueryOffer(contractDeal?.offer)
+  const { price, isLoading: priceLoading } = useOfferPrice(baseOffer, true)
+  
+  const offer = baseOffer ? { ...baseOffer, price } : null
+
   const { profile: ownerProfile, loading: ownerProfileLoading } = useQueryProfile(offer?.owner)
   const { profile: takerProfile, loading: takerProfileLoading } = useQueryProfile(contractDeal?.taker)
 
@@ -39,7 +44,7 @@ export function useDealPage() {
     offer,
     ownerProfile,
     takerProfile,
-    isLoading: dealLoading || offerLoading || subgraphLoading || ownerProfileLoading || takerProfileLoading,
+    isLoading: dealLoading || offerLoading || priceLoading || subgraphLoading || ownerProfileLoading || takerProfileLoading,
     refetch,
   }
 }
