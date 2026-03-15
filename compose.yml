@@ -277,6 +277,11 @@ services:
     volumes:
       # IPFS uses /data/ipfs. Data will be stored in volume root under 'ipfs/'
       - subgraph:/data
+    healthcheck:
+      test: ["CMD", "ipfs", "id"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   subgraph:
