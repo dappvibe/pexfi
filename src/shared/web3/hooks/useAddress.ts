@@ -1,3 +1,4 @@
+import { Address } from 'viem'
 import { useChainId } from 'wagmi'
 
 // Eagerly load all deployed_addresses.json files
@@ -17,5 +18,5 @@ export function useAddress(contractName: string) {
   }
 
   const addresses = deployments[key] as Record<string, string>
-  return addresses[contractName] as `0x${string}`
+  return addresses[contractName] as Address
 }

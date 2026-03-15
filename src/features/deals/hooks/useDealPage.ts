@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react'
+import { Address } from 'viem'
 import { useParams } from 'react-router-dom'
 import { message } from 'antd'
 import { useReadDeal } from './useReadDeal'
@@ -10,7 +11,7 @@ import { useDealSubgraph } from '@/features/deals/hooks/useDealSubgraph'
 export function useDealPage() {
   const { dealId } = useParams()
 
-  const { deal: contractDeal, isLoading: dealLoading, error, refetch } = useReadDeal(dealId as `0x${string}`)
+  const { deal: contractDeal, isLoading: dealLoading, error, refetch } = useReadDeal(dealId as Address)
   const { offer: baseOffer, isLoading: offerLoading } = useQueryOffer(contractDeal?.offer)
   const { price, isLoading: priceLoading } = useOfferPrice(baseOffer, true)
   

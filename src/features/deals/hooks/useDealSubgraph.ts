@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
-import { hexToString, trim } from 'viem'
+import { Address, hexToString, trim } from 'viem'
 import { useInventory } from '@/shared/web3'
 
 const GQL_DEAL = gql`
@@ -38,7 +38,7 @@ export function useDealSubgraph(dealId: string | undefined) {
     if (subgraphData?.deal) {
       const d = subgraphData.deal
       try {
-        methodName = hexToString(trim(d.method as `0x${string}`, { dir: 'right' }))
+        methodName = hexToString(trim(d.method as Address, { dir: 'right' }))
       } catch (e) {
         const found = Object.values(methods).find((m: any) => Number(m.index) === Number(d.method))
         methodName = found ? (found as any).name : `Method #${d.method}`

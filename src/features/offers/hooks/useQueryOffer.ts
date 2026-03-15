@@ -108,7 +108,7 @@ export function useQueryOffer(offerId: string | undefined, options: UseOfferOpti
             decimals: rawOffer.token.decimals,
           }
         : null,
-      fiat: hexToString(trim(rawOffer.fiat as `0x${string}`, { dir: 'right' })),
+      fiat: hexToString(trim(rawOffer.fiat as Address, { dir: 'right' })),
       method: decodeMethod(rawOffer.methods, methods),
       rate: normalizedRate,
       min: rawOffer.minFiat,

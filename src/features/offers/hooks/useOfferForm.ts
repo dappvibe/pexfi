@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Form, message } from 'antd'
-import { padHex, stringToHex, parseEventLogs } from 'viem'
+import { Address, padHex, stringToHex, parseEventLogs } from 'viem'
 import { usePublicClient } from 'wagmi'
 import { useInventory } from '@/shared/web3'
 import { useReadMarketGetPrice, useWriteMarketCreateOffer, marketAbi } from '@/wagmi'
@@ -39,8 +39,8 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
   }, [newOfferAddress, createdOffer, isSyncing, navigate])
 
   const [rateParams, setRateParams] = useState<{
-    token: `0x${string}`
-    fiat: `0x${string}`
+    token: Address
+    fiat: Address
   } | null>(null)
 
   const { data: priceData } = useReadMarketGetPrice({
