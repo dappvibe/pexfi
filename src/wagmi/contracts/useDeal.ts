@@ -125,7 +125,8 @@ export function useDeal(address: Address | undefined) {
       })
       .then(async (logs) => {
         const blockHashToTimestamp = new Map<string, number>()
-        const uniqueBlockHashes = [...new Set(logs.map((log) => log.blockHash!))]
+        const validBlockHashes = logs.map((log) => log.blockHash).filter((hash): hash is NonNullable<typeof hash> => !!hash)
+        const uniqueBlockHashes = [...new Set(validBlockHashes)]
         await Promise.all(
           uniqueBlockHashes.map(async (hash) => {
             const block = await publicClient.getBlock({ blockHash: hash })
@@ -136,7 +137,7 @@ export function useDeal(address: Address | undefined) {
         const parsed = logs.map((log) => ({
           sender: log.args.sender as Address,
           message: log.args.message as string,
-          timestamp: blockHashToTimestamp.get(log.blockHash!)!,
+          timestamp: log.blockHash ? (blockHashToTimestamp.get(log.blockHash) ?? 0) : 0,
         }))
         setMessages(parsed)
       })
