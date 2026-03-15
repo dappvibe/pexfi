@@ -7,7 +7,7 @@ import { useDealMessages } from '@/features/deals/hooks/useDealMessages'
 import { useDealFeedback } from '@/features/deals/hooks/useDealFeedback'
 import { Helmet } from '@dr.pogodin/react-helmet'
 
-export default function DealViewPage() {
+export default function DealPage() {
   const { deal, offer, ownerProfile, takerProfile, isLoading, refetch } = useDealPage()
   const { messages } = useDealMessages(deal?.address)
   const { feedback } = useDealFeedback(deal?.address, deal?.taker)
@@ -31,4 +31,3 @@ export default function DealViewPage() {
     </DealContext.Provider>
   )
 }
-
