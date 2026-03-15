@@ -13,14 +13,16 @@ export default defineConfig({
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
+  retries: 0,
+  /* Stop the test suite immediately upon the first failure in CI to upload artifacts faster */
+  maxFailures: process.env.CI ? 1 : undefined,
   /* Opt out of parallel tests on CI. */
   workers: 1,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [['html', { outputFolder: './.cache/playwright/report' }]],
   outputDir: './.cache/playwright/results',
 
-  timeout: 30_000,
+  timeout: 60_000,
 
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {

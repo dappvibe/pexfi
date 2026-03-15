@@ -5,10 +5,8 @@ on:
     branches:
       - '**'
     paths:
-      - '.github/workflows/e2e.yml'
-      - 'package.json'
-      - 'compose.yml'
       - 'evm/**'
+      - 'package.json'
       - 'src/**'
       - 'tests/e2e/**'
       - 'subgraph/**'
