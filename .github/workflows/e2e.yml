@@ -1,8 +1,5 @@
 name: E2E Tests
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-
 on:
   push:
     branches:
@@ -27,9 +24,6 @@ jobs:
       NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID: ${{ secrets.WALLET_CONNECT_PROJECT_ID }}
 
     steps:
-      - name: Opt-in to Node 24 for GitHub Actions
-        run: echo "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true" >> $GITHUB_ENV
-
       - name: Checkout Code
         uses: actions/checkout@v4
 
@@ -91,17 +85,14 @@ jobs:
       - name: Deploy Mock Dependencies
         run: npx hardhat ignition deploy evm/modules/00_MockDependencies.ts --network localhost --build-profile=default
 
-      - name: Run local params
+      - name: Generate parameters.json
         run: npx hardhat run evm/ignition/localparams.ts --network localhost
 
       - name: Deploy Market
         run: npx hardhat ignition deploy evm/modules/01_Market.ts --parameters evm/ignition/parameters/localhost.json --network localhost --build-profile=default
 
-      - name: Start Subgraph service
-        run: docker compose up --wait subgraph
-
-      - name: Build Web for E2E
-        run: npm run build:web -- --mode development
+      - name: Start Subgraph and Web services
+        run: docker compose up --wait subgraph web
 
       - name: Run E2E tests
         run: npm run test:e2e
