@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useChainId, usePublicClient, useReadContract, useReadContracts, useWatchContractEvent } from 'wagmi'
+import { useChainId, useReadContract, useReadContracts, useWatchContractEvent } from 'wagmi'
 import { Address, formatUnits } from 'viem'
 import { dealAbi, offerAbi } from '@/wagmi'
 import { useInventory } from '@/shared/web3'
@@ -13,22 +13,6 @@ export enum DealState {
   Cancelled = 5,
   Resolved = 6,
   Released = 7,
-}
-
-export type Feedback = {
-  given: boolean
-  upvote: boolean
-}
-
-export type Message = {
-  sender: Address
-  message: string
-  timestamp: number
-}
-
-type FeedbackState = {
-  forOwner?: Feedback
-  forTaker?: Feedback
 }
 
 export type Deal = {
@@ -45,25 +29,17 @@ export type Deal = {
   paymentInstructions: string
   allowCancelUnacceptedAfter: Date
   allowCancelUnpaidAfter: Date
-  feedbackForOwner: Feedback | null
-  feedbackForTaker: Feedback | null
-  messages: Message[]
-  /** Is deal in a final state (cancelled or released) */
   isFinal: boolean
-  /** Can current user cancel based on timeouts */
   canCancelUnaccepted: boolean
   canCancelUnpaid: boolean
 }
 
-export function useDeal(address: Address | undefined) {
+export function useReadDeal(address: Address | undefined) {
   const chainId = useChainId()
-  const publicClient = usePublicClient()
   const { tokens } = useInventory()
   const dealContract = address ? ({ address, abi: dealAbi } as const) : null
 
   const [state, setState] = useState<DealState | null>(null)
-  const [feedback, setFeedback] = useState<FeedbackState>({})
-  const [messages, setMessages] = useState<Message[]>([])
 
   const { data, isLoading, error, refetch } = useReadContracts({
     contracts: dealContract
@@ -86,7 +62,6 @@ export function useDeal(address: Address | undefined) {
 
   const offerAddress = data?.[1]?.result as Address | undefined
 
-  // Deal contract stores only offer address, not token. We need decimals to format tokenAmount.
   const { data: offerTokenSymbol, refetch: refetchOfferTokenSymbol } = useReadContract({
     address: offerAddress,
     abi: offerAbi,
@@ -101,47 +76,9 @@ export function useDeal(address: Address | undefined) {
   }, [offerAddress, refetchOfferTokenSymbol])
 
   useEffect(() => {
-    setMessages([])
     setState(null)
-    setFeedback({})
     refetch()
-  }, [chainId])
-
-  useEffect(() => {
-    if (!address || !publicClient) return
-    publicClient
-      .getLogs({
-        address,
-        event: {
-          type: 'event',
-          name: 'Message',
-          inputs: [
-            { type: 'address', name: 'sender', indexed: true },
-            { type: 'string', name: 'message', indexed: false },
-          ],
-        },
-        fromBlock: 'earliest',
-        toBlock: 'latest',
-      })
-      .then(async (logs) => {
-        const blockHashToTimestamp = new Map<string, number>()
-        const validBlockHashes = logs.map((log) => log.blockHash).filter((hash): hash is NonNullable<typeof hash> => !!hash)
-        const uniqueBlockHashes = [...new Set(validBlockHashes)]
-        await Promise.all(
-          uniqueBlockHashes.map(async (hash) => {
-            const block = await publicClient.getBlock({ blockHash: hash })
-            blockHashToTimestamp.set(hash, Number(block.timestamp))
-          })
-        )
-
-        const parsed = logs.map((log) => ({
-          sender: log.args.sender as Address,
-          message: log.args.message as string,
-          timestamp: log.blockHash ? (blockHashToTimestamp.get(log.blockHash) ?? 0) : 0,
-        }))
-        setMessages(parsed)
-      })
-  }, [address, publicClient])
+  }, [chainId, refetch])
 
   const deal = useMemo<Deal | null>(() => {
     if (!data || !address || data.some((d) => d.status === 'failure')) return null
@@ -169,18 +106,16 @@ export function useDeal(address: Address | undefined) {
       tokenAmountFormatted: Number(formatUnits(tokenAmount, decimals)),
       fiatAmount,
       fiatAmountFormatted: Number(formatUnits(fiatAmount, 6)),
+      method: '',
       terms: '',
       paymentInstructions: '',
       allowCancelUnacceptedAfter,
       allowCancelUnpaidAfter,
-      feedbackForOwner: feedback.forOwner ?? null,
-      feedbackForTaker: feedback.forTaker ?? null,
-      messages,
       isFinal: currentState >= DealState.Cancelled,
       canCancelUnaccepted: currentState === DealState.Created && now >= allowCancelUnacceptedAfter,
       canCancelUnpaid: currentState === DealState.Funded && now >= allowCancelUnpaidAfter,
     }
-  }, [data, address, state, feedback, messages, offerTokenSymbol, tokens])
+  }, [data, address, state, offerTokenSymbol, tokens])
 
   useWatchContractEvent({
     address,
@@ -191,37 +126,6 @@ export function useDeal(address: Address | undefined) {
       if (newState !== undefined) {
         setState(Number(newState) as DealState)
       }
-    },
-    enabled: !!address,
-  })
-
-  useWatchContractEvent({
-    address,
-    abi: dealAbi,
-    eventName: 'FeedbackGiven',
-    onLogs: (logs) => {
-      const log = logs[0]
-      if (!log?.args) return
-      const { to, upvote } = log.args as { to: Address; upvote: boolean }
-      const fb: Feedback = { given: true, upvote }
-      const taker = data?.[2]?.result as Address | undefined
-      setFeedback((prev) => ({
-        ...prev,
-        ...(to === taker ? { forTaker: fb } : { forOwner: fb }),
-      }))
-    },
-    enabled: !!address && !!data,
-  })
-
-  useWatchContractEvent({
-    address,
-    abi: dealAbi,
-    eventName: 'Message',
-    onLogs: (logs) => {
-      logs.forEach((log) => {
-        const { sender, message } = log.args as { sender: Address; message: string }
-        setMessages((prev) => [...prev, { sender, message, timestamp: Math.floor(Date.now() / 1000) }])
-      })
     },
     enabled: !!address,
   })

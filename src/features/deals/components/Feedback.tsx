@@ -5,7 +5,7 @@ import { dealAbi } from '@/wagmi'
 import { equal } from '@/utils'
 
 export default function Feedback() {
-  const { deal, offer } = useDealContext()
+  const { deal, offer, feedback } = useDealContext()
   const { address: account } = useAccount()
   const { writeContractAsync, isPending } = useWriteContract()
   const [form] = Form.useForm()
@@ -15,7 +15,7 @@ export default function Feedback() {
   const isOwner = equal(account, offer.owner)
   const isTaker = equal(account, deal.taker)
 
-  const feedbackGiven = isOwner ? deal.feedbackForTaker?.given : isTaker ? deal.feedbackForOwner?.given : false
+  const feedbackGiven = isOwner ? feedback.forTaker?.given : isTaker ? feedback.forOwner?.given : false
 
   async function submit() {
     await writeContractAsync({
