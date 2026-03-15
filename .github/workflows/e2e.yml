@@ -80,6 +80,9 @@ jobs:
       - name: Deploy Market
         run: npx hardhat ignition deploy evm/modules/01_Market.ts --parameters evm/ignition/parameters/localhost.json --network localhost --build-profile=default
 
+      - name: Generate Subgraph Networks JSON
+        run: npx tsx subgraph/generate-networks.json.ts
+
       - name: Start Subgraph service
         run: docker compose up --wait subgraph
 
@@ -88,6 +91,18 @@ jobs:
 
       - name: Run E2E tests
         run: npm run test:e2e
+
+      - name: Dump Docker logs
+        if: always()
+        run: docker compose logs > .cache/docker-compose-logs.txt
+
+      - name: Upload Docker logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: docker-compose-logs
+          path: .cache/docker-compose-logs.txt
+          retention-days: 30
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
