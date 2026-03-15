@@ -87,7 +87,7 @@ interface OfferQueryResult {
   offer: RawOffer | null
 }
 
-export function useOffer(offerId: string | undefined, options: UseOfferOptions = {}) {
+export function useQueryOffer(offerId: string | undefined, options: UseOfferOptions = {}) {
   const { fetchPrice = false, fetchAllowance = false, pollInterval = 0 } = options
   const account = useAccount()
   const marketAddress = useAddress('Market#Market')

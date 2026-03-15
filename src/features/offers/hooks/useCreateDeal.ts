@@ -4,7 +4,7 @@ import { Form, message } from 'antd'
 import { Address, decodeEventLog } from 'viem'
 import { usePublicClient } from 'wagmi'
 import { useAddress } from '@/shared/web3'
-import { type Offer } from '@/features/offers/hooks/useOffer'
+import { type Offer } from '@/features/offers/hooks/useQueryOffer.ts'
 import { useUserDeals } from '@/features/deals/hooks/useUserDeals'
 import { marketAbi, useWriteErc20Approve, useWriteOfferCreateDeal } from '@/wagmi'
 

@@ -6,7 +6,7 @@ import OfferDescription from '@/features/offers/components/OfferDescription'
 import OfferForm from '@/features/offers/components/OfferForm'
 import CreateDealForm from '@/features/offers/components/CreateDealForm'
 import { useCreateDeal } from '@/features/offers/hooks/useCreateDeal'
-import { useOffer } from '@/features/offers/hooks/useOffer'
+import { useQueryOffer } from '@/features/offers/hooks/useQueryOffer.ts'
 import { useOfferForm } from '@/features/offers/hooks/useOfferForm'
 import { Helmet } from '@dr.pogodin/react-helmet'
 
@@ -19,7 +19,7 @@ export default function OfferViewPage() {
     setLimits,
     setTerms,
     toggleDisabled,
-  } = useOffer(offerId, {
+  } = useQueryOffer(offerId, {
     fetchPrice: true,
     pollInterval: 2000,
   })

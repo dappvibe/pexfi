@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { message } from 'antd'
 import { useReadDeal } from './useReadDeal'
-import { useOffer } from '@/features/offers/hooks/useOffer'
+import { useQueryOffer } from '@/features/offers/hooks/useQueryOffer.ts'
 import { useQueryProfile } from '@/features/profile/hooks/useQueryProfile'
 import { useDealSubgraph } from '@/features/deals/hooks/useDealSubgraph'
 
@@ -10,7 +10,7 @@ export function useDealPage() {
   const { dealId } = useParams()
 
   const { deal: contractDeal, isLoading: dealLoading, error, refetch } = useReadDeal(dealId as `0x${string}`)
-  const { offer, isLoading: offerLoading } = useOffer(contractDeal?.offer)
+  const { offer, isLoading: offerLoading } = useQueryOffer(contractDeal?.offer)
   const { profile: ownerProfile, loading: ownerProfileLoading } = useQueryProfile(offer?.owner)
   const { profile: takerProfile, loading: takerProfileLoading } = useQueryProfile(contractDeal?.taker)
 
