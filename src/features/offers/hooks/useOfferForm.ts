@@ -6,7 +6,7 @@ import { usePublicClient } from 'wagmi'
 import { useInventory } from '@/shared/web3'
 import { useReadMarketGetPrice, useWriteMarketCreateOffer, marketAbi } from '@/wagmi'
 import { useAddress } from '@/shared/web3'
-import { useOffer } from './useOffer'
+import { useQueryOffer } from './useQueryOffer.ts'
 import { normalizeMarketPrice } from '@/utils'
 
 interface UseOfferFormParams {
@@ -28,7 +28,7 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
 
   const [newOfferAddress, setNewOfferAddress] = useState<string | undefined>()
   // useOffer handles the polling/loading of the offer from the subgraph.
-  const { offer: createdOffer, isLoading: isSyncing } = useOffer(newOfferAddress, { pollInterval: 1000 })
+  const { offer: createdOffer, isLoading: isSyncing } = useQueryOffer(newOfferAddress, { pollInterval: 1000 })
 
   useEffect(() => {
     if (newOfferAddress && createdOffer && !isSyncing) {

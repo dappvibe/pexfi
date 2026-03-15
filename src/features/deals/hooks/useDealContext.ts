@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react'
 import { Deal } from './useReadDeal'
-import { Offer } from '@/features/offers/hooks/useOffer'
+import { Offer } from '@/features/offers/hooks/useQueryOffer.ts'
 import { Profile } from '@/wagmi/contracts'
 import { Message } from './useDealMessages'
 import { FeedbackState } from './useDealFeedback'
