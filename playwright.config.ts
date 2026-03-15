@@ -26,7 +26,6 @@ export default defineConfig({
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
     baseURL: 'http://localhost:5173',
-    channel: 'chrome', // use installed chrome browser
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
