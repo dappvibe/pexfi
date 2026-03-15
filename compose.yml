@@ -37,6 +37,7 @@ services:
       - /bin/sh
       - -c
       - |
+        npm run subgraph:codegen
         npx tsx subgraph/generate-networks.json.ts
         npx graph create -g http://subgraph-node:8020 hardhat
         npx graph deploy hardhat subgraph/subgraph.yaml --network 31337 -g http://subgraph-node:8020 --ipfs http://ipfs:5001 -l v0.0.1 --network-file subgraph/networks.json -o .cache/subgraph/build
