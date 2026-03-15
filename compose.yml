@@ -22,11 +22,10 @@ services:
       ANVIL_IP_ADDR: '0.0.0.0'
     command: anvil --gas-limit 100000000 --host 0.0.0.0
     healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 8545 || exit 1"]
+      test: ["CMD-SHELL", "cast rpc eth_chainId --rpc-url http://127.0.0.1:8545 || exit 1"]
       interval: 5s
-      timeout: 2s
-      retries: 5
-      start_period: 15s
+      timeout: 5s
+      retries: 10
 
   # Subgraph Stack
   subgraph:
@@ -38,9 +37,37 @@ services:
       - /bin/sh
       - -c
       - |
+        npm run subgraph:codegen
         npx tsx subgraph/generate-networks.json.ts
         npx graph create -g http://subgraph-node:8020 hardhat
         npx graph deploy hardhat subgraph/subgraph.yaml --network 31337 -g http://subgraph-node:8020 --ipfs http://ipfs:5001 -l v0.0.1 --network-file subgraph/networks.json -o .cache/subgraph/build
+
+        echo "Waiting for subgraph to sync..."
+        node -e "
+          const url = 'http://subgraph-node:8030/graphql';
+          const query = { query: '{ indexingStatuses(subgraphs: [\"hardhat\"]) { synced fatalError { message } } }' };
+          const poll = async () => {
+            while(true) {
+              try {
+                const res = await fetch(url, { method: 'POST', body: JSON.stringify(query), headers: { 'Content-Type': 'application/json' } });
+                const json = await res.json();
+                const status = json?.data?.indexingStatuses?.[0];
+                if (status) {
+                  if (status.fatalError) {
+                    console.error('Fatal subgraph error:', status.fatalError.message);
+                    process.exit(1);
+                  }
+                  if (status.synced) {
+                    console.log('Subgraph successfully synced!');
+                    process.exit(0);
+                  }
+                }
+              } catch (e) {}
+              await new Promise(r => setTimeout(r, 2000));
+            }
+          };
+          poll();
+        "
     depends_on:
       subgraph-node:
         condition: service_healthy
