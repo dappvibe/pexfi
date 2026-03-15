@@ -61,13 +61,13 @@ export default defineConfig({
 
   chainDescriptors: {
     31337: {
-      name: "Localhost",
-      chainType: "generic",
+      name: 'Localhost',
+      chainType: 'generic',
       blockExplorers: {
         etherscan: {
-          name: "Localhost Explorer",
-          url: "http://localhost",
-          apiUrl: "http://localhost/api",
+          name: 'Localhost Explorer',
+          url: 'http://localhost',
+          apiUrl: 'http://localhost/api',
         },
       },
     },
