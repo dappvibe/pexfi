@@ -84,7 +84,7 @@ jobs:
         run: docker compose up --wait subgraph
 
       - name: Build Web for E2E
-        run: npm run build:web
+        run: npm run build:web -- --mode development
 
       - name: Run E2E tests
         run: npm run test:e2e
