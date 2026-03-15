@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="e2e: offer CRUD" type="JavaScriptTestRunnerPlaywright" activateToolWindowBeforeRun="false">
+    <node-interpreter value="project" />
+    <playwright-package value="$PROJECT_DIR$/node_modules/@playwright/test" />
+    <working-dir value="$PROJECT_DIR$" />
+    <envs />
+    <scope-kind value="TEST_FILE" />
+    <test-file value="$PROJECT_DIR$/tests/e2e/offer/offer-crud.spec.ts" />
+    <method v="2" />
+  </configuration>
+</component>
