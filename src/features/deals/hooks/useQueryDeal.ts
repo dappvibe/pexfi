@@ -22,7 +22,7 @@ interface GraphDeal {
   paymentInstructions: string | null
 }
 
-export function useDealSubgraph(dealId: string | undefined) {
+export function useQueryDeal(dealId: string | undefined) {
   const { methods, loading: inventoryLoading } = useInventory()
 
   const { data: subgraphData, loading: subgraphLoading } = useQuery<{ deal: GraphDeal }>(GQL_DEAL, {
