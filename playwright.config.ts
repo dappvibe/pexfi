@@ -14,8 +14,6 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: 0,
-  /* Stop the test suite immediately upon the first failure in CI to upload artifacts faster */
-  maxFailures: process.env.CI ? 1 : undefined,
   /* Opt out of parallel tests on CI. */
   workers: 1,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
