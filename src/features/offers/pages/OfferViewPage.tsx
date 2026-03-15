@@ -15,15 +15,12 @@ export default function OfferViewPage() {
   const { address } = useAccount()
   const {
     offer,
-    allowance,
-    refetchAllowance,
     setRate,
     setLimits,
     setTerms,
     toggleDisabled,
   } = useOffer(offerId, {
     fetchPrice: true,
-    fetchAllowance: true,
     pollInterval: 2000,
   })
 
@@ -35,7 +32,7 @@ export default function OfferViewPage() {
     createDeal,
     syncTokenAmount,
     syncFiatAmount,
-  } = useCreateDeal({ offer, allowance, refetchAllowance })
+  } = useCreateDeal({ offer })
 
   const offerForm = useOfferForm({ offer, setRate, setLimits, setTerms, toggleDisabled })
 
