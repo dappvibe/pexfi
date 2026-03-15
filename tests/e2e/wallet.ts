@@ -12,7 +12,7 @@ import { hardhat } from 'wagmi/chains'
 export const provider = createE2EProvider({
   chains: [hardhat],
   rpcUrls: {
-    31337: 'http://localhost:8545'
+    31337: 'http://127.0.0.1:8545'
   },
 })
 

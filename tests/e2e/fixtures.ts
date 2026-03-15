@@ -12,7 +12,7 @@ const PEXFI_TOKEN = deployments['Market#PexfiToken'] as `0x${string}`
 
 export { marketAbi, offerAbi, dealAbi }
 
-const transport = http('http://localhost:8545')
+const transport = http('http://127.0.0.1:8545')
 export const publicClient = createPublicClient({
   chain: hardhat,
   transport,

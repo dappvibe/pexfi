@@ -66,7 +66,7 @@ vi.mock('ethers', async (importOriginal) => {
 
 // 3. Mock Project Config (Adjust path as necessary relative to this file)
 vi.mock('@/wagmi.config', () => ({
-  getRpcUrl: vi.fn(() => 'http://localhost:8545'),
+  getRpcUrl: vi.fn(() => 'http://127.0.0.1:8545'),
   config: {
     chains: [{ id: 31337, name: 'Hardhat' }],
     connectors: [],
