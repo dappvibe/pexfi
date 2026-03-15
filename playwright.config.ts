@@ -40,4 +40,11 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
+
+  /* Run your local dev server before starting the tests */
+  webServer: {
+    command: process.env.CI ? 'npx vite preview --port 5173' : 'npm run dev',
+    port: 5173,
+    reuseExistingServer: !process.env.CI,
+  },
 })

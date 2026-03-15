@@ -91,8 +91,11 @@ jobs:
       - name: Deploy Market
         run: npx hardhat ignition deploy evm/modules/01_Market.ts --parameters evm/ignition/parameters/localhost.json --network localhost --build-profile=default
 
-      - name: Start Subgraph and Web services
-        run: docker compose up --wait subgraph web
+      - name: Start Subgraph service
+        run: docker compose up --wait subgraph
+
+      - name: Build Web for E2E
+        run: npm run build:web -- --mode development
 
       - name: Run E2E tests
         run: npm run test:e2e
