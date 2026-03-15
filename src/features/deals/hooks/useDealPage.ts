@@ -10,7 +10,7 @@ export function useDealPage() {
   const { dealId } = useParams()
 
   const { deal: contractDeal, isLoading: dealLoading, error, refetch } = useReadDeal(dealId as `0x${string}`)
-  const { offer, isLoading: offerLoading } = useOffer(contractDeal?.offer, { pollInterval: 1000 })
+  const { offer, isLoading: offerLoading } = useOffer(contractDeal?.offer)
   const { profile: ownerProfile, loading: ownerProfileLoading } = useQueryProfile(offer?.owner)
   const { profile: takerProfile, loading: takerProfileLoading } = useQueryProfile(contractDeal?.taker)
 
