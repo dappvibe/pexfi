@@ -6,7 +6,7 @@ import { useReadDeal } from './useReadDeal'
 import { useQueryOffer } from '@/features/offers/hooks/useQueryOffer.ts'
 import { useOfferPrice } from '@/features/offers/hooks/useOfferPrice'
 import { useQueryProfile } from '@/features/profile/hooks/useQueryProfile'
-import { useDealSubgraph } from '@/features/deals/hooks/useDealSubgraph'
+import { useQueryDeal } from '@/features/deals/hooks/useQueryDeal.ts'
 
 export function useDealPage() {
   const { dealId } = useParams()
@@ -14,13 +14,13 @@ export function useDealPage() {
   const { deal: contractDeal, isLoading: dealLoading, error, refetch } = useReadDeal(dealId as Address)
   const { offer: baseOffer, isLoading: offerLoading } = useQueryOffer(contractDeal?.offer)
   const { price, isLoading: priceLoading } = useOfferPrice(baseOffer, true)
-  
+
   const offer = baseOffer ? { ...baseOffer, price } : null
 
   const { profile: ownerProfile, loading: ownerProfileLoading } = useQueryProfile(offer?.owner)
   const { profile: takerProfile, loading: takerProfileLoading } = useQueryProfile(contractDeal?.taker)
 
-  const { subgraphInfo, subgraphLoading } = useDealSubgraph(dealId)
+  const { subgraphInfo, subgraphLoading } = useQueryDeal(dealId)
 
   useEffect(() => {
     if (error) {
