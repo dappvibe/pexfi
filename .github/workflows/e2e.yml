@@ -27,6 +27,9 @@ jobs:
       NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID: ${{ secrets.WALLET_CONNECT_PROJECT_ID }}
 
     steps:
+      - name: Opt-in to Node 24 for GitHub Actions
+        run: echo "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true" >> $GITHUB_ENV
+
       - name: Checkout Code
         uses: actions/checkout@v4
 
