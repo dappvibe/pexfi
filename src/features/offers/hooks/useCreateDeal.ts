@@ -10,11 +10,9 @@ import { marketAbi, useWriteErc20Approve, useWriteOfferCreateDeal } from '@/wagm
 
 interface UseCreateDealProps {
   offer: Offer | null
-  allowance: bigint
-  refetchAllowance: () => Promise<any>
 }
 
-export function useCreateDeal({ offer, allowance, refetchAllowance }: UseCreateDealProps) {
+export function useCreateDeal({ offer }: UseCreateDealProps) {
   const navigate = useNavigate()
   const publicClient = usePublicClient()
   const marketAddress = useAddress('Market#Market')
@@ -33,32 +31,13 @@ export function useCreateDeal({ offer, allowance, refetchAllowance }: UseCreateD
     }
   }, [newDealAddress, createdDeal, isSyncing, navigate])
 
-  const { writeContractAsync: approveTx } = useWriteErc20Approve()
   const { writeContractAsync: createDealTx } = useWriteOfferCreateDeal()
-
-  async function approve() {
-    if (!offer || allowance > 0n || offer.isSell) return
-
-    try {
-      message.loading({ content: `Approving ${offer.token?.symbol}...`, key: 'createDeal', duration: 0 })
-      const hash = await approveTx({
-        address: offer.token?.address as Address,
-        args: [marketAddress as Address, BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')],
-      })
-      await publicClient?.waitForTransactionReceipt({ hash })
-      await refetchAllowance()
-    } catch (e: any) {
-      message.error({ content: e.shortMessage || 'Approval failed', key: 'createDeal' })
-      throw e
-    }
-  }
 
   async function createDeal(values: any) {
     if (!offer || !marketAddress) return
     setLockButton(true)
 
     try {
-      await approve()
 
       const amount = BigInt(Math.floor(values['fiatAmount'] * 10 ** 6))
       message.loading({ content: 'Deal submitted. Waiting for confirmation...', key: 'createDeal', duration: 0 })
@@ -120,9 +99,7 @@ export function useCreateDeal({ offer, allowance, refetchAllowance }: UseCreateD
 
   let submitLabel = 'Open Deal'
   let submitDisabled = false // Caller should handle account check if needed, or we can keep it here
-  if (offer && !offer.isSell && !allowance) {
-    submitLabel = `Approve ${offer.token?.symbol}`
-  }
+
   if (offer && offer.disabled) {
     submitLabel = 'Offer is disabled'
     submitDisabled = true

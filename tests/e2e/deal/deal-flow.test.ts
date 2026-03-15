@@ -14,14 +14,7 @@ test.describe.serial('Deal flow', () => {
     await taker.page.getByPlaceholder('Crypto Amount').fill('0.1')
     await taker.page.getByPlaceholder('Fiat Amount').fill('150')
     const openButton = taker.page.getByRole('button', { name: 'Open Deal' })
-    const approveButton = taker.page.getByRole('button', { name: /Approve \w+/ })
-    const actionButton = openButton.or(approveButton)
-    await expect(actionButton).toBeVisible()
-    const buttonText = await actionButton.textContent()
-    if (buttonText?.startsWith('Approve')) {
-      await approveButton.click()
-      await expect(openButton).toBeVisible()
-    }
+    await expect(openButton).toBeVisible()
     await openButton.click()
     await expect(taker.page.getByText('Deal submitted')).toBeVisible()
     await taker.page.waitForURL(/\/trade\/deal\/0x[a-fA-F0-9]{40}/)
