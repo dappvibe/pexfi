@@ -31,6 +31,10 @@ export const thirdwebClient = createThirdwebClient({ clientId: import.meta.env.V
 // We explicitly bypass 'typeof window' check in the static analysis so Vite does not tree-shake the E2E mock chunk in production builds
 const _isE2E = () => { try { return typeof window !== 'undefined' && ((window as any).webdriver || window.navigator?.webdriver) } catch(e) { return false } }
 
+if (_isE2E() && !chains.includes(hardhat)) {
+  chains.unshift(hardhat)
+}
+
 const connectors = _isE2E()
   ? [
       await import('@tests/e2e/wallet').then((m) => {
