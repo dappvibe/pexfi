@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { Address } from 'viem'
-import { useAccount, useConfig } from 'wagmi'
+import { useConnection, useConfig } from 'wagmi'
 import { useActiveAccount } from 'thirdweb/react'
 import { waitForTransactionReceipt } from '@wagmi/core'
 import {
@@ -21,7 +21,7 @@ export type ProfileStats = {
 }
 
 export function useProfilePage() {
-  const { address: connectedAddress } = useAccount()
+  const { address: connectedAddress } = useConnection()
   const activeAccount = useActiveAccount()
   const { profile: profileParam } = useParams()
   const address = (profileParam as Address) || connectedAddress || activeAccount?.address
@@ -31,8 +31,8 @@ export function useProfilePage() {
 
   const { profile, loading: isProfileLoading, refetch: refetchProfile } = useQueryProfile(address)
 
-  const { writeContractAsync: register } = useWriteProfileRegister()
-  const { writeContractAsync: updateInfoContract } = useWriteProfileUpdateInfo()
+  const { mutateAsync: register } = useWriteProfileRegister()
+  const { mutateAsync: updateInfoContract } = useWriteProfileUpdateInfo()
 
   const stats = useMemo<ProfileStats | null>(() => {
     if (!profile) return null

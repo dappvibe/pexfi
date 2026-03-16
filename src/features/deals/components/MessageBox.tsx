@@ -4,7 +4,7 @@ import { useDeal } from '@/features/deals/hooks/useDeal.ts'
 import { useDealMessages } from '@/features/deals/hooks/useDealMessages'
 import { useQueryOffer } from '@/features/offers/hooks/useQueryOffer'
 import { useForm } from 'antd/lib/form/Form.js'
-import { useAccount, useWriteContract } from 'wagmi'
+import { useConnection, useWriteContract } from 'wagmi'
 import { equal } from '@/utils'
 import { dealAbi } from '@/wagmi'
 
@@ -13,9 +13,9 @@ export default function MessageBox() {
   const { messages } = useDealMessages(deal?.address)
   const { offer } = useQueryOffer(deal?.offer)
   const [lockSubmit, setLockSubmit] = useState(false)
-  const { address } = useAccount()
+  const { address } = useConnection()
   const [form] = useForm()
-  const { writeContractAsync } = useWriteContract()
+  const { mutateAsync } = useWriteContract()
 
   async function upload(file: File) {
     const reader = new FileReader()
@@ -27,7 +27,7 @@ export default function MessageBox() {
     if (!deal) return
     setLockSubmit(true)
     try {
-      await writeContractAsync({
+      await mutateAsync({
         address: deal.address,
         abi: dealAbi,
         functionName: 'message',

@@ -1,5 +1,5 @@
 import React from 'react'
-import { useAccount, useReadContract, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
+import { useConnection, useReadContract, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
 import { dealAbi, erc20Abi, useReadPexfiVaultBalanceOf, useReadPexfiVestingOwner, useSimulateDeal, useWritePexfiVestingBond } from '@/wagmi'
 import { message, Skeleton, Space, Statistic } from 'antd'
 import { useDeal } from '@/features/deals/hooks/useDeal.ts'
@@ -36,7 +36,7 @@ function DealButton({
     },
   })
 
-  const { writeContractAsync, isPending } = useWriteContract()
+  const { mutateAsync, isPending } = useWriteContract()
 
   const onClick = async () => {
     if (error) {
@@ -47,7 +47,7 @@ function DealButton({
       return
     }
     try {
-      await writeContractAsync(data.request)
+      await mutateAsync(data.request)
       if (successMessage) message.success(successMessage)
     } catch (e: any) {
       message.error(e?.shortMessage || e?.message || 'Transaction failed')
@@ -70,12 +70,12 @@ function DealButton({
 export default function Controls() {
   const { deal } = useDeal()
   const { offer } = useQueryOffer(deal?.offer)
-  const { address } = useAccount()
+  const { address } = useConnection()
   const marketAddress = useAddress('Market#Market')
   const vaultAddress = useAddress('Market#PexfiVault')
   const vestingAddress = useAddress('Market#PexfiVesting')
 
-  const { writeContractAsync: writeBondAsync } = useWritePexfiVestingBond()
+  const { mutateAsync: writeBondAsync } = useWritePexfiVestingBond()
 
   const tokenAddress = offer?.token?.address
 
@@ -107,7 +107,7 @@ export default function Controls() {
     query: { enabled: !!vestingAddress && isDisputed },
   })
 
-  const { writeContractAsync: approveAsync, data: approveHash } = useWriteContract()
+  const { mutateAsync: approveAsync, data: approveHash } = useWriteContract()
   const { isLoading: isApproving } = useWaitForTransactionReceipt({
     hash: approveHash,
     query: { enabled: !!approveHash },
