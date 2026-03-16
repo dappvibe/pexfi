@@ -8,10 +8,8 @@ switch (import.meta.env.MODE) {
   default:
     chains.push(hardhat)
   // fallthrough
-  case 'staging':
-    chains.push(sepolia)
-  // fallthrough
   case 'production':
+    chains.push(sepolia)
     chains.push(mainnet)
 }
 
