@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Empty, List, Skeleton, Tag } from 'antd'
-import { useAccount } from 'wagmi'
+import { useConnection } from 'wagmi'
 import { useUserDeals } from '@/features/deals/hooks/useUserDeals'
 import { equal } from '@/utils'
 import { Helmet } from '@dr.pogodin/react-helmet'
@@ -11,7 +11,7 @@ function StateTag({ state }: { state: number }) {
 }
 
 function DealItem({ deal }: { deal: any }) {
-  const { address } = useAccount()
+  const { address } = useConnection()
 
   function time(timestamp: number) {
     return new Date(timestamp * 1000).toLocaleString()

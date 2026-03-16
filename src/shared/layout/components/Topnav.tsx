@@ -2,12 +2,12 @@ import { Col, Menu, Row } from 'antd'
 import { generatePath, Link, useParams } from 'react-router-dom'
 import { Notifications, WalletMenu } from '@/shared/web3'
 import logo from '@/assets/images/logo.png'
-import { useAccount } from 'wagmi'
+import { useConnection } from 'wagmi'
 import { useActiveAccount } from 'thirdweb/react'
 
 export default function Topnav() {
   const params = useParams()
-  const { isConnected, address } = useAccount()
+  const { isConnected, address } = useConnection()
   const activeAccount = useActiveAccount()
 
   const navItems = [

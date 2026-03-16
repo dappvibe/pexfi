@@ -42,3 +42,12 @@ Transactions in Wagmi generally require a three-step UX process:
 
 - **Use ONLY Viem/Wagmi utilities:** Never import `ethers.js` or `web3.js` formatting or hashing utilities.
 - For conversions: `parseUnits`, `formatUnits`, `parseEther`, and `formatEther` all live in `viem`.
+
+## 6. Migration to Wagmi v3 (Important Hooks)
+
+When working on or refactoring code, enforce Wagmi v3 naming conventions:
+- **`useAccount` is deprecated.** Replace it with `useConnection`.
+- **`useAccountEffect` is deprecated.** Replace it with `useConnectionEffect`.
+- **`useSwitchAccount` is deprecated.** Replace it with `useSwitchConnection`.
+- **Destructuring `useWriteContract`:** The returned write function should be destructured as `mutate` or `mutateAsync` instead of the old `writeContract`/`writeContractAsync`. Example: `const { mutateAsync } = useWriteContract()`.
+- Do not use `useConnect().connectors` or `useDisconnect().connectors`; use `useConnectors` and `useConnections` respectively.

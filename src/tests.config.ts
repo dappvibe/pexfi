@@ -16,7 +16,7 @@ vi.mock('wagmi', async (importOriginal) => {
       request: vi.fn(),
     })),
     useConnectorClient: vi.fn(() => ({ data: null })),
-    useAccount: vi.fn(() => ({
+    useConnection: vi.fn(() => ({
       address: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266', // Standard Hardhat Account #0
       isConnected: true,
       chain: { id: 31337 },
@@ -32,7 +32,7 @@ vi.mock('wagmi', async (importOriginal) => {
     useBalance: vi.fn(() => ({ data: { formatted: '1.0', symbol: 'ETH' } })),
     useEnsName: vi.fn(() => ({ data: null })),
     useWaitForTransactionReceipt: vi.fn(() => ({ isLoading: false, isSuccess: true })),
-    useWriteContract: vi.fn(() => ({ writeContract: vi.fn(), isPending: false })),
+    useWriteContract: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
     useReadContract: vi.fn(() => ({ data: null })),
     useSimulateContract: vi.fn(() => ({ data: null })),
   }
