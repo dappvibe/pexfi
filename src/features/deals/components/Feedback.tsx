@@ -1,5 +1,5 @@
 import { Button, Form, Input, Radio, Result, Skeleton } from 'antd'
-import { useDealInfo } from '@/features/deals/hooks/useDealInfo'
+import { useDeal } from '@/features/deals/hooks/useDeal.ts'
 import { useDealFeedback } from '@/features/deals/hooks/useDealFeedback'
 import { useQueryOffer } from '@/features/offers/hooks/useQueryOffer'
 import { useAccount, useWriteContract } from 'wagmi'
@@ -7,7 +7,7 @@ import { dealAbi } from '@/wagmi'
 import { equal } from '@/utils'
 
 export default function Feedback() {
-  const { deal } = useDealInfo()
+  const { deal } = useDeal()
   const { feedback } = useDealFeedback(deal?.address, deal?.taker)
   const { offer } = useQueryOffer(deal?.offer)
   const { address: account } = useAccount()

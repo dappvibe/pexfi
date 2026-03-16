@@ -1,8 +1,8 @@
-import { useDealInfo } from '@/features/deals/hooks/useDealInfo'
+import { useDeal } from '@/features/deals/hooks/useDeal.ts'
 import { Steps } from 'antd'
 
 export default function DealProgress() {
-  const { deal } = useDealInfo()
+  const { deal } = useDeal()
 
   if (!deal) return null
 

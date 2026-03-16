@@ -1,6 +1,6 @@
 import { Card, Divider, Skeleton } from 'antd'
 import { useMemo } from 'react'
-import { useDealInfo } from '@/features/deals/hooks/useDealInfo'
+import { useDeal } from '@/features/deals/hooks/useDeal.ts'
 import { useQueryOffer } from '@/features/offers/hooks/useQueryOffer'
 import Controls from '@/features/deals/components/Controls'
 import { useAccount } from 'wagmi'
@@ -9,7 +9,7 @@ import DealProgress from '@/features/deals/components/DealProgress'
 import DealInfo from '@/features/deals/components/DealInfo'
 
 export default function DealCard() {
-  const { deal } = useDealInfo()
+  const { deal } = useDeal()
   const { address } = useAccount()
   const { offer } = useQueryOffer(deal?.offer)
 
