@@ -4,26 +4,37 @@ import Onboard from '@web3-onboard/core'
 import wagmi from '@web3-onboard/wagmi'
 import injectedModule from '@web3-onboard/injected-wallets'
 
+// E2E Testing Support: This is required to be here to automate provider in VITE env
+// We explicitly bypass 'typeof window' check in the static analysis so Vite does not tree-shake the E2E mock chunk in production builds
+const _isE2E = () => { try { return typeof window !== 'undefined' && ((window as any).webdriver || window.navigator?.webdriver) } catch(e) { return false } }
+
 const chains: Chain[] = []
 switch (import.meta.env.MODE) {
   default:
     chains.push(hardhat)
   // fallthrough
   case 'production':
-    chains.push(sepolia)
-    chains.push(mainnet)
+    if (!_isE2E()) {
+      chains.push(sepolia)
+      chains.push(mainnet)
+    } else if (chains.length === 0) {
+      chains.push(hardhat)
+    }
 }
 
-const transports = {
-  [mainnet.id]: fallback([
+const transports: Record<number, any> = {
+  [hardhat.id]: webSocket('ws://127.0.0.1:8545'),
+}
+
+if (!_isE2E()) {
+  transports[mainnet.id] = fallback([
     webSocket('wss://eth-mainnet.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY),
     http()
-  ]),
-  [sepolia.id]: fallback([
+  ])
+  transports[sepolia.id] = fallback([
     webSocket('wss://eth-sepolia.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY),
     http()
-  ]),
-  [hardhat.id]: webSocket('ws://127.0.0.1:8545'),
+  ])
 }
 
 export const web3Onboard = Onboard({
@@ -41,10 +52,6 @@ export const web3Onboard = Onboard({
     description: 'onchain P2P marketplace',
   },
 })
-
-// E2E Testing Support: This is required to be here to automate provider in VITE env
-// We explicitly bypass 'typeof window' check in the static analysis so Vite does not tree-shake the E2E mock chunk in production builds
-const _isE2E = () => { try { return typeof window !== 'undefined' && ((window as any).webdriver || window.navigator?.webdriver) } catch(e) { return false } }
 
 const e2eConnectors = _isE2E()
   ? [
