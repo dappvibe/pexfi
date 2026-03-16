@@ -24,7 +24,7 @@ const transports = {
     webSocket('wss://eth-sepolia.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY),
     http()
   ]),
-  [hardhat.id]: webSocket('ws://localhost:8545'),
+  [hardhat.id]: webSocket('ws://127.0.0.1:8545'),
 }
 
 export const thirdwebClient = createThirdwebClient({ clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID })
