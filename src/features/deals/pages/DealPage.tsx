@@ -1,21 +1,24 @@
-import { Col, Row, Skeleton } from 'antd'
-import { DealContext } from '@/features/deals/hooks/useDealContext'
+import { Col, Row, Skeleton, message } from 'antd'
 import DealCard from '@/features/deals/components/DealCard'
 import MessageBox from '@/features/deals/components/MessageBox'
 import { useDealInfo } from '@/features/deals/hooks/useDealInfo.ts'
-import { useDealMessages } from '@/features/deals/hooks/useDealMessages'
-import { useDealFeedback } from '@/features/deals/hooks/useDealFeedback'
 import { Helmet } from '@dr.pogodin/react-helmet'
+import { useEffect } from 'react'
 
 export default function DealPage() {
-  const { deal, isLoading, refetch } = useDealInfo()
-  const { messages } = useDealMessages(deal?.address)
-  const { feedback } = useDealFeedback(deal?.address, deal?.taker)
+  const { deal, error } = useDealInfo()
+
+  useEffect(() => {
+    if (error) {
+      console.error(error)
+      message.error('Failed to load deal')
+    }
+  }, [error])
 
   if (!deal) return <Skeleton active />
 
   return (
-    <DealContext.Provider value={{ deal, messages, feedback, isLoading, refetch }}>
+    <>
       <Helmet>
         <title>Deal #{deal.address?.toString() || 'Loading'} - PEXFI</title>
         <meta name="description" content={`View details for Deal on PEXFI.`} />
@@ -28,6 +31,6 @@ export default function DealPage() {
           <MessageBox />
         </Col>
       </Row>
-    </DealContext.Provider>
+    </>
   )
 }

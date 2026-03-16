@@ -1,6 +1,7 @@
 import { Button, Form, Input, List, message, Upload } from 'antd'
 import { useState } from 'react'
-import { useDealContext } from '@/features/deals/hooks/useDealContext'
+import { useDealInfo } from '@/features/deals/hooks/useDealInfo'
+import { useDealMessages } from '@/features/deals/hooks/useDealMessages'
 import { useQueryOffer } from '@/features/offers/hooks/useQueryOffer'
 import { useForm } from 'antd/lib/form/Form.js'
 import { useAccount, useWriteContract } from 'wagmi'
@@ -8,8 +9,9 @@ import { equal } from '@/utils'
 import { dealAbi } from '@/wagmi'
 
 export default function MessageBox() {
-  const { deal, messages } = useDealContext()
-  const { offer } = useQueryOffer(deal.offer)
+  const { deal } = useDealInfo()
+  const { messages } = useDealMessages(deal?.address)
+  const { offer } = useQueryOffer(deal?.offer)
   const [lockSubmit, setLockSubmit] = useState(false)
   const { address } = useAccount()
   const [form] = useForm()
@@ -22,6 +24,7 @@ export default function MessageBox() {
   }
 
   async function send(values: { message: string }) {
+    if (!deal) return
     setLockSubmit(true)
     try {
       await writeContractAsync({
@@ -40,7 +43,7 @@ export default function MessageBox() {
   }
 
   function isParticipant() {
-    if (!address || !offer) return false
+    if (!address || !offer || !deal) return false
     return equal(deal.taker, address) || equal(offer.owner, address)
   }
 
@@ -53,7 +56,7 @@ export default function MessageBox() {
   }
 
   function getSenderLabel(sender: string) {
-    if (equal(sender, deal.taker)) return 'Taker'
+    if (deal && equal(sender, deal.taker)) return 'Taker'
     if (offer && equal(sender, offer.owner)) return 'Owner'
     return 'Mediator'
   }

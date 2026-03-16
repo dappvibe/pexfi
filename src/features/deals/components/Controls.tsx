@@ -2,7 +2,7 @@ import React from 'react'
 import { useAccount, useReadContract, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
 import { dealAbi, erc20Abi, useReadPexfiVaultBalanceOf, useReadPexfiVestingOwner, useSimulateDeal, useWritePexfiVestingBond } from '@/wagmi'
 import { message, Skeleton, Space, Statistic } from 'antd'
-import { useDealContext } from '@/features/deals/hooks/useDealContext'
+import { useDealInfo } from '@/features/deals/hooks/useDealInfo'
 import { useQueryOffer } from '@/features/offers/hooks/useQueryOffer'
 import { LoadingButton } from '@/shared/ui'
 import Feedback from '@/features/deals/components/Feedback'
@@ -31,7 +31,6 @@ function DealButton({
   const { data, error, isLoading: isSimulating } = useSimulateDeal({
     address: dealAddress,
     functionName,
-    abi: [...dealAbi, ...erc20Abi],
     query: {
       retry: false,
     },
@@ -69,8 +68,8 @@ function DealButton({
 }
 
 export default function Controls() {
-  const { deal } = useDealContext()
-  const { offer } = useQueryOffer(deal.offer)
+  const { deal } = useDealInfo()
+  const { offer } = useQueryOffer(deal?.offer)
   const { address } = useAccount()
   const marketAddress = useAddress('Market#Market')
   const vaultAddress = useAddress('Market#PexfiVault')
