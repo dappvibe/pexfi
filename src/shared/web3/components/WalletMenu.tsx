@@ -1,57 +1,49 @@
-import { ConnectButton, darkTheme } from 'thirdweb/react'
-import { createWallet } from 'thirdweb/wallets'
-import { useChains, useConnect, useConnectors, useDisconnect, useSwitchChain } from 'wagmi'
-import { thirdwebClient } from '@/wagmi.config.ts'
-
-const wallets = [
-  createWallet('io.metamask'),
-  createWallet('com.brave.wallet'),
-  createWallet('com.coinbase.wallet'),
-  createWallet('me.rainbow'),
-  createWallet('io.rabby'),
-  createWallet('io.zerion.wallet'),
-]
+import { useConnect, useDisconnect, useAccount } from 'wagmi'
+import { Button } from 'antd'
+import { useConnectWallet } from '@web3-onboard/react'
 
 export default function WalletMenu() {
-  const { mutate: connect } = useConnect()
-  const connectors = useConnectors()
-  const { mutate: disconnect } = useDisconnect()
-  const { mutate: switchChain } = useSwitchChain()
-  const chains = useChains()
+  const { connect, connectors } = useConnect()
+  const { disconnect } = useDisconnect()
+  const { isConnected, address } = useAccount()
+  const [{ wallet }, connectWallet] = useConnectWallet()
 
-  const connector = connectors.find((c) => c.id === 'in-app-wallet' || c.type === 'inAppWallet')
+  const _isE2E = () => { try { return typeof window !== 'undefined' && ((window as any).webdriver || window.navigator?.webdriver) } catch(e) { return false } }
+
+  const handleConnect = async () => {
+    if (_isE2E()) {
+      const e2eConnector = connectors.find((c) => c.id === 'e2e-wallet' || c.name === 'E2E Wallet' || c.type === 'mock')
+      if (e2eConnector) {
+        connect({ connector: e2eConnector })
+      }
+    } else {
+      await connectWallet()
+    }
+  }
+
+  const handleDisconnect = () => {
+    disconnect()
+  }
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-      <ConnectButton
-        client={thirdwebClient}
-        appMetadata={{
-          name: 'PEXFI P2P',
-          url: 'https://pexfi.com',
-          description: 'onchain P2P marketplace',
-        }}
-        chains={chains}
-        connectButton={{ className: 'wallet-connect-button', label: 'Connect' }}
-        connectModal={{
-          size: 'wide',
-          showThirdwebBranding: false,
-          title: 'Connect to PEXFI',
-        }}
-        detailsButton={{}}
-        detailsModal={{
-          assetTabs: ['token'],
-          hideBuyFunds: true,
-          manageWallet: { allowLinkingProfiles: false },
-          showTestnetFaucet: true,
-          networkSelector: {
-            onSwitch: (chain) => switchChain({ chainId: chain.id }),
-          },
-        }}
-        onConnect={() => connect({ connector: connector! })}
-        onDisconnect={() => disconnect()}
-        theme={darkTheme({})}
-        wallets={wallets}
-      />
+      {!isConnected && (
+        <Button
+          type="primary"
+          className="wallet-connect-button"
+          onClick={handleConnect}
+        >
+          Connect
+        </Button>
+      )}
+      {isConnected && address && (
+        <Button
+          type="default"
+          onClick={handleDisconnect}
+        >
+          Disconnect {address.substring(0, 6)}...{address.substring(38)}
+        </Button>
+      )}
     </div>
   )
 }

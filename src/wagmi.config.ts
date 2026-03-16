@@ -1,7 +1,8 @@
 import { createConfig, fallback, http, webSocket } from 'wagmi'
 import { Chain, hardhat, mainnet, sepolia } from 'wagmi/chains'
-import { createThirdwebClient } from 'thirdweb'
-import { inAppWalletConnector } from '@thirdweb-dev/wagmi-adapter'
+import Onboard from '@web3-onboard/core'
+import wagmi from '@web3-onboard/wagmi'
+import injectedModule from '@web3-onboard/injected-wallets'
 
 const chains: Chain[] = []
 switch (import.meta.env.MODE) {
@@ -25,27 +26,39 @@ const transports = {
   [hardhat.id]: webSocket('ws://127.0.0.1:8545'),
 }
 
-export const thirdwebClient = createThirdwebClient({ clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID })
+export const web3Onboard = Onboard({
+  wagmi,
+  wallets: [injectedModule()],
+  chains: chains.map((chain) => ({
+    id: `0x${chain.id.toString(16)}`,
+    token: chain.nativeCurrency.symbol,
+    label: chain.name,
+    rpcUrl: chain.rpcUrls.default.http[0],
+  })),
+  appMetadata: {
+    name: 'PEXFI P2P',
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><circle cx="200" cy="200" r="200" fill="#000"/></svg>',
+    description: 'onchain P2P marketplace',
+  },
+})
 
 // E2E Testing Support: This is required to be here to automate provider in VITE env
 // We explicitly bypass 'typeof window' check in the static analysis so Vite does not tree-shake the E2E mock chunk in production builds
 const _isE2E = () => { try { return typeof window !== 'undefined' && ((window as any).webdriver || window.navigator?.webdriver) } catch(e) { return false } }
 
-const connectors = _isE2E()
+const e2eConnectors = _isE2E()
   ? [
       await import('@tests/e2e/wallet').then((m) => {
         m.install()
         return m.connector()
       }),
     ]
-  : [
-      inAppWalletConnector({
-        client: thirdwebClient,
-      }),
-    ]
+  : []
+
+const state = web3Onboard.state.get()
 
 export const config = createConfig({
   chains: chains as [Chain, ...Chain[]],
   transports,
-  connectors,
+  connectors: _isE2E() ? e2eConnectors : (state.wagmiConfig?.connectors || []),
 })
