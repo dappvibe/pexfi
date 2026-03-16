@@ -1,8 +1,10 @@
-import { useDealContext } from '@/features/deals/hooks/useDealContext'
+import { useDealInfo } from '@/features/deals/hooks/useDealInfo'
 import { Steps } from 'antd'
 
 export default function DealProgress() {
-  const { deal } = useDealContext()
+  const { deal } = useDealInfo()
+
+  if (!deal) return null
 
   let steps: any = [
     {

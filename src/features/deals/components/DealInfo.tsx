@@ -1,13 +1,13 @@
-import { useDealContext } from '@/features/deals/hooks/useDealContext'
+import { useDealInfo } from '@/features/deals/hooks/useDealInfo'
 import { useQueryOffer } from '@/features/offers/hooks/useQueryOffer'
 import { Descriptions, Skeleton } from 'antd'
 import { Username } from '@/shared/web3'
 
 export default function DealInfo() {
-  const { deal } = useDealContext()
-  const { offer } = useQueryOffer(deal.offer)
+  const { deal } = useDealInfo()
+  const { offer } = useQueryOffer(deal?.offer)
 
-  if (!offer) return <Skeleton active />
+  if (!deal || !offer) return <Skeleton active />
 
   const items = [
     {

@@ -11,13 +11,6 @@ export function useDealInfo() {
   const { deal: contractDeal, isLoading: dealLoading, error, refetch } = useReadDeal(dealId as Address)
   const { subgraphInfo, subgraphLoading } = useQueryDeal(dealId)
 
-  useEffect(() => {
-    if (error) {
-      console.error(error)
-      message.error('Failed to load deal')
-    }
-  }, [error])
-
   const deal = useMemo(() => {
     if (!contractDeal) return null
 
@@ -31,6 +24,7 @@ export function useDealInfo() {
 
   return {
     deal,
+    error,
     isLoading: dealLoading || subgraphLoading,
     refetch,
   }
