@@ -15,6 +15,7 @@ export function useDeal() {
 
     return {
       ...contractDeal,
+      isPaid: contractDeal.isPaid,
       method: subgraphInfo?.methodName || contractDeal.method,
       terms: subgraphInfo?.terms || contractDeal.terms,
       paymentInstructions: subgraphInfo?.paymentInstructions || contractDeal.paymentInstructions,
