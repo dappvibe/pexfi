@@ -1,11 +1,10 @@
-import { useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { Address } from 'viem'
 import { useParams } from 'react-router-dom'
-import { message } from 'antd'
 import { useReadDeal } from './useReadDeal'
 import { useQueryDeal } from '@/features/deals/hooks/useQueryDeal.ts'
 
-export function useDealInfo() {
+export function useDeal() {
   const { dealId } = useParams()
 
   const { deal: contractDeal, isLoading: dealLoading, error, refetch } = useReadDeal(dealId as Address)

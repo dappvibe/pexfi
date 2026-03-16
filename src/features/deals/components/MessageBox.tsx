@@ -1,6 +1,6 @@
 import { Button, Form, Input, List, message, Upload } from 'antd'
 import { useState } from 'react'
-import { useDealInfo } from '@/features/deals/hooks/useDealInfo'
+import { useDeal } from '@/features/deals/hooks/useDeal.ts'
 import { useDealMessages } from '@/features/deals/hooks/useDealMessages'
 import { useQueryOffer } from '@/features/offers/hooks/useQueryOffer'
 import { useForm } from 'antd/lib/form/Form.js'
@@ -9,7 +9,7 @@ import { equal } from '@/utils'
 import { dealAbi } from '@/wagmi'
 
 export default function MessageBox() {
-  const { deal } = useDealInfo()
+  const { deal } = useDeal()
   const { messages } = useDealMessages(deal?.address)
   const { offer } = useQueryOffer(deal?.offer)
   const [lockSubmit, setLockSubmit] = useState(false)

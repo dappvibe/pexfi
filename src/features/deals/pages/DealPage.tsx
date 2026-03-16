@@ -1,12 +1,12 @@
 import { Col, Row, Skeleton, message } from 'antd'
 import DealCard from '@/features/deals/components/DealCard'
 import MessageBox from '@/features/deals/components/MessageBox'
-import { useDealInfo } from '@/features/deals/hooks/useDealInfo.ts'
+import { useDeal } from '@/features/deals/hooks/useDeal.ts'
 import { Helmet } from '@dr.pogodin/react-helmet'
 import { useEffect } from 'react'
 
 export default function DealPage() {
-  const { deal, error } = useDealInfo()
+  const { deal, error } = useDeal()
 
   useEffect(() => {
     if (error) {
