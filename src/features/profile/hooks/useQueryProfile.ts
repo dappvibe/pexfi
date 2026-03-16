@@ -30,9 +30,17 @@ export type Profile = {
   disputesLost: number
 }
 
+export type ProfileByOwnerData = {
+  profile: Profile | null
+}
+
+export type ProfileByOwnerVars = {
+  owner: string
+}
+
 export function useQueryProfile(owner: string | undefined) {
-  const { data, loading, error, refetch } = useQuery(GQL_PROFILE_BY_OWNER, {
-    variables: { owner: owner?.toLowerCase() },
+  const { data, loading, error, refetch } = useQuery<ProfileByOwnerData, ProfileByOwnerVars>(GQL_PROFILE_BY_OWNER, {
+    variables: { owner: owner?.toLowerCase() as string },
     skip: !owner,
   })
 

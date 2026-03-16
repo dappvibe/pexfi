@@ -17,11 +17,18 @@ type NotificationEvent = {
 type Notification = {
   id: string
   createdAt: number
-  to: string
   deal: {
     id: string
   }
   event: NotificationEvent
+}
+
+type GetNotificationsData = {
+  notifications: Notification[]
+}
+
+type GetNotificationsVars = {
+  account: string
 }
 
 const GET_NOTIFICATIONS = gql`
@@ -55,8 +62,8 @@ export default function Notifications() {
     placement: 'topRight',
   })
   const { address } = useAccount()
-  const { data, startPolling, stopPolling } = useQuery(GET_NOTIFICATIONS, {
-    variables: { account: address },
+  const { data, startPolling, stopPolling } = useQuery<GetNotificationsData, GetNotificationsVars>(GET_NOTIFICATIONS, {
+    variables: { account: address?.toLowerCase() as string },
     skip: !address,
     pollInterval: 5000, // Poll every 5 seconds
   })

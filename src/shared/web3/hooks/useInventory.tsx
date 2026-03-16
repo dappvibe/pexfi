@@ -42,8 +42,14 @@ export interface Method {
   index: string
 }
 
+export interface GetInventoryData {
+  tokens: Token[]
+  fiats: Fiat[]
+  methods: Method[]
+}
+
 export function useInventory() {
-  const { data, loading, error } = useQuery(GET_INVENTORY)
+  const { data, loading, error } = useQuery<GetInventoryData>(GET_INVENTORY)
 
   if (loading || error || !data) {
     return {

@@ -52,6 +52,17 @@ export type UseQueryOffersResult = {
   refetch: () => void
 }
 
+export type OffersData = {
+  offers: Offer[]
+}
+
+export type OffersVars = {
+  first: number
+  skip: number
+  where: OffersFilter
+  orderDirection: 'asc' | 'desc'
+}
+
 const RECORDS_PER_FETCH = 20
 const GQL_OFFERS = gql`
   query Offers($first: Int, $skip: Int, $where: Offer_filter, $orderDirection: String) {
@@ -80,7 +91,7 @@ const GQL_OFFERS = gql`
 `
 
 export function useQueryOffers(params: OffersRequestParams): UseQueryOffersResult {
-  const { data, loading, error, fetchMore, refetch } = useQuery(GQL_OFFERS, {
+  const { data, loading, error, fetchMore, refetch } = useQuery<OffersData, OffersVars>(GQL_OFFERS, {
     variables: {
       first: RECORDS_PER_FETCH,
       skip: 0,

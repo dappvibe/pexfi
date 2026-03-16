@@ -37,12 +37,20 @@ const GQL_USER_DEALS = gql`
   }
 `
 
+interface UserDealsData {
+  deals: any[] // We can refine this if needed, using existing types
+}
+
+interface UserDealsVars {
+  address: string
+}
+
 export function useUserDeals(options: { pollInterval?: number } = {}) {
   const { address } = useAccount()
   const { methods, loading: inventoryLoading } = useInventory()
 
-  const { data, loading: dealsLoading, error, refetch, stopPolling } = useQuery(GQL_USER_DEALS, {
-    variables: { address: address?.toLowerCase() },
+  const { data, loading: dealsLoading, error, refetch, stopPolling } = useQuery<UserDealsData, UserDealsVars>(GQL_USER_DEALS, {
+    variables: { address: address?.toLowerCase() as string },
     skip: !address,
     pollInterval: options.pollInterval,
   })

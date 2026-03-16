@@ -73,6 +73,10 @@ interface OfferQueryResult {
   offer: RawOffer | null
 }
 
+interface OfferQueryVars {
+  id: string
+}
+
 /**
  * Reads offer data from the subgraph by its ID (contract address)
  */
@@ -80,8 +84,8 @@ export function useQueryOffer(offerId: string | undefined, options: UseOfferOpti
   const { pollInterval = 0 } = options
   const { methods } = useInventory()
 
-  const { data, loading, error, refetch } = useQuery<OfferQueryResult>(GQL_OFFER, {
-    variables: { id: offerId?.toLowerCase() },
+  const { data, loading, error, refetch } = useQuery<OfferQueryResult, OfferQueryVars>(GQL_OFFER, {
+    variables: { id: offerId?.toLowerCase() as string },
     skip: !offerId,
     pollInterval,
     fetchPolicy: 'network-only',

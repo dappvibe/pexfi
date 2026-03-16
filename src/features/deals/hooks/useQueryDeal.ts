@@ -22,11 +22,15 @@ interface GraphDeal {
   paymentInstructions: string | null
 }
 
+interface DealQueryVars {
+  id: string
+}
+
 export function useQueryDeal(dealId: string | undefined) {
   const { methods, loading: inventoryLoading } = useInventory()
 
-  const { data: subgraphData, loading: subgraphLoading } = useQuery<{ deal: GraphDeal }>(GQL_DEAL, {
-    variables: { id: dealId?.toLowerCase() },
+  const { data: subgraphData, loading: subgraphLoading } = useQuery<{ deal: GraphDeal }, DealQueryVars>(GQL_DEAL, {
+    variables: { id: dealId?.toLowerCase() as string },
     skip: !dealId,
   })
 
