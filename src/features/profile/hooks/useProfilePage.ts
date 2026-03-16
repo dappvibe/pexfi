@@ -29,8 +29,8 @@ export function useProfilePage() {
 
   const { profile, loading: isProfileLoading, refetch: refetchProfile } = useQueryProfile(address)
 
-  const { mutateAsync: register } = useWriteProfileRegister()
-  const { mutateAsync: updateInfoContract } = useWriteProfileUpdateInfo()
+  const { writeContractAsync: register } = useWriteProfileRegister()
+  const { writeContractAsync: updateInfoContract } = useWriteProfileUpdateInfo()
 
   const stats = useMemo<ProfileStats | null>(() => {
     if (!profile) return null
@@ -46,7 +46,7 @@ export function useProfilePage() {
 
   async function create() {
     if (!profileAddress) return
-    const hash = await register({ address: profileAddress })
+    console.log("ABI:", profileAddress); const hash = await register({ address: profileAddress })
     await waitForTransactionReceipt(config, { hash })
 
     // Poll the graph for the indexed profile

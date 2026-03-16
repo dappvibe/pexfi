@@ -37,6 +37,15 @@ if (!_isE2E()) {
   ])
 }
 
+const e2eConnectors = _isE2E()
+  ? [
+      await import('@tests/e2e/wallet').then((m) => {
+        m.install()
+        return m.connector()
+      }),
+    ]
+  : []
+
 export const web3Onboard = Onboard({
   wagmi,
   wallets: [injectedModule()],
@@ -52,15 +61,6 @@ export const web3Onboard = Onboard({
     description: 'onchain P2P marketplace',
   },
 })
-
-const e2eConnectors = _isE2E()
-  ? [
-      await import('@tests/e2e/wallet').then((m) => {
-        m.install()
-        return m.connector()
-      }),
-    ]
-  : []
 
 const state = web3Onboard.state.get()
 
