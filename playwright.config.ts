@@ -41,7 +41,7 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: process.env.CI ? 'npx vite preview --port 5173' : 'npm run dev',
+    command: process.env.CI ? 'npx vite preview --port 5173' : 'npx vite preview --port 5173',
     port: 5173,
     reuseExistingServer: true,
   },

@@ -11,8 +11,6 @@ services:
         condition: service_completed_successfully
       subgraph-node:
         condition: service_healthy
-      web:
-        condition: service_healthy
       postgres:
         condition: service_healthy
       ipfs:

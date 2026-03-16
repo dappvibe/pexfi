@@ -90,7 +90,7 @@ jobs:
         run: sudo chown -R $USER:$USER node_modules
 
       - name: Build Web for E2E
-        run: npm run build:web -- --mode development
+        run: npm run build:web:prod
 
       - name: Run E2E tests
         run: npm run test:e2e
