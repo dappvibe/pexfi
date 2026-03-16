@@ -37,8 +37,36 @@ const GQL_USER_DEALS = gql`
   }
 `
 
+interface SubgraphToken {
+  id: string
+  address: string
+  name: string
+  symbol: string
+  decimals: number
+}
+
+interface SubgraphOffer {
+  id: string
+  owner: string
+  isSell: boolean
+  fiat: string
+  methods: string
+  token: SubgraphToken | null
+}
+
+interface SubgraphDeal {
+  id: string
+  createdAt: number
+  state: number
+  taker: string
+  tokenAmount: string
+  fiatAmount: string
+  method: string
+  offer: SubgraphOffer
+}
+
 interface UserDealsData {
-  deals: any[] // We can refine this if needed, using existing types
+  deals: SubgraphDeal[]
 }
 
 interface UserDealsVars {
@@ -66,7 +94,7 @@ export function useUserDeals(options: { pollInterval?: number } = {}) {
   const deals = useMemo(() => {
     if (!data?.deals) return undefined
 
-    return data.deals.map((d: any) => {
+    return data.deals.map((d) => {
       let methodName: string
       try {
         // d.method is the chosen method stored as bytes16 in contract (hex in subgraph)
