@@ -43,6 +43,6 @@ export default defineConfig({
   webServer: {
     command: process.env.CI ? 'npx vite preview --port 5173' : 'npm run dev',
     port: 5173,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true,
   },
 })
