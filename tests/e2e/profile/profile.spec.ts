@@ -25,7 +25,7 @@ test.describe('Profile', () => {
     // 6. Check that some stats are visible
     await expect(page.getByText('Rating')).toBeVisible()
     await expect(page.getByText('Deals completed')).toBeVisible()
-    await expect(page.getByText('Volume')).toBeVisible()
+    await expect(page.getByText('Disputes lost')).toBeVisible()
 
     // Initial stats should be 0 or '-'
     await expect(page.getByText('0', { exact: true }).first()).toBeVisible()

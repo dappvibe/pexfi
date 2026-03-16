@@ -14,6 +14,9 @@ on:
       - 'tests/e2e/**'
       - 'subgraph/**'
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   e2e:
     runs-on: ubuntu-latest
@@ -82,6 +85,9 @@ jobs:
 
       - name: Start docker stack
         run: docker compose up all --wait --wait-timeout 120
+
+      - name: Fix permissions for node_modules
+        run: sudo chown -R $USER:$USER node_modules
 
       - name: Build Web for E2E
         run: npm run build:web -- --mode development

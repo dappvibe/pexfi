@@ -50,7 +50,19 @@ export function useProfilePage() {
     if (!profileAddress) return
     const hash = await register({ address: profileAddress })
     await waitForTransactionReceipt(config, { hash })
-    await refetchProfile()
+
+    // Poll the graph for the indexed profile
+    let attempts = 0
+    const maxAttempts = 30
+
+    while (attempts < maxAttempts) {
+      const result = await refetchProfile()
+      if (result.data?.profile) {
+        break
+      }
+      attempts++
+      await new Promise(resolve => setTimeout(resolve, 1000))
+    }
   }
 
   async function updateInfo(newInfo: string) {
