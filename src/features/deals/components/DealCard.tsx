@@ -3,14 +3,14 @@ import { useMemo } from 'react'
 import { useDeal } from '@/features/deals/hooks/useDeal.ts'
 import { useQueryOffer } from '@/features/offers/hooks/useQueryOffer'
 import Controls from '@/features/deals/components/Controls'
-import { useAccount } from 'wagmi'
+import { useConnection } from 'wagmi'
 import { equal } from '@/utils'
 import DealProgress from '@/features/deals/components/DealProgress'
 import DealInfo from '@/features/deals/components/DealInfo'
 
 export default function DealCard() {
   const { deal } = useDeal()
-  const { address } = useAccount()
+  const { address } = useConnection()
   const { offer } = useQueryOffer(deal?.offer)
 
   const title = useMemo(() => {

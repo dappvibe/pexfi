@@ -1,6 +1,6 @@
 import { Card, Skeleton } from 'antd'
 import { useParams } from 'react-router-dom'
-import { useAccount } from 'wagmi'
+import { useConnection } from 'wagmi'
 import OfferSubnav from '@/features/offers/components/OfferSubnav'
 import OfferDescription from '@/features/offers/components/OfferDescription'
 import OfferForm from '@/features/offers/components/OfferForm'
@@ -14,7 +14,7 @@ import { Helmet } from '@dr.pogodin/react-helmet'
 
 export default function OfferViewPage() {
   const { offerId } = useParams()
-  const { address } = useAccount()
+  const { address } = useConnection()
 
   const { offer: baseOffer, refetch } = useQueryOffer(offerId, {
     pollInterval: 2000,

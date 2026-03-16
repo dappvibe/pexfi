@@ -2,7 +2,7 @@ import React, { useEffect, useMemo } from 'react'
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
 import { notification } from 'antd'
-import { useAccount } from 'wagmi'
+import { useConnection } from 'wagmi'
 import { Link } from 'react-router-dom'
 
 type NotificationEvent = {
@@ -54,7 +54,7 @@ export default function Notifications() {
     duration: 5,
     placement: 'topRight',
   })
-  const { address } = useAccount()
+  const { address } = useConnection()
   const { data, startPolling, stopPolling } = useQuery(GET_NOTIFICATIONS, {
     variables: { account: address },
     skip: !address,

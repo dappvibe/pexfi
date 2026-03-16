@@ -1,5 +1,5 @@
 import { useMemo, useEffect } from 'react'
-import { useAccount } from 'wagmi'
+import { useConnection } from 'wagmi'
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
 import { Address, hexToString, trim } from 'viem'
@@ -38,7 +38,7 @@ const GQL_USER_DEALS = gql`
 `
 
 export function useUserDeals(options: { pollInterval?: number } = {}) {
-  const { address } = useAccount()
+  const { address } = useConnection()
   const { methods, loading: inventoryLoading } = useInventory()
 
   const { data, loading: dealsLoading, error, refetch, stopPolling } = useQuery(GQL_USER_DEALS, {

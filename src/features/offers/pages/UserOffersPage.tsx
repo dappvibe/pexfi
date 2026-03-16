@@ -1,9 +1,9 @@
 import OffersListPage from '@/features/offers/pages/OffersListPage'
-import { useAccount } from 'wagmi'
+import { useConnection } from 'wagmi'
 import { Helmet } from '@dr.pogodin/react-helmet'
 
 export default function UserOffersPage() {
-  const { address } = useAccount()
+  const { address } = useConnection()
 
   return (
     <>
