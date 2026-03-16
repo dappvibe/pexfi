@@ -8,7 +8,8 @@ import { ApolloProvider } from '@apollo/client/react'
 import { config } from '@/wagmi.config'
 import { SUBGRAPH_URLS } from '@/subgraph.config'
 import { HelmetProvider } from '@dr.pogodin/react-helmet'
-import { ThirdwebProvider } from 'thirdweb/react'
+import { Web3OnboardProvider } from '@web3-onboard/react'
+import { web3Onboard } from '@/wagmi.config'
 
 const localStoragePersister = createSyncStoragePersister({
   storage: window.localStorage,
@@ -52,7 +53,7 @@ const ApolloChainProvider = ({ children }: { children: ReactNode }) => {
 
 export const Providers = ({ children }: { children: ReactNode }) => {
   return (
-    <ThirdwebProvider>
+    <Web3OnboardProvider web3Onboard={web3Onboard}>
       <WagmiProvider config={config}>
         <QueryClientProvider client={queryClient}>
           <ApolloChainProvider>
@@ -60,6 +61,6 @@ export const Providers = ({ children }: { children: ReactNode }) => {
           </ApolloChainProvider>
         </QueryClientProvider>
       </WagmiProvider>
-    </ThirdwebProvider>
+    </Web3OnboardProvider>
   )
 }

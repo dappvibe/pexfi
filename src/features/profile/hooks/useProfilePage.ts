@@ -1,8 +1,7 @@
 import { useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { Address } from 'viem'
-import { useConnection, useConfig } from 'wagmi'
-import { useActiveAccount } from 'thirdweb/react'
+import { useAccount, useConfig } from 'wagmi'
 import { waitForTransactionReceipt } from '@wagmi/core'
 import {
   useWriteProfileRegister,
@@ -21,18 +20,17 @@ export type ProfileStats = {
 }
 
 export function useProfilePage() {
-  const { address: connectedAddress } = useConnection()
-  const activeAccount = useActiveAccount()
+  const { address: connectedAddress } = useAccount()
   const { profile: profileParam } = useParams()
-  const address = (profileParam as Address) || connectedAddress || activeAccount?.address
+  const address = (profileParam as Address) || connectedAddress
   const profileAddress = useAddress('Market#Profile')
 
   const config = useConfig()
 
   const { profile, loading: isProfileLoading, refetch: refetchProfile } = useQueryProfile(address)
 
-  const { mutateAsync: register } = useWriteProfileRegister()
-  const { mutateAsync: updateInfoContract } = useWriteProfileUpdateInfo()
+  const { writeContractAsync: register } = useWriteProfileRegister()
+  const { writeContractAsync: updateInfoContract } = useWriteProfileUpdateInfo()
 
   const stats = useMemo<ProfileStats | null>(() => {
     if (!profile) return null
@@ -48,7 +46,7 @@ export function useProfilePage() {
 
   async function create() {
     if (!profileAddress) return
-    const hash = await register({ address: profileAddress })
+    console.log("ABI:", profileAddress); const hash = await register({ address: profileAddress })
     await waitForTransactionReceipt(config, { hash })
 
     // Poll the graph for the indexed profile

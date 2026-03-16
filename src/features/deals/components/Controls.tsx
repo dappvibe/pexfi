@@ -75,7 +75,7 @@ export default function Controls() {
   const vaultAddress = useAddress('Market#PexfiVault')
   const vestingAddress = useAddress('Market#PexfiVesting')
 
-  const { mutateAsync: writeBondAsync } = useWritePexfiVestingBond()
+  const { writeContractAsync: writeBondAsync } = useWritePexfiVestingBond()
 
   const tokenAddress = offer?.token?.address
 
