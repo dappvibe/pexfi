@@ -1,13 +1,15 @@
 import { Button, Form, Input, List, message, Upload } from 'antd'
 import { useState } from 'react'
 import { useDealContext } from '@/features/deals/hooks/useDealContext'
+import { useQueryOffer } from '@/features/offers/hooks/useQueryOffer'
 import { useForm } from 'antd/lib/form/Form.js'
 import { useAccount, useWriteContract } from 'wagmi'
 import { equal } from '@/utils'
 import { dealAbi } from '@/wagmi'
 
 export default function MessageBox() {
-  const { deal, offer, messages } = useDealContext()
+  const { deal, messages } = useDealContext()
+  const { offer } = useQueryOffer(deal.offer)
   const [lockSubmit, setLockSubmit] = useState(false)
   const { address } = useAccount()
   const [form] = useForm()

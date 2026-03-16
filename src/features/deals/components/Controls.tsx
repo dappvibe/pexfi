@@ -3,6 +3,7 @@ import { useAccount, useReadContract, useWaitForTransactionReceipt, useWriteCont
 import { dealAbi, erc20Abi, useReadPexfiVaultBalanceOf, useReadPexfiVestingOwner, useSimulateDeal, useWritePexfiVestingBond } from '@/wagmi'
 import { message, Skeleton, Space, Statistic } from 'antd'
 import { useDealContext } from '@/features/deals/hooks/useDealContext'
+import { useQueryOffer } from '@/features/offers/hooks/useQueryOffer'
 import { LoadingButton } from '@/shared/ui'
 import Feedback from '@/features/deals/components/Feedback'
 import { equal } from '@/utils'
@@ -68,7 +69,8 @@ function DealButton({
 }
 
 export default function Controls() {
-  const { deal, offer } = useDealContext()
+  const { deal } = useDealContext()
+  const { offer } = useQueryOffer(deal.offer)
   const { address } = useAccount()
   const marketAddress = useAddress('Market#Market')
   const vaultAddress = useAddress('Market#PexfiVault')
@@ -106,6 +108,12 @@ export default function Controls() {
     query: { enabled: !!vestingAddress && isDisputed },
   })
 
+  const { writeContractAsync: approveAsync, data: approveHash } = useWriteContract()
+  const { isLoading: isApproving } = useWaitForTransactionReceipt({
+    hash: approveHash,
+    query: { enabled: !!approveHash },
+  })
+
   if (!address || !offer) return <Skeleton active />
 
   const isOwner = equal(address, offer.owner)
@@ -118,12 +126,6 @@ export default function Controls() {
 
   const needsApproval =
     !!tokenAddress && !!marketAddress && (allowance ?? 0n) < deal.tokenAmount
-
-  const { writeContractAsync: approveAsync, data: approveHash } = useWriteContract()
-  const { isLoading: isApproving } = useWaitForTransactionReceipt({
-    hash: approveHash,
-    query: { enabled: !!approveHash },
-  })
 
   async function approve() {
     if (!tokenAddress || !marketAddress) return
