@@ -29,9 +29,8 @@ export type Deal = {
   paymentInstructions: string
   allowCancelUnacceptedAfter: Date
   allowCancelUnpaidAfter: Date
-  isFinal: boolean
-  canCancelUnaccepted: boolean
   canCancelUnpaid: boolean
+  isPaid: boolean
 }
 
 export function useReadDeal(address: Address | undefined) {
@@ -51,6 +50,7 @@ export function useReadDeal(address: Address | undefined) {
           { ...dealContract, functionName: 'fiatAmount' },
           { ...dealContract, functionName: 'allowCancelUnacceptedAfter' },
           { ...dealContract, functionName: 'allowCancelUnpaidAfter' },
+          { ...dealContract, functionName: 'isPaid' },
         ]
       : [],
     query: {
@@ -111,9 +111,9 @@ export function useReadDeal(address: Address | undefined) {
       paymentInstructions: '',
       allowCancelUnacceptedAfter,
       allowCancelUnpaidAfter,
-      isFinal: currentState >= DealState.Cancelled,
       canCancelUnaccepted: currentState === DealState.Created && now >= allowCancelUnacceptedAfter,
       canCancelUnpaid: currentState === DealState.Funded && now >= allowCancelUnpaidAfter,
+      isPaid: !!data[7]?.result,
     }
   }, [data, address, state, offerTokenSymbol, tokens])
 
