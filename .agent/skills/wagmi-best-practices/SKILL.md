@@ -49,5 +49,5 @@ When working on or refactoring code, enforce Wagmi v3 naming conventions:
 - **`useAccount` is deprecated.** Replace it with `useConnection`.
 - **`useAccountEffect` is deprecated.** Replace it with `useConnectionEffect`.
 - **`useSwitchAccount` is deprecated.** Replace it with `useSwitchConnection`.
-- **Destructuring `useWriteContract`:** The returned write function should be destructured as `mutate` or `mutateAsync` instead of the old `writeContract`/`writeContractAsync`. Example: `const { mutateAsync } = useWriteContract()`.
-- Do not use `useConnect().connectors` or `useDisconnect().connectors`; use `useConnectors` and `useConnections` respectively.
+- **Destructuring mutation hooks:** When using hooks based on React Query mutations like `useWriteContract`, `useConnect`, `useDisconnect`, or `useSwitchChain`, the returned action function should be destructured as `mutate` or `mutateAsync`. Avoid deprecated alias properties such as `writeContract`, `connect`, `disconnect`, or `switchChain`. Example: `const { mutate: connect } = useConnect()`.
+- **Replacing deprecated mutation properties:** Do not destructure arrays or external data from mutation hooks. For example, `useConnect().connectors` and `useSwitchChain().chains` are deprecated. Use their dedicated hooks instead, such as `useConnectors()` and `useChains()`.
