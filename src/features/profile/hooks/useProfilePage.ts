@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { Address } from 'viem'
-import { useConnection, useConfig } from 'wagmi'
+import { useAccount, useConfig } from 'wagmi'
 import { waitForTransactionReceipt } from '@wagmi/core'
 import {
   useWriteProfileRegister,
@@ -20,7 +20,7 @@ export type ProfileStats = {
 }
 
 export function useProfilePage() {
-  const { address: connectedAddress } = useConnection()
+  const { address: connectedAddress } = useAccount()
   const { profile: profileParam } = useParams()
   const address = (profileParam as Address) || connectedAddress
   const profileAddress = useAddress('Market#Profile')

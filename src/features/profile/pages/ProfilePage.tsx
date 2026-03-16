@@ -3,10 +3,10 @@ import { Username } from '@/shared/web3'
 import { LoadingButton } from '@/shared/ui'
 import { useProfilePage } from '@/features/profile/hooks/useProfilePage'
 import { Helmet } from '@dr.pogodin/react-helmet'
-import { useConnection } from 'wagmi'
+import { useAccount } from 'wagmi'
 
 export default function ProfilePage() {
-  const { isConnected, isConnecting, isReconnecting, address: connectedAddress } = useConnection()
+  const { isConnected, isConnecting, isReconnecting, address: connectedAddress } = useAccount()
   const { address, tokenId, profile, stats, isOwnProfile, create, updateInfo, rating, loading } = useProfilePage()
 
   const reallyConnected = isConnected || !!connectedAddress
