@@ -1,6 +1,5 @@
 import { ConnectButton, darkTheme } from 'thirdweb/react'
 import { createWallet } from 'thirdweb/wallets'
-import { useConnect, useDisconnect, useSwitchChain } from 'wagmi'
 import { thirdwebClient } from '@/wagmi.config.ts'
 
 const wallets = [
@@ -13,12 +12,6 @@ const wallets = [
 ]
 
 export default function WalletMenu() {
-  const { connect, connectors } = useConnect()
-  const { disconnect } = useDisconnect()
-  const { chains, switchChain } = useSwitchChain()
-
-  const connector = connectors.find((c) => c.id === 'in-app-wallet' || c.type === 'inAppWallet')
-
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
       <ConnectButton
@@ -28,7 +21,6 @@ export default function WalletMenu() {
           url: 'https://pexfi.com',
           description: 'onchain P2P marketplace',
         }}
-        chains={chains}
         connectButton={{ className: 'wallet-connect-button', label: 'Connect' }}
         connectModal={{
           size: 'wide',
@@ -41,12 +33,7 @@ export default function WalletMenu() {
           hideBuyFunds: true,
           manageWallet: { allowLinkingProfiles: false },
           showTestnetFaucet: true,
-          networkSelector: {
-            onSwitch: (chain) => switchChain({ chainId: chain.id }),
-          },
         }}
-        onConnect={() => connect({ connector })}
-        onDisconnect={() => disconnect()}
         theme={darkTheme({})}
         wallets={wallets}
       />
