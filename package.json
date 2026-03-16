@@ -7,7 +7,6 @@
     "dev": "vite",
     "build": "npm run build:evm && npm run build:web",
     "build:web": "vite build",
-    "build:web:staging": "npm run build:web -- --mode staging",
     "build:web:prod": "npm run build:web -- --mode production",
     "build:evm": "npx hardhat compile",
     "build:subgraph": "npx graph build subgraph/subgraph.yaml -o .cache/subgraph/build --network-file subgraph/networks.json --network",
