@@ -92,6 +92,9 @@ jobs:
       - name: Build Web for E2E
         run: npm run build:web -- --mode development
 
+      - name: Stop Docker web service
+        run: docker compose rm -s -f -v web
+
       - name: Run E2E tests
         run: npm run test:e2e
 
