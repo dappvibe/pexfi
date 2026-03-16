@@ -84,7 +84,7 @@ jobs:
         run: mkdir -p .cache
 
       - name: Start docker stack
-        run: docker compose up all --wait --wait-timeout 120
+        run: docker compose up evm deploy subgraph subgraph-node postgres ipfs --wait --wait-timeout 120
 
       - name: Fix permissions for node_modules
         run: sudo chown -R $USER:$USER node_modules
