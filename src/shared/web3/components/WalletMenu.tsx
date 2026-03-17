@@ -1,6 +1,6 @@
 import { ConnectButton, darkTheme } from 'thirdweb/react'
 import { createWallet } from 'thirdweb/wallets'
-import { useChains, useConnect, useConnectors, useDisconnect, useSwitchChain } from 'wagmi'
+import { useAccount, useChains, useConnect, useConnectors, useDisconnect, useSwitchChain } from 'wagmi'
 import { thirdwebClient } from '@/wagmi.config.ts'
 
 const wallets = [
@@ -19,7 +19,9 @@ export default function WalletMenu() {
   const { mutate: switchChain } = useSwitchChain()
   const chains = useChains()
 
-  const connector = connectors.find((c) => c.id === 'in-app-wallet' || c.type === 'inAppWallet')
+  const { connector: activeConnector } = useAccount()
+
+  const inAppConnector = connectors.find((c) => c.id === 'in-app-wallet' || c.type === 'inAppWallet')
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -47,8 +49,19 @@ export default function WalletMenu() {
             onSwitch: (chain) => switchChain({ chainId: chain.id }),
           },
         }}
-        onConnect={() => connect({ connector: connector! })}
-        onDisconnect={() => disconnect()}
+        onConnect={(wallet) => {
+          // Triggered on manual connection via modal
+          if (inAppConnector) {
+            connect({ connector: inAppConnector, wallet } as any)
+          }
+        }}
+        onDisconnect={() => {
+          // Only disconnect wagmi if it is currently connected via the Thirdweb adapter
+          // Prevents disconnecting E2E test mock connectors
+          if (activeConnector?.id === 'in-app-wallet' || activeConnector?.type === 'inAppWallet') {
+            disconnect()
+          }
+        }}
         theme={darkTheme({})}
         wallets={wallets}
       />
