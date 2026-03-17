@@ -1,6 +1,7 @@
 export { default as Notifications } from './components/Notifications'
 export { default as Username } from './components/Username'
 export { default as WalletMenu } from './components/WalletMenu'
+export { default as WalletSync } from './components/WalletSync'
 export { useAddress } from './hooks/useAddress'
 export { useInventory } from './hooks/useInventory'
 export type { Token, Fiat, Method } from './hooks/useInventory'
