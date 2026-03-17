@@ -3,12 +3,10 @@ import { generatePath, Link, useParams } from 'react-router-dom'
 import { Notifications, WalletMenu } from '@/shared/web3'
 import logo from '@/assets/images/logo.png'
 import { useConnection } from 'wagmi'
-import { useActiveAccount } from 'thirdweb/react'
 
 export default function Topnav() {
   const params = useParams()
   const { isConnected, address } = useConnection()
-  const activeAccount = useActiveAccount()
 
   const navItems = [
     {
@@ -60,8 +58,7 @@ export default function Topnav() {
     },
   ]
 
-  // Use thirdweb account as fallback if wagmi is not yet synced
-  const showUserMenu = isConnected || !!address || !!activeAccount
+  const showUserMenu = isConnected || !!address
 
   return (
     <Row align="middle" wrap={false}>
