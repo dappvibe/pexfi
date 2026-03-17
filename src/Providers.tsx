@@ -9,7 +9,6 @@ import { config } from '@/wagmi.config'
 import { SUBGRAPH_URLS } from '@/subgraph.config'
 import { HelmetProvider } from '@dr.pogodin/react-helmet'
 import { ThirdwebProvider } from 'thirdweb/react'
-import { WalletSync } from '@/shared/web3'
 
 const localStoragePersister = createSyncStoragePersister({
   storage: window.localStorage,
@@ -57,7 +56,6 @@ export const Providers = ({ children }: { children: ReactNode }) => {
       <WagmiProvider config={config}>
         <QueryClientProvider client={queryClient}>
           <ApolloChainProvider>
-            <WalletSync />
             <HelmetProvider>{children}</HelmetProvider>
           </ApolloChainProvider>
         </QueryClientProvider>
