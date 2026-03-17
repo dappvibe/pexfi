@@ -1,5 +1,4 @@
-import { useEffect } from 'react'
-import { ConnectButton, darkTheme, useActiveWallet } from 'thirdweb/react'
+import { ConnectButton, darkTheme } from 'thirdweb/react'
 import { createWallet } from 'thirdweb/wallets'
 import { useAccount, useChains, useConnect, useConnectors, useDisconnect, useSwitchChain } from 'wagmi'
 import { thirdwebClient } from '@/wagmi.config.ts'
@@ -20,21 +19,9 @@ export default function WalletMenu() {
   const { mutate: switchChain } = useSwitchChain()
   const chains = useChains()
 
-  const { isConnected, isConnecting, isReconnecting, connector: activeConnector } = useAccount()
-  const thirdwebWallet = useActiveWallet()
+  const { connector: activeConnector } = useAccount()
 
   const inAppConnector = connectors.find((c) => c.id === 'in-app-wallet' || c.type === 'inAppWallet')
-
-  // Handle auto-reconnect on page reload
-  // When thirdweb successfully auto-connects its session, this triggers Wagmi to adopt it
-  useEffect(() => {
-    if (thirdwebWallet && inAppConnector && !isConnected && !isConnecting && !isReconnecting) {
-      // Connect wagmi using the inAppWalletConnector, passing the active thirdweb wallet instance
-      // Type assertion is required because Wagmi's CreateConnectorFn doesn't natively expose the custom 'wallet' parameter
-      // added by @thirdweb-dev/wagmi-adapter for state handoff.
-      connect({ connector: inAppConnector, wallet: thirdwebWallet } as any)
-    }
-  }, [thirdwebWallet, inAppConnector, isConnected, isConnecting, isReconnecting, connect])
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
