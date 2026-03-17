@@ -8,7 +8,8 @@ import { ApolloProvider } from '@apollo/client/react'
 import { config } from '@/wagmi.config'
 import { SUBGRAPH_URLS } from '@/subgraph.config'
 import { HelmetProvider } from '@dr.pogodin/react-helmet'
-import { ThirdwebProvider } from 'thirdweb/react'
+import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit'
+import '@rainbow-me/rainbowkit/styles.css'
 
 const localStoragePersister = createSyncStoragePersister({
   storage: window.localStorage,
@@ -52,14 +53,14 @@ const ApolloChainProvider = ({ children }: { children: ReactNode }) => {
 
 export const Providers = ({ children }: { children: ReactNode }) => {
   return (
-    <ThirdwebProvider>
-      <WagmiProvider config={config}>
-        <QueryClientProvider client={queryClient}>
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider theme={darkTheme()}>
           <ApolloChainProvider>
             <HelmetProvider>{children}</HelmetProvider>
           </ApolloChainProvider>
-        </QueryClientProvider>
-      </WagmiProvider>
-    </ThirdwebProvider>
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   )
 }
