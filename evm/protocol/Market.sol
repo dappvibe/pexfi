@@ -115,12 +115,12 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     emit OfferCreated(msg.sender, params.token, params.fiat, offer);
   }
 
-  function addDeal(IDeal deal, bytes16 method, string calldata terms, string calldata paymentInstructions) external {
+  function addDeal(IDeal deal, uint256 fiatAmount, bytes16 method, string calldata terms, string calldata paymentInstructions) external {
     require(offers[msg.sender], UnauthorizedAccount(msg.sender));
     deals[address(deal)] = true;
 
     IOffer offer = IOffer(deal.offer());
-    emit DealCreated(offer.owner(), deal.taker(), address(offer), address(deal), method, terms, paymentInstructions);
+    emit DealCreated(offer.owner(), deal.taker(), address(offer), address(deal), fiatAmount, method, terms, paymentInstructions);
   }
 
   /// @dev Method is in Market so that users provide allowance in single place instead of each Offer

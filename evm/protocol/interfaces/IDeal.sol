@@ -56,11 +56,9 @@ interface IDeal is OptimisticOracleV3CallbackRecipientInterface {
 
   function taker() external view returns (address);
 
-  function fiatAmount() external view returns (uint256);
+  function allowCancelUnacceptedAfter() external view returns (uint64);
 
-  function allowCancelUnacceptedAfter() external view returns (uint256);
-
-  function allowCancelUnpaidAfter() external view returns (uint256);
+  function allowCancelUnpaidAfter() external view returns (uint64);
 
   function state() external view returns (State);
 
