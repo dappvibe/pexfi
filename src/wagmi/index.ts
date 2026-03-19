@@ -125,14 +125,14 @@ export const dealAbi = [
     type: 'function',
     inputs: [],
     name: 'allowCancelUnacceptedAfter',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    outputs: [{ name: '', internalType: 'uint64', type: 'uint64' }],
     stateMutability: 'view',
   },
   {
     type: 'function',
     inputs: [],
     name: 'allowCancelUnpaidAfter',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    outputs: [{ name: '', internalType: 'uint64', type: 'uint64' }],
     stateMutability: 'view',
   },
   {
@@ -175,13 +175,6 @@ export const dealAbi = [
     name: 'feedback',
     outputs: [],
     stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'fiatAmount',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
   },
   {
     type: 'function',
@@ -393,6 +386,12 @@ export const marketAbi = [
         indexed: false,
       },
       {
+        name: 'fiatAmount',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
         name: 'method',
         internalType: 'bytes16',
         type: 'bytes16',
@@ -592,6 +591,7 @@ export const marketAbi = [
     type: 'function',
     inputs: [
       { name: 'deal', internalType: 'contract IDeal', type: 'address' },
+      { name: 'fiatAmount', internalType: 'uint256', type: 'uint256' },
       { name: 'method', internalType: 'bytes16', type: 'bytes16' },
       { name: 'terms', internalType: 'string', type: 'string' },
       { name: 'paymentInstructions', internalType: 'string', type: 'string' },
@@ -2625,14 +2625,6 @@ export const useReadDealAllowCancelUnpaidAfter =
     abi: dealAbi,
     functionName: 'allowCancelUnpaidAfter',
   })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link dealAbi}__ and `functionName` set to `"fiatAmount"`
- */
-export const useReadDealFiatAmount = /*#__PURE__*/ createUseReadContract({
-  abi: dealAbi,
-  functionName: 'fiatAmount',
-})
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link dealAbi}__ and `functionName` set to `"isPaid"`
