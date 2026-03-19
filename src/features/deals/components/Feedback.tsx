@@ -11,7 +11,7 @@ export default function Feedback() {
   const { feedback } = useDealFeedback(deal?.address, deal?.taker)
   const { offer } = useQueryOffer(deal?.offer)
   const { address: account } = useConnection()
-  const { mutateAsync, isPending } = useWriteContract()
+  const { writeContractAsync, isPending } = useWriteContract()
   const [form] = Form.useForm()
 
   if (!account || !offer) return <Skeleton active />
@@ -22,7 +22,7 @@ export default function Feedback() {
   const feedbackGiven = isOwner ? feedback.forTaker?.given : isTaker ? feedback.forOwner?.given : false
 
   async function submit() {
-    await mutateAsync({
+    await writeContractAsync({
       address: deal.address,
       abi: dealAbi,
       functionName: 'feedback',

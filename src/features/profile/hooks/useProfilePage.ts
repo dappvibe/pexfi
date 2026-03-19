@@ -31,8 +31,8 @@ export function useProfilePage() {
 
   const { profile, loading: isProfileLoading, refetch: refetchProfile } = useQueryProfile(address)
 
-  const { mutateAsync: register } = useWriteProfileRegister()
-  const { mutateAsync: updateInfoContract } = useWriteProfileUpdateInfo()
+  const { writeContractAsync: register } = useWriteProfileRegister()
+  const { writeContractAsync: updateInfoContract } = useWriteProfileUpdateInfo()
 
   const stats = useMemo<ProfileStats | null>(() => {
     if (!profile) return null
