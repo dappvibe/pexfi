@@ -15,7 +15,7 @@ interface IMarket {
   }
 
   event OfferCreated(address owner, IERC20 token, bytes32 fiat, IOffer offer);
-  event DealCreated(address indexed offerOwner, address taker, address offer, address deal, bytes16 method, string terms, string paymentInstructions);
+  event DealCreated(address indexed offerOwner, address taker, address offer, address deal, uint256 fiatAmount, bytes16 method, string terms, string paymentInstructions);
 
   event TokenAdded(IERC20 address_);
   event TokenRemoved(IERC20 address_);
@@ -43,7 +43,7 @@ interface IMarket {
   function disabledMethodsMask() external view returns (uint256);
 
   function createOffer(IOffer.OfferParams calldata params) external;
-  function addDeal(IDeal deal, bytes16 method, string calldata terms, string calldata paymentInstructions) external;
+  function addDeal(IDeal deal, uint256 fiatAmount, bytes16 method, string calldata terms, string calldata paymentInstructions) external;
   function fundDeal() external;
 
   function getPrice(IERC20 token_, bytes3 fiat_) external view returns (uint256 price);

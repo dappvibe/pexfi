@@ -133,17 +133,19 @@ export function handleOfferCreated(event: OfferCreatedEvent): void {
 }
 
 export function handleDealCreated(event: DealCreated): void {
-  log.info("DealCreated: deal={}, offer={}, taker={}, owner={}, method={}, terms={}, payment={}", [
+  log.info("DealCreated: deal={}, offer={}, taker={}, owner={}, fiat={}, method={}, terms={}, payment={}", [
     event.params.deal.toHexString(),
     event.params.offer.toHexString(),
     event.params.taker.toHexString(),
     event.params.offerOwner.toHexString(),
+    event.params.fiatAmount.toString(),
     event.params.method.toHexString(),
     event.params.terms,
     event.params.paymentInstructions
   ]);
   let deal = fetchDeal(event.params.deal);
   deal.createdAt = event.block.timestamp.toI32();
+  deal.fiatAmount = event.params.fiatAmount;
   deal.terms = event.params.terms;
   deal.paymentInstructions = event.params.paymentInstructions;
   deal.method = event.params.method;

@@ -9,6 +9,7 @@ const GQL_DEAL = gql`
     deal(id: $id) {
       id
       method
+      fiatAmount
       terms
       paymentInstructions
     }
@@ -18,6 +19,7 @@ const GQL_DEAL = gql`
 interface GraphDeal {
   id: string
   method: string
+  fiatAmount: string
   terms: string | null
   paymentInstructions: string | null
 }
@@ -32,6 +34,8 @@ export function useQueryDeal(dealId: string | undefined) {
 
   const subgraphInfo = useMemo(() => {
     let methodName = ''
+    let fiatAmount = 0n
+    let fiatAmountFormatted = 0
     let terms = ''
     let paymentInstructions = ''
 
@@ -43,12 +47,16 @@ export function useQueryDeal(dealId: string | undefined) {
         const found = Object.values(methods).find((m: any) => Number(m.index) === Number(d.method))
         methodName = found ? (found as any).name : `Method #${d.method}`
       }
+      fiatAmount = BigInt(d.fiatAmount)
+      fiatAmountFormatted = Number(fiatAmount) / 10 ** 6
       terms = d.terms || ''
       paymentInstructions = d.paymentInstructions || ''
     }
 
     return {
       methodName,
+      fiatAmount,
+      fiatAmountFormatted,
       terms,
       paymentInstructions,
     }

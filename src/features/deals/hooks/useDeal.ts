@@ -17,6 +17,8 @@ export function useDeal() {
       ...contractDeal,
       isPaid: contractDeal.isPaid,
       method: subgraphInfo?.methodName || contractDeal.method,
+      fiatAmount: subgraphInfo?.fiatAmount || contractDeal.fiatAmount,
+      fiatAmountFormatted: subgraphInfo?.fiatAmountFormatted || contractDeal.fiatAmountFormatted,
       terms: subgraphInfo?.terms || contractDeal.terms,
       paymentInstructions: subgraphInfo?.paymentInstructions || contractDeal.paymentInstructions,
     }

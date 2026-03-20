@@ -15,7 +15,7 @@ export default function MessageBox() {
   const [lockSubmit, setLockSubmit] = useState(false)
   const { address } = useConnection()
   const [form] = useForm()
-  const { mutateAsync } = useWriteContract()
+  const { writeContractAsync } = useWriteContract()
 
   async function upload(file: File) {
     const reader = new FileReader()
@@ -27,7 +27,7 @@ export default function MessageBox() {
     if (!deal) return
     setLockSubmit(true)
     try {
-      await mutateAsync({
+      await writeContractAsync({
         address: deal.address,
         abi: dealAbi,
         functionName: 'message',

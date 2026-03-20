@@ -11,10 +11,10 @@ import {
 export function useOfferActions(offerId: string | undefined, onUpdate?: () => void) {
   const publicClient = usePublicClient()
 
-  const { mutateAsync: setRateTx, isPending: isSettingRate } = useWriteOfferSetRate()
-  const { mutateAsync: setLimitsTx, isPending: isSettingLimits } = useWriteOfferSetLimits()
-  const { mutateAsync: setTermsTx, isPending: isSettingTerms } = useWriteOfferSetTerms()
-  const { mutateAsync: setDisabledTx, isPending: isTogglingDisabled } = useWriteOfferSetDisabled()
+  const { writeContractAsync: setRateTx, isPending: isSettingRate } = useWriteOfferSetRate()
+  const { writeContractAsync: setLimitsTx, isPending: isSettingLimits } = useWriteOfferSetLimits()
+  const { writeContractAsync: setTermsTx, isPending: isSettingTerms } = useWriteOfferSetTerms()
+  const { writeContractAsync: setDisabledTx, isPending: isTogglingDisabled } = useWriteOfferSetDisabled()
 
   const setRate = useCallback(
     async (rate: number) => {
