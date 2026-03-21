@@ -461,16 +461,16 @@ describe('Deal', () => {
       )
     })
 
-    test('Feedback cannot be given again', async () => {
-      await viem.assertions.revertWithCustomError(
+    test('Feedback can be given again but subgraph handles it', async () => {
+      await viem.assertions.emit(
         dealToBuy.write.feedback([true, 'good deal'], { account: taker }),
-        { abi: profileAbi },
-        'FeedbackAlreadyGiven'
+        dealToBuy,
+        'FeedbackGiven'
       )
-      await viem.assertions.revertWithCustomError(
+      await viem.assertions.emit(
         dealToBuy.write.feedback([true, 'good deal'], { account: maker }),
-        { abi: profileAbi },
-        'FeedbackAlreadyGiven'
+        dealToBuy,
+        'FeedbackGiven'
       )
     })
 
