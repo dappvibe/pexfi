@@ -125,14 +125,14 @@ export const dealAbi = [
     type: 'function',
     inputs: [],
     name: 'allowCancelUnacceptedAfter',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    outputs: [{ name: '', internalType: 'uint32', type: 'uint32' }],
     stateMutability: 'view',
   },
   {
     type: 'function',
     inputs: [],
     name: 'allowCancelUnpaidAfter',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    outputs: [{ name: '', internalType: 'uint32', type: 'uint32' }],
     stateMutability: 'view',
   },
   {

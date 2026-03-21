@@ -26,12 +26,12 @@ contract Deal is IDeal, ERC165, Initializable
   uint    public tokenAmount;
   address public taker;
   uint    public fiatAmount;
-  uint    public allowCancelUnacceptedAfter;
-  uint    public allowCancelUnpaidAfter;
   IDeal.State   public state; // defaults to Initiated (0)
   FinderInterface  internal finder;
   IOffer   public offer;
   bool    public isPaid;
+  uint32  public allowCancelUnacceptedAfter;
+  uint32  public allowCancelUnpaidAfter;
 
   function _seller() internal view returns (address) {
     return offer.isSell() ? offer.owner() : taker;
@@ -75,8 +75,7 @@ contract Deal is IDeal, ERC165, Initializable
     taker = params.taker;
 
     tokenAmount = params.tokenAmount;
-    fiatAmount = params.fiatAmount;
-    allowCancelUnacceptedAfter = block.timestamp + ACCEPTANCE_TIME;
+    allowCancelUnacceptedAfter = uint32(block.timestamp + ACCEPTANCE_TIME);
 
     emit DealState(state, params.taker);
   }
@@ -85,7 +84,7 @@ contract Deal is IDeal, ERC165, Initializable
     require(msg.sender == offer.owner(), IMarket.UnauthorizedAccount(msg.sender));
 
     _state(IDeal.State.Accepted);
-    allowCancelUnpaidAfter = block.timestamp + PAYMENT_WINDOW;
+    allowCancelUnpaidAfter = uint32(block.timestamp + PAYMENT_WINDOW);
   }
 
   function fund() external onlySeller stateBetween(IDeal.State.Accepted, IDeal.State.Accepted) {
