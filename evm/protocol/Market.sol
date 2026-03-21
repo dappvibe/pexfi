@@ -79,7 +79,8 @@ contract Market is IMarket, Finder, UUPSUpgradeable
   }
 
   function addMethods(bytes16[] calldata names_) external onlyOwner {
-    for (uint i = 0; i < names_.length; i++) {
+    uint len = names_.length;
+    for (uint i = 0; i < len; ) {
       methods.push(names_[i]);
       emit MethodAdded(names_[i], methods.length - 1);
     }
