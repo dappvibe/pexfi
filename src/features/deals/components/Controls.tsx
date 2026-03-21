@@ -36,7 +36,7 @@ function DealButton({
     },
   })
 
-  const { mutateAsync, isPending } = useWriteContract()
+  const { writeContractAsync, isPending } = useWriteContract()
 
   const onClick = async () => {
     if (error) {
@@ -47,7 +47,7 @@ function DealButton({
       return
     }
     try {
-      await mutateAsync(data.request)
+      await writeContractAsync(data.request)
       if (successMessage) message.success(successMessage)
     } catch (e: any) {
       message.error(e?.shortMessage || e?.message || 'Transaction failed')
@@ -75,7 +75,7 @@ export default function Controls() {
   const vaultAddress = useAddress('Market#PexfiVault')
   const vestingAddress = useAddress('Market#PexfiVesting')
 
-  const { mutateAsync: writeBondAsync } = useWritePexfiVestingBond()
+  const { writeContractAsync: writeBondAsync } = useWritePexfiVestingBond()
 
   const tokenAddress = offer?.token?.address
 
@@ -107,7 +107,7 @@ export default function Controls() {
     query: { enabled: !!vestingAddress && isDisputed },
   })
 
-  const { mutateAsync: approveAsync, data: approveHash } = useWriteContract()
+  const { writeContractAsync: approveAsync, data: approveHash } = useWriteContract()
   const { isLoading: isApproving } = useWaitForTransactionReceipt({
     hash: approveHash,
     query: { enabled: !!approveHash },
