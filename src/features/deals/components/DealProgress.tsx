@@ -30,7 +30,7 @@ export default function DealProgress() {
   let status: 'wait' | 'process' | 'finish' | 'error' = 'process'
 
   switch (deal.state) {
-    case DealState.Created:
+    case DealState.Initiated:
       current = 0
       break
     case DealState.Accepted:
@@ -51,11 +51,11 @@ export default function DealProgress() {
       current = deal.resolvedPaid ? 3 : 2
       status = 'finish'
       break
-    case DealState.Released:
+    case DealState.Completed:
       current = 4 // All steps finished
       status = 'finish'
       break
-    case DealState.Cancelled:
+    case DealState.Canceled:
       // Keep current step but show error
       current = deal.resolvedPaid ? 3 : 2
       status = 'error'

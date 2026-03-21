@@ -1,18 +1,18 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useChainId, useReadContract, useReadContracts, useWatchContractEvent } from 'wagmi'
 import { Address, formatUnits } from 'viem'
 import { dealAbi, offerAbi } from '@/wagmi'
 import { useInventory } from '@/shared/web3'
 
 export enum DealState {
-  Created = 0,
+  Initiated = 0,
   Accepted = 1,
   Funded = 2,
   Paid = 3,
   Disputed = 4,
-  Cancelled = 5,
+  Canceled = 5,
   Resolved = 6,
-  Released = 7,
+  Completed = 7,
 }
 
 export type Deal = {
@@ -35,6 +35,7 @@ export type Deal = {
 }
 
 export function useReadDeal(address: Address | undefined) {
+  const [state, setState] = useState<DealState | undefined>()
   const chainId = useChainId()
   const { tokens } = useInventory()
   const dealContract = address ? ({ address, abi: dealAbi } as const) : null
@@ -72,21 +73,25 @@ export function useReadDeal(address: Address | undefined) {
   }, [offerAddress, refetchOfferTokenSymbol])
 
   useEffect(() => {
+    setState(undefined)
+  }, [address])
+
+  useEffect(() => {
     refetch()
   }, [chainId, refetch])
 
   const deal = useMemo<Deal | null>(() => {
-    if (!data || !address || data.some((d) => d.status === 'failure')) return null
+    if (!data || !address) return null
 
-    const fetchedState = Number(data[0].result) as DealState
+    const fetchedState = data[0]?.status === 'success' ? (Number(data[0].result) as DealState) : DealState.Initiated
     const currentState = state ?? fetchedState
-    const allowCancelUnacceptedAfter = new Date(Number(data[4].result) * 1000)
-    const allowCancelUnpaidAfter = new Date(Number(data[5].result) * 1000)
+    const allowCancelUnacceptedAfter = new Date(Number(data[4]?.result || 0) * 1000)
+    const allowCancelUnpaidAfter = new Date(Number(data[5]?.result || 0) * 1000)
     const now = new Date()
 
-    const taker = data[2].result as Address
+    const taker = (data[2]?.result as Address) || '0x0000000000000000000000000000000000000000'
 
-    const tokenAmount = data[3].result as bigint
+    const tokenAmount = (data[3]?.result as bigint) || 0n
 
     const tokenSymbol = offerTokenSymbol as string | undefined
     const decimals = (tokenSymbol && tokens[tokenSymbol]?.decimals) ?? 18
@@ -94,7 +99,7 @@ export function useReadDeal(address: Address | undefined) {
     return {
       address,
       state: currentState,
-      offer: data[1].result as Address,
+      offer: (data[1]?.result as Address) || '0x0000000000000000000000000000000000000000',
       taker,
       tokenAmount,
       tokenAmountFormatted: Number(formatUnits(tokenAmount, decimals)),
@@ -105,9 +110,9 @@ export function useReadDeal(address: Address | undefined) {
       paymentInstructions: '',
       allowCancelUnacceptedAfter,
       allowCancelUnpaidAfter,
-      canCancelUnaccepted: currentState === DealState.Created && now >= allowCancelUnacceptedAfter,
+      canCancelUnaccepted: currentState === DealState.Initiated && now >= allowCancelUnacceptedAfter,
       canCancelUnpaid: currentState === DealState.Funded && now >= allowCancelUnpaidAfter,
-      isPaid: !!data[6]?.result,
+      resolvedPaid: !!data[6]?.result,
     }
   }, [data, address, state, offerTokenSymbol, tokens])
 

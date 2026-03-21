@@ -254,7 +254,7 @@ export default function Controls() {
   const controls: React.ReactNode[] = []
 
   switch (deal.state) {
-    case DealState.Created:
+    case DealState.Initiated:
       if (isOwner) {
         controls.push(action.accept)
         controls.push(action.cancel)
@@ -325,12 +325,12 @@ export default function Controls() {
       }
       break
 
-    case DealState.Cancelled:
-    case DealState.Released:
+    case DealState.Canceled:
+    case DealState.Completed:
       break
   }
 
-  if (deal.state < DealState.Cancelled || deal.state === DealState.Resolved) {
+  if (deal.state < DealState.Canceled || deal.state === DealState.Resolved) {
     return (
       <Space>
         {controls.map((button, index) => (
@@ -338,7 +338,7 @@ export default function Controls() {
         ))}
       </Space>
     )
-  } else if (deal.state === DealState.Released) {
+  } else if (deal.state === DealState.Completed) {
     // Resolved also allows feedback so that users don't abuse disputes to not have feedback
     return <Feedback />
   } else {
