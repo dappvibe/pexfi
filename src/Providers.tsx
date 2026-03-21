@@ -39,7 +39,20 @@ const getApolloClient = (chainId: number) => {
 
   return new ApolloClient({
     link: new HttpLink({ uri }),
-    cache: new InMemoryCache(),
+    cache: new InMemoryCache({
+      typePolicies: {
+        Offer: {
+          keyFields: ['id'],
+        },
+        Deal: {
+          keyFields: ['id'],
+        },
+        Profile: {
+          keyFields: ['id'],
+        },
+      },
+    }),
+    queryDeduplication: true,
   })
 }
 
