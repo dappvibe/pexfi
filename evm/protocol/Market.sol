@@ -83,6 +83,7 @@ contract Market is IMarket, Finder, UUPSUpgradeable
     for (uint i = 0; i < len; ) {
       methods.push(names_[i]);
       emit MethodAdded(names_[i], methods.length - 1);
+      unchecked { i++; }
     }
   }
   function disableMethods(uint256 mask) external onlyOwner {
@@ -147,12 +148,17 @@ contract Market is IMarket, Finder, UUPSUpgradeable
   public view
   returns (uint256 amount)
   {
-    if (fromFiat_ == bytes3("USD") && address(toToken_) == USDC)
-      return FullMath.mulDiv(amount_, 10 ** 4, denominator);
+    if (fromFiat_ == bytes3("USD") && address(toToken_) == USDC) {
+      unchecked {
+        return FullMath.mulDiv(amount_, 10 ** 4, denominator);
+      }
+    }
 
     uint decimals = tokens[toToken_].decimals;
     amount = FullMath.mulDiv(amount_, 10 ** decimals, getPrice(toToken_, fromFiat_));
-    return FullMath.mulDiv(amount, 10 ** 4, denominator);
+    unchecked {
+      return FullMath.mulDiv(amount, 10 ** 4, denominator);
+    }
   }
 
   /// @return price with 6 decimals
@@ -164,16 +170,25 @@ contract Market is IMarket, Finder, UUPSUpgradeable
       secs[0] = 300;
       secs[1] = 0;
       (int56[] memory tickCumulatives,) = token.pool.observe(secs);
-      int56 tickCumulativesDelta = tickCumulatives[1] - tickCumulatives[0];
+      int56 tickCumulativesDelta;
+      unchecked {
+        tickCumulativesDelta = tickCumulatives[1] - tickCumulatives[0];
+      }
 
       // Fix Solidity's negative division rounding
-      int24 meanTick = int24(tickCumulativesDelta / 300);
-      if (tickCumulativesDelta < 0 && (tickCumulativesDelta % 300 != 0)) {
-        meanTick--;
+      int24 meanTick;
+      unchecked {
+        meanTick = int24(tickCumulativesDelta / 300);
+        if (tickCumulativesDelta < 0 && (tickCumulativesDelta % 300 != 0)) {
+          meanTick--;
+        }
       }
 
       uint160 sqrtPriceX96 = TickMath.getSqrtPriceAtTick(meanTick);
-      uint256 ratioX192 = uint256(sqrtPriceX96) * uint256(sqrtPriceX96);
+      uint256 ratioX192;
+      unchecked {
+        ratioX192 = uint256(sqrtPriceX96) * uint256(sqrtPriceX96);
+      }
 
       // 2. Check token sorting to determine math direction
       address token0 = IUniswapV3Pool(token.pool).token0();
@@ -190,7 +205,9 @@ contract Market is IMarket, Finder, UUPSUpgradeable
     if (fiat_ != bytes3("USD")) { // 0 is USD
       (, int $fiatToUSD,,,) = fiats[fiat_].latestRoundData();
       require($fiatToUSD > 0, InvalidArgument());
-      price = price * 10 ** 8 / uint($fiatToUSD);
+      unchecked {
+        price = price * 10 ** 8 / uint($fiatToUSD);
+      }
     }
   }
 }
