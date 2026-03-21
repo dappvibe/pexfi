@@ -58,13 +58,26 @@ export default function Notifications() {
   const { data, startPolling, stopPolling } = useQuery(GET_NOTIFICATIONS, {
     variables: { account: address },
     skip: !address,
-    pollInterval: 5000, // Poll every 5 seconds
+    pollInterval: 30000, // Poll every 30 seconds
   })
 
   useEffect(() => {
-    if (address) {
-      startPolling(5000)
-    } else {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && address) {
+        startPolling(30000)
+      } else {
+        stopPolling()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    if (address && document.visibilityState === 'visible') {
+      startPolling(30000)
+    }
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
       stopPolling()
     }
   }, [address, startPolling, stopPolling])
