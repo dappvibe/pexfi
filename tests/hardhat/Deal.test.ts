@@ -64,7 +64,7 @@ describe('Deal', () => {
     test('createDeal() should revert if taker is offer owner', async () => {
       await viem.assertions.revertWithCustomErrorWithArgs(
         offerToSell.write.createDeal(
-          [Market.address, { method: 0n, fiatAmount: FIAT_AMOUNT, paymentInstructions: 'instructions' }],
+          [{ method: 0n, fiatAmount: FIAT_AMOUNT, paymentInstructions: 'instructions' }],
           { account: maker }
         ),
         offerToSell,
@@ -73,7 +73,7 @@ describe('Deal', () => {
       )
       await viem.assertions.revertWithCustomErrorWithArgs(
         offerToBuy.write.createDeal(
-          [Market.address, { method: 0n, fiatAmount: FIAT_AMOUNT, paymentInstructions: 'instructions' }],
+          [{ method: 0n, fiatAmount: FIAT_AMOUNT, paymentInstructions: 'instructions' }],
           { account: maker }
         ),
         offerToBuy,
@@ -85,7 +85,7 @@ describe('Deal', () => {
     test('createDeal() should trigger DealCreated event', async () => {
       const createFor = async (offer) => {
         const hash = await offer.write.createDeal(
-          [Market.address, { fiatAmount: FIAT_AMOUNT, method: 0n, paymentInstructions: 'instructions' }],
+          [{ fiatAmount: FIAT_AMOUNT, method: 0n, paymentInstructions: 'instructions' }],
           { account: taker }
         )
         const receipt = await publicClient.waitForTransactionReceipt({ hash })
@@ -477,7 +477,6 @@ describe('Deal', () => {
     test('Feedback reverts if in wrong state (e.g. Paid)', async () => {
        // Create a new deal, advance to Paid
        const hash = await offerToSell.write.createDeal([
-         Market.address,
          { fiatAmount: FIAT_AMOUNT, method: 0n, paymentInstructions: 'i' }
        ], { account: taker })
        const r = await publicClient.waitForTransactionReceipt({ hash })

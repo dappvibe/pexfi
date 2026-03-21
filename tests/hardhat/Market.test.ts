@@ -235,7 +235,7 @@ describe('Market', () => {
       const walletClients = await viem.getWalletClients()
       const takerAddress = getAddress(walletClients[1].account.address)
 
-      await OfferContract.write.createDeal([Market.address, createDealParams], { account: takerAddress })
+      await OfferContract.write.createDeal([createDealParams], { account: takerAddress })
 
       const logs = await publicClient.getContractEvents({
         address: Market.address,
@@ -275,7 +275,7 @@ describe('Market', () => {
       const takerAccount = walletClients[1] // Use taker from deployMarket
       const takerAddress = getAddress(takerAccount.account.address)
 
-      await OfferContract.write.createDeal([Market.address, createDealParams], { account: takerAddress })
+      await OfferContract.write.createDeal([createDealParams], { account: takerAddress })
 
       const logs = await publicClient.getContractEvents({
         address: Market.address,

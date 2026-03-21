@@ -26,7 +26,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
 {
   using SafeERC20 for IERC20;
 
-  FinderInterface public finder;
+  FinderInterface public immutable finder;
 
   mapping(IERC20  => Token)      public tokens;
 
@@ -46,14 +46,14 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
   address public immutable USDC;
 
   /// @custom:oz-upgrades-unsafe-allow constructor
-  constructor(address usdc_) {
+  constructor(address usdc_, address finder_) {
     USDC = usdc_;
+    finder = FinderInterface(finder_);
     _disableInitializers();
   }
 
-  function initialize(address finder_) initializer external {
+  function initialize() initializer external {
     __Ownable_init(msg.sender);
-    finder = FinderInterface(finder_);
   }
   function _authorizeUpgrade(address) internal onlyOwner override {}
 

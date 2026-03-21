@@ -12,8 +12,8 @@ export default buildModule('Market', (m) => {
   const Finder = m.contract('Finder')
 
   // --- Marketplace ---
-  const OfferImplementation = m.contract('Offer', [], { id: 'OfferImplementation' })
-  const DealImplementation = m.contract('Deal', [], { id: 'DealImplementation' })
+  const OfferImplementation = m.contract('Offer', [Finder], { id: 'OfferImplementation' })
+  const DealImplementation = m.contract('Deal', [Finder], { id: 'DealImplementation' })
 
   const ProfileImpl = m.contract('Profile', [], { id: 'ProfileV0' })
   const ProfileProxy = m.contract('ERC1967Proxy', [ProfileImpl, m.encodeFunctionCall(ProfileImpl, 'initialize', [])], {
@@ -23,10 +23,10 @@ export default buildModule('Market', (m) => {
 
   // deploy
   const usdc = m.getParameter('usdc')
-  const MarketImpl = m.contract('Market', [usdc], { id: 'MarketV0' })
+  const MarketImpl = m.contract('Market', [usdc, Finder], { id: 'MarketV0' })
   const MarketProxy = m.contract(
     'ERC1967Proxy',
-    [MarketImpl, m.encodeFunctionCall(MarketImpl, 'initialize', [Finder])],
+    [MarketImpl, m.encodeFunctionCall(MarketImpl, 'initialize', [])],
     { id: 'MarketProxy' }
   )
   const Market = m.contractAt('Market', MarketProxy)

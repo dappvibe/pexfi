@@ -23,14 +23,30 @@ contract Deal is IDeal, ERC165, Initializable
   bytes32 private constant RESOLVE_PAID = keccak256("PAID");
   bytes32 private constant RESOLVE_NOT_PAID = keccak256("NOT PAID");
 
-  uint256 public tokenAmount;
+  FinderInterface public immutable finder;
+
+  /** @dev Slot 0: 20 bytes */
   address public taker;
-  IDeal.State public state; // defaults to Initiated (0)
-  bool    public isPaid;
-  uint32  public allowCancelUnacceptedAfter;
+
+  /**
+   * @dev Slot 1: 30 bytes
+   * - offer: 20 bytes
+   * - state: 1 byte
+   * - allowCancelUnacceptedAfter: 4 bytes
+   * - allowCancelUnpaidAfter: 4 bytes
+   * - isPaid: 1 byte
+   */
   IOffer  public offer;
+  IDeal.State public state; // defaults to Initiated (0)
+  uint32  public allowCancelUnacceptedAfter;
   uint32  public allowCancelUnpaidAfter;
-  FinderInterface internal finder;
+  bool    public isPaid;
+
+  /**
+   * @dev Slot 2: 32 bytes
+   */
+  uint256 public tokenAmount;
+
 
   function _seller() internal view returns (address) {
     return offer.isSell() ? offer.owner() : taker;
@@ -61,7 +77,8 @@ contract Deal is IDeal, ERC165, Initializable
   }
 
   /// @custom:oz-upgrades-unsafe-allow constructor
-  constructor() {
+  constructor(address finder_) {
+    finder = FinderInterface(finder_);
     _disableInitializers();
   }
 
@@ -69,7 +86,6 @@ contract Deal is IDeal, ERC165, Initializable
   external
   initializer
   {
-    finder = FinderInterface(params.finder);
     offer = IOffer(params.offer);
     taker = params.taker;
 

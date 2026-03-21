@@ -43,7 +43,6 @@ export function useCreateDeal({ offer }: UseCreateDealProps) {
       const hash = await createDealTx({
         address: offer.address,
         args: [
-          marketAddress as Address,
           {
             fiatAmount: amount,
             paymentInstructions: values['paymentInstructions'] ?? '',

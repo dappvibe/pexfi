@@ -8,6 +8,7 @@ import {Services} from "./libraries/Services.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {FinderInterface} from "@uma/core/contracts/data-verification-mechanism/interfaces/FinderInterface.sol";
 
 contract Offer is IOffer, Initializable
 {
@@ -25,11 +26,14 @@ contract Offer is IOffer, Initializable
   IERC20 public token;
   IOffer.Limits public limits;
 
+  FinderInterface public immutable finder;
+
   // dynamic
   string public terms;
 
   /// @custom:oz-upgrades-unsafe-allow constructor
-  constructor() {
+  constructor(address finder_) {
+    finder = FinderInterface(finder_);
     _disableInitializers();
   }
 
@@ -50,21 +54,22 @@ contract Offer is IOffer, Initializable
     terms = params.terms;
   }
 
-  function createDeal(IMarket market, IOffer.CreateDealParams calldata params)
+  function createDeal(IOffer.CreateDealParams calldata params)
   external
   {
     if (msg.sender == owner) revert IMarket.UnauthorizedAccount(msg.sender);
     if (disabled) revert IOffer.OfferDisabled();
+
+    IMarket market = IMarket(finder.getImplementationAddress(Services.Market));
     bytes16 method = market.methods(params.method); // will panic if out of bounds
     if ((methods & (1 << params.method)) == 0) revert IMarket.InvalidMethod(1 << params.method);
     if (((1 << params.method) & market.disabledMethodsMask()) != 0) revert IMarket.InvalidMethod(market.disabledMethodsMask());
 
     uint _tokenAmount = market.convert(params.fiatAmount, fiat, token, rate);
 
-    address impl = market.finder().getImplementationAddress(Services.DealImplementation);
+    address impl = finder.getImplementationAddress(Services.DealImplementation);
     IDeal deal = IDeal(Clones.clone(impl));
     deal.initialize(IDeal.DealParams({
-      finder: address(market.finder()),
       offer: address(this),
       taker: msg.sender,
       tokenAmount: _tokenAmount,

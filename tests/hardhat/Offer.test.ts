@@ -109,7 +109,7 @@ describe('Offer', () => {
       test('should revert if disabled', async () => {
         await offer.write.setDisabled([true], { account: admin })
         await viem.assertions.revertWithCustomError(
-          offer.write.createDeal([Market.address, { method: 0n, fiatAmount: 1000n, paymentInstructions: 'p' }], {
+          offer.write.createDeal([{ method: 0, fiatAmount: 1000n, paymentInstructions: 'p' }], {
             account: nobody,
           }),
           offer,
