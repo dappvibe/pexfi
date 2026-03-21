@@ -10,7 +10,11 @@ import {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const dealAbi = [
-  { type: 'constructor', inputs: [], stateMutability: 'nonpayable' },
+  {
+    type: 'constructor',
+    inputs: [{ name: 'market_', internalType: 'address', type: 'address' }],
+    stateMutability: 'nonpayable',
+  },
   {
     type: 'error',
     inputs: [
@@ -191,7 +195,6 @@ export const dealAbi = [
         internalType: 'struct IDeal.DealParams',
         type: 'tuple',
         components: [
-          { name: 'finder', internalType: 'address', type: 'address' },
           { name: 'offer', internalType: 'address', type: 'address' },
           { name: 'taker', internalType: 'address', type: 'address' },
           { name: 'tokenAmount', internalType: 'uint256', type: 'uint256' },
@@ -208,6 +211,13 @@ export const dealAbi = [
     inputs: [],
     name: 'isPaid',
     outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'market',
+    outputs: [{ name: '', internalType: 'contract IMarket', type: 'address' }],
     stateMutability: 'view',
   },
   {
@@ -457,6 +467,25 @@ export const marketAbi = [
     anonymous: false,
     inputs: [
       {
+        name: 'interfaceName',
+        internalType: 'bytes32',
+        type: 'bytes32',
+        indexed: true,
+      },
+      {
+        name: 'newImplementationAddress',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+    ],
+    name: 'InterfaceImplementationChanged',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
         name: 'name',
         internalType: 'bytes16',
         type: 'bytes16',
@@ -646,6 +675,20 @@ export const marketAbi = [
   {
     type: 'function',
     inputs: [
+      { name: 'interfaceName', internalType: 'bytes32', type: 'bytes32' },
+      {
+        name: 'implementationAddress',
+        internalType: 'address',
+        type: 'address',
+      },
+    ],
+    name: 'changeImplementationAddress',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
       { name: 'amount_', internalType: 'uint256', type: 'uint256' },
       { name: 'fromFiat_', internalType: 'bytes3', type: 'bytes3' },
       { name: 'toToken_', internalType: 'contract IERC20', type: 'address' },
@@ -732,18 +775,18 @@ export const marketAbi = [
   {
     type: 'function',
     inputs: [],
-    name: 'finder',
-    outputs: [
-      { name: '', internalType: 'contract FinderInterface', type: 'address' },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [],
     name: 'fundDeal',
     outputs: [],
     stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'interfaceName', internalType: 'bytes32', type: 'bytes32' },
+    ],
+    name: 'getImplementationAddress',
+    outputs: [{ name: '', internalType: 'address', type: 'address' }],
+    stateMutability: 'view',
   },
   {
     type: 'function',
@@ -757,10 +800,17 @@ export const marketAbi = [
   },
   {
     type: 'function',
-    inputs: [{ name: 'finder_', internalType: 'address', type: 'address' }],
+    inputs: [],
     name: 'initialize',
     outputs: [],
     stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
+    name: 'interfacesImplemented',
+    outputs: [{ name: '', internalType: 'address', type: 'address' }],
+    stateMutability: 'view',
   },
   {
     type: 'function',
@@ -858,7 +908,11 @@ export const marketAbi = [
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const offerAbi = [
-  { type: 'constructor', inputs: [], stateMutability: 'nonpayable' },
+  {
+    type: 'constructor',
+    inputs: [{ name: 'market_', internalType: 'address', type: 'address' }],
+    stateMutability: 'nonpayable',
+  },
   { type: 'error', inputs: [], name: 'FailedDeployment' },
   {
     type: 'error',
@@ -900,7 +954,6 @@ export const offerAbi = [
   {
     type: 'function',
     inputs: [
-      { name: 'market', internalType: 'contract IMarket', type: 'address' },
       {
         name: 'params',
         internalType: 'struct IOffer.CreateDealParams',
@@ -980,6 +1033,13 @@ export const offerAbi = [
       { name: 'min', internalType: 'uint32', type: 'uint32' },
       { name: 'max', internalType: 'uint32', type: 'uint32' },
     ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'market',
+    outputs: [{ name: '', internalType: 'contract IMarket', type: 'address' }],
     stateMutability: 'view',
   },
   {
@@ -1867,7 +1927,7 @@ export const pexfiVestingAbi = [
       { name: 'startTimestamp', internalType: 'uint64', type: 'uint64' },
       { name: 'durationSeconds', internalType: 'uint64', type: 'uint64' },
       { name: 'cliffSeconds', internalType: 'uint64', type: 'uint64' },
-      { name: 'finder_', internalType: 'address', type: 'address' },
+      { name: 'market_', internalType: 'address', type: 'address' },
     ],
     stateMutability: 'nonpayable',
   },
@@ -1998,10 +2058,8 @@ export const pexfiVestingAbi = [
   {
     type: 'function',
     inputs: [],
-    name: 'finder',
-    outputs: [
-      { name: '', internalType: 'contract FinderInterface', type: 'address' },
-    ],
+    name: 'market',
+    outputs: [{ name: '', internalType: 'contract IMarket', type: 'address' }],
     stateMutability: 'view',
   },
   {
@@ -2635,6 +2693,14 @@ export const useReadDealIsPaid = /*#__PURE__*/ createUseReadContract({
 })
 
 /**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link dealAbi}__ and `functionName` set to `"market"`
+ */
+export const useReadDealMarket = /*#__PURE__*/ createUseReadContract({
+  abi: dealAbi,
+  functionName: 'market',
+})
+
+/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link dealAbi}__ and `functionName` set to `"offer"`
  */
 export const useReadDealOffer = /*#__PURE__*/ createUseReadContract({
@@ -2986,12 +3052,13 @@ export const useReadMarketFiats = /*#__PURE__*/ createUseReadContract({
 })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link marketAbi}__ and `functionName` set to `"finder"`
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link marketAbi}__ and `functionName` set to `"getImplementationAddress"`
  */
-export const useReadMarketFinder = /*#__PURE__*/ createUseReadContract({
-  abi: marketAbi,
-  functionName: 'finder',
-})
+export const useReadMarketGetImplementationAddress =
+  /*#__PURE__*/ createUseReadContract({
+    abi: marketAbi,
+    functionName: 'getImplementationAddress',
+  })
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link marketAbi}__ and `functionName` set to `"getPrice"`
@@ -3000,6 +3067,15 @@ export const useReadMarketGetPrice = /*#__PURE__*/ createUseReadContract({
   abi: marketAbi,
   functionName: 'getPrice',
 })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link marketAbi}__ and `functionName` set to `"interfacesImplemented"`
+ */
+export const useReadMarketInterfacesImplemented =
+  /*#__PURE__*/ createUseReadContract({
+    abi: marketAbi,
+    functionName: 'interfacesImplemented',
+  })
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link marketAbi}__ and `functionName` set to `"methods"`
@@ -3079,6 +3155,15 @@ export const useWriteMarketAddToken = /*#__PURE__*/ createUseWriteContract({
   abi: marketAbi,
   functionName: 'addToken',
 })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link marketAbi}__ and `functionName` set to `"changeImplementationAddress"`
+ */
+export const useWriteMarketChangeImplementationAddress =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: marketAbi,
+    functionName: 'changeImplementationAddress',
+  })
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link marketAbi}__ and `functionName` set to `"createOffer"`
@@ -3208,6 +3293,15 @@ export const useSimulateMarketAddToken =
   /*#__PURE__*/ createUseSimulateContract({
     abi: marketAbi,
     functionName: 'addToken',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link marketAbi}__ and `functionName` set to `"changeImplementationAddress"`
+ */
+export const useSimulateMarketChangeImplementationAddress =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: marketAbi,
+    functionName: 'changeImplementationAddress',
   })
 
 /**
@@ -3352,6 +3446,15 @@ export const useWatchMarketInitializedEvent =
   })
 
 /**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link marketAbi}__ and `eventName` set to `"InterfaceImplementationChanged"`
+ */
+export const useWatchMarketInterfaceImplementationChangedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: marketAbi,
+    eventName: 'InterfaceImplementationChanged',
+  })
+
+/**
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link marketAbi}__ and `eventName` set to `"MethodAdded"`
  */
 export const useWatchMarketMethodAddedEvent =
@@ -3451,6 +3554,14 @@ export const useReadOfferIsSell = /*#__PURE__*/ createUseReadContract({
 export const useReadOfferLimits = /*#__PURE__*/ createUseReadContract({
   abi: offerAbi,
   functionName: 'limits',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link offerAbi}__ and `functionName` set to `"market"`
+ */
+export const useReadOfferMarket = /*#__PURE__*/ createUseReadContract({
+  abi: offerAbi,
+  functionName: 'market',
 })
 
 /**
@@ -4326,11 +4437,11 @@ export const useReadPexfiVestingEnd = /*#__PURE__*/ createUseReadContract({
 })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link pexfiVestingAbi}__ and `functionName` set to `"finder"`
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link pexfiVestingAbi}__ and `functionName` set to `"market"`
  */
-export const useReadPexfiVestingFinder = /*#__PURE__*/ createUseReadContract({
+export const useReadPexfiVestingMarket = /*#__PURE__*/ createUseReadContract({
   abi: pexfiVestingAbi,
-  functionName: 'finder',
+  functionName: 'market',
 })
 
 /**

@@ -38,7 +38,7 @@ interface IOptimisticOracleV3 {
 /// @title PexfiVesting
 /// @notice Holds sPEXFI and linearly releases them to the beneficiary.
 contract PexfiVesting is VestingWalletCliff {
-  FinderInterface public immutable finder;
+  IMarket public immutable market;
   IERC20 public immutable token;
 
   constructor(
@@ -46,13 +46,13 @@ contract PexfiVesting is VestingWalletCliff {
     uint64 startTimestamp,
     uint64 durationSeconds,
     uint64 cliffSeconds,
-    address finder_
+    address market_
   )
   VestingWallet(beneficiary, startTimestamp, durationSeconds)
   VestingWalletCliff(cliffSeconds)
   {
-    finder = FinderInterface(finder_);
-    token = IERC20(finder.getImplementationAddress(Services.PexfiVault));
+    market = IMarket(market_);
+    token = IERC20(market.getImplementationAddress(Services.PexfiVault));
   }
 
   bytes32 private constant PAID = keccak256("PAID");
@@ -68,7 +68,7 @@ contract PexfiVesting is VestingWalletCliff {
       IMarket.InvalidArgument()
     );
 
-    address oracleAddress = finder.getImplementationAddress(Services.Oracle);
+    address oracleAddress = market.getImplementationAddress(Services.Oracle);
     IOptimisticOracleV3 oov3 = IOptimisticOracleV3(oracleAddress);
 
     uint bondAmount = oov3.getMinimumBond(address(token));

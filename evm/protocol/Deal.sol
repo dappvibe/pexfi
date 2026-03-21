@@ -23,7 +23,7 @@ contract Deal is IDeal, ERC165, Initializable
   bytes32 private constant RESOLVE_PAID = keccak256("PAID");
   bytes32 private constant RESOLVE_NOT_PAID = keccak256("NOT PAID");
 
-  FinderInterface public immutable finder;
+  IMarket public immutable market;
 
   /** @dev Slot 0: 20 bytes */
   address public taker;
@@ -77,8 +77,8 @@ contract Deal is IDeal, ERC165, Initializable
   }
 
   /// @custom:oz-upgrades-unsafe-allow constructor
-  constructor(address finder_) {
-    finder = FinderInterface(finder_);
+  constructor(address market_) {
+    market = IMarket(market_);
     _disableInitializers();
   }
 
@@ -103,7 +103,7 @@ contract Deal is IDeal, ERC165, Initializable
   }
 
   function fund() external onlySeller stateBetween(IDeal.State.Accepted, IDeal.State.Accepted) {
-    IMarket(finder.getImplementationAddress(Services.Market)).fundDeal();
+    market.fundDeal();
     _state(IDeal.State.Funded);
   }
 
@@ -121,11 +121,10 @@ contract Deal is IDeal, ERC165, Initializable
   }
 
   function _release() internal {
-    IMarket market = IMarket(finder.getImplementationAddress(Services.Market));
     IERC20 token = offer.token();
     uint feeAmount = tokenAmount * market.fee() / 10000;
     token.safeTransfer(_buyer(), tokenAmount - feeAmount);
-    address feeCollector = finder.getImplementationAddress(Services.FeeCollector);
+    address feeCollector = market.getImplementationAddress(Services.FeeCollector);
     token.safeTransfer(feeCollector, token.balanceOf(address(this)));
 
     _state(IDeal.State.Completed);
@@ -166,7 +165,7 @@ contract Deal is IDeal, ERC165, Initializable
   }
 
   function assertionResolvedCallback(bytes32 assertionId, bool assertedTruthfully) external override {
-    require(msg.sender == finder.getImplementationAddress(Services.Oracle), IMarket.UnauthorizedAccount(msg.sender));
+    require(msg.sender == market.getImplementationAddress(Services.Oracle), IMarket.UnauthorizedAccount(msg.sender));
     if (state != IDeal.State.Disputed) return;
 
     OptimisticOracleV3Interface _oov3 = OptimisticOracleV3Interface(msg.sender);

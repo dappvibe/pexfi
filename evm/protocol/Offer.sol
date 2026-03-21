@@ -26,14 +26,14 @@ contract Offer is IOffer, Initializable
   IERC20 public token;
   IOffer.Limits public limits;
 
-  FinderInterface public immutable finder;
+  IMarket public immutable market;
 
   // dynamic
   string public terms;
 
   /// @custom:oz-upgrades-unsafe-allow constructor
-  constructor(address finder_) {
-    finder = FinderInterface(finder_);
+  constructor(address market_) {
+    market = IMarket(market_);
     _disableInitializers();
   }
 
@@ -60,14 +60,13 @@ contract Offer is IOffer, Initializable
     if (msg.sender == owner) revert IMarket.UnauthorizedAccount(msg.sender);
     if (disabled) revert IOffer.OfferDisabled();
 
-    IMarket market = IMarket(finder.getImplementationAddress(Services.Market));
     bytes16 method = market.methods(params.method); // will panic if out of bounds
     if ((methods & (1 << params.method)) == 0) revert IMarket.InvalidMethod(1 << params.method);
     if (((1 << params.method) & market.disabledMethodsMask()) != 0) revert IMarket.InvalidMethod(market.disabledMethodsMask());
 
     uint _tokenAmount = market.convert(params.fiatAmount, fiat, token, rate);
 
-    address impl = finder.getImplementationAddress(Services.DealImplementation);
+    address impl = market.getImplementationAddress(Services.DealImplementation);
     IDeal deal = IDeal(Clones.clone(impl));
     deal.initialize(IDeal.DealParams({
       offer: address(this),

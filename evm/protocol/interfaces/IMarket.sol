@@ -8,7 +8,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {FinderInterface} from "@uma/core/contracts/data-verification-mechanism/interfaces/FinderInterface.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
-interface IMarket {
+interface IMarket is FinderInterface {
   struct Token {
     IUniswapV3Pool pool; // address(0) disables a token
     uint8 decimals;
@@ -31,7 +31,6 @@ interface IMarket {
   error InvalidMethod(uint256 method);
   error UnknownOffer();
 
-  function finder() external view returns (FinderInterface);
   function fee() external view returns (uint8);
 
   function offers(address offer_) external view returns (bool);

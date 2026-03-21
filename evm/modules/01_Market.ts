@@ -9,27 +9,25 @@ const bytes16 = (s: string) => padHex(stringToHex(s), { size: 16, dir: 'right' }
 const bytes3 = (s: string) => padHex(stringToHex(s), { size: 3, dir: 'right' })
 
 export default buildModule('Market', (m) => {
-  const Finder = m.contract('Finder')
-
-  // --- Marketplace ---
-  const OfferImplementation = m.contract('Offer', [Finder], { id: 'OfferImplementation' })
-  const DealImplementation = m.contract('Deal', [Finder], { id: 'DealImplementation' })
-
-  const ProfileImpl = m.contract('Profile', [], { id: 'ProfileV0' })
-  const ProfileProxy = m.contract('ERC1967Proxy', [ProfileImpl, m.encodeFunctionCall(ProfileImpl, 'initialize', [])], {
-    id: 'ProfileProxy',
-  })
-  const Profile = m.contractAt('Profile', ProfileProxy)
-
   // deploy
   const usdc = m.getParameter('usdc')
-  const MarketImpl = m.contract('Market', [usdc, Finder], { id: 'MarketV0' })
+  const MarketImpl = m.contract('Market', [usdc], { id: 'MarketV0' })
   const MarketProxy = m.contract(
     'ERC1967Proxy',
     [MarketImpl, m.encodeFunctionCall(MarketImpl, 'initialize', [])],
     { id: 'MarketProxy' }
   )
   const Market = m.contractAt('Market', MarketProxy)
+
+  // --- Marketplace ---
+  const OfferImplementation = m.contract('Offer', [Market], { id: 'OfferImplementation' })
+  const DealImplementation = m.contract('Deal', [Market], { id: 'DealImplementation' })
+
+  const ProfileImpl = m.contract('Profile', [], { id: 'ProfileV0' })
+  const ProfileProxy = m.contract('ERC1967Proxy', [ProfileImpl, m.encodeFunctionCall(ProfileImpl, 'initialize', [])], {
+    id: 'ProfileProxy',
+  })
+  const Profile = m.contractAt('Profile', ProfileProxy)
 
   // post-deploy data population
   m.call(Market, 'addToken', [
@@ -47,25 +45,25 @@ export default buildModule('Market', (m) => {
   m.call(Market, 'addFiat', [bytes3('EUR'), m.getParameter('eur_chainlink')], { id: 'EUR' })
   m.call(Market, 'addMethods', [[bytes16('Bank Transfer')]])
 
-  // link it all together via Finder
-  m.call(Finder, 'changeImplementationAddress', [bytes32('OfferImplementation'), OfferImplementation], {
+  // link it all together via Market
+  m.call(Market, 'changeImplementationAddress', [bytes32('OfferImplementation'), OfferImplementation], {
     id: 'regOfferImplementation',
   })
-  m.call(Finder, 'changeImplementationAddress', [bytes32('DealImplementation'), DealImplementation], {
+  m.call(Market, 'changeImplementationAddress', [bytes32('DealImplementation'), DealImplementation], {
     id: 'regDealImplementation',
   })
-  m.call(Finder, 'changeImplementationAddress', [bytes32('Market'), Market], { id: 'regMarket' })
-  m.call(Finder, 'changeImplementationAddress', [bytes32('Profile'), Profile], { id: 'regProfile' })
+  m.call(Market, 'changeImplementationAddress', [bytes32('Market'), Market], { id: 'regMarket' })
+  m.call(Market, 'changeImplementationAddress', [bytes32('Profile'), Profile], { id: 'regProfile' })
 
   // --- Tokenomics ---
   const pexfi = m.contract('PexfiToken', [])
   const pexfiVault = m.contract('PexfiVault', [pexfi])
-  const regPexfiVault = m.call(Finder, 'changeImplementationAddress', [bytes32('PexfiVault'), pexfiVault], {
+  const regPexfiVault = m.call(Market, 'changeImplementationAddress', [bytes32('PexfiVault'), pexfiVault], {
     id: 'regPexfiVault',
   })
   const beneficiary = m.getAccount(0)
   const startTimestamp = 1772864758 // mar 7
-  const pexfiVesting = m.contract('PexfiVesting', [beneficiary, startTimestamp, TWO_YEARS, SIX_MONTHS, Finder], {
+  const pexfiVesting = m.contract('PexfiVesting', [beneficiary, startTimestamp, TWO_YEARS, SIX_MONTHS, Market], {
     after: [regPexfiVault],
   })
 
@@ -86,23 +84,23 @@ export default buildModule('Market', (m) => {
     m.getParameter('weth_address'),
     [zeroAddress, pexfi, 3000, 60, zeroAddress],
   ])
-  m.call(Finder, 'changeImplementationAddress', [bytes32('FeeCollector'), feeCollector], {
+  m.call(Market, 'changeImplementationAddress', [bytes32('FeeCollector'), feeCollector], {
     id: 'regFeeCollector',
   })
 
   // --- Oracle Setup ---
 
   const Store = m.contract('Store', [{ rawValue: 0 }, { rawValue: 0 }, zeroAddress])
-  m.call(Finder, 'changeImplementationAddress', [bytes32('Store'), Store], { id: 'setStore' })
+  m.call(Market, 'changeImplementationAddress', [bytes32('Store'), Store], { id: 'setStore' })
 
   const IdentifierWhitelist = m.contract('IdentifierWhitelist', [])
-  m.call(Finder, 'changeImplementationAddress', [bytes32('IdentifierWhitelist'), IdentifierWhitelist], {
+  m.call(Market, 'changeImplementationAddress', [bytes32('IdentifierWhitelist'), IdentifierWhitelist], {
     id: 'idenitfierWhitelist',
   })
   m.call(IdentifierWhitelist, 'addSupportedIdentifier', [bytes32('ASSERT_TRUTH')])
 
   const CollateralWhitelist = m.contract('AddressWhitelist', [])
-  m.call(Finder, 'changeImplementationAddress', [bytes32('CollateralWhitelist'), CollateralWhitelist], {
+  m.call(Market, 'changeImplementationAddress', [bytes32('CollateralWhitelist'), CollateralWhitelist], {
     id: 'collateralWhitelist',
   })
   m.call(CollateralWhitelist, 'addToWhitelist', [pexfiVault])
@@ -113,15 +111,17 @@ export default buildModule('Market', (m) => {
 
   // Placeholder Oracle address — syncUmaParams requires it at deploy time.
   // Re-registered to OOv3 after deployment below.
-  m.call(Finder, 'changeImplementationAddress', [bytes32('Oracle'), Finder], {
+  m.call(Market, 'changeImplementationAddress', [bytes32('Oracle'), Market], {
     id: 'setOraclePlaceholder',
   })
 
   // Liveness 1 minute is set while having single arbitrator. Will be set to sensible value when DVM is decentralized.
-  const OOv3 = m.contract('OptimisticOracleV3', [Finder, pexfiVault, 60])
+  const OOv3 = m.contract('OptimisticOracleV3', [Market, pexfiVault, 60], {
+    after: [Market, regPexfiVault],
+  })
 
   // Re-register Oracle to actual OOv3 address
-  m.call(Finder, 'changeImplementationAddress', [bytes32('Oracle'), OOv3], { id: 'setOracle' })
+  m.call(Market, 'changeImplementationAddress', [bytes32('Oracle'), OOv3], { id: 'setOracle' })
 
   return {
     Market,
@@ -133,7 +133,6 @@ export default buildModule('Market', (m) => {
     pexfiVesting,
     feeCollector,
     OOv3,
-    Finder,
     Store,
     IdentifierWhitelist,
     CollateralWhitelist,

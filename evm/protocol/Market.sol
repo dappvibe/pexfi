@@ -21,12 +21,11 @@ import {IDeal} from "./interfaces/IDeal.sol";
 import {IProfile} from "./interfaces/IProfile.sol";
 import {Services} from "./libraries/Services.sol";
 import {IChainlink} from "./interfaces/IChainlink.sol";
+import {Finder} from "./Finder.sol";
 
-contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
+contract Market is IMarket, Finder, UUPSUpgradeable
 {
   using SafeERC20 for IERC20;
-
-  FinderInterface public immutable finder;
 
   mapping(IERC20  => Token)      public tokens;
 
@@ -46,9 +45,8 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
   address public immutable USDC;
 
   /// @custom:oz-upgrades-unsafe-allow constructor
-  constructor(address usdc_, address finder_) {
+  constructor(address usdc_) {
     USDC = usdc_;
-    finder = FinderInterface(finder_);
     _disableInitializers();
   }
 
@@ -106,7 +104,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     if (params.rate <= 0)                                 revert IOffer.InvalidRate();
     if (params.limits.min >= params.limits.max)           revert IOffer.InvalidLimits();
 
-    address impl = finder.getImplementationAddress(Services.OfferImplementation);
+    address impl = interfacesImplemented[Services.OfferImplementation];
     IOffer offer = IOffer(Clones.clone(impl));
     offer.initialize(msg.sender, params);
 
