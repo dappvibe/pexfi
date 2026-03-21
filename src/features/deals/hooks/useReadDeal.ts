@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useChainId, useReadContract, useReadContracts, useWatchContractEvent } from 'wagmi'
 import { Address, formatUnits } from 'viem'
 import { dealAbi, offerAbi } from '@/wagmi'
@@ -29,6 +29,7 @@ export type Deal = {
   paymentInstructions: string
   allowCancelUnacceptedAfter: Date
   allowCancelUnpaidAfter: Date
+  canCancelUnaccepted: boolean
   canCancelUnpaid: boolean
   resolvedPaid: boolean
 }
@@ -37,8 +38,6 @@ export function useReadDeal(address: Address | undefined) {
   const chainId = useChainId()
   const { tokens } = useInventory()
   const dealContract = address ? ({ address, abi: dealAbi } as const) : null
-
-  const [state, setState] = useState<DealState | null>(null)
 
   const { data, isLoading, error, refetch } = useReadContracts({
     contracts: dealContract
@@ -54,8 +53,6 @@ export function useReadDeal(address: Address | undefined) {
       : [],
     query: {
       enabled: !!address,
-      refetchInterval: 2000,
-      refetchIntervalInBackground: true,
     },
   })
 
@@ -75,7 +72,6 @@ export function useReadDeal(address: Address | undefined) {
   }, [offerAddress, refetchOfferTokenSymbol])
 
   useEffect(() => {
-    setState(null)
     refetch()
   }, [chainId, refetch])
 
