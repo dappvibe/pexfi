@@ -141,7 +141,7 @@ contract Market is IMarket, Finder, UUPSUpgradeable
 
   /// @param amount_ must have 6 decimals as a fiat amount
   /// @param denominator ratio (4 decimal) to apply to resulting amount
-  /// @return amount of tokens in precision of given token // FIXME precision is not respected
+  /// @return amount of tokens in precision of given token
   function convert(uint amount_, bytes3 fromFiat_, IERC20 toToken_, uint denominator)
   public view
   returns (uint256 amount)
