@@ -58,7 +58,7 @@ contract Market is IMarket, Finder, UUPSUpgradeable
   /**
    * Admin configuration methods.
    */
-  function setFee(uint8 fee_) public onlyOwner {fee = fee_;}
+  function setFee(uint8 fee_) external onlyOwner {fee = fee_;}
 
   function addToken(IERC20 address_, Token calldata token_) external onlyOwner {
     tokens[address_] = token_;
