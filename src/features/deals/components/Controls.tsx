@@ -87,11 +87,11 @@ export default function Controls() {
     query: { enabled: !!tokenAddress && !!address && !!marketAddress },
   })
 
-  // get isPaid
-  const { data: isPaid } = useReadContract({
+  // get resolvedPaid
+  const { data: resolvedPaid } = useReadContract({
     address: deal.address,
     abi: dealAbi,
-    functionName: 'isPaid',
+    functionName: 'resolvedPaid',
   })
 
   const isDisputed = deal.state === DealState.Disputed
@@ -318,7 +318,7 @@ export default function Controls() {
       break
 
     case DealState.Resolved:
-      if (isPaid) {
+      if (resolvedPaid) {
         controls.push(action.release)
       } else {
         controls.push(action.cancel)

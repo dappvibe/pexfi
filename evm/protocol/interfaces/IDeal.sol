@@ -59,5 +59,5 @@ interface IDeal is OptimisticOracleV3CallbackRecipientInterface {
 
   function offer() external view returns (IOffer);
 
-  function isPaid() external view returns (bool);
+  function resolvedPaid() external view returns (bool);
 }

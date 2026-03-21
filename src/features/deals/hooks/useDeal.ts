@@ -15,7 +15,7 @@ export function useDeal() {
 
     return {
       ...contractDeal,
-      isPaid: contractDeal.isPaid,
+      resolvedPaid: contractDeal.resolvedPaid,
       method: subgraphInfo?.methodName || contractDeal.method,
       fiatAmount: subgraphInfo?.fiatAmount || contractDeal.fiatAmount,
       fiatAmountFormatted: subgraphInfo?.fiatAmountFormatted || contractDeal.fiatAmountFormatted,

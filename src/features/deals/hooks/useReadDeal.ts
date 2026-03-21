@@ -30,7 +30,7 @@ export type Deal = {
   allowCancelUnacceptedAfter: Date
   allowCancelUnpaidAfter: Date
   canCancelUnpaid: boolean
-  isPaid: boolean
+  resolvedPaid: boolean
 }
 
 export function useReadDeal(address: Address | undefined) {
@@ -49,7 +49,7 @@ export function useReadDeal(address: Address | undefined) {
           { ...dealContract, functionName: 'tokenAmount' },
           { ...dealContract, functionName: 'allowCancelUnacceptedAfter' },
           { ...dealContract, functionName: 'allowCancelUnpaidAfter' },
-          { ...dealContract, functionName: 'isPaid' },
+          { ...dealContract, functionName: 'resolvedPaid' },
         ]
       : [],
     query: {

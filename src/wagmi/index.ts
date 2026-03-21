@@ -209,13 +209,6 @@ export const dealAbi = [
   {
     type: 'function',
     inputs: [],
-    name: 'isPaid',
-    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [],
     name: 'market',
     outputs: [{ name: '', internalType: 'contract IMarket', type: 'address' }],
     stateMutability: 'view',
@@ -247,6 +240,13 @@ export const dealAbi = [
     name: 'release',
     outputs: [],
     stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'resolvedPaid',
+    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
+    stateMutability: 'view',
   },
   {
     type: 'function',
@@ -2685,14 +2685,6 @@ export const useReadDealAllowCancelUnpaidAfter =
   })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link dealAbi}__ and `functionName` set to `"isPaid"`
- */
-export const useReadDealIsPaid = /*#__PURE__*/ createUseReadContract({
-  abi: dealAbi,
-  functionName: 'isPaid',
-})
-
-/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link dealAbi}__ and `functionName` set to `"market"`
  */
 export const useReadDealMarket = /*#__PURE__*/ createUseReadContract({
@@ -2706,6 +2698,14 @@ export const useReadDealMarket = /*#__PURE__*/ createUseReadContract({
 export const useReadDealOffer = /*#__PURE__*/ createUseReadContract({
   abi: dealAbi,
   functionName: 'offer',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link dealAbi}__ and `functionName` set to `"resolvedPaid"`
+ */
+export const useReadDealResolvedPaid = /*#__PURE__*/ createUseReadContract({
+  abi: dealAbi,
+  functionName: 'resolvedPaid',
 })
 
 /**

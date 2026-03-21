@@ -354,15 +354,15 @@ describe('Deal', () => {
         6,
         OOv3.address,
       ])
-      assert.ok(await dealToBuy.read.isPaid())
+      assert.ok(await dealToBuy.read.resolvedPaid())
     })
 
-    test('anyone can release() if Resolved and isPaid', async () => {
+    test('anyone can release() if Resolved and resolvedPaid', async () => {
       await viem.assertions.emit(dealToBuy.write.release({ account: nobody }), dealToBuy, 'DealState')
       await disputed.restore()
     })
 
-    test('release() fails if Resolved and NOT isPaid', async () => {
+    test('release() fails if Resolved and NOT resolvedPaid', async () => {
        // 1. Resolve NOT PAID
        const hash = await pexfiVesting.write.bond([dealToBuy.address, stringToHex('NOT PAID')], { account: maker })
        const receipt = await publicClient.waitForTransactionReceipt({ hash })
@@ -373,7 +373,7 @@ describe('Deal', () => {
        })[0].args.assertionId
        await networkHelpers.time.increase(61)
        await OOv3.write.settleAssertion([assertionId])
-       assert.ok(!(await dealToBuy.read.isPaid()))
+       assert.ok(!(await dealToBuy.read.resolvedPaid()))
 
        // 2. Try release
        await viem.assertions.revertWithCustomError(dealToBuy.write.release({ account: nobody }), dealToBuy, 'InvalidResolution')

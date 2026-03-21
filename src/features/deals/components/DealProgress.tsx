@@ -44,11 +44,11 @@ export default function DealProgress() {
       break
     case DealState.Disputed:
       // Map back to the last known "active" step
-      current = deal.isPaid ? 3 : 2
+      current = deal.resolvedPaid ? 3 : 2
       status = 'error'
       break
     case DealState.Resolved:
-      current = deal.isPaid ? 3 : 2
+      current = deal.resolvedPaid ? 3 : 2
       status = 'finish'
       break
     case DealState.Released:
@@ -57,7 +57,7 @@ export default function DealProgress() {
       break
     case DealState.Cancelled:
       // Keep current step but show error
-      current = deal.isPaid ? 3 : 2
+      current = deal.resolvedPaid ? 3 : 2
       status = 'error'
       break
   }

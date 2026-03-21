@@ -32,7 +32,7 @@ contract Deal is IDeal, ERC165, Initializable
    */
   IOffer  public offer;
   IDeal.State public state; // defaults to Initiated (0)
-  bool    public isPaid;
+  bool    public resolvedPaid;
   uint32  public allowCancelUnpaidAfter;
 
   /**
@@ -113,7 +113,7 @@ contract Deal is IDeal, ERC165, Initializable
 
   function release() external override stateBetween(IDeal.State.Funded, IDeal.State.Resolved) {
     if (state == State.Resolved) {
-      require(isPaid, InvalidResolution(isPaid));
+      require(resolvedPaid, InvalidResolution(resolvedPaid));
     } else {
       require(msg.sender == _seller(), IMarket.UnauthorizedAccount(msg.sender));
     }
@@ -132,7 +132,7 @@ contract Deal is IDeal, ERC165, Initializable
 
   function cancel() external override stateBetween(IDeal.State.Initiated, IDeal.State.Resolved) {
     if (state == IDeal.State.Resolved) {
-      require(!isPaid, InvalidResolution(!isPaid));
+      require(!resolvedPaid, InvalidResolution(!resolvedPaid));
       _cancel();
       return;
     }
@@ -173,11 +173,11 @@ contract Deal is IDeal, ERC165, Initializable
 
     bytes32 resolution;
     if (assertion.domainId == RESOLVE_PAID) {
-      isPaid = assertedTruthfully;
-      resolution = isPaid ? RESOLVE_PAID : RESOLVE_NOT_PAID;
+      resolvedPaid = assertedTruthfully;
+      resolution = resolvedPaid ? RESOLVE_PAID : RESOLVE_NOT_PAID;
     } else if (assertion.domainId == RESOLVE_NOT_PAID) {
-      isPaid = !assertedTruthfully;
-      resolution = isPaid ? RESOLVE_PAID : RESOLVE_NOT_PAID;
+      resolvedPaid = !assertedTruthfully;
+      resolution = resolvedPaid ? RESOLVE_PAID : RESOLVE_NOT_PAID;
     }
 
     emit DisputeResolved(resolution);
