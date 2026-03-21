@@ -47,7 +47,6 @@ export function useReadDeal(address: Address | undefined) {
           { ...dealContract, functionName: 'offer' },
           { ...dealContract, functionName: 'taker' },
           { ...dealContract, functionName: 'tokenAmount' },
-          { ...dealContract, functionName: 'fiatAmount' },
           { ...dealContract, functionName: 'allowCancelUnacceptedAfter' },
           { ...dealContract, functionName: 'allowCancelUnpaidAfter' },
           { ...dealContract, functionName: 'isPaid' },
@@ -85,14 +84,13 @@ export function useReadDeal(address: Address | undefined) {
 
     const fetchedState = Number(data[0].result) as DealState
     const currentState = state ?? fetchedState
-    const allowCancelUnacceptedAfter = new Date(Number(data[5].result) * 1000)
-    const allowCancelUnpaidAfter = new Date(Number(data[6].result) * 1000)
+    const allowCancelUnacceptedAfter = new Date(Number(data[4].result) * 1000)
+    const allowCancelUnpaidAfter = new Date(Number(data[5].result) * 1000)
     const now = new Date()
 
     const taker = data[2].result as Address
 
     const tokenAmount = data[3].result as bigint
-    const fiatAmount = data[4].result as bigint
 
     const tokenSymbol = offerTokenSymbol as string | undefined
     const decimals = (tokenSymbol && tokens[tokenSymbol]?.decimals) ?? 18
@@ -104,8 +102,8 @@ export function useReadDeal(address: Address | undefined) {
       taker,
       tokenAmount,
       tokenAmountFormatted: Number(formatUnits(tokenAmount, decimals)),
-      fiatAmount,
-      fiatAmountFormatted: Number(formatUnits(fiatAmount, 6)),
+      fiatAmount: 0n,
+      fiatAmountFormatted: 0,
       method: '',
       terms: '',
       paymentInstructions: '',
@@ -113,7 +111,7 @@ export function useReadDeal(address: Address | undefined) {
       allowCancelUnpaidAfter,
       canCancelUnaccepted: currentState === DealState.Created && now >= allowCancelUnacceptedAfter,
       canCancelUnpaid: currentState === DealState.Funded && now >= allowCancelUnpaidAfter,
-      isPaid: !!data[7]?.result,
+      isPaid: !!data[6]?.result,
     }
   }, [data, address, state, offerTokenSymbol, tokens])
 

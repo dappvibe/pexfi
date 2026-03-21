@@ -24,9 +24,6 @@ export function fetchDeal(dealAddress: Address): DealEntity {
   let tokenAmountResult = dealContract.try_tokenAmount()
   if (!tokenAmountResult.reverted) deal.tokenAmount = tokenAmountResult.value
 
-  let fiatAmountResult = dealContract.try_fiatAmount()
-  if (!fiatAmountResult.reverted) deal.fiatAmount = fiatAmountResult.value
-
   let allowCancelUnacceptedAfterResult = dealContract.try_allowCancelUnacceptedAfter();
   if (!allowCancelUnacceptedAfterResult.reverted) deal.allowCancelUnacceptedAfter = allowCancelUnacceptedAfterResult.value.toI32();
 

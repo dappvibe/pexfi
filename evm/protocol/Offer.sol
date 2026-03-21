@@ -71,7 +71,7 @@ contract Offer is IOffer, Initializable
       fiatAmount: params.fiatAmount
     }));
 
-    market.addDeal(deal, method, terms, params.paymentInstructions);
+    market.addDeal(deal, params.fiatAmount, method, terms, params.paymentInstructions);
   }
 
   function setRate(uint16 rate_) external {

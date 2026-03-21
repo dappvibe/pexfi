@@ -50,7 +50,7 @@ dataSources:
         - event: OfferCreated(address,address,bytes32,address)
           handler: handleOfferCreated
         - event: DealCreated(indexed
-            address,address,address,address,bytes16,string,string)
+            address,address,address,address,uint256,bytes16,string,string)
           handler: handleDealCreated
       file: ./src/market.ts
   - kind: ethereum/contract
