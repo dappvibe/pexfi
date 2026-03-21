@@ -16,9 +16,7 @@ export default function OfferViewPage() {
   const { offerId } = useParams()
   const { address } = useConnection()
 
-  const { offer: baseOffer, refetch } = useQueryOffer(offerId, {
-    pollInterval: 2000,
-  })
+  const { offer: baseOffer, refetch } = useQueryOffer(offerId)
 
   const { price } = useOfferPrice(baseOffer, true)
   const offer = baseOffer ? { ...baseOffer, price } : null

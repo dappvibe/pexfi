@@ -5,8 +5,8 @@ import { Address, hexToString, trim } from 'viem'
 import { useInventory } from '@/shared/web3'
 
 const GQL_DEAL = gql`
-  query Deal($id: ID!) {
-    deal(id: $id) {
+  query Deal($dealId: ID!) {
+    deal(id: $dealId) {
       id
       method
       fiatAmount
@@ -28,7 +28,7 @@ export function useQueryDeal(dealId: string | undefined) {
   const { methods, loading: inventoryLoading } = useInventory()
 
   const { data: subgraphData, loading: subgraphLoading } = useQuery<{ deal: GraphDeal }>(GQL_DEAL, {
-    variables: { id: dealId?.toLowerCase() },
+    variables: { dealId: (dealId || '').toLowerCase() },
     skip: !dealId,
   })
 

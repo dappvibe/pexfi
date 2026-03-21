@@ -21,9 +21,11 @@ export function useCreateDeal({ offer }: UseCreateDealProps) {
   const [lockButton, setLockButton] = useState(false)
   const [newDealAddress, setNewDealAddress] = useState<string | undefined>()
 
-  const { deals, loading: isSyncingDeals } = useUserDeals({ pollInterval: 1000 })
+  const { deals } = useUserDeals({ 
+    pollInterval: newDealAddress ? 3000 : 0 
+  })
   const createdDeal = deals?.find((d: any) => d.id.toLowerCase() === newDealAddress?.toLowerCase())
-  const isSyncing = isSyncingDeals || (!!newDealAddress && !createdDeal)
+  const isSyncing = (!!newDealAddress && !createdDeal)
 
   useEffect(() => {
     if (newDealAddress && createdDeal && !isSyncing) {

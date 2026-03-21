@@ -28,7 +28,10 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
 
   const [newOfferAddress, setNewOfferAddress] = useState<string | undefined>()
   // useOffer handles the polling/loading of the offer from the subgraph.
-  const { offer: createdOffer, isLoading: isSyncing } = useQueryOffer(newOfferAddress, { pollInterval: 1000 })
+  const { offer: createdOffer, isLoading: isSyncing } = useQueryOffer(newOfferAddress, { 
+    pollInterval: newOfferAddress ? 3000 : 0, 
+    fetchPolicy: 'network-only' 
+  })
 
   useEffect(() => {
     if (newOfferAddress && createdOffer && !isSyncing) {

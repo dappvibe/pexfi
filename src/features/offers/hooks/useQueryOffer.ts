@@ -20,10 +20,15 @@ export type Offer = {
 }
 
 const GQL_OFFER = gql`
-  query Offer($id: ID!) {
-    offer(id: $id) {
+  query GetOffer($offerId: ID!) {
+    offer(id: $offerId) {
       id
       owner
+      profile {
+        id
+        dealsCompleted
+        rating
+      }
       isSell
       token {
         id
@@ -45,6 +50,7 @@ const GQL_OFFER = gql`
 
 interface UseOfferOptions {
   pollInterval?: number
+  fetchPolicy?: 'cache-first' | 'network-only' | 'cache-and-network'
 }
 
 interface RawToken {
@@ -58,6 +64,11 @@ interface RawToken {
 interface RawOffer {
   id: string
   owner: string
+  profile: {
+    id: string
+    dealsCompleted: number
+    rating: number
+  } | null
   isSell: boolean
   token: RawToken | null
   fiat: string
@@ -77,14 +88,14 @@ interface OfferQueryResult {
  * Reads offer data from the subgraph by its ID (contract address)
  */
 export function useQueryOffer(offerId: string | undefined, options: UseOfferOptions = {}) {
-  const { pollInterval = 0 } = options
+  const { pollInterval = 0, fetchPolicy = 'cache-first' } = options
   const { methods } = useInventory()
 
   const { data, loading, error, refetch } = useQuery<OfferQueryResult>(GQL_OFFER, {
-    variables: { id: offerId?.toLowerCase() },
+    variables: { offerId: (offerId || '').toLowerCase() },
     skip: !offerId,
     pollInterval,
-    fetchPolicy: 'network-only',
+    fetchPolicy,
   })
 
   const rawOffer = data?.offer
