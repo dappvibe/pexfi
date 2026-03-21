@@ -19,6 +19,7 @@ Wagmi hooks (like `useReadContract` and `useAccount`) are built on top of TanSta
 - **Use the `query` object:** Most Wagmi hooks accept a `query` property. Use this to pass React Query options like `enabled`, `staleTime`, `refetchInterval`, and `select`.
 - **Conditional Fetching:** Use `query: { enabled: !!address && !!chainId }` to prevent contract reads from firing prematurely when dependency arguments (like user addresses) are `undefined` or null.
 - **Data Transformation:** Use the `select` function inside the `query` config to cleanly format data (e.g., parsing BigInts to standard numbers or scaling decimals) immediately when the data lands, avoiding messy effect-based transformations in components.
+- **Destructuring mutation hooks:** When using hooks based on React Query mutations like `useWriteContract`, `useConnect`, `useDisconnect`, or `useSwitchChain`, the returned action function should be destructured using its native alias, e.g. `writeContractAsync` or `connectAsync`. Do not use generic React Query aliases `mutate` or `mutateAsync`, as they may bypass ABI injection by `@wagmi/cli` generated hooks or cause runtime errors. Example: `const { writeContractAsync } = useWriteMarketCreateOffer()`.
 
 ## 3. Optimizing Contract Reads
 

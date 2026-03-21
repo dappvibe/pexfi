@@ -31,7 +31,7 @@ export function useCreateDeal({ offer }: UseCreateDealProps) {
     }
   }, [newDealAddress, createdDeal, isSyncing, navigate])
 
-  const { mutateAsync: createDealTx } = useWriteOfferCreateDeal()
+  const { writeContractAsync: createDealTx } = useWriteOfferCreateDeal()
 
   async function createDeal(values: any) {
     if (!offer || !marketAddress) return
