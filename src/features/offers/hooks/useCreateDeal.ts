@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Form, message } from 'antd'
-import { Address, decodeEventLog } from 'viem'
+import { decodeEventLog } from 'viem'
 import { usePublicClient } from 'wagmi'
 import { useAddress } from '@/shared/web3'
 import { type Offer } from '@/features/offers/hooks/useQueryOffer.ts'
