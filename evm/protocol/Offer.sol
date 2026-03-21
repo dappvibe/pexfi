@@ -98,7 +98,7 @@ contract Offer is IOffer, Initializable
     emit OfferUpdated();
   }
 
-  function setDisabled(bool disabled_) public {
+  function setDisabled(bool disabled_) external {
     require(msg.sender == owner, IMarket.UnauthorizedAccount(msg.sender));
     disabled = disabled_;
     emit OfferUpdated();
