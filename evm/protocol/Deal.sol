@@ -25,28 +25,28 @@ contract Deal is IDeal, ERC165, Initializable
 
   IMarket public immutable market;
 
-  /** @dev Slot 0: 20 bytes */
-  address public taker;
-
   /**
-   * @dev Slot 1: 30 bytes
-   * - offer: 20 bytes
-   * - state: 1 byte
-   * - allowCancelUnacceptedAfter: 4 bytes
-   * - allowCancelUnpaidAfter: 4 bytes
-   * - isPaid: 1 byte
+   * @dev Slot 0: Lifecycle Hub (26/32 bytes used)
+   * Initialized once, read/written in every hot state transition (accept, paid, fund, release).
+   * grouping offer address with state variables saves gas by reusing the warm slot.
    */
   IOffer  public offer;
   IDeal.State public state; // defaults to Initiated (0)
-  uint32  public allowCancelUnacceptedAfter;
-  uint32  public allowCancelUnpaidAfter;
   bool    public isPaid;
+  uint32  public allowCancelUnpaidAfter;
 
   /**
-   * @dev Slot 2: 32 bytes
+   * @dev Slot 1: Taker & Early-stage Timer (24/32 bytes used)
+   * address (20) + uint32 (4)
+   * Primarily used for initialization and the first cancel/accept check.
+   */
+  address public taker;
+  uint32  public allowCancelUnacceptedAfter;
+
+  /**
+   * @dev Slot 2: Deal amount (32/32 bytes used)
    */
   uint256 public tokenAmount;
-
 
   function _seller() internal view returns (address) {
     return offer.isSell() ? offer.owner() : taker;
@@ -95,23 +95,23 @@ contract Deal is IDeal, ERC165, Initializable
     emit DealState(state, params.taker);
   }
 
-  function accept() external stateBetween(IDeal.State.Initiated, IDeal.State.Initiated) {
+  function accept() external override stateBetween(IDeal.State.Initiated, IDeal.State.Initiated) {
     require(msg.sender == offer.owner(), IMarket.UnauthorizedAccount(msg.sender));
 
     _state(IDeal.State.Accepted);
     allowCancelUnpaidAfter = uint32(block.timestamp + PAYMENT_WINDOW);
   }
 
-  function fund() external onlySeller stateBetween(IDeal.State.Accepted, IDeal.State.Accepted) {
+  function fund() external override onlySeller stateBetween(IDeal.State.Accepted, IDeal.State.Accepted) {
     market.fundDeal();
     _state(IDeal.State.Funded);
   }
 
-  function paid() external onlyBuyer stateBetween(IDeal.State.Accepted, IDeal.State.Funded) {
+  function paid() external override onlyBuyer stateBetween(IDeal.State.Accepted, IDeal.State.Funded) {
     _state(IDeal.State.Paid);
   }
 
-  function release() external stateBetween(IDeal.State.Funded, IDeal.State.Resolved) {
+  function release() external override stateBetween(IDeal.State.Funded, IDeal.State.Resolved) {
     if (state == State.Resolved) {
       require(isPaid, InvalidResolution(isPaid));
     } else {
@@ -130,7 +130,7 @@ contract Deal is IDeal, ERC165, Initializable
     _state(IDeal.State.Completed);
   }
 
-  function cancel() external stateBetween(IDeal.State.Initiated, IDeal.State.Resolved) {
+  function cancel() external override stateBetween(IDeal.State.Initiated, IDeal.State.Resolved) {
     if (state == IDeal.State.Resolved) {
       require(!isPaid, InvalidResolution(!isPaid));
       _cancel();
@@ -160,7 +160,7 @@ contract Deal is IDeal, ERC165, Initializable
     _state(IDeal.State.Canceled);
   }
 
-  function dispute() external onlyMember stateBetween(IDeal.State.Accepted, IDeal.State.Paid) {
+  function dispute() external override onlyMember stateBetween(IDeal.State.Accepted, IDeal.State.Paid) {
     _state(IDeal.State.Disputed);
   }
 
@@ -186,12 +186,13 @@ contract Deal is IDeal, ERC165, Initializable
 
   function assertionDisputedCallback(bytes32 assertionId) external override {}
 
-  function message(string calldata message_) external onlyMember {
+  function message(string calldata message_) external override onlyMember {
     emit Message(msg.sender, message_);
   }
 
   function feedback(bool upvote, string calldata message_)
   external
+  override
   onlyMember
   stateBetween(IDeal.State.Resolved, IDeal.State.Completed)
   {
