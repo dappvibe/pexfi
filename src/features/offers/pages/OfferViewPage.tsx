@@ -1,31 +1,32 @@
 import { Card, Skeleton } from 'antd'
 import { useParams } from 'react-router-dom'
-import { useAccount } from 'wagmi'
+import { useConnection } from 'wagmi'
 import OfferSubnav from '@/features/offers/components/OfferSubnav'
 import OfferDescription from '@/features/offers/components/OfferDescription'
 import OfferForm from '@/features/offers/components/OfferForm'
 import CreateDealForm from '@/features/offers/components/CreateDealForm'
 import { useCreateDeal } from '@/features/offers/hooks/useCreateDeal'
-import { useOffer } from '@/features/offers/hooks/useOffer'
+import { useQueryOffer } from '@/features/offers/hooks/useQueryOffer.ts'
+import { useOfferActions } from '@/features/offers/hooks/useOfferActions.ts'
+import { useOfferPrice } from '@/features/offers/hooks/useOfferPrice'
 import { useOfferForm } from '@/features/offers/hooks/useOfferForm'
 import { Helmet } from '@dr.pogodin/react-helmet'
 
 export default function OfferViewPage() {
   const { offerId } = useParams()
-  const { address } = useAccount()
+  const { address } = useConnection()
+
+  const { offer: baseOffer, refetch } = useQueryOffer(offerId)
+
+  const { price } = useOfferPrice(baseOffer, true)
+  const offer = baseOffer ? { ...baseOffer, price } : null
+
   const {
-    offer,
-    allowance,
-    refetchAllowance,
     setRate,
     setLimits,
     setTerms,
     toggleDisabled,
-  } = useOffer(offerId, {
-    fetchPrice: true,
-    fetchAllowance: true,
-    pollInterval: 2000,
-  })
+  } = useOfferActions(offerId, refetch)
 
   const {
     form,
@@ -35,9 +36,15 @@ export default function OfferViewPage() {
     createDeal,
     syncTokenAmount,
     syncFiatAmount,
-  } = useCreateDeal({ offer, allowance, refetchAllowance })
+  } = useCreateDeal({ offer })
 
-  const offerForm = useOfferForm({ offer, setRate, setLimits, setTerms, toggleDisabled })
+  const offerForm = useOfferForm({
+    offer,
+    setRate,
+    setLimits,
+    setTerms,
+    toggleDisabled: () => offer ? toggleDisabled(offer.disabled) : Promise.resolve()
+  })
 
   if (!offer) return <Skeleton active />
 

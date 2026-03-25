@@ -4,7 +4,6 @@ pragma solidity 0.8.34;
 import {IDeal} from "./interfaces/IDeal.sol";
 import {IMarket} from "./interfaces/IMarket.sol";
 import {IOffer} from "./interfaces/IOffer.sol";
-import {IProfile} from "./interfaces/IProfile.sol";
 import {Services} from "./libraries/Services.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -24,18 +23,30 @@ contract Deal is IDeal, ERC165, Initializable
   bytes32 private constant RESOLVE_PAID = keccak256("PAID");
   bytes32 private constant RESOLVE_NOT_PAID = keccak256("NOT PAID");
 
-  uint    public tokenAmount;
-  address public taker;
-  uint    public fiatAmount;
-  uint    public allowCancelUnacceptedAfter;
-  uint    public allowCancelUnpaidAfter;
-  IDeal.State   public state; // defaults to Initiated (0)
-  FinderInterface  internal finder;
-  IOffer   public offer;
-  bool    public isPaid;
+  IMarket public immutable market;
 
-  IDeal.Feedback public feedbackForOwner;
-  IDeal.Feedback public feedbackForTaker;
+  /**
+   * @dev Slot 0: Lifecycle Hub (26/32 bytes used)
+   * Initialized once, read/written in every hot state transition (accept, paid, fund, release).
+   * grouping offer address with state variables saves gas by reusing the warm slot.
+   */
+  IOffer  public offer;
+  IDeal.State public state; // defaults to Initiated (0)
+  bool    public resolvedPaid;
+  uint32  public allowCancelUnpaidAfter;
+
+  /**
+   * @dev Slot 1: Taker & Early-stage Timer (24/32 bytes used)
+   * address (20) + uint32 (4)
+   * Primarily used for initialization and the first cancel/accept check.
+   */
+  address public taker;
+  uint32  public allowCancelUnacceptedAfter;
+
+  /**
+   * @dev Slot 2: Deal amount (32/32 bytes used)
+   */
+  uint256 public tokenAmount;
 
   function _seller() internal view returns (address) {
     return offer.isSell() ? offer.owner() : taker;
@@ -66,7 +77,8 @@ contract Deal is IDeal, ERC165, Initializable
   }
 
   /// @custom:oz-upgrades-unsafe-allow constructor
-  constructor() {
+  constructor(address market_) {
+    market = IMarket(market_);
     _disableInitializers();
   }
 
@@ -74,36 +86,34 @@ contract Deal is IDeal, ERC165, Initializable
   external
   initializer
   {
-    finder = FinderInterface(params.finder);
     offer = IOffer(params.offer);
     taker = params.taker;
 
     tokenAmount = params.tokenAmount;
-    fiatAmount = params.fiatAmount;
-    allowCancelUnacceptedAfter = block.timestamp + ACCEPTANCE_TIME;
+    allowCancelUnacceptedAfter = uint32(block.timestamp + ACCEPTANCE_TIME);
 
     emit DealState(state, params.taker);
   }
 
-  function accept() external stateBetween(IDeal.State.Initiated, IDeal.State.Initiated) {
+  function accept() external override stateBetween(IDeal.State.Initiated, IDeal.State.Initiated) {
     require(msg.sender == offer.owner(), IMarket.UnauthorizedAccount(msg.sender));
 
     _state(IDeal.State.Accepted);
-    allowCancelUnpaidAfter = block.timestamp + PAYMENT_WINDOW;
+    allowCancelUnpaidAfter = uint32(block.timestamp + PAYMENT_WINDOW);
   }
 
-  function fund() external onlySeller stateBetween(IDeal.State.Accepted, IDeal.State.Accepted) {
-    IMarket(finder.getImplementationAddress(Services.Market)).fundDeal();
+  function fund() external override onlySeller stateBetween(IDeal.State.Accepted, IDeal.State.Accepted) {
+    market.fundDeal();
     _state(IDeal.State.Funded);
   }
 
-  function paid() external onlyBuyer stateBetween(IDeal.State.Accepted, IDeal.State.Funded) {
+  function paid() external override onlyBuyer stateBetween(IDeal.State.Accepted, IDeal.State.Funded) {
     _state(IDeal.State.Paid);
   }
 
-  function release() external stateBetween(IDeal.State.Funded, IDeal.State.Resolved) {
+  function release() external override stateBetween(IDeal.State.Funded, IDeal.State.Resolved) {
     if (state == State.Resolved) {
-      require(isPaid, InvalidResolution(isPaid));
+      require(resolvedPaid, InvalidResolution(resolvedPaid));
     } else {
       require(msg.sender == _seller(), IMarket.UnauthorizedAccount(msg.sender));
     }
@@ -111,29 +121,18 @@ contract Deal is IDeal, ERC165, Initializable
   }
 
   function _release() internal {
-    IMarket market = IMarket(finder.getImplementationAddress(Services.Market));
     IERC20 token = offer.token();
     uint feeAmount = tokenAmount * market.fee() / 10000;
     token.safeTransfer(_buyer(), tokenAmount - feeAmount);
-    address feeCollector = finder.getImplementationAddress(Services.FeeCollector);
+    address feeCollector = market.getImplementationAddress(Services.FeeCollector);
     token.safeTransfer(feeCollector, token.balanceOf(address(this)));
 
     _state(IDeal.State.Completed);
-
-    IProfile _profile = IProfile(finder.getImplementationAddress(Services.Profile));
-    uint $tokenId = _profile.ownerToTokenId(offer.owner());
-    if ($tokenId != 0) {
-      _profile.statsDealCompleted($tokenId);
-    }
-    $tokenId = _profile.ownerToTokenId(taker);
-    if ($tokenId != 0) {
-      _profile.statsDealCompleted($tokenId);
-    }
   }
 
-  function cancel() external stateBetween(IDeal.State.Initiated, IDeal.State.Resolved) {
+  function cancel() external override stateBetween(IDeal.State.Initiated, IDeal.State.Resolved) {
     if (state == IDeal.State.Resolved) {
-      require(!isPaid, InvalidResolution(!isPaid));
+      require(!resolvedPaid, InvalidResolution(!resolvedPaid));
       _cancel();
       return;
     }
@@ -143,11 +142,6 @@ contract Deal is IDeal, ERC165, Initializable
     if (state == IDeal.State.Initiated) {
       if (msg.sender != offer.owner()) {
         if (block.timestamp <= allowCancelUnacceptedAfter) revert IDeal.ActionNotAllowedInThisState(state);
-        IProfile _profile = IProfile(finder.getImplementationAddress(Services.Profile));
-        uint $tokenId = _profile.ownerToTokenId(offer.owner());
-        if ($tokenId != 0) {
-          _profile.statsDealExpired($tokenId);
-        }
       }
     } else if (state == IDeal.State.Accepted || state == IDeal.State.Funded) {
       if (block.timestamp <= allowCancelUnpaidAfter) revert IDeal.ActionNotAllowedInThisState(state);
@@ -166,56 +160,46 @@ contract Deal is IDeal, ERC165, Initializable
     _state(IDeal.State.Canceled);
   }
 
-  function dispute() external onlyMember stateBetween(IDeal.State.Accepted, IDeal.State.Paid) {
+  function dispute() external override onlyMember stateBetween(IDeal.State.Accepted, IDeal.State.Paid) {
     _state(IDeal.State.Disputed);
   }
 
   function assertionResolvedCallback(bytes32 assertionId, bool assertedTruthfully) external override {
-    require(msg.sender == finder.getImplementationAddress(Services.Oracle), IMarket.UnauthorizedAccount(msg.sender));
+    require(msg.sender == market.getImplementationAddress(Services.Oracle), IMarket.UnauthorizedAccount(msg.sender));
     if (state != IDeal.State.Disputed) return;
 
     OptimisticOracleV3Interface _oov3 = OptimisticOracleV3Interface(msg.sender);
     OptimisticOracleV3Interface.Assertion memory assertion = _oov3.getAssertion(assertionId);
 
+    bytes32 resolution;
     if (assertion.domainId == RESOLVE_PAID) {
-      isPaid = assertedTruthfully;
+      resolvedPaid = assertedTruthfully;
+      resolution = resolvedPaid ? RESOLVE_PAID : RESOLVE_NOT_PAID;
     } else if (assertion.domainId == RESOLVE_NOT_PAID) {
-      isPaid = !assertedTruthfully;
+      resolvedPaid = !assertedTruthfully;
+      resolution = resolvedPaid ? RESOLVE_PAID : RESOLVE_NOT_PAID;
     }
 
+    emit DisputeResolved(resolution);
     _state(IDeal.State.Resolved);
   }
 
   function assertionDisputedCallback(bytes32 assertionId) external override {}
 
-  function message(string calldata message_) external onlyMember {
+  function message(string calldata message_) external override onlyMember {
     emit Message(msg.sender, message_);
   }
 
   function feedback(bool upvote, string calldata message_)
   external
+  override
   onlyMember
   stateBetween(IDeal.State.Resolved, IDeal.State.Completed)
   {
-    IProfile _profile = IProfile(finder.getImplementationAddress(Services.Profile));
     if (msg.sender == offer.owner()) {
-      require(!feedbackForTaker.given, IProfile.FeedbackAlreadyGiven());
-      feedbackForTaker.given = true;
-      feedbackForTaker.upvote = upvote;
-      uint $tokenId = _profile.ownerToTokenId(taker);
-      if ($tokenId != 0) {
-        _profile.statsVote($tokenId, upvote);
-      }
       emit FeedbackGiven(taker, upvote, message_);
     }
     else if (msg.sender == taker) {
-      require(!feedbackForOwner.given, IProfile.FeedbackAlreadyGiven());
-      feedbackForOwner.given = true;
-      feedbackForOwner.upvote = upvote;
-      uint $tokenId = _profile.ownerToTokenId(offer.owner());
-      if ($tokenId != 0) {
-        _profile.statsVote($tokenId, upvote);
-      }
       emit FeedbackGiven(offer.owner(), upvote, message_);
     }
   }

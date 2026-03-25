@@ -1,27 +1,21 @@
 import { test, expect } from '@tests/e2e/setup'
 import { accept, fund, markPaid, release, leaveFeedback } from './actions'
+import { createOffer } from '../fixtures'
 
 test.describe.serial('Deal flow', () => {
   test('maker is buying', async ({ createParty }) => {
     // Create Offer
+    const offerAddress = await createOffer({}, 0)
     const maker = await createParty()
     await maker.setAccount(0)
-    const offer = await maker.createOffer()
 
     // Open Deal
-    const taker = await createParty(`/trade/offer/${offer.address}`)
+    const taker = await createParty(`/trade/offer/${offerAddress}`)
     await taker.setAccount(1)
     await taker.page.getByPlaceholder('Crypto Amount').fill('0.1')
     await taker.page.getByPlaceholder('Fiat Amount').fill('150')
     const openButton = taker.page.getByRole('button', { name: 'Open Deal' })
-    const approveButton = taker.page.getByRole('button', { name: /Approve \w+/ })
-    const actionButton = openButton.or(approveButton)
-    await expect(actionButton).toBeVisible()
-    const buttonText = await actionButton.textContent()
-    if (buttonText?.startsWith('Approve')) {
-      await approveButton.click()
-      await expect(openButton).toBeVisible()
-    }
+    await expect(openButton).toBeVisible()
     await openButton.click()
     await expect(taker.page.getByText('Deal submitted')).toBeVisible()
     await taker.page.waitForURL(/\/trade\/deal\/0x[a-fA-F0-9]{40}/)
@@ -48,12 +42,12 @@ test.describe.serial('Deal flow', () => {
 
   test('maker is selling', async ({ createParty }) => {
     // Create Sell Offer
+    const offerAddress = await createOffer({ isSell: true }, 0)
     const maker = await createParty()
     await maker.setAccount(0)
-    const offer = await maker.createOffer({ isSell: true })
 
     // Open Deal
-    const taker = await createParty(`/trade/offer/${offer.address}`)
+    const taker = await createParty(`/trade/offer/${offerAddress}`)
     await taker.setAccount(1)
     await taker.page.getByPlaceholder('Crypto Amount').fill('0.1')
     await taker.page.getByPlaceholder('Fiat Amount').fill('150')

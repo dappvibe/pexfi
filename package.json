@@ -7,7 +7,6 @@
     "dev": "vite",
     "build": "npm run build:evm && npm run build:web",
     "build:web": "vite build",
-    "build:web:staging": "npm run build:web -- --mode staging",
     "build:web:prod": "npm run build:web -- --mode production",
     "build:evm": "npx hardhat compile",
     "build:subgraph": "npx graph build subgraph/subgraph.yaml -o .cache/subgraph/build --network-file subgraph/networks.json --network",
@@ -16,7 +15,7 @@
     "test": "vitest",
     "test:web": "vitest run",
     "test:evm": "npx hardhat test",
-    "test:e2e": "playwright test --reporter=line --headed",
+    "test:e2e": "playwright test --reporter=line",
     "lint": "eslint . --ext js,jsx,ts,tsx",
     "subgraph:codegen": "npx graph codegen subgraph/subgraph.yaml -o .cache/subgraph/generated"
   },
@@ -24,6 +23,7 @@
     "@apollo/client": "^4.0.11",
     "@dr.pogodin/react-helmet": "^3.1.1",
     "@nomicfoundation/hardhat-ignition": "^3.0.7",
+    "@openzeppelin/contracts": "^5.6.1",
     "@tanstack/query-sync-storage-persister": "^5.90.18",
     "@tanstack/react-query": "^5.90.16",
     "@tanstack/react-query-persist-client": "^5.90.18",
@@ -94,5 +94,8 @@
     "vite": "7.3.0",
     "vite-tsconfig-paths": "^6.0.3",
     "vitest": "^4.0.16"
+  },
+  "overrides": {
+    "hardhat": "$hardhat"
   }
 }

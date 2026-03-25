@@ -1,20 +1,18 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Form, message } from 'antd'
-import { Address, decodeEventLog } from 'viem'
+import { decodeEventLog } from 'viem'
 import { usePublicClient } from 'wagmi'
 import { useAddress } from '@/shared/web3'
-import { type Offer } from '@/features/offers/hooks/useOffer'
+import { type Offer } from '@/features/offers/hooks/useQueryOffer.ts'
 import { useUserDeals } from '@/features/deals/hooks/useUserDeals'
-import { marketAbi, useWriteErc20Approve, useWriteOfferCreateDeal } from '@/wagmi'
+import { marketAbi, useWriteOfferCreateDeal } from '@/wagmi'
 
 interface UseCreateDealProps {
   offer: Offer | null
-  allowance: bigint
-  refetchAllowance: () => Promise<any>
 }
 
-export function useCreateDeal({ offer, allowance, refetchAllowance }: UseCreateDealProps) {
+export function useCreateDeal({ offer }: UseCreateDealProps) {
   const navigate = useNavigate()
   const publicClient = usePublicClient()
   const marketAddress = useAddress('Market#Market')
@@ -23,9 +21,11 @@ export function useCreateDeal({ offer, allowance, refetchAllowance }: UseCreateD
   const [lockButton, setLockButton] = useState(false)
   const [newDealAddress, setNewDealAddress] = useState<string | undefined>()
 
-  const { deals, loading: isSyncingDeals } = useUserDeals({ pollInterval: 1000 })
+  const { deals } = useUserDeals({ 
+    pollInterval: newDealAddress ? 3000 : 0 
+  })
   const createdDeal = deals?.find((d: any) => d.id.toLowerCase() === newDealAddress?.toLowerCase())
-  const isSyncing = isSyncingDeals || (!!newDealAddress && !createdDeal)
+  const isSyncing = (!!newDealAddress && !createdDeal)
 
   useEffect(() => {
     if (newDealAddress && createdDeal && !isSyncing) {
@@ -33,39 +33,18 @@ export function useCreateDeal({ offer, allowance, refetchAllowance }: UseCreateD
     }
   }, [newDealAddress, createdDeal, isSyncing, navigate])
 
-  const { writeContractAsync: approveTx } = useWriteErc20Approve()
   const { writeContractAsync: createDealTx } = useWriteOfferCreateDeal()
-
-  async function approve() {
-    if (!offer || allowance > 0n || offer.isSell) return
-
-    try {
-      message.loading({ content: `Approving ${offer.token?.symbol}...`, key: 'createDeal', duration: 0 })
-      const hash = await approveTx({
-        address: offer.token?.address as Address,
-        args: [marketAddress as Address, BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')],
-      })
-      await publicClient?.waitForTransactionReceipt({ hash })
-      await refetchAllowance()
-    } catch (e: any) {
-      message.error({ content: e.shortMessage || 'Approval failed', key: 'createDeal' })
-      throw e
-    }
-  }
 
   async function createDeal(values: any) {
     if (!offer || !marketAddress) return
     setLockButton(true)
 
     try {
-      await approve()
-
       const amount = BigInt(Math.floor(values['fiatAmount'] * 10 ** 6))
       message.loading({ content: 'Deal submitted. Waiting for confirmation...', key: 'createDeal', duration: 0 })
       const hash = await createDealTx({
         address: offer.address,
         args: [
-          marketAddress as Address,
           {
             fiatAmount: amount,
             paymentInstructions: values['paymentInstructions'] ?? '',
@@ -120,9 +99,7 @@ export function useCreateDeal({ offer, allowance, refetchAllowance }: UseCreateD
 
   let submitLabel = 'Open Deal'
   let submitDisabled = false // Caller should handle account check if needed, or we can keep it here
-  if (offer && !offer.isSell && !allowance) {
-    submitLabel = `Approve ${offer.token?.symbol}`
-  }
+
   if (offer && offer.disabled) {
     submitLabel = 'Offer is disabled'
     submitDisabled = true

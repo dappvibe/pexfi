@@ -1,12 +1,16 @@
 import { Button, Form, Input, Radio, Result, Skeleton } from 'antd'
-import { useDealContext } from '@/features/deals/hooks/useDealContext'
-import { useAccount, useWriteContract } from 'wagmi'
+import { useDeal } from '@/features/deals/hooks/useDeal.ts'
+import { useDealFeedback } from '@/features/deals/hooks/useDealFeedback'
+import { useQueryOffer } from '@/features/offers/hooks/useQueryOffer'
+import { useConnection, useWriteContract } from 'wagmi'
 import { dealAbi } from '@/wagmi'
 import { equal } from '@/utils'
 
 export default function Feedback() {
-  const { deal, offer } = useDealContext()
-  const { address: account } = useAccount()
+  const { deal } = useDeal()
+  const { feedback } = useDealFeedback(deal?.address, deal?.taker)
+  const { offer } = useQueryOffer(deal?.offer)
+  const { address: account } = useConnection()
   const { writeContractAsync, isPending } = useWriteContract()
   const [form] = Form.useForm()
 
@@ -15,7 +19,7 @@ export default function Feedback() {
   const isOwner = equal(account, offer.owner)
   const isTaker = equal(account, deal.taker)
 
-  const feedbackGiven = isOwner ? deal.feedbackForTaker?.given : isTaker ? deal.feedbackForOwner?.given : false
+  const feedbackGiven = isOwner ? feedback.forTaker?.given : isTaker ? feedback.forOwner?.given : false
 
   async function submit() {
     await writeContractAsync({

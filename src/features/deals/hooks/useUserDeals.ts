@@ -1,10 +1,43 @@
 import { useMemo, useEffect } from 'react'
-import { useAccount } from 'wagmi'
-import { useActiveAccount } from 'thirdweb/react'
+import { useConnection } from 'wagmi'
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
-import { hexToString, trim } from 'viem'
+import { Address, hexToString, trim } from 'viem'
 import { useInventory, decodeMethod } from '@/shared/web3'
+
+export interface RawUserDeal {
+  id: string
+  createdAt: number
+  state: number
+  taker: Address
+  tokenAmount: string
+  fiatAmount: string
+  method: string
+  offer: {
+    id: string
+    owner: Address
+    isSell: boolean
+    fiat: Address
+    methods: string
+    token: {
+      id: string
+      address: Address
+      name: string
+      symbol: string
+      decimals: number
+    }
+  }
+}
+
+export interface UserDeal extends Omit<RawUserDeal, 'offer'> {
+  tokenAmountFormatted: number
+  fiatAmountFormatted: number
+  offer: RawUserDeal['offer'] & {
+    fiat: string
+    method: string
+    methodsNames: string[]
+  }
+}
 
 const GQL_USER_DEALS = gql`
   query UserDeals($address: Bytes!) {
@@ -39,12 +72,10 @@ const GQL_USER_DEALS = gql`
 `
 
 export function useUserDeals(options: { pollInterval?: number } = {}) {
-  const { address: wagmiAddress } = useAccount()
-  const activeAccount = useActiveAccount()
-  const address = wagmiAddress || activeAccount?.address
+  const { address } = useConnection()
   const { methods, loading: inventoryLoading } = useInventory()
 
-  const { data, loading: dealsLoading, error, refetch, stopPolling } = useQuery(GQL_USER_DEALS, {
+  const { data, loading: dealsLoading, error, refetch, stopPolling } = useQuery<{ deals: RawUserDeal[] }>(GQL_USER_DEALS, {
     variables: { address: address?.toLowerCase() },
     skip: !address,
     pollInterval: options.pollInterval,
@@ -58,14 +89,14 @@ export function useUserDeals(options: { pollInterval?: number } = {}) {
     }
   }, [stopPolling])
 
-  const deals = useMemo(() => {
+  const deals = useMemo<UserDeal[] | undefined>(() => {
     if (!data?.deals) return undefined
 
-    return data.deals.map((d: any) => {
+    return data.deals.map((d: RawUserDeal) => {
       let methodName: string
       try {
         // d.method is the chosen method stored as bytes16 in contract (hex in subgraph)
-        methodName = hexToString(trim(d.method as `0x${string}`, { dir: 'right' }))
+        methodName = hexToString(trim(d.method as Address, { dir: 'right' }))
       } catch (e) {
         // Fallback for cases where it might be numeric index or other
         const found = Object.values(methods).find((m) => Number(m.index) === Number(d.method))
@@ -78,7 +109,7 @@ export function useUserDeals(options: { pollInterval?: number } = {}) {
         fiatAmountFormatted: Number(BigInt(d.fiatAmount)) / 10 ** 6,
         offer: {
           ...d.offer,
-          fiat: hexToString(trim((d.offer.fiat as `0x${string}`) || '0x00', { dir: 'right' })),
+          fiat: hexToString(trim((d.offer.fiat as Address) || '0x00', { dir: 'right' })),
           method: methodName,
           methodsNames: decodeMethod(d.offer.methods, methods)
         }

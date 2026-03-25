@@ -8,10 +8,8 @@ switch (import.meta.env.MODE) {
   default:
     chains.push(hardhat)
   // fallthrough
-  case 'staging':
-    chains.push(sepolia)
-  // fallthrough
   case 'production':
+    chains.push(sepolia)
     chains.push(mainnet)
 }
 
@@ -24,13 +22,16 @@ const transports = {
     webSocket('wss://eth-sepolia.g.alchemy.com/v2/' + import.meta.env.VITE_ALCHEMY_KEY),
     http()
   ]),
-  [hardhat.id]: webSocket('ws://localhost:8545'),
+  [hardhat.id]: http('http://127.0.0.1:8545'),
 }
 
 export const thirdwebClient = createThirdwebClient({ clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID })
 
 // E2E Testing Support: This is required to be here to automate provider in VITE env
-const connectors = window.E2E
+// We explicitly bypass 'typeof window' check in the static analysis so Vite does not tree-shake the E2E mock chunk in production builds
+const _isE2E = () => { try { return typeof window !== 'undefined' && ((window as any).webdriver || window.navigator?.webdriver) } catch(e) { return false } }
+
+const connectors = _isE2E()
   ? [
       await import('@tests/e2e/wallet').then((m) => {
         m.install()

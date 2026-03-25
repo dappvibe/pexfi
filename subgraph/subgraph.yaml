@@ -6,7 +6,7 @@ schema:
 dataSources:
   - kind: ethereum
     name: Market
-    network: sepolia
+    network: "31337"
     source:
       abi: Market
       address: "0x7700aD9484F16662010B2dDd5b56A0b6F8c4c3b3"
@@ -50,12 +50,12 @@ dataSources:
         - event: OfferCreated(address,address,bytes32,address)
           handler: handleOfferCreated
         - event: DealCreated(indexed
-            address,address,address,address,bytes16,string,string)
+            address,address,address,address,uint256,bytes16,string,string)
           handler: handleDealCreated
       file: ./src/market.ts
   - kind: ethereum/contract
     name: Profile
-    network: hardhat
+    network: "31337"
     source:
       abi: Profile
       address: "0x3a622DB2db50f463dF562Dc5F341545A64C580fc"
@@ -70,7 +70,7 @@ dataSources:
         - name: Profile
           file: ../.cache/artifacts/evm/protocol/Profile.sol/Profile.json
       eventHandlers:
-        - event: UpdatedInfo(string)
+        - event: UpdatedInfo(indexed uint256,string)
           handler: handleUpdatedInfo
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
@@ -78,7 +78,7 @@ dataSources:
 templates:
   - kind: ethereum/contract
     name: Offer
-    network: sepolia
+    network: "31337"
     source:
       abi: Offer
     mapping:
@@ -104,7 +104,7 @@ templates:
       file: ./src/offer.ts
   - kind: ethereum/contract
     name: Deal
-    network: sepolia
+    network: "31337"
     source:
       abi: Deal
     mapping:
@@ -131,4 +131,6 @@ templates:
           handler: handleFeedbackGiven
         - event: Message(address,string)
           handler: handleMessage
+        - event: DisputeResolved(bytes32)
+          handler: handleDisputeResolved
       file: ./src/deal.ts

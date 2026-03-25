@@ -21,12 +21,11 @@ import {IDeal} from "./interfaces/IDeal.sol";
 import {IProfile} from "./interfaces/IProfile.sol";
 import {Services} from "./libraries/Services.sol";
 import {IChainlink} from "./interfaces/IChainlink.sol";
+import {Finder} from "./Finder.sol";
 
-contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
+contract Market is IMarket, Finder, UUPSUpgradeable
 {
   using SafeERC20 for IERC20;
-
-  FinderInterface public finder;
 
   mapping(IERC20  => Token)      public tokens;
 
@@ -51,16 +50,15 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     _disableInitializers();
   }
 
-  function initialize(address finder_) initializer external {
+  function initialize() initializer external {
     __Ownable_init(msg.sender);
-    finder = FinderInterface(finder_);
   }
   function _authorizeUpgrade(address) internal onlyOwner override {}
 
   /**
    * Admin configuration methods.
    */
-  function setFee(uint8 fee_) public onlyOwner {fee = fee_;}
+  function setFee(uint8 fee_) external onlyOwner {fee = fee_;}
 
   function addToken(IERC20 address_, Token calldata token_) external onlyOwner {
     tokens[address_] = token_;
@@ -81,9 +79,11 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
   }
 
   function addMethods(bytes16[] calldata names_) external onlyOwner {
-    for (uint i = 0; i < names_.length; i++) {
+    uint len = names_.length;
+    for (uint i = 0; i < len; ) {
       methods.push(names_[i]);
       emit MethodAdded(names_[i], methods.length - 1);
+      unchecked { i++; }
     }
   }
   function disableMethods(uint256 mask) external onlyOwner {
@@ -106,7 +106,7 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     if (params.rate <= 0)                                 revert IOffer.InvalidRate();
     if (params.limits.min >= params.limits.max)           revert IOffer.InvalidLimits();
 
-    address impl = finder.getImplementationAddress(Services.OfferImplementation);
+    address impl = interfacesImplemented[Services.OfferImplementation];
     IOffer offer = IOffer(Clones.clone(impl));
     offer.initialize(msg.sender, params);
 
@@ -115,15 +115,12 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     emit OfferCreated(msg.sender, params.token, params.fiat, offer);
   }
 
-  function addDeal(IDeal deal, bytes16 method, string calldata terms, string calldata paymentInstructions) external {
+  function addDeal(IDeal deal, uint256 fiatAmount, bytes16 method, string calldata terms, string calldata paymentInstructions) external {
     require(offers[msg.sender], UnauthorizedAccount(msg.sender));
     deals[address(deal)] = true;
 
     IOffer offer = IOffer(deal.offer());
-    emit DealCreated(offer.owner(), deal.taker(), address(offer), address(deal), method, terms, paymentInstructions);
-
-    IProfile profile = IProfile(finder.getImplementationAddress(Services.Profile));
-    profile.grantRole("DEAL_ROLE", address(deal));
+    emit DealCreated(offer.owner(), deal.taker(), address(offer), address(deal), fiatAmount, method, terms, paymentInstructions);
   }
 
   /// @dev Method is in Market so that users provide allowance in single place instead of each Offer
@@ -146,17 +143,22 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
 
   /// @param amount_ must have 6 decimals as a fiat amount
   /// @param denominator ratio (4 decimal) to apply to resulting amount
-  /// @return amount of tokens in precision of given token // FIXME precision is not respected
+  /// @return amount of tokens in precision of given token
   function convert(uint amount_, bytes3 fromFiat_, IERC20 toToken_, uint denominator)
   public view
   returns (uint256 amount)
   {
-    if (fromFiat_ == bytes3("USD") && address(toToken_) == USDC)
-      return FullMath.mulDiv(amount_, 10 ** 4, denominator);
+    if (fromFiat_ == bytes3("USD") && address(toToken_) == USDC) {
+      unchecked {
+        return FullMath.mulDiv(amount_, 10 ** 4, denominator);
+      }
+    }
 
     uint decimals = tokens[toToken_].decimals;
     amount = FullMath.mulDiv(amount_, 10 ** decimals, getPrice(toToken_, fromFiat_));
-    return FullMath.mulDiv(amount, 10 ** 4, denominator);
+    unchecked {
+      return FullMath.mulDiv(amount, 10 ** 4, denominator);
+    }
   }
 
   /// @return price with 6 decimals
@@ -168,16 +170,25 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
       secs[0] = 300;
       secs[1] = 0;
       (int56[] memory tickCumulatives,) = token.pool.observe(secs);
-      int56 tickCumulativesDelta = tickCumulatives[1] - tickCumulatives[0];
+      int56 tickCumulativesDelta;
+      unchecked {
+        tickCumulativesDelta = tickCumulatives[1] - tickCumulatives[0];
+      }
 
       // Fix Solidity's negative division rounding
-      int24 meanTick = int24(tickCumulativesDelta / 300);
-      if (tickCumulativesDelta < 0 && (tickCumulativesDelta % 300 != 0)) {
-        meanTick--;
+      int24 meanTick;
+      unchecked {
+        meanTick = int24(tickCumulativesDelta / 300);
+        if (tickCumulativesDelta < 0 && (tickCumulativesDelta % 300 != 0)) {
+          meanTick--;
+        }
       }
 
       uint160 sqrtPriceX96 = TickMath.getSqrtPriceAtTick(meanTick);
-      uint256 ratioX192 = uint256(sqrtPriceX96) * uint256(sqrtPriceX96);
+      uint256 ratioX192;
+      unchecked {
+        ratioX192 = uint256(sqrtPriceX96) * uint256(sqrtPriceX96);
+      }
 
       // 2. Check token sorting to determine math direction
       address token0 = IUniswapV3Pool(token.pool).token0();
@@ -194,7 +205,9 @@ contract Market is IMarket, OwnableUpgradeable, UUPSUpgradeable
     if (fiat_ != bytes3("USD")) { // 0 is USD
       (, int $fiatToUSD,,,) = fiats[fiat_].latestRoundData();
       require($fiatToUSD > 0, InvalidArgument());
-      price = price * 10 ** 8 / uint($fiatToUSD);
+      unchecked {
+        price = price * 10 ** 8 / uint($fiatToUSD);
+      }
     }
   }
 }

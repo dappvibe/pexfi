@@ -1,24 +1,18 @@
 import React from 'react'
-import { useAccount, useReadContract, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
-import {
-  dealAbi,
-  erc20Abi,
-  useReadPexfiVaultBalanceOf,
-  useReadPexfiVestingOwner,
-  useSimulateDeal,
-  useWritePexfiVestingBond,
-} from '@/wagmi'
+import { useConnection, useReadContract, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
+import { dealAbi, erc20Abi, useReadPexfiVaultBalanceOf, useReadPexfiVestingOwner, useSimulateDeal, useWritePexfiVestingBond } from '@/wagmi'
 import { message, Skeleton, Space, Statistic } from 'antd'
-import { useDealContext } from '@/features/deals/hooks/useDealContext'
+import { useDeal } from '@/features/deals/hooks/useDeal.ts'
+import { useQueryOffer } from '@/features/offers/hooks/useQueryOffer'
 import { LoadingButton } from '@/shared/ui'
 import Feedback from '@/features/deals/components/Feedback'
 import { equal } from '@/utils'
-import { DealState } from '@/wagmi/contracts/useDeal'
+import { DealState } from '@/features/deals/hooks/useReadDeal'
 import { useAddress } from '@/shared/web3'
-import { maxUint256, stringToHex } from 'viem'
+import { Address, maxUint256, stringToHex } from 'viem'
 
 interface DealButtonProps {
-  dealAddress: `0x${string}`
+  dealAddress: Address
   functionName: 'accept' | 'fund' | 'paid' | 'release' | 'dispute' | 'cancel'
   label: React.ReactNode
   successMessage?: string
@@ -37,7 +31,6 @@ function DealButton({
   const { data, error, isLoading: isSimulating } = useSimulateDeal({
     address: dealAddress,
     functionName,
-    abi: [...dealAbi, ...erc20Abi],
     query: {
       retry: false,
     },
@@ -75,8 +68,9 @@ function DealButton({
 }
 
 export default function Controls() {
-  const { deal, offer } = useDealContext()
-  const { address } = useAccount()
+  const { deal } = useDeal()
+  const { offer } = useQueryOffer(deal?.offer)
+  const { address } = useConnection()
   const marketAddress = useAddress('Market#Market')
   const vaultAddress = useAddress('Market#PexfiVault')
   const vestingAddress = useAddress('Market#PexfiVesting')
@@ -93,11 +87,11 @@ export default function Controls() {
     query: { enabled: !!tokenAddress && !!address && !!marketAddress },
   })
 
-  // get isPaid
-  const { data: isPaid } = useReadContract({
+  // get resolvedPaid
+  const { data: resolvedPaid } = useReadContract({
     address: deal.address,
     abi: dealAbi,
-    functionName: 'isPaid',
+    functionName: 'resolvedPaid',
   })
 
   const isDisputed = deal.state === DealState.Disputed
@@ -113,6 +107,12 @@ export default function Controls() {
     query: { enabled: !!vestingAddress && isDisputed },
   })
 
+  const { writeContractAsync: approveAsync, data: approveHash } = useWriteContract()
+  const { isLoading: isApproving } = useWaitForTransactionReceipt({
+    hash: approveHash,
+    query: { enabled: !!approveHash },
+  })
+
   if (!address || !offer) return <Skeleton active />
 
   const isOwner = equal(address, offer.owner)
@@ -125,12 +125,6 @@ export default function Controls() {
 
   const needsApproval =
     !!tokenAddress && !!marketAddress && (allowance ?? 0n) < deal.tokenAmount
-
-  const { writeContractAsync: approveAsync, data: approveHash } = useWriteContract()
-  const { isLoading: isApproving } = useWaitForTransactionReceipt({
-    hash: approveHash,
-    query: { enabled: !!approveHash },
-  })
 
   async function approve() {
     if (!tokenAddress || !marketAddress) return
@@ -260,7 +254,7 @@ export default function Controls() {
   const controls: React.ReactNode[] = []
 
   switch (deal.state) {
-    case DealState.Created:
+    case DealState.Initiated:
       if (isOwner) {
         controls.push(action.accept)
         controls.push(action.cancel)
@@ -324,19 +318,19 @@ export default function Controls() {
       break
 
     case DealState.Resolved:
-      if (isPaid) {
+      if (resolvedPaid) {
         controls.push(action.release)
       } else {
         controls.push(action.cancel)
       }
       break
 
-    case DealState.Cancelled:
-    case DealState.Released:
+    case DealState.Canceled:
+    case DealState.Completed:
       break
   }
 
-  if (deal.state < DealState.Cancelled || deal.state === DealState.Resolved) {
+  if (deal.state < DealState.Canceled || deal.state === DealState.Resolved) {
     return (
       <Space>
         {controls.map((button, index) => (
@@ -344,7 +338,7 @@ export default function Controls() {
         ))}
       </Space>
     )
-  } else if (deal.state === DealState.Released) {
+  } else if (deal.state === DealState.Completed) {
     // Resolved also allows feedback so that users don't abuse disputes to not have feedback
     return <Feedback />
   } else {

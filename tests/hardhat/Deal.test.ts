@@ -64,7 +64,7 @@ describe('Deal', () => {
     test('createDeal() should revert if taker is offer owner', async () => {
       await viem.assertions.revertWithCustomErrorWithArgs(
         offerToSell.write.createDeal(
-          [Market.address, { method: 0n, fiatAmount: FIAT_AMOUNT, paymentInstructions: 'instructions' }],
+          [{ method: 0n, fiatAmount: FIAT_AMOUNT, paymentInstructions: 'instructions' }],
           { account: maker }
         ),
         offerToSell,
@@ -73,7 +73,7 @@ describe('Deal', () => {
       )
       await viem.assertions.revertWithCustomErrorWithArgs(
         offerToBuy.write.createDeal(
-          [Market.address, { method: 0n, fiatAmount: FIAT_AMOUNT, paymentInstructions: 'instructions' }],
+          [{ method: 0n, fiatAmount: FIAT_AMOUNT, paymentInstructions: 'instructions' }],
           { account: maker }
         ),
         offerToBuy,
@@ -85,7 +85,7 @@ describe('Deal', () => {
     test('createDeal() should trigger DealCreated event', async () => {
       const createFor = async (offer) => {
         const hash = await offer.write.createDeal(
-          [Market.address, { fiatAmount: FIAT_AMOUNT, method: 0n, paymentInstructions: 'instructions' }],
+          [{ fiatAmount: FIAT_AMOUNT, method: 0n, paymentInstructions: 'instructions' }],
           { account: taker }
         )
         const receipt = await publicClient.waitForTransactionReceipt({ hash })
@@ -394,15 +394,15 @@ describe('Deal', () => {
         6,
         OOv3.address,
       ])
-      assert.ok(await dealToBuy.read.isPaid())
+      assert.ok(await dealToBuy.read.resolvedPaid())
     })
 
-    test('anyone can release() if Resolved and isPaid', async () => {
+    test('anyone can release() if Resolved and resolvedPaid', async () => {
       await viem.assertions.emit(dealToBuy.write.release({ account: nobody }), dealToBuy, 'DealState')
       await disputed.restore()
     })
 
-    test('release() fails if Resolved and NOT isPaid', async () => {
+    test('release() fails if Resolved and NOT resolvedPaid', async () => {
        // 1. Resolve NOT PAID
        const hash = await pexfiVesting.write.bond([dealToBuy.address, stringToHex('NOT PAID')], { account: maker })
        const receipt = await publicClient.waitForTransactionReceipt({ hash })
@@ -413,7 +413,7 @@ describe('Deal', () => {
        })[0].args.assertionId
        await networkHelpers.time.increase(61)
        await OOv3.write.settleAssertion([assertionId])
-       assert.ok(!(await dealToBuy.read.isPaid()))
+       assert.ok(!(await dealToBuy.read.resolvedPaid()))
 
        // 2. Try release
        await viem.assertions.revertWithCustomError(dealToBuy.write.release({ account: nobody }), dealToBuy, 'InvalidResolution')
@@ -501,23 +501,22 @@ describe('Deal', () => {
       )
     })
 
-    test('Feedback cannot be given again', async () => {
-      await viem.assertions.revertWithCustomError(
+    test('Feedback can be given again but subgraph handles it', async () => {
+      await viem.assertions.emit(
         dealToBuy.write.feedback([true, 'good deal'], { account: taker }),
-        { abi: profileAbi },
-        'FeedbackAlreadyGiven'
+        dealToBuy,
+        'FeedbackGiven'
       )
-      await viem.assertions.revertWithCustomError(
+      await viem.assertions.emit(
         dealToBuy.write.feedback([true, 'good deal'], { account: maker }),
-        { abi: profileAbi },
-        'FeedbackAlreadyGiven'
+        dealToBuy,
+        'FeedbackGiven'
       )
     })
 
     test('Feedback reverts if in wrong state (e.g. Paid)', async () => {
        // Create a new deal, advance to Paid
        const hash = await offerToSell.write.createDeal([
-         Market.address,
          { fiatAmount: FIAT_AMOUNT, method: 0n, paymentInstructions: 'i' }
        ], { account: taker })
        const r = await publicClient.waitForTransactionReceipt({ hash })

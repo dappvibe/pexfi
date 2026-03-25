@@ -1,6 +1,6 @@
 import { ConnectButton, darkTheme } from 'thirdweb/react'
 import { createWallet } from 'thirdweb/wallets'
-import { useConnect, useDisconnect, useSwitchChain } from 'wagmi'
+import { useChains, useConnect, useConnectors, useDisconnect, useSwitchChain } from 'wagmi'
 import { thirdwebClient } from '@/wagmi.config.ts'
 
 const wallets = [
@@ -13,9 +13,11 @@ const wallets = [
 ]
 
 export default function WalletMenu() {
-  const { connect, connectors } = useConnect()
-  const { disconnect } = useDisconnect()
-  const { chains, switchChain } = useSwitchChain()
+  const { mutate: connect } = useConnect()
+  const connectors = useConnectors()
+  const { mutate: disconnect } = useDisconnect()
+  const { mutate: switchChain } = useSwitchChain()
+  const chains = useChains()
 
   const connector = connectors.find((c) => c.id === 'in-app-wallet' || c.type === 'inAppWallet')
 
@@ -45,7 +47,7 @@ export default function WalletMenu() {
             onSwitch: (chain) => switchChain({ chainId: chain.id }),
           },
         }}
-        onConnect={() => connect({ connector })}
+        onConnect={() => connect({ connector: connector! })}
         onDisconnect={() => disconnect()}
         theme={darkTheme({})}
         wallets={wallets}

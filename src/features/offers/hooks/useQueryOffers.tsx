@@ -40,6 +40,7 @@ export type Offer = {
   minFiat: number
   maxFiat: number
   terms: string
+  disabled: boolean
 }
 
 export type UseQueryOffersResult = {
@@ -66,6 +67,7 @@ const GQL_OFFERS = gql`
       isSell
       token {
         id
+        address
         name
         decimals
       }
@@ -75,6 +77,7 @@ const GQL_OFFERS = gql`
       minFiat
       maxFiat
       terms
+      disabled
     }
   }
 `

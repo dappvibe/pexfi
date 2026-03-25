@@ -1,16 +1,14 @@
 import { Col, Menu, Row } from 'antd'
 import { generatePath, Link, useParams } from 'react-router-dom'
-import { Notifications, useAddress, WalletMenu } from '@/shared/web3'
+import { Notifications, WalletMenu } from '@/shared/web3'
 import logo from '@/assets/images/logo.png'
-import { useAccount, useChainId } from 'wagmi'
+import { useConnection } from 'wagmi'
 import { useActiveAccount } from 'thirdweb/react'
 
 export default function Topnav() {
   const params = useParams()
-  const { isConnected, address } = useAccount()
+  const { isConnected, address } = useConnection()
   const activeAccount = useActiveAccount()
-  const token = useAddress('Market#PexfiToken')
-  const chainId = useChainId()
 
   const navItems = [
     {
@@ -26,19 +24,6 @@ export default function Topnav() {
       label: <a href={'/docs'}>Learn</a>,
     },
   ]
-
-  if (token && chainId) {
-    let net: string;
-    switch(chainId) {
-      case 1: net = 'ethereum'; break;
-      case 11155111: net = 'ethereum_sepolia'; break;
-    }
-
-    navItems.push({
-      key: 'own',
-      label: <a target={'_blank'} href={'https://app.uniswap.org/explore/tokens/' + net + '/' + token}>Own</a>
-    })
-  }
 
   const userMenuItems = [
     {

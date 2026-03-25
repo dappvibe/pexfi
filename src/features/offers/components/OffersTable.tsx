@@ -3,7 +3,7 @@ import type { ColumnType } from 'antd/es/table'
 import { Link, useParams } from 'react-router-dom'
 import { Username } from '@/shared/web3'
 import { formatMoney } from '@/utils'
-import { useAccount } from 'wagmi'
+import { useConnection } from 'wagmi'
 import { type Offer } from '@/features/offers/hooks/useQueryOffers'
 
 type MappedOffer = Offer & {
@@ -21,7 +21,7 @@ interface OffersTableProps {
 }
 
 export default function OffersTable({ offers, loading, loadMore, totalOffers }: OffersTableProps) {
-  const { address } = useAccount()
+  const { address } = useConnection()
   let { side = 'sell', token = 'WETH', fiat = 'USD', method = null } = useParams()
 
   const columns: ColumnType<MappedOffer>[] = [

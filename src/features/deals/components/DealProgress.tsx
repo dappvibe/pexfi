@@ -1,50 +1,66 @@
-import { useDealContext } from '@/features/deals/hooks/useDealContext'
+import { useDeal } from '@/features/deals/hooks/useDeal.ts'
+import { DealState } from '@/features/deals/hooks/useReadDeal'
 import { Steps } from 'antd'
 
 export default function DealProgress() {
-  const { deal } = useDealContext()
+  const { deal } = useDeal()
 
-  let steps: any = [
+  if (!deal) return null
+
+  const items = [
     {
       title: 'Accepting',
       description: 'Counterparty confirms the deal',
-      status: 'process',
     },
     {
       title: 'Funding',
       description: 'Crypto escrowed',
-      status: 'wait',
     },
     {
       title: 'Paying',
       description: 'Buyer send fiat',
-      status: 'wait',
     },
     {
       title: 'Releasing',
       description: 'Seller send crypto',
-      status: 'wait',
     },
   ]
-  if (deal.state >= 1) {
-    steps[0] = { status: 'finish', title: 'Accepted' }
-    steps[1] = { ...steps[1], status: 'process' }
-  }
-  if (deal.state >= 2) {
-    steps[1] = { status: 'finish', title: 'Funded' }
-    steps[2] = { ...steps[2], status: 'process' }
-  }
-  if (deal.state >= 3) {
-    steps[2] = { status: 'finish', title: 'Paid' }
-    steps[3] = { ...steps[3], status: 'process' }
-  }
-  if (deal.state >= 7) {
-    steps[3] = { status: 'finish', title: 'Completed' }
+
+  let current = 0
+  let status: 'wait' | 'process' | 'finish' | 'error' = 'process'
+
+  switch (deal.state) {
+    case DealState.Initiated:
+      current = 0
+      break
+    case DealState.Accepted:
+      current = 1
+      break
+    case DealState.Funded:
+      current = 2
+      break
+    case DealState.Paid:
+      current = 3
+      break
+    case DealState.Disputed:
+      // Map back to the last known "active" step
+      current = deal.resolvedPaid ? 3 : 2
+      status = 'error'
+      break
+    case DealState.Resolved:
+      current = deal.resolvedPaid ? 3 : 2
+      status = 'finish'
+      break
+    case DealState.Completed:
+      current = 4 // All steps finished
+      status = 'finish'
+      break
+    case DealState.Canceled:
+      // Keep current step but show error
+      current = deal.resolvedPaid ? 3 : 2
+      status = 'error'
+      break
   }
 
-  if (deal.state === 5) {
-    steps = [{ status: 'finish', title: 'Cancelled' }]
-  }
-
-  return <Steps items={steps} />
+  return <Steps items={items} current={current} status={status} />
 }

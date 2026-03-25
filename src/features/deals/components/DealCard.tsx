@@ -1,24 +1,26 @@
 import { Card, Divider, Skeleton } from 'antd'
 import { useMemo } from 'react'
-import { useDealContext } from '@/features/deals/hooks/useDealContext'
+import { useDeal } from '@/features/deals/hooks/useDeal.ts'
+import { useQueryOffer } from '@/features/offers/hooks/useQueryOffer'
 import Controls from '@/features/deals/components/Controls'
-import { useAccount } from 'wagmi'
-import { isAddressEqual } from 'viem'
+import { useConnection } from 'wagmi'
+import { equal } from '@/utils'
 import DealProgress from '@/features/deals/components/DealProgress'
 import DealInfo from '@/features/deals/components/DealInfo'
 
 export default function DealCard() {
-  const { deal, offer } = useDealContext()
-  const { address } = useAccount()
+  const { deal } = useDeal()
+  const { address } = useConnection()
+  const { offer } = useQueryOffer(deal?.offer)
 
   const title = useMemo(() => {
     if (!deal || !offer || !address) return ''
-    const verb = isAddressEqual(offer.owner, address)
+    const verb = equal(offer.owner, address)
       ? offer.isSell ? 'Selling' : 'Buying'
-      : isAddressEqual(deal.taker, address)
+      : equal(deal.taker, address)
         ? offer.isSell ? 'Buying' : 'Selling'
         : ''
-    return `${verb} ${offer.token?.symbol || 'Token'} for ${offer.fiat} using ${deal.method || offer.method}`
+    return `${verb} ${offer.token?.symbol || 'Token'} for ${offer.fiat} using ${offer.method}`
   }, [address, deal, offer])
 
   if (!offer) return <Skeleton active />

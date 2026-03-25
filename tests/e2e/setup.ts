@@ -68,6 +68,26 @@ export async function createOfferOnPage(page: Page, params: OfferParams = {}): P
   return { address, params: p }
 }
 
+export async function createPartyContext(browser: import('@playwright/test').Browser, startPage = '/'): Promise<PartyContext & { ctx: BrowserContext }> {
+  const ctx = await browser.newContext()
+  const page = await ctx.newPage()
+  
+  page.on('console', (msg) => {
+    console.error(`[Browser Console] ${msg.text()}`)
+  })
+  
+  await page.goto(`/#${startPage}`)
+  await page.waitForFunction(() => typeof window.setAccount === 'function')
+
+  return {
+    ctx,
+    page,
+    setAccount: (id: number) => page.evaluate((id) => window.setAccount(id), id),
+    createOffer: (params?: OfferParams) => createOfferOnPage(page, params),
+    close: () => ctx.close(),
+  }
+}
+
 export const test = base.extend<{
   setAccount: (id: number) => Promise<void>
   createOffer: (params?: OfferParams) => Promise<OfferContext>
@@ -76,9 +96,6 @@ export const test = base.extend<{
   page: async ({ page }, use) => {
     page.on('console', (msg) => {
       console.error(`[Browser Console] ${msg.text()}`)
-    })
-    await page.addInitScript(() => {
-      window.E2E = true
     })
     await use(page)
   },
@@ -100,24 +117,14 @@ export const test = base.extend<{
     const contexts: BrowserContext[] = []
 
     await use(async (startPage = '/') => {
-      const ctx = await browser.newContext()
-      contexts.push(ctx)
-
-      const page = await ctx.newPage()
-      page.on('console', (msg) => {
-        console.error(`[Browser Console] ${msg.text()}`)
-      })
-      await page.addInitScript(() => {
-        window.E2E = true
-      })
-      await page.goto(`/#${startPage}`)
-      await page.waitForFunction(() => typeof window.setAccount === 'function')
+      const party = await createPartyContext(browser, startPage)
+      contexts.push(party.ctx)
 
       return {
-        page,
-        setAccount: (id: number) => page.evaluate((id) => window.setAccount(id), id),
-        createOffer: (params?: OfferParams) => createOfferOnPage(page, params),
-        close: () => ctx.close(),
+        page: party.page,
+        setAccount: party.setAccount,
+        createOffer: party.createOffer,
+        close: party.close,
       }
     })
 

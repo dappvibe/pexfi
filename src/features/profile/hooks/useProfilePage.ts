@@ -1,10 +1,12 @@
 import { useMemo } from 'react'
 import { useParams } from 'react-router-dom'
-import { useAccount, useConfig } from 'wagmi'
+import { Address } from 'viem'
+import { useConnection, useConfig } from 'wagmi'
 import { useActiveAccount } from 'thirdweb/react'
 import { waitForTransactionReceipt } from '@wagmi/core'
 import {
   useWriteProfileRegister,
+  useWriteProfileUpdateInfo,
 } from '@/wagmi'
 import { useAddress } from '@/shared/web3'
 import { useQueryProfile } from '@/features/profile/hooks/useQueryProfile'
@@ -14,19 +16,15 @@ export type ProfileStats = {
   info: string | null
   upvotes: number
   downvotes: number
-  volumeUSD: number
   dealsCompleted: number
-  dealsExpired: number
   disputesLost: number
-  avgPaymentTime: number
-  avgReleaseTime: number
 }
 
 export function useProfilePage() {
-  const { address: connectedAddress } = useAccount()
+  const { address: connectedAddress } = useConnection()
   const activeAccount = useActiveAccount()
   const { profile: profileParam } = useParams()
-  const address = (profileParam as `0x${string}`) || connectedAddress || activeAccount?.address
+  const address = (profileParam as Address) || connectedAddress || activeAccount?.address
   const profileAddress = useAddress('Market#Profile')
 
   const config = useConfig()
@@ -34,17 +32,14 @@ export function useProfilePage() {
   const { profile, loading: isProfileLoading, refetch: refetchProfile } = useQueryProfile(address)
 
   const { writeContractAsync: register } = useWriteProfileRegister()
+  const { writeContractAsync: updateInfoContract } = useWriteProfileUpdateInfo()
 
   const stats = useMemo<ProfileStats | null>(() => {
     if (!profile) return null
     return {
       upvotes: profile.upvotes,
       downvotes: profile.downvotes,
-      volumeUSD: profile.volumeUSD,
-      avgPaymentTime: profile.avgPaymentTime,
-      avgReleaseTime: profile.avgReleaseTime,
       dealsCompleted: profile.dealsCompleted,
-      dealsExpired: profile.dealsExpired,
       disputesLost: profile.disputesLost,
       info: profile.info,
       createdAt: new Date(profile.createdAt * 1000),
@@ -54,6 +49,28 @@ export function useProfilePage() {
   async function create() {
     if (!profileAddress) return
     const hash = await register({ address: profileAddress })
+    await waitForTransactionReceipt(config, { hash })
+
+    // Poll the graph for the indexed profile
+    let attempts = 0
+    const maxAttempts = 30
+
+    while (attempts < maxAttempts) {
+      const result = await refetchProfile()
+      if (result.data?.profile) {
+        break
+      }
+      attempts++
+      await new Promise(resolve => setTimeout(resolve, 1000))
+    }
+  }
+
+  async function updateInfo(newInfo: string) {
+    if (!profileAddress || !profile) return
+    const hash = await updateInfoContract({
+      address: profileAddress,
+      args: [BigInt(profile.tokenId), newInfo],
+    })
     await waitForTransactionReceipt(config, { hash })
     await refetchProfile()
   }
@@ -66,10 +83,12 @@ export function useProfilePage() {
 
   return {
     address,
-    tokenId: profile ? BigInt(profile.id) : null,
+    tokenId: profile ? BigInt(profile.tokenId) : null,
+    profile,
     stats,
     isOwnProfile: !profileParam,
     create,
+    updateInfo,
     rating,
     loading: isProfileLoading,
   }

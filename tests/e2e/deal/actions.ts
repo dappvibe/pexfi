@@ -2,8 +2,10 @@ import { expect } from '@playwright/test'
 import type { PartyContext } from '@tests/e2e/setup'
 
 export async function accept(party: PartyContext) {
-  await party.page.getByRole('button', { name: 'Accept' }).click()
-  await expect(party.page.locator('#root').getByText('Accepted')).toBeVisible()
+  const btn = party.page.getByRole('button', { name: 'Accept' })
+  await expect(btn).toBeVisible({ timeout: 15000 })
+  await btn.click()
+  await expect(party.page.locator('#root').getByText('Accepted')).toBeVisible({ timeout: 15000 })
 }
 
 export async function fund(party: PartyContext) {
@@ -21,17 +23,22 @@ export async function fund(party: PartyContext) {
 
 
 
+  await expect(fundButton).toBeVisible({ timeout: 15000 })
   await fundButton.click()
-  await expect(party.page.locator('span').filter({ hasText: 'Funded' })).toBeVisible()
+  await expect(party.page.locator('span').filter({ hasText: 'Funded' })).toBeVisible({ timeout: 15000 })
 }
 
 export async function markPaid(party: PartyContext) {
-  await party.page.getByRole('button', { name: 'Paid' }).click()
+  const btn = party.page.getByRole('button', { name: 'Paid' })
+  await expect(btn).toBeVisible({ timeout: 15000 })
+  await btn.click()
   await expect(party.page.locator('span').filter({ hasText: 'Paid' })).toBeVisible({ timeout: 15000 })
 }
 
 export async function release(party: PartyContext) {
-  await party.page.getByRole('button', { name: 'Release' }).click()
+  const btn = party.page.getByRole('button', { name: 'Release' })
+  await expect(btn).toBeVisible({ timeout: 15000 })
+  await btn.click()
   await expect(party.page.locator('span').filter({ hasText: 'Released' })).toBeVisible({ timeout: 15000 })
 }
 

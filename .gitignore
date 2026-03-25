@@ -1,3 +1,5 @@
+.idea/
+
 .env
 *.local
 
@@ -24,3 +26,7 @@ lerna-debug.log*
 node_modules/
 .npm
 jspm_packages/
+
+# Generated from current ignition deployments
+# Run `npx tsx subgraph/generate-networks.json.ts` to manually generate it
+subgraph/networks.json

@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Form, message } from 'antd'
-import { padHex, stringToHex, parseEventLogs } from 'viem'
+import { Address, padHex, stringToHex, parseEventLogs } from 'viem'
 import { usePublicClient } from 'wagmi'
 import { useInventory } from '@/shared/web3'
 import { useReadMarketGetPrice, useWriteMarketCreateOffer, marketAbi } from '@/wagmi'
 import { useAddress } from '@/shared/web3'
-import { useOffer } from './useOffer'
+import { useQueryOffer } from './useQueryOffer.ts'
 import { normalizeMarketPrice } from '@/utils'
 
 interface UseOfferFormParams {
@@ -28,7 +28,10 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
 
   const [newOfferAddress, setNewOfferAddress] = useState<string | undefined>()
   // useOffer handles the polling/loading of the offer from the subgraph.
-  const { offer: createdOffer, isLoading: isSyncing } = useOffer(newOfferAddress, { pollInterval: 1000 })
+  const { offer: createdOffer, isLoading: isSyncing } = useQueryOffer(newOfferAddress, { 
+    pollInterval: newOfferAddress ? 3000 : 0, 
+    fetchPolicy: 'network-only' 
+  })
 
   useEffect(() => {
     if (newOfferAddress && createdOffer && !isSyncing) {
@@ -39,8 +42,8 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
   }, [newOfferAddress, createdOffer, isSyncing, navigate])
 
   const [rateParams, setRateParams] = useState<{
-    token: `0x${string}`
-    fiat: `0x${string}`
+    token: Address
+    fiat: Address
   } | null>(null)
 
   const { data: priceData } = useReadMarketGetPrice({

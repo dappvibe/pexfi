@@ -2,7 +2,7 @@ import React, { useEffect, useMemo } from 'react'
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
 import { notification } from 'antd'
-import { useAccount } from 'wagmi'
+import { useConnection } from 'wagmi'
 import { Link } from 'react-router-dom'
 
 type NotificationEvent = {
@@ -54,17 +54,30 @@ export default function Notifications() {
     duration: 5,
     placement: 'topRight',
   })
-  const { address } = useAccount()
+  const { address } = useConnection()
   const { data, startPolling, stopPolling } = useQuery(GET_NOTIFICATIONS, {
     variables: { account: address },
     skip: !address,
-    pollInterval: 5000, // Poll every 5 seconds
+    pollInterval: 30000, // Poll every 30 seconds
   })
 
   useEffect(() => {
-    if (address) {
-      startPolling(5000)
-    } else {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && address) {
+        startPolling(30000)
+      } else {
+        stopPolling()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    if (address && document.visibilityState === 'visible') {
+      startPolling(30000)
+    }
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
       stopPolling()
     }
   }, [address, startPolling, stopPolling])

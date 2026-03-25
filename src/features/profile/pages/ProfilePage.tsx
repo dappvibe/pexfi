@@ -1,15 +1,15 @@
-import { Card, Descriptions, Result, Skeleton } from 'antd'
+import { Card, Descriptions, Result, Skeleton, Typography } from 'antd'
 import { Username } from '@/shared/web3'
 import { LoadingButton } from '@/shared/ui'
 import { useProfilePage } from '@/features/profile/hooks/useProfilePage'
 import { Helmet } from '@dr.pogodin/react-helmet'
-import { useAccount } from 'wagmi'
+import { useConnection } from 'wagmi'
 import { useActiveAccount } from 'thirdweb/react'
 
 export default function ProfilePage() {
-  const { isConnected, isConnecting, isReconnecting, address: connectedAddress } = useAccount()
+  const { isConnected, isConnecting, isReconnecting, address: connectedAddress } = useConnection()
   const activeAccount = useActiveAccount()
-  const { address, tokenId, stats, isOwnProfile, create, rating, loading } = useProfilePage()
+  const { address, tokenId, profile, stats, isOwnProfile, create, updateInfo, rating, loading } = useProfilePage()
 
   const reallyConnected = isConnected || !!connectedAddress || !!activeAccount
 
@@ -37,16 +37,19 @@ export default function ProfilePage() {
           <meta name="description" content="View PEXFI user profile." />
         </Helmet>
         <Card title={'Profile token ID: ' + tokenId}>
-          <Descriptions layout={'vertical'} title={<Username address={address} avatar />}>
-            {stats.info && <Descriptions.Item label={'Info'}>{stats.info}</Descriptions.Item>}
+          <Descriptions layout={'vertical'} title={<Username address={address} avatar profile={profile} />}>
+            <Descriptions.Item label={'Info'}>
+              <Typography.Paragraph
+                editable={isOwnProfile ? { onChange: updateInfo } : false}
+                ellipsis={{ rows: 3, expandable: true, symbol: 'more' }}
+              >
+                {stats.info || (isOwnProfile ? 'Click to add info' : 'No info provided')}
+              </Typography.Paragraph>
+            </Descriptions.Item>
             <Descriptions.Item label={'Registered'}>{stats.createdAt.toLocaleString()}</Descriptions.Item>
-          <Descriptions.Item label={'Rating'}>{rating(stats.upvotes, stats.downvotes)}</Descriptions.Item>
-          <Descriptions.Item label={'Deals completed'}>{stats.dealsCompleted}</Descriptions.Item>
-          <Descriptions.Item label={'Volume'}>{stats.volumeUSD} USD</Descriptions.Item>
-          <Descriptions.Item label={'Deals expired'}>{stats.dealsExpired}</Descriptions.Item>
-          <Descriptions.Item label={'Disputes lost'}>{stats.disputesLost}</Descriptions.Item>
-          <Descriptions.Item label={'Average payment time'}>{stats.avgPaymentTime} seconds</Descriptions.Item>
-            <Descriptions.Item label={'Average release time'}>{stats.avgReleaseTime} seconds</Descriptions.Item>
+            <Descriptions.Item label={'Rating'}>{rating(stats.upvotes, stats.downvotes)}</Descriptions.Item>
+            <Descriptions.Item label={'Deals completed'}>{stats.dealsCompleted}</Descriptions.Item>
+            <Descriptions.Item label={'Disputes lost'}>{stats.disputesLost}</Descriptions.Item>
           </Descriptions>
         </Card>
       </>

@@ -210,7 +210,7 @@ describe('Market', () => {
 
     test('addDeal() should revert if not called by offer', async () => {
       await viem.assertions.revertWithCustomError(
-        Market.write.addDeal(['0x0000000000000000000000000000000000000001', bytes16('Bank Transfer'), 'terms', 'payment'], { account: admin }),
+        Market.write.addDeal(['0x0000000000000000000000000000000000000001', 100n * 10n**6n, bytes16('Bank Transfer'), 'terms', 'payment'], { account: admin }),
         Market,
         'UnauthorizedAccount'
       )
@@ -235,7 +235,7 @@ describe('Market', () => {
       const walletClients = await viem.getWalletClients()
       const takerAddress = getAddress(walletClients[1].account.address)
 
-      await OfferContract.write.createDeal([Market.address, createDealParams], { account: takerAddress })
+      await OfferContract.write.createDeal([createDealParams], { account: takerAddress })
 
       const logs = await publicClient.getContractEvents({
         address: Market.address,
@@ -250,14 +250,14 @@ describe('Market', () => {
 
       // 3. Call addDeal with the REAL deal address
       // We can use a different terms/payment to verify it emits correctly
-      await Market.write.addDeal([dealAddress, bytes16('Bank Transfer'), 'brand new terms', 'brand new payment'], { account: testOffer })
+      await Market.write.addDeal([dealAddress, 100n * 10n**6n, bytes16('Bank Transfer'), 'brand new terms', 'brand new payment'], { account: testOffer })
 
       const logsAfter = await publicClient.getContractEvents({
         address: Market.address,
         abi: Market.abi,
         eventName: 'DealCreated'
       })
-      assert.ok(logsAfter.some((l: any) => l.args.deal === dealAddress && l.args.terms === 'brand new terms'))
+      assert.ok(logsAfter.some((l: any) => l.args.deal === dealAddress && l.args.terms === 'brand new terms' && l.args.fiatAmount === 100n * 10n**6n))
 
       await networkHelpers.stopImpersonatingAccount(testOffer)
     })
@@ -275,7 +275,7 @@ describe('Market', () => {
       const takerAccount = walletClients[1] // Use taker from deployMarket
       const takerAddress = getAddress(takerAccount.account.address)
 
-      await OfferContract.write.createDeal([Market.address, createDealParams], { account: takerAddress })
+      await OfferContract.write.createDeal([createDealParams], { account: takerAddress })
 
       const logs = await publicClient.getContractEvents({
         address: Market.address,

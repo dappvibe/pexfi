@@ -34,7 +34,7 @@ interface IOffer {
 
   function initialize(address owner_, OfferParams calldata params) external;
 
-  function createDeal(IMarket market, CreateDealParams calldata params) external;
+  function createDeal(CreateDealParams calldata params) external;
 
   function setRate(uint16 rate_) external;
 

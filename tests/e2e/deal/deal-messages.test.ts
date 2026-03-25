@@ -1,5 +1,6 @@
 import { test, expect } from '@tests/e2e/setup'
 import { sendMessage, expectMessage } from './actions'
+import { createOffer } from '../fixtures'
 import { fileURLToPath } from 'url'
 import path from 'path'
 
@@ -7,11 +8,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 test.describe.serial('Deal messaging', () => {
   test('parties can exchange messages and images', async ({ createParty }) => {
+    const offerAddress = await createOffer({}, 0)
     const maker = await createParty()
     await maker.setAccount(0)
-    const offer = await maker.createOffer()
 
-    const taker = await createParty(`/trade/offer/${offer.address}`)
+    const taker = await createParty(`/trade/offer/${offerAddress}`)
     await taker.setAccount(1)
     await taker.page.getByPlaceholder('Crypto Amount').fill('0.1')
     await taker.page.getByPlaceholder('Fiat Amount').fill('150')

@@ -27,17 +27,19 @@ export default function Layout() {
       </Content>
       <Footer />
       <ChatWidget />
-      <Analytics
-        beforeSend={(event) => {
-          if (!window.location.hash) return event
-          const url = new URL(event.url)
-          url.pathname = window.location.hash.replace('#', '')
-          return {
-            ...event,
-            url: url.toString()
-          }
-        }}
-      />
+      {import.meta.env.MODE === 'production' && (
+        <Analytics
+          beforeSend={(event) => {
+            if (!window.location.hash) return event
+            const url = new URL(event.url)
+            url.pathname = window.location.hash.replace('#', '')
+            return {
+              ...event,
+              url: url.toString()
+            }
+          }}
+        />
+      )}
     </AntLayout>
   )
 }

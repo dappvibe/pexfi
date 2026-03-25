@@ -1,0 +1,138 @@
+import { useMemo } from 'react'
+import { Address, hexToString, trim } from 'viem'
+import { gql } from '@apollo/client'
+import { useQuery } from '@apollo/client/react'
+import { decodeMethod, type Token, useInventory } from '@/shared/web3'
+
+export type Offer = {
+  id: string
+  address: Address
+  owner: Address
+  isSell: boolean
+  token: Token | null
+  fiat: string
+  method: string // bitmask as string for compatibility
+  rate: number // normalized rate (e.g. 0.01 for 1%)
+  min: number
+  max: number
+  terms: string
+  disabled: boolean
+}
+
+const GQL_OFFER = gql`
+  query GetOffer($offerId: ID!) {
+    offer(id: $offerId) {
+      id
+      owner
+      profile {
+        id
+        dealsCompleted
+        rating
+      }
+      isSell
+      token {
+        id
+        address
+        name
+        symbol
+        decimals
+      }
+      fiat
+      methods
+      rate
+      minFiat
+      maxFiat
+      terms
+      disabled
+    }
+  }
+`
+
+interface UseOfferOptions {
+  pollInterval?: number
+  fetchPolicy?: 'cache-first' | 'network-only' | 'cache-and-network'
+}
+
+interface RawToken {
+  id: string
+  address: string
+  name: string
+  symbol: string
+  decimals: number
+}
+
+interface RawOffer {
+  id: string
+  owner: string
+  profile: {
+    id: string
+    dealsCompleted: number
+    rating: number
+  } | null
+  isSell: boolean
+  token: RawToken | null
+  fiat: string
+  methods: string
+  rate: number
+  minFiat: number
+  maxFiat: number
+  terms: string
+  disabled: boolean
+}
+
+interface OfferQueryResult {
+  offer: RawOffer | null
+}
+
+/**
+ * Reads offer data from the subgraph by its ID (contract address)
+ */
+export function useQueryOffer(offerId: string | undefined, options: UseOfferOptions = {}) {
+  const { pollInterval = 0, fetchPolicy = 'cache-first' } = options
+  const { methods } = useInventory()
+
+  const { data, loading, error, refetch } = useQuery<OfferQueryResult>(GQL_OFFER, {
+    variables: { offerId: (offerId || '').toLowerCase() },
+    skip: !offerId,
+    pollInterval,
+    fetchPolicy,
+  })
+
+  const rawOffer = data?.offer
+
+  const offer = useMemo<Offer | null>(() => {
+    if (!rawOffer) return null
+
+    const normalizedRate = rawOffer.rate / 10000
+
+    return {
+      id: rawOffer.id,
+      address: rawOffer.id as Address,
+      owner: rawOffer.owner as Address,
+      isSell: rawOffer.isSell,
+      token: rawOffer.token
+        ? {
+            id: rawOffer.token.id,
+            address: rawOffer.token.address as Address,
+            name: rawOffer.token.name,
+            symbol: rawOffer.token.symbol,
+            decimals: rawOffer.token.decimals,
+          }
+        : null,
+      fiat: hexToString(trim(rawOffer.fiat as Address, { dir: 'right' })),
+      method: decodeMethod(rawOffer.methods, methods),
+      rate: normalizedRate,
+      min: rawOffer.minFiat,
+      max: rawOffer.maxFiat,
+      terms: rawOffer.terms,
+      disabled: rawOffer.disabled,
+    }
+  }, [rawOffer, methods])
+
+  return {
+    offer,
+    isLoading: loading,
+    error,
+    refetch,
+  }
+}

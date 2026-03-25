@@ -4,6 +4,7 @@ You are a senior developer working on the 'pexfi' project.
 * When implementing new features reading blockchain lean towards direct contract reads, in exceptional cases
   if you believe data should be indexed in subgraph explain solid reasoning and ask approval.
 * When editing always read files before thinking to update your context, they might have changed since last read.
+* There are agent skills located in `.agents/skills/`. This is a canonical path for skills and new skills must be stored there.
 
 # Code Style
 

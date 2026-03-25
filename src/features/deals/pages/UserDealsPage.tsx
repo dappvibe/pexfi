@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Empty, List, Skeleton, Tag } from 'antd'
-import { useAccount } from 'wagmi'
-import { useActiveAccount } from 'thirdweb/react'
+import { useConnection } from 'wagmi'
 import { useUserDeals } from '@/features/deals/hooks/useUserDeals'
 import { equal } from '@/utils'
 import { Helmet } from '@dr.pogodin/react-helmet'
@@ -12,9 +11,7 @@ function StateTag({ state }: { state: number }) {
 }
 
 function DealItem({ deal }: { deal: any }) {
-  const { address: wagmiAddress } = useAccount()
-  const activeAccount = useActiveAccount()
-  const address = wagmiAddress || activeAccount?.address
+  const { address } = useConnection()
 
   function time(timestamp: number) {
     return new Date(timestamp * 1000).toLocaleString()
@@ -47,30 +44,10 @@ function DealItem({ deal }: { deal: any }) {
 }
 
 export default function UserDealsPage() {
-  const { isConnected, isConnecting, isReconnecting, address: wagmiAddress } = useAccount()
-  const activeAccount = useActiveAccount()
-  const { deals, loading, error } = useUserDeals()
+  const { deals, loading } = useUserDeals()
 
-  const address = wagmiAddress || activeAccount?.address
-  const reallyConnected = isConnected || !!address
-
-  if (isConnecting || isReconnecting) return <Skeleton active />
-
-  if (!reallyConnected) {
-    return (
-      <>
-        <Helmet>
-          <title>My Deals - PEXFI</title>
-          <meta name="description" content="Manage your P2P crypto trading deals on PEXFI." />
-        </Helmet>
-        <Empty description="Please connect your wallet to view your deals" />
-      </>
-    )
-  }
-
-  if (loading) return <Skeleton active />
-  if (error) return <Empty description={`Failed to load deals: ${error.message}`} />
-  if (deals === undefined || deals.length === 0) return <Empty description="You don't have any deals yet" />
+  if (loading || deals === undefined) return <Skeleton active />
+  if (deals.length === 0) return <Empty />
 
   return (
     <>

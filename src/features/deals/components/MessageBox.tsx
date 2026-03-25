@@ -1,15 +1,19 @@
 import { Button, Form, Input, List, message, Upload } from 'antd'
 import { useState } from 'react'
-import { useDealContext } from '@/features/deals/hooks/useDealContext'
+import { useDeal } from '@/features/deals/hooks/useDeal.ts'
+import { useDealMessages } from '@/features/deals/hooks/useDealMessages'
+import { useQueryOffer } from '@/features/offers/hooks/useQueryOffer'
 import { useForm } from 'antd/lib/form/Form.js'
-import { useAccount, useWriteContract } from 'wagmi'
+import { useConnection, useWriteContract } from 'wagmi'
 import { equal } from '@/utils'
 import { dealAbi } from '@/wagmi'
 
 export default function MessageBox() {
-  const { deal, offer } = useDealContext()
+  const { deal } = useDeal()
+  const { messages } = useDealMessages(deal?.address)
+  const { offer } = useQueryOffer(deal?.offer)
   const [lockSubmit, setLockSubmit] = useState(false)
-  const { address } = useAccount()
+  const { address } = useConnection()
   const [form] = useForm()
   const { writeContractAsync } = useWriteContract()
 
@@ -20,6 +24,7 @@ export default function MessageBox() {
   }
 
   async function send(values: { message: string }) {
+    if (!deal) return
     setLockSubmit(true)
     try {
       await writeContractAsync({
@@ -38,7 +43,7 @@ export default function MessageBox() {
   }
 
   function isParticipant() {
-    if (!address || !offer) return false
+    if (!address || !offer || !deal) return false
     return equal(deal.taker, address) || equal(offer.owner, address)
   }
 
@@ -51,7 +56,7 @@ export default function MessageBox() {
   }
 
   function getSenderLabel(sender: string) {
-    if (equal(sender, deal.taker)) return 'Taker'
+    if (deal && equal(sender, deal.taker)) return 'Taker'
     if (offer && equal(sender, offer.owner)) return 'Owner'
     return 'Mediator'
   }
@@ -65,7 +70,7 @@ export default function MessageBox() {
       <List
         size="small"
         bordered
-        dataSource={deal.messages}
+        dataSource={messages}
         renderItem={(msg) => (
           <List.Item>
             <b>{getSenderLabel(msg.sender)}</b>

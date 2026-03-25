@@ -1,11 +1,7 @@
-import {Deal as DealContract, DealState as DealStateEvent, Message} from "../../.cache/subgraph/generated/templates/Deal/Deal"
-import {Offer as OfferContract} from "../../.cache/subgraph/generated/templates/Offer/Offer"
-import {Deal as DealEntity, DealMessage, Feedback, Notification, NotificationEvent, Offer} from "../../.cache/subgraph/generated/schema"
-import {Address, BigInt, Bytes, dataSource, log} from "@graphprotocol/graph-ts"
-import {Market as MarketContract} from "../../.cache/subgraph/generated/Market/Market";
-import {Finder as FinderContract} from "../../.cache/subgraph/generated/Market/Finder";
-import {updateProfileFor} from "./profile";
-import {FeedbackGiven} from "../../.cache/subgraph/generated/templates/Deal/Deal";
+import {Deal as DealContract, DealState as DealStateEvent, Message, FeedbackGiven, DisputeResolved} from "../../.cache/subgraph/generated/templates/Deal/Deal"
+import {Deal as DealEntity, DealMessage, Feedback, Notification, NotificationEvent, Offer, Profile} from "../../.cache/subgraph/generated/schema"
+import {Address, BigInt, Bytes, dataSource, log, crypto} from "@graphprotocol/graph-ts"
+import {updateRating} from "./profile";
 
 export function fetchDeal(dealAddress: Address): DealEntity {
   let dealContract = DealContract.bind(dealAddress)
@@ -28,9 +24,6 @@ export function fetchDeal(dealAddress: Address): DealEntity {
   let tokenAmountResult = dealContract.try_tokenAmount()
   if (!tokenAmountResult.reverted) deal.tokenAmount = tokenAmountResult.value
 
-  let fiatAmountResult = dealContract.try_fiatAmount()
-  if (!fiatAmountResult.reverted) deal.fiatAmount = fiatAmountResult.value
-
   let allowCancelUnacceptedAfterResult = dealContract.try_allowCancelUnacceptedAfter();
   if (!allowCancelUnacceptedAfterResult.reverted) deal.allowCancelUnacceptedAfter = allowCancelUnacceptedAfterResult.value.toI32();
 
@@ -40,43 +33,10 @@ export function fetchDeal(dealAddress: Address): DealEntity {
   return deal;
 }
 
-export function indexDealAndProfile(address: Address): void {
-  let deal = fetchDeal(address)
-  deal.save();
-  doUpdateProfile(deal)
-}
-
-function doUpdateProfile(deal: DealEntity): void {
-  let context = dataSource.context();
-  let marketAddress = context.getString('marketAddress')
-  let marketContract = MarketContract.bind(Address.fromString(marketAddress))
-
-  let finderResult = marketContract.try_finder();
-  if (finderResult.reverted) {
-    return
-  }
-
-  let finderContract = FinderContract.bind(finderResult.value);
-  let profileAddressResult = finderContract.try_getImplementationAddress(Bytes.fromHexString("0x50726f66696c6500000000000000000000000000000000000000000000000000") as Bytes);
-  if (profileAddressResult.reverted) {
-    return;
-  }
-  let profileAddress = profileAddressResult.value
-
-  let offer = Offer.load(deal.offer)
-  if (offer == null) {
-    log.error("Offer not found for deal: {}", [deal.id])
-    return;
-  }
-  updateProfileFor(profileAddress, Address.fromBytes(offer.owner))
-  updateProfileFor(profileAddress, Address.fromBytes(deal.taker))
-}
-
 export function handleMessage(event: Message): void {
-  log.info("Message: deal={}, sender={}, message={}", [
+  log.info("Message: deal={}, sender={}", [
     event.address.toHexString(),
-    event.params.sender.toHexString(),
-    event.params.message
+    event.params.sender.toHexString()
   ]);
   let msg = new DealMessage(Bytes.fromUTF8(event.transaction.hash.toHexString() + event.logIndex.toHexString()))
   msg.sender = event.params.sender
@@ -127,7 +87,27 @@ export function handleDealState(event: DealStateEvent): void {
     event.params.state.toString(),
     event.params.sender.toHexString()
   ]);
-  indexDealAndProfile(event.address)
+  let deal = fetchDeal(event.address)
+  deal.save()
+
+  // On RELEASED (Completed is state 7)
+  if (event.params.state == 7) {
+    let offer = Offer.load(deal.offer)
+    if (offer) {
+      let sellerProfile = Profile.load(offer.owner.toHexString())
+      if (sellerProfile) {
+        sellerProfile.dealsCompleted++
+        updateRating(sellerProfile)
+        sellerProfile.save()
+      }
+      let buyerProfile = Profile.load(deal.taker.toHexString())
+      if (buyerProfile) {
+        buyerProfile.dealsCompleted++
+        updateRating(buyerProfile)
+        buyerProfile.save()
+      }
+    }
+  }
 
   const notificationEvent = new NotificationEvent(event.transaction.hash.toHexString() + event.logIndex.toHexString());
   notificationEvent.name = 'DealState';
@@ -148,11 +128,10 @@ export function handleDealState(event: DealStateEvent): void {
   let offerResult = dealContract.try_offer();
   if (!offerResult.reverted) {
     let offerAddress = offerResult.value;
-    let offerContract = OfferContract.bind(offerAddress);
-    let ownerResult = offerContract.try_owner();
-    if (!ownerResult.reverted) {
-      if (ownerResult.value != event.params.sender) {
-        notify(ownerResult.value, event, notificationEvent);
+    let offerEntity = Offer.load(offerAddress.toHexString())
+    if (offerEntity) {
+      if (offerEntity.owner != event.params.sender) {
+        notify(offerEntity.owner, event, notificationEvent);
       }
     }
   }
@@ -168,41 +147,86 @@ export function handleDealState(event: DealStateEvent): void {
 }
 
 export function handleFeedbackGiven(event: FeedbackGiven): void {
-  log.info("FeedbackGiven: deal={}, to={}, upvote={}, message={}", [
+  log.info("FeedbackGiven: deal={}, to={}, upvote={}", [
     event.address.toHexString(),
     event.params.to.toHexString(),
-    event.params.upvote ? "true" : "false",
-    event.params.message
+    event.params.upvote ? "true" : "false"
   ]);
-  let deal = fetchDeal(event.address)
+  let deal = DealEntity.load(event.address.toHexString())
+  if (!deal) return
 
-  let dealContract = DealContract.bind(event.address)
-  let offerResult = dealContract.try_offer()
-  if (offerResult.reverted) return
+  let offer = Offer.load(deal.offer)
+  if (!offer) return
 
-  let offerContract = OfferContract.bind(offerResult.value)
-  let ownerResult = offerContract.try_owner()
-  if (ownerResult.reverted) return
-
-  let takerResult = dealContract.try_taker()
-  if (takerResult.reverted) return
-
-  if (event.params.to == takerResult.value) {
-    let fb = new Feedback(`${event.address.toHexString()}-taker`)
-    fb.given = true
-    fb.upvote = event.params.upvote
-    fb.message = event.params.message
-    fb.save()
-    deal.feedbackForTaker = fb.id
+  let isToTaker = event.params.to.toHexString() == deal.taker.toHexString()
+  let feedbackId = event.address.toHexString() + (isToTaker ? "-taker" : "-owner")
+  
+  // Check if already given (once only as per requirement)
+  if (isToTaker) {
+    if (deal.feedbackForTaker != null) return
   } else {
-    let fb = new Feedback(`${event.address.toHexString()}-owner`)
-    fb.given = true
-    fb.upvote = event.params.upvote
-    fb.message = event.params.message
-    fb.save()
-    deal.feedbackForOwner = fb.id
+    if (deal.feedbackForOwner != null) return
   }
 
+  let fb = new Feedback(feedbackId)
+  fb.upvote = event.params.upvote
+  fb.message = event.params.message
+  fb.save()
+
+  if (isToTaker) {
+    deal.feedbackForTaker = fb.id
+  } else {
+    deal.feedbackForOwner = fb.id
+  }
   deal.save()
-  doUpdateProfile(deal)
+
+  // Update profile counters
+  let profile = Profile.load(event.params.to.toHexString())
+  if (profile) {
+    if (event.params.upvote) {
+      profile.upvotes++
+    } else {
+      profile.downvotes++
+    }
+    updateRating(profile)
+    profile.save()
+  }
+}
+
+export function handleDisputeResolved(event: DisputeResolved): void {
+  log.info("DisputeResolved: deal={}, resolution={}", [
+    event.address.toHexString(),
+    event.params.domainId.toHexString()
+  ]);
+  
+  let deal = DealEntity.load(event.address.toHexString())
+  if (!deal) return
+
+  let offer = Offer.load(deal.offer)
+  if (!offer) return
+
+  // keccak256("PAID")
+  let hashPaid = crypto.keccak256(Bytes.fromUTF8("PAID"));
+  // keccak256("NOT PAID")
+  let hashNotPaid = crypto.keccak256(Bytes.fromUTF8("NOT PAID"));
+  
+  let isNotPaid = event.params.domainId.toHexString() == hashNotPaid.toHexString();
+  
+  let buyer: Bytes;
+  let seller: Bytes;
+  
+  if (offer.isSell) {
+    buyer = deal.taker;
+    seller = offer.owner;
+  } else {
+    buyer = offer.owner;
+    seller = deal.taker;
+  }
+  
+  let loserAddr = isNotPaid ? buyer : seller;
+  let loserProfile = Profile.load(loserAddr.toHexString());
+  if (loserProfile) {
+    loserProfile.disputesLost++;
+    loserProfile.save();
+  }
 }
