@@ -8,8 +8,5 @@
     "weth_pool": "0x3289680dD4d6C10bb19b899729cda5eEF58AEfF1",
     "usdc": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
     "eur_chainlink": "0x1a81afB8146aeFfCFc5E50e8479e826E7D55b910"
-  },
-  "updateMarket": {
-    "usdc": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"
   }
 }
