@@ -50,6 +50,12 @@ export default defineConfig({
       accounts: process.env.DEPLOYER_KEY ? [process.env.DEPLOYER_KEY] : [],
       chainType: 'op',
     },
+    mainnet: {
+      chainId: 1,
+      type: 'http',
+      url: 'https://eth-mainnet.g.alchemy.com/v2/JPv_vpU3puJFVcnr7ptvxnCLo3hFhxYY',
+      accounts: process.env.DEPLOYER_KEY ? [process.env.DEPLOYER_KEY] : [],
+    },
     'arbitrum-sepolia': {
       type: 'http',
       url: 'https://sepolia-rollup.arbitrum.io/rpc',
