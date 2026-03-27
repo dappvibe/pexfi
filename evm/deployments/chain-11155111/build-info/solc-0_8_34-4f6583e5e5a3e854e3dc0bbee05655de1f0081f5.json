@@ -1,10 +1,6 @@
 {
   "_format": "hh3-sol-build-info-1",
-<<<<<<<< HEAD:evm/deployments/chain-11155111/build-info/solc-0_8_34-09d6920bace1bd0945cfeadf4f4a4675b041ceba.json
-  "id": "solc-0_8_34-09d6920bace1bd0945cfeadf4f4a4675b041ceba",
-========
   "id": "solc-0_8_34-4f6583e5e5a3e854e3dc0bbee05655de1f0081f5",
->>>>>>>> develop:evm/deployments/chain-11155111/build-info/solc-0_8_34-4f6583e5e5a3e854e3dc0bbee05655de1f0081f5.json
   "solcVersion": "0.8.34",
   "solcLongVersion": "0.8.34+commit.80d5c536",
   "userSourceNameMap": {
@@ -38,10 +34,7 @@
         "project/:@openzeppelin/contracts/=npm/@openzeppelin/contracts@5.6.1/",
         "project/:@openzeppelin/contracts/=npm/@openzeppelin/contracts@5.6.1/",
         "project/:@openzeppelin/contracts/=npm/@openzeppelin/contracts@5.6.1/",
-<<<<<<<< HEAD:evm/deployments/chain-11155111/build-info/solc-0_8_34-09d6920bace1bd0945cfeadf4f4a4675b041ceba.json
-========
         "project/:@uma/core/=npm/@uma/core@2.62.2/",
->>>>>>>> develop:evm/deployments/chain-11155111/build-info/solc-0_8_34-4f6583e5e5a3e854e3dc0bbee05655de1f0081f5.json
         "project/:@uma/core/=npm/@uma/core@2.62.2/",
         "project/:@uma/core/=npm/@uma/core@2.62.2/",
         "project/:@uniswap/v3-core/=npm/@uniswap/v3-core@1.0.1/"

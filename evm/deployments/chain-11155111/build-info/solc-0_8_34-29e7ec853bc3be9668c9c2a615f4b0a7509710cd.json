@@ -1,10 +1,6 @@
 {
   "_format": "hh3-sol-build-info-1",
-<<<<<<<< HEAD:evm/deployments/chain-11155111/build-info/solc-0_8_34-fb73a0a6fa770c6b305213887867070549e13ab0.json
-  "id": "solc-0_8_34-fb73a0a6fa770c6b305213887867070549e13ab0",
-========
   "id": "solc-0_8_34-29e7ec853bc3be9668c9c2a615f4b0a7509710cd",
->>>>>>>> develop:evm/deployments/chain-11155111/build-info/solc-0_8_34-29e7ec853bc3be9668c9c2a615f4b0a7509710cd.json
   "solcVersion": "0.8.34",
   "solcLongVersion": "0.8.34+commit.80d5c536",
   "userSourceNameMap": {
