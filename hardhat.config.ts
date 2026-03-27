@@ -10,6 +10,8 @@ import hardhatNetworkHelpers from "@nomicfoundation/hardhat-network-helpers";
 import hardhatIgnitionViem from "@nomicfoundation/hardhat-ignition-viem";
 import { defineConfig } from 'hardhat/config'
 
+const isProduction = process.argv.includes('production');
+
 export default defineConfig({
   plugins: [
     ignoreWarnings,
@@ -115,11 +117,17 @@ export default defineConfig({
         compilers: [
           {
             version: '0.8.34',
-            settings: { optimizer: { enabled: true, runs: 1000 }, viaIR: true },
+            settings: {
+              optimizer: { enabled: true, runs: 1000 },
+              viaIR: true,
+            },
           },
           {
             version: '0.8.26',
-            settings: { optimizer: { enabled: true, runs: 1000 }, viaIR: true },
+            settings: {
+              optimizer: { enabled: true, runs: 1000 },
+              viaIR: true,
+            },
           },
           {
             version: '0.8.16',
@@ -137,7 +145,9 @@ export default defineConfig({
       '@uma/core/contracts/data-verification-mechanism/implementation/IdentifierWhitelist.sol',
       '@uma/core/contracts/common/implementation/AddressWhitelist.sol',
       '@uniswap/v4-core/src/interfaces/IPoolManager.sol',
-      '@uniswap/v4-core/src/PoolManager.sol',
+      ...(isProduction ? [] : [
+        '@uniswap/v4-core/src/PoolManager.sol',
+      ]),
     ],
   },
   warnings: {
