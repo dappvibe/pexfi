@@ -69,7 +69,7 @@ export default buildModule('Market', (m) => {
     after: [regPexfiVault],
   })
 
-  const stakeAmount = 200n * 10n ** 18n
+  const stakeAmount = 200_000n * 10n ** 18n
   const approveVault = m.call(pexfi, 'approve', [pexfiVault, stakeAmount], { id: 'approveVaultForStaking' })
   m.call(pexfiVault, 'deposit', [stakeAmount, pexfiVesting], {
     id: 'depositStake',
