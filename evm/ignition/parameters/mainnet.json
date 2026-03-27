@@ -1,0 +1,12 @@
+{
+  "$global": {
+    "ContinuousClearingAuctionFactory": "0xCCccCcCAE7503Cac057829BF2811De42E16e0bD5",
+    "uniswapUniversalRouter": "0x66a9893cc07d91d95644aedd05d03f95e1dba8af",
+    "UniswapV4PoolManager": "0x000000000004444c5dc75cB358380D2e3dE08A90",
+    "UniswapV4PositionManager": "0xbd216513d74c8cf14cf4747e6aaa6420ff64ee9e",
+    "weth_address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+    "weth_pool": "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640",
+    "usdc": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    "eur_chainlink": "0xb49f677943BC038e9857d61E7d053CaA2C1734C1"
+  }
+}
