@@ -12,10 +12,10 @@ test.describe('Profile Deals', () => {
     await maker.page.waitForTimeout(2000)
     
     // Check if we need to mint
-    const mintMaker = maker.page.getByRole('button', { name: 'Mint' })
+    const mintMaker = maker.page.getByRole('button', { name: 'Mint Reputation NFT' })
     if (await mintMaker.isVisible()) {
       await mintMaker.click()
-      await expect(maker.page.locator('div.ant-card-head-title')).toContainText('Profile token ID:', { timeout: 30000 })
+      await expect(maker.page.getByText('Protocol Reputation Node #', { exact: false })).toBeVisible({ timeout: 30000 })
     }
 
     const taker = await createParty()
@@ -23,10 +23,10 @@ test.describe('Profile Deals', () => {
     await taker.page.goto('/#/me')
     await taker.page.waitForTimeout(2000)
     
-    const mintTaker = taker.page.getByRole('button', { name: 'Mint' })
+    const mintTaker = taker.page.getByRole('button', { name: 'Mint Reputation NFT' })
     if (await mintTaker.isVisible()) {
       await mintTaker.click()
-      await expect(taker.page.locator('div.ant-card-head-title')).toContainText('Profile token ID:', { timeout: 30000 })
+      await expect(taker.page.getByText('Protocol Reputation Node #', { exact: false })).toBeVisible({ timeout: 30000 })
     }
 
     // 2. Create Offer and Deal via fixtures (fast)
@@ -70,12 +70,12 @@ test.describe('Profile Deals', () => {
     await maker.page.goto('/#/me')
     // In vertical layout, they are just divs with content. 
     // Based on ProfilePage.tsx: Registered(0), Rating(1), Deals completed(2)
-    const makerStats = maker.page.locator('.ant-descriptions-item-content').nth(2)
+    const makerStats = maker.page.getByText('Deals Completed').locator('..').locator('..').getByText(/\d+/)
     await expect(makerStats).not.toHaveText('0', { timeout: 30000 })
     await expect(makerStats).toBeVisible()
 
     await taker.page.goto('/#/me')
-    const takerStats = taker.page.locator('.ant-descriptions-item-content').nth(2)
+    const takerStats = taker.page.getByText('Deals Completed').locator('..').locator('..').getByText(/\d+/)
     await expect(takerStats).not.toHaveText('0', { timeout: 30000 })
     await expect(takerStats).toBeVisible()
   })

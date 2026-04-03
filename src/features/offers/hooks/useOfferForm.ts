@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Form, message } from 'antd'
 import { Address, padHex, stringToHex, parseEventLogs } from 'viem'
 import { usePublicClient } from 'wagmi'
 import { useInventory } from '@/shared/web3'
@@ -8,6 +7,7 @@ import { useReadMarketGetPrice, useWriteMarketCreateOffer, marketAbi } from '@/w
 import { useAddress } from '@/shared/web3'
 import { useQueryOffer } from './useQueryOffer.ts'
 import { normalizeMarketPrice } from '@/utils'
+import { useToast } from '@/components/ui/use-toast'
 
 interface UseOfferFormParams {
   offer?: any
@@ -24,10 +24,21 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
   const { writeContractAsync: createOfferTx } = useWriteMarketCreateOffer()
   const [lockSubmit, setLockSubmit] = useState(false)
   const { tokens, fiats, methods, loading: inventoryLoading } = useInventory()
-  const [form] = Form.useForm()
+  const { toast } = useToast()
+
+  const [formState, setFormState] = useState<any>({
+    isSell: offer?.isSell ?? false,
+    token: offer?.token?.symbol ?? 'WETH',
+    fiat: offer?.fiat ?? 'USD',
+    method: offer?.method ?? '',
+    rate: offer ? (offer.rate - 1) * 100 : 0,
+    min: offer?.min ?? '',
+    max: offer?.max ?? '',
+    terms: offer?.terms ?? '',
+    preview: '0.00'
+  })
 
   const [newOfferAddress, setNewOfferAddress] = useState<string | undefined>()
-  // useOffer handles the polling/loading of the offer from the subgraph.
   const { offer: createdOffer, isLoading: isSyncing } = useQueryOffer(newOfferAddress, { 
     pollInterval: newOfferAddress ? 3000 : 0, 
     fetchPolicy: 'network-only' 
@@ -35,8 +46,6 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
 
   useEffect(() => {
     if (newOfferAddress && createdOffer && !isSyncing) {
-      // Redirect once the subgraph has indexed the new offer.
-      // This ensures the offer page has data to display.
       navigate(`/trade/offer/${newOfferAddress}`)
     }
   }, [newOfferAddress, createdOffer, isSyncing, navigate])
@@ -54,18 +63,21 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
     },
   })
 
+  const updatePreview = useCallback((price: number, rate: number) => {
+    const current = price * (1 + rate / 100)
+    setFormState((prev: any) => ({ ...prev, preview: current.toFixed(2) }))
+  }, [])
+
   useEffect(() => {
     if (priceData) {
-      const price = normalizeMarketPrice(priceData).toFixed(2)
-      const ratio = form.getFieldValue('rate') ?? 0
-      const current = Number(price) * (1 + ratio / 100)
-      form.setFieldValue('preview', current.toFixed(2))
+      const price = normalizeMarketPrice(priceData)
+      updatePreview(price, formState.rate)
     }
-  }, [priceData, form])
+  }, [priceData, formState.rate, updatePreview])
 
   const fetchRate = useCallback(() => {
-    const symbol = form.getFieldValue('token')
-    const fiat = form.getFieldValue('fiat')
+    const symbol = formState.token
+    const fiat = formState.fiat
     if (symbol && fiat) {
       const token = tokens[symbol]
       if (!token) return
@@ -78,7 +90,7 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
         return prev
       })
     }
-  }, [form, tokens])
+  }, [formState.token, formState.fiat, tokens])
 
   useEffect(() => {
     if (offer && tokens[offer.token?.symbol]) {
@@ -88,55 +100,58 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
 
   const previewPrice = useCallback(() => {
     if (priceData) {
-      const price = normalizeMarketPrice(priceData).toFixed(2)
-      const ratio = form.getFieldValue('rate') ?? 0
-      const current = Number(price) * (1 + ratio / 100)
-      form.setFieldValue('preview', current.toFixed(2))
+      const price = normalizeMarketPrice(priceData)
+      updatePreview(price, formState.rate)
     } else fetchRate()
-  }, [priceData, form, fetchRate])
+  }, [priceData, formState.rate, fetchRate, updatePreview])
 
-  const handleSetRate = useCallback(async () => {
+  const handleSetRateLocal = useCallback(async () => {
     if (!setRate) return
+    const t = toast({ title: "Updating Rate", description: "Waiting for wallet..." })
     try {
-      await setRate(form.getFieldValue('rate'))
-      message.success('Rate updated')
+      await setRate(formState.rate)
+      t.update({ id: t.id, title: "Rate Updated", description: "Your offer has been updated." })
     } catch (e: any) {
-      message.error(e.message || 'Failed to update rate')
+      t.update({ id: t.id, title: "Update Failed", description: e.shortMessage || "Error updating rate", variant: "destructive" })
     }
-  }, [form, setRate])
+  }, [formState.rate, setRate, toast])
 
-  const handleSetLimits = useCallback(async () => {
+  const handleSetLimitsLocal = useCallback(async () => {
     if (!setLimits) return
+    const t = toast({ title: "Updating Limits", description: "Waiting for wallet..." })
     try {
-      await setLimits(form.getFieldValue('min'), form.getFieldValue('max'))
-      message.success('Limits updated')
+      await setLimits(formState.min, formState.max)
+      t.update({ id: t.id, title: "Limits Updated", description: "Your offer limits have been updated." })
     } catch (e: any) {
-      message.error(e.message || 'Failed to update limits')
+      t.update({ id: t.id, title: "Update Failed", description: e.shortMessage || "Error updating limits", variant: "destructive" })
     }
-  }, [form, setLimits])
+  }, [formState.min, formState.max, setLimits, toast])
 
-  const handleSetTerms = useCallback(async () => {
+  const handleSetTermsLocal = useCallback(async () => {
     if (!setTerms) return
+    const t = toast({ title: "Updating Terms", description: "Waiting for wallet..." })
     try {
-      await setTerms(form.getFieldValue('terms'))
-      message.success('Terms updated')
+      await setTerms(formState.terms)
+      t.update({ id: t.id, title: "Terms Updated", description: "Your offer terms have been updated." })
     } catch (e: any) {
-      message.error(e.message || 'Failed to update terms')
+      t.update({ id: t.id, title: "Update Failed", description: e.shortMessage || "Error updating terms", variant: "destructive" })
     }
-  }, [form, setTerms])
+  }, [formState.terms, setTerms, toast])
 
-  const handleToggleDisabled = useCallback(async () => {
+  const handleToggleDisabledLocal = useCallback(async () => {
     if (!toggleDisabled) return
+    const t = toast({ title: "Updating Status", description: "Waiting for wallet..." })
     try {
       await toggleDisabled()
-      message.success('State updated')
+      t.update({ id: t.id, title: "Status Updated", description: "Offer visibility has been changed." })
     } catch (e: any) {
-      message.error(e.message || 'Failed to toggle state')
+      t.update({ id: t.id, title: "Update Failed", description: e.shortMessage || "Error updating status", variant: "destructive" })
     }
-  }, [toggleDisabled])
+  }, [toggleDisabled, toast])
 
   async function createOffer(val: any) {
     setLockSubmit(true)
+    const t = toast({ title: "Publishing Offer", description: "Waiting for wallet..." })
 
     val.min = Math.floor(val.min)
     val.max = Math.ceil(val.max)
@@ -158,7 +173,7 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
         address: marketAddress,
         args: [params],
       })
-      message.loading({ content: 'Offer submitted. Waiting for confirmation...', key: 'createOffer', duration: 0 })
+      t.update({ id: t.id, title: "Offer Submitted", description: "Waiting for blockchain..." })
 
       const receipt = await publicClient?.waitForTransactionReceipt({ hash })
       if (receipt) {
@@ -170,17 +185,20 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
         if (logs.length > 0) {
           const offerAddress = (logs[0].args as any).offer
           setNewOfferAddress(offerAddress)
-          message.success({ content: 'Offer confirmed! Syncing...', key: 'createOffer', duration: 2 })
+          t.update({ id: t.id, title: "Offer Created!", description: "Indexing and redirecting..." })
         }
       }
     } catch (e: any) {
       console.error('Submission error:', e)
-      message.error({
-        content: e.shortMessage || e.message || 'Failed to submit offer',
-        key: 'createOffer',
-      })
+      t.update({ id: t.id, title: "Submission Failed", description: e.shortMessage || "Error creating offer", variant: "destructive" })
       setLockSubmit(false)
     }
+  }
+
+  const form = {
+    getFieldValue: (name: string) => formState[name],
+    setFieldValue: (name: string, value: any) => setFormState((prev: any) => ({ ...prev, [name]: value })),
+    getFieldsValue: () => formState,
   }
 
   return {
@@ -193,9 +211,9 @@ export function useOfferForm({ offer = null, setRate, setLimits, setTerms, toggl
     createOffer,
     fetchRate,
     previewPrice,
-    handleSetRate,
-    handleSetLimits,
-    handleSetTerms,
-    handleToggleDisabled,
+    handleSetRate: handleSetRateLocal,
+    handleSetLimits: handleSetLimitsLocal,
+    handleSetTerms: handleSetTermsLocal,
+    handleToggleDisabled: handleToggleDisabledLocal,
   }
 }

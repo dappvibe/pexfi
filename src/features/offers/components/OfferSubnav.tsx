@@ -1,23 +1,18 @@
 import { Link } from 'react-router-dom'
-import { Breadcrumb, Space } from 'antd'
-import { DoubleLeftOutlined } from '@ant-design/icons'
+import { ChevronLeft } from 'lucide-react'
 
-export default function OfferSubnav({ offer }) {
+export default function OfferSubnav({ offer }: { offer: any }) {
+  if (!offer) return null
+
   return (
-    <Breadcrumb
-      style={{ margin: '10px 20px' }}
-      items={[
-        {
-          title: (
-            <Link to={`/trade/sell/${offer.token?.symbol}/${offer.fiat}/${offer.method}`}>
-              <Space>
-                <DoubleLeftOutlined />
-                Back to offers
-              </Space>
-            </Link>
-          ),
-        },
-      ]}
-    />
+    <div className="flex items-center gap-4 py-4">
+      <Link
+        to={`/trade/sell/${offer.token?.symbol}/${offer.fiat}/${offer.method}`}
+        className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-foreground/40 hover:text-primary transition-colors"
+      >
+        <ChevronLeft className="h-4 w-4" />
+        Back to marketplace
+      </Link>
+    </div>
   )
 }

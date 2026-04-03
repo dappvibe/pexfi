@@ -1,66 +1,81 @@
 import React from 'react'
-import { useConnection, useReadContract, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
-import { dealAbi, erc20Abi, useReadPexfiVaultBalanceOf, useReadPexfiVestingOwner, useSimulateDeal, useWritePexfiVestingBond } from '@/wagmi'
-import { message, Skeleton, Space, Statistic } from 'antd'
-import { useDeal } from '@/features/deals/hooks/useDeal.ts'
-import { useQueryOffer } from '@/features/offers/hooks/useQueryOffer'
-import { LoadingButton } from '@/shared/ui'
-import Feedback from '@/features/deals/components/Feedback'
-import { equal } from '@/utils'
+import { useDeal } from '@/features/deals/hooks/useDeal'
 import { DealState } from '@/features/deals/hooks/useReadDeal'
+import { useConnection, useReadContract, useWriteContract } from 'wagmi'
+import { dealAbi, erc20Abi } from '@/wagmi'
+import { equal } from '@/utils'
+import { Button, buttonVariants } from '@/components/ui/button'
+import LoadingButton from '@/shared/ui/components/LoadingButton'
+import { useToast } from '@/components/ui/use-toast'
+import { maxUint256, stringToHex } from 'viem'
+import { cn } from '@/lib/utils'
 import { useAddress } from '@/shared/web3'
-import { Address, maxUint256, stringToHex } from 'viem'
 
-interface DealButtonProps {
-  dealAddress: Address
-  functionName: 'accept' | 'fund' | 'paid' | 'release' | 'dispute' | 'cancel'
-  label: React.ReactNode
-  successMessage?: string
-  danger?: boolean
-  disabled?: boolean
+function CountdownDisplay({ targetDate, label }: { targetDate: Date; label: string }) {
+  const [timeLeft, setTimeLeft] = React.useState('')
+
+  React.useEffect(() => {
+    const update = () => {
+      const now = new Date().getTime()
+      const diff = targetDate.getTime() - now
+      if (diff <= 0) {
+        setTimeLeft('EXPIRED')
+        return
+      }
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+      setTimeLeft(`${minutes}:${seconds < 10 ? '0' : ''}${seconds}`)
+    }
+    update()
+    const timer = setInterval(update, 1000)
+    return () => clearInterval(timer)
+  }, [targetDate])
+
+  return (
+    <div className="flex items-center gap-4 p-4 bg-surface-lowest ghost-border rounded-xl px-8 shadow-inner">
+      <div className="flex flex-col gap-1">
+        <span className="text-[8px] font-bold uppercase tracking-[0.3em] text-on-surface-variant/40">{label}</span>
+        <span className="text-xl font-bold text-white tabular-nums tracking-tighter leading-none">{timeLeft}</span>
+      </div>
+      <div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(208,188,255,0.5)]" />
+    </div>
+  )
 }
 
 function DealButton({
   dealAddress,
   functionName,
   label,
-  successMessage,
-  danger,
-  disabled,
-}: DealButtonProps) {
-  const { data, error, isLoading: isSimulating } = useSimulateDeal({
-    address: dealAddress,
-    functionName,
-    query: {
-      retry: false,
-    },
-  })
-
+  variant = 'default',
+}: {
+  dealAddress: `0x${string}`
+  functionName: string
+  label: string
+  variant?: any
+}) {
   const { writeContractAsync, isPending } = useWriteContract()
+  const { toast } = useToast()
 
-  const onClick = async () => {
-    if (error) {
-      message.error(error.shortMessage || error.message || 'Simulation failed')
-      return
-    }
-    if (!data?.request) {
-      return
-    }
+  async function call() {
+    const t = toast({ title: "Executing Handshake", description: "Waiting for wallet confirmation..." })
     try {
-      await writeContractAsync(data.request)
-      if (successMessage) message.success(successMessage)
+      await writeContractAsync({
+        address: dealAddress,
+        abi: dealAbi,
+        functionName: functionName as any,
+      })
+      t.update({ id: t.id, title: "Protocol Response", description: "Transaction confirmed on-chain." })
     } catch (e: any) {
-      message.error(e?.shortMessage || e?.message || 'Transaction failed')
+      t.update({ id: t.id, title: "Execution Error", description: e.shortMessage || "Action failed", variant: "destructive" })
     }
   }
 
   return (
     <LoadingButton
-      type="primary"
-      danger={danger}
-      loading={isSimulating || isPending}
-      onClick={disabled ? undefined : onClick}
-      disabled={disabled}
+      variant={variant}
+      className={cn("h-16 px-12 font-bold uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-xl", variant === 'neon' ? 'neon-glow' : 'ghost-border bg-white/[0.02]')}
+      onClick={call}
+      loading={isPending}
     >
       {label}
     </LoadingButton>
@@ -68,185 +83,148 @@ function DealButton({
 }
 
 export default function Controls() {
-  const { deal } = useDeal()
-  const { offer } = useQueryOffer(deal?.offer)
-  const { address } = useConnection()
+  const { deal, isOwner, isTaker, isSeller, isBuyer, vestingOwner, canResolve, resolvedPaid } = useDeal()
+  const { address: account } = useConnection()
+  const { writeContractAsync: writeBondAsync } = useWriteContract()
+  const { writeContractAsync: writeApproveAsync, isPending: isApproving } = useWriteContract()
+  const { toast } = useToast()
   const marketAddress = useAddress('Market#Market')
-  const vaultAddress = useAddress('Market#PexfiVault')
-  const vestingAddress = useAddress('Market#PexfiVesting')
-
-  const { writeContractAsync: writeBondAsync } = useWritePexfiVestingBond()
-
-  const tokenAddress = offer?.token?.address
 
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
-    address: tokenAddress,
+    address: deal?.tokenAddress,
     abi: erc20Abi,
     functionName: 'allowance',
-    args: address && marketAddress ? [address, marketAddress] : undefined,
-    query: { enabled: !!tokenAddress && !!address && !!marketAddress },
+    args: [account!, marketAddress!],
+    query: { enabled: !!account && !!deal?.tokenAddress && !!marketAddress },
   })
 
-  // get resolvedPaid
-  const { data: resolvedPaid } = useReadContract({
-    address: deal.address,
-    abi: dealAbi,
-    functionName: 'resolvedPaid',
-  })
+  if (!deal) return null
 
-  const isDisputed = deal.state === DealState.Disputed
-
-  const { data: stPexfiBalance } = useReadPexfiVaultBalanceOf({
-    address: vaultAddress,
-    args: address ? [address] : undefined,
-    query: { enabled: !!vaultAddress && !!address && isDisputed },
-  })
-
-  const { data: vestingOwner } = useReadPexfiVestingOwner({
-    address: vestingAddress,
-    query: { enabled: !!vestingAddress && isDisputed },
-  })
-
-  const { writeContractAsync: approveAsync, data: approveHash } = useWriteContract()
-  const { isLoading: isApproving } = useWaitForTransactionReceipt({
-    hash: approveHash,
-    query: { enabled: !!approveHash },
-  })
-
-  if (!address || !offer) return <Skeleton active />
-
-  const isOwner = equal(address, offer.owner)
-  const isTaker = equal(address, deal.taker)
-  const isBuyer = (offer.isSell && isTaker) || (!offer.isSell && isOwner)
-  const isSeller = (offer.isSell && isOwner) || (!offer.isSell && isTaker)
-
-  const hasEnoughStPexfi = (stPexfiBalance ?? 0n) >= 100000n * 10n ** 18n
-  const canResolve = () => hasEnoughStPexfi || equal(address, vestingOwner)
-
-  const needsApproval =
-    !!tokenAddress && !!marketAddress && (allowance ?? 0n) < deal.tokenAmount
+  const needsApproval = isSeller && deal.state === DealState.Accepted && (!allowance || allowance < BigInt(deal.rawTokenAmount))
 
   async function approve() {
-    if (!tokenAddress || !marketAddress) return
+    if (!marketAddress) return
+    const t = toast({ title: "Approving Protocol", description: "Waiting for wallet..." })
     try {
-      await approveAsync({
-        address: tokenAddress,
+      await writeApproveAsync({
+        address: deal!.tokenAddress,
         abi: erc20Abi,
         functionName: 'approve',
         args: [marketAddress, maxUint256],
       })
       await refetchAllowance()
+      t.update({ id: t.id, title: "Node Approved", description: "You can now fund the deal." })
     } catch (e: any) {
-      message.error(e?.shortMessage || e?.message || 'Transaction failed')
+      t.update({ id: t.id, title: "Approval Failed", description: e.shortMessage || "Error approving token", variant: "destructive" })
     }
   }
 
-  async function callVesting(args: any[], successMessage: string) {
-    if (!vestingAddress) return
+  async function callVesting(args: any[]) {
+    if (!deal.vestingAddress) return
+    const t = toast({ title: "Bonding Resolution", description: "Waiting for wallet..." })
     try {
       await writeBondAsync({
-        address: vestingAddress,
+        address: deal.vestingAddress,
+        abi: [
+          {
+            "inputs": [
+              { "internalType": "address", "name": "deal", "type": "address" },
+              { "internalType": "bytes32", "name": "result", "type": "bytes32" }
+            ],
+            "name": "bond",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+          }
+        ],
+        functionName: 'bond',
         args: args as any,
       })
-      if (successMessage) message.success(successMessage)
+      t.update({ id: t.id, title: "Resolution Secured", description: "The finality has been bonded." })
     } catch (e: any) {
-      message.error(e?.shortMessage || e?.message || 'Transaction failed')
+      t.update({ id: t.id, title: "Resolution Failed", description: e.shortMessage || "Error bonding resolution", variant: "destructive" })
       throw e
     }
   }
 
   const action = {
     countAccept: (
-      <span>
-        Waiting for acceptance:{' '}
-        <Statistic.Timer type="countdown" value={deal.allowCancelUnacceptedAfter} />
-      </span>
+      <CountdownDisplay targetDate={deal.allowCancelUnacceptedAfter} label="ACCEPTANCE DEADLINE" />
     ),
     countFund: (
-      <span>
-        Waiting for funding:{' '}
-        <Statistic.Timer type="countdown" value={deal.allowCancelUnacceptedAfter} />
-      </span>
+      <CountdownDisplay targetDate={deal.allowCancelUnacceptedAfter} label="FUNDING DEADLINE" />
     ),
     countPaid: (
-      <span>
-        Waiting for payment:{' '}
-        <Statistic.Timer type="countdown" value={deal.allowCancelUnpaidAfter} />
-      </span>
-    ),
-    countCancel: (
-      <span>
-        Cancel in <Statistic.Timer type="countdown" value={deal.allowCancelUnpaidAfter} />
-      </span>
+      <CountdownDisplay targetDate={deal.allowCancelUnpaidAfter} label="PAYMENT DEADLINE" />
     ),
     accept: (
       <DealButton
         dealAddress={deal.address}
         functionName="accept"
-        label="Accept"
-        successMessage="Accepted"
+        label="Accept Deal Agreement"
+        variant="neon"
       />
     ),
     fund: needsApproval ? (
-      <LoadingButton type={'primary'} onClick={approve} loading={isApproving}>
-        Approve
+      <LoadingButton variant="neon" className="h-16 px-12 font-bold uppercase tracking-[0.2em] text-[10px] rounded-2xl neon-glow shadow-xl" onClick={approve} loading={isApproving}>
+        Approve Handshake
       </LoadingButton>
     ) : (
       <DealButton
         dealAddress={deal.address}
         functionName="fund"
-        label="Fund"
-        successMessage="Funded"
+        label="Fund Protocol Escrow"
+        variant="neon"
       />
     ),
     paid: (
       <DealButton
         dealAddress={deal.address}
         functionName="paid"
-        label="Paid"
-        successMessage="Paid"
+        label="Confirm Payment Transmitted"
+        variant="neon"
       />
     ),
     release: (
       <DealButton
         dealAddress={deal.address}
         functionName="release"
-        label="Release"
-        successMessage="Released"
+        label="Release Encrypted Assets"
+        variant="neon"
       />
     ),
     dispute: (
       <DealButton
         dealAddress={deal.address}
         functionName="dispute"
-        label="Dispute"
-        successMessage="Disputed"
-        danger
+        label="Escalate to Mediator"
+        variant="destructive"
       />
     ),
     cancel: (
       <DealButton
         dealAddress={deal.address}
         functionName="cancel"
-        label="Cancel"
-        successMessage="Canceled"
-        danger
+        label="Terminate Agreement"
+        variant="outline"
       />
     ),
     resolvePaid: (
       <LoadingButton
-        type={'primary'}
-        onClick={() => callVesting([deal.address, stringToHex('PAID')], 'Bonded PAID')}
+        variant="neon"
+        className="h-16 px-12 font-bold uppercase tracking-[0.2em] text-[10px] rounded-2xl neon-glow shadow-xl"
+        onClick={() => callVesting([deal.address, stringToHex('PAID')])}
       >
-        Resolve Paid
+        Finalize: PAID
       </LoadingButton>
     ),
     resolveUnpaid: (
       <LoadingButton
-        danger
-        onClick={() => callVesting([deal.address, stringToHex('NOT PAID')], 'Bonded NOT PAID')}
+        variant="destructive"
+        className="h-16 px-12 font-bold uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-xl"
+        onClick={() => callVesting([deal.address, stringToHex('NOT PAID')])}
       >
-        Resolve Unpaid
+        Finalize: UNPAID
       </LoadingButton>
     ),
   }
@@ -269,13 +247,8 @@ export default function Controls() {
       break
 
     case DealState.Accepted:
-      // Seller cannot cancel after accepting - must fund or wait for timeout
-      if (isSeller) {
-        controls.push(action.fund)
-      }
-      if (isBuyer) {
-        controls.push(action.countFund)
-      }
+      if (isSeller) controls.push(action.fund)
+      if (isBuyer) controls.push(action.countFund)
       break
 
     case DealState.Funded:
@@ -332,14 +305,13 @@ export default function Controls() {
 
   if (deal.state < DealState.Canceled || deal.state === DealState.Resolved) {
     return (
-      <Space>
+      <div className="flex flex-wrap items-center gap-6">
         {controls.map((button, index) => (
           <React.Fragment key={index}>{button}</React.Fragment>
         ))}
-      </Space>
+      </div>
     )
   } else if (deal.state === DealState.Completed) {
-    // Resolved also allows feedback so that users don't abuse disputes to not have feedback
     return <Feedback />
   } else {
     return null

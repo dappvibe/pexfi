@@ -1,6 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
-import { message } from 'antd'
 import { useQueryOffers } from '@/features/offers/hooks/useQueryOffers'
 import { useAddress } from '@/shared/web3'
 import { useInventory, decodeMethod } from '@/shared/web3'
@@ -34,7 +33,6 @@ export function useOffersList({ superFilter = null }: { superFilter?: any } = {}
 
     if (activeToken) f.token = activeToken.id
     if (fiatSymbol) f.fiat = padHex(stringToHex(fiatSymbol), { size: 3, dir: 'right' })
-    // Method filtering is done client-side due to bitmask
 
     if (filterAmount !== '') {
       const amount = parseInt(filterAmount)
@@ -61,7 +59,6 @@ export function useOffersList({ superFilter = null }: { superFilter?: any } = {}
   useEffect(() => {
     if (error) {
       console.error(error.message)
-      message.error('Failed to load offers')
     }
   }, [error])
 
@@ -78,14 +75,13 @@ export function useOffersList({ superFilter = null }: { superFilter?: any } = {}
     query: {
       enabled: !!marketAddress && !!activeToken && !!activeFiat,
       staleTime: 30000,
-      select: (data): number => Number(data) / 1000000, // Market price is 1e6
+      select: (data): number => Number(data) / 1000000,
     },
   })
 
   useEffect(() => {
     if (priceError) {
       console.error(priceError)
-      message.error('Failed to load price')
     }
   }, [priceError])
 

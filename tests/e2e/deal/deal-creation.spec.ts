@@ -19,16 +19,15 @@ test.describe('Deal Creation Flow', () => {
 
 
     // 3. Try to open a deal
-    await page.getByPlaceholder('Fiat Amount').fill('50')
-    const openDealButton = page.getByRole('button', { name: 'Open Deal' })
+    await page.getByPlaceholder('0.00').first().fill('50')
+    const openDealButton = page.getByRole('button', { name: 'Initialize Deal' })
     await openDealButton.click()
 
     // 4. Wait for the deal page to appear
     await expect(page).toHaveURL(/.*\/trade\/deal\/0x[0-9A-f]{40}$/, { timeout: 30000 })
-    //const dealAddress = page.url().split('/').pop()!
 
     // 5. Verify the deal page is loaded
-    await expect(page.getByText('Price')).toBeVisible()
-    await expect(page.getByText('Payment instructions')).toBeVisible()
+    await expect(page.getByText('Valuation')).toBeVisible()
+    await expect(page.getByText('Coordination Metadata')).toBeVisible()
   })
 })
