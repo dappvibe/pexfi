@@ -1,11 +1,8 @@
 import { createThirdwebClient } from "thirdweb";
 
-const clientId = import.meta.env.VITE_THIRDWEB_CLIENT_ID;
-
-if (!clientId) {
-  console.warn("VITE_THIRDWEB_CLIENT_ID is not set. Thirdweb features may not work correctly.");
-}
+// Dummy client ID for development if not provided
+const clientId = import.meta.env.VITE_THIRDWEB_CLIENT_ID || "dev-client-id";
 
 export const client = createThirdwebClient({
-  clientId: clientId || "",
+  clientId: clientId,
 });

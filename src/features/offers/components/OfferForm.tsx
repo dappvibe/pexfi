@@ -1,6 +1,14 @@
-import { Button, Col, Form, Input, InputNumber, Radio, Row, Select, Space } from 'antd'
-
-const { TextArea } = Input
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface OfferFormProps {
   offer?: any
@@ -18,8 +26,6 @@ interface OfferFormProps {
   handleToggleDisabled?: () => Promise<void>
 }
 
-const required = [{ required: true, message: 'required' }]
-
 export default function OfferForm({
   offer = null,
   form,
@@ -35,123 +41,190 @@ export default function OfferForm({
   handleSetTerms,
   handleToggleDisabled,
 }: OfferFormProps) {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    createOffer(form.getFieldsValue())
+  }
+
   return (
-    <Form
-      form={form}
-      layout={'horizontal'}
-      onFinish={createOffer}
-      colon={false}
-      onLoad={offer ? fetchRate : undefined}
-    >
-      <Row>
-        <Col>
-          <Space wrap size={'middle'}>
-            <Form.Item
-              name="isSell"
-              label={'I want to'}
-              rules={required}
-              initialValue={offer ? offer.isSell : undefined}
+    <form onSubmit={handleSubmit} className="space-y-16">
+      {/* Step 1: Core Parameters */}
+      <div className="space-y-8">
+        <div className="text-[10px] font-bold uppercase tracking-[0.4em] text-on-surface-variant/40 ml-1">01 • Trade Architecture</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 items-end">
+          <div className="space-y-4">
+            <Label className="text-on-surface-variant/40 uppercase text-[10px] font-bold tracking-[0.3em] ml-2">I want to</Label>
+            <RadioGroup
+              defaultValue={offer ? offer.isSell.toString() : "false"}
+              className="flex h-14 items-center gap-6 bg-surface-lowest rounded-xl ghost-border p-1 px-6 shadow-inner"
+              disabled={!!offer}
+              onValueChange={(val) => form.setFieldValue('isSell', val === 'true')}
             >
-              <Radio.Group disabled={!!offer}>
-                <Radio.Button value={false}>Buy</Radio.Button>
-                <Radio.Button value={true}>Sell</Radio.Button>
-              </Radio.Group>
-            </Form.Item>
-            <Form.Item name="token" label={'token'} rules={required} initialValue={offer ? offer.token?.symbol : undefined}>
-              <Select showSearch style={{ width: 85 }} onChange={fetchRate} disabled={!!offer}>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="false" id="buy" className="border-white/10" />
+                <Label htmlFor="buy" className="cursor-pointer text-xs font-bold uppercase tracking-widest text-on-surface">Buy</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="true" id="sell" className="border-white/10" />
+                <Label htmlFor="sell" className="cursor-pointer text-xs font-bold uppercase tracking-widest text-on-surface">Sell</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div className="space-y-4">
+            <Label className="text-on-surface-variant/40 uppercase text-[10px] font-bold tracking-[0.3em] ml-2">Protocol Token</Label>
+            <Select
+              defaultValue={offer ? offer.token?.symbol : undefined}
+              onValueChange={(val) => {
+                form.setFieldValue('token', val)
+                fetchRate()
+              }}
+              disabled={!!offer}
+            >
+              <SelectTrigger className="bg-surface-lowest ghost-border h-14 rounded-xl text-xs font-bold uppercase tracking-widest px-6 shadow-inner">
+                <SelectValue placeholder="Select" />
+              </SelectTrigger>
+              <SelectContent className="bg-surface-container border-white/10">
                 {Object.keys(tokens).map((key) => (
-                  <Select.Option key={key} value={key}>
-                    {key}
-                  </Select.Option>
+                  <SelectItem key={key} value={key} className="text-xs font-bold uppercase tracking-widest">{key}</SelectItem>
                 ))}
-              </Select>
-            </Form.Item>
-            <Form.Item name="fiat" label={'for'} rules={required} initialValue={offer ? offer.fiat : undefined}>
-              <Select showSearch style={{ width: 85 }} onChange={fetchRate} disabled={!!offer}>
-                {Object.keys(fiats).map((symbol) => (
-                  <Select.Option key={symbol} value={symbol}>
-                    {symbol}
-                  </Select.Option>
-                ))}
-              </Select>
-            </Form.Item>
-            <Form.Item name="method" label={'using'} rules={required} initialValue={offer ? offer.method : undefined}>
-              <Select showSearch placeholder={'Payment method'} disabled={!!offer}>
-                {Object.keys(methods).map((key) => (
-                  <Select.Option key={key} value={key}>
-                    {key}
-                  </Select.Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Space>
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <Space direction={'horizontal'}>
-            <Form.Item
-              name="rate"
-              label={'Margin'}
-              rules={required}
-              initialValue={offer ? (offer.rate - 1) * 100 : undefined}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-4">
+            <Label className="text-on-surface-variant/40 uppercase text-[10px] font-bold tracking-[0.3em] ml-2">Settlement Fiat</Label>
+            <Select
+              defaultValue={offer ? offer.fiat : undefined}
+              onValueChange={(val) => {
+                form.setFieldValue('fiat', val)
+                fetchRate()
+              }}
+              disabled={!!offer}
             >
-              <InputNumber
-                style={{ width: 120 }}
-                changeOnWheel
-                step={'0.01'}
-                addonAfter={'%'}
-                onChange={previewPrice}
+              <SelectTrigger className="bg-surface-lowest ghost-border h-14 rounded-xl text-xs font-bold uppercase tracking-widest px-6 shadow-inner">
+                <SelectValue placeholder="Select" />
+              </SelectTrigger>
+              <SelectContent className="bg-surface-container border-white/10">
+                {Object.keys(fiats).map((symbol) => (
+                  <SelectItem key={symbol} value={symbol} className="text-xs font-bold uppercase tracking-widest">{symbol}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-4">
+            <Label className="text-on-surface-variant/40 uppercase text-[10px] font-bold tracking-[0.3em] ml-2">Handshake Method</Label>
+            <Select
+              defaultValue={offer ? offer.method : undefined}
+              onValueChange={(val) => form.setFieldValue('method', val)}
+              disabled={!!offer}
+            >
+              <SelectTrigger className="bg-surface-lowest ghost-border h-14 rounded-xl text-xs font-bold uppercase tracking-widest px-6 shadow-inner">
+                <SelectValue placeholder="Select" />
+              </SelectTrigger>
+              <SelectContent className="bg-surface-container border-white/10">
+                {Object.keys(methods).map((key) => (
+                  <SelectItem key={key} value={key} className="text-xs font-bold uppercase tracking-widest">{key}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
+      {/* Step 2: Economics */}
+      <div className="space-y-8">
+        <div className="text-[10px] font-bold uppercase tracking-[0.4em] text-on-surface-variant/40 ml-1">02 • Market Economics</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-end">
+          <div className="space-y-4">
+            <Label className="text-on-surface-variant/40 uppercase text-[10px] font-bold tracking-[0.3em] ml-2">Exchange Margin (%)</Label>
+            <div className="flex items-center gap-6">
+              <div className="relative flex-1 group">
+                <Input
+                  type="number"
+                  step="0.01"
+                  className="bg-surface-lowest ghost-border h-16 rounded-xl pr-16 text-2xl font-bold shadow-inner group-focus-within:neon-glow transition-all"
+                  defaultValue={offer ? (offer.rate - 1) * 100 : undefined}
+                  onChange={(e) => {
+                    form.setFieldValue('rate', parseFloat(e.target.value))
+                    previewPrice()
+                  }}
+                />
+                <div className="absolute right-6 top-1/2 -translate-y-1/2 text-primary font-bold text-lg">%</div>
+              </div>
+              <div className="flex-1 relative">
+                 <Input
+                  className="bg-surface-container-highest/20 border-none h-16 rounded-xl text-on-surface-variant/40 text-center font-bold text-lg tabular-nums"
+                  placeholder="~ Price"
+                  disabled
+                  value={`~ ${form.getFieldValue('preview') || '0.00'} ${form.getFieldValue('fiat') || ''}`}
+                />
+              </div>
+              {offer && handleSetRate && (
+                <Button type="button" variant="outline" className="h-16 px-8 rounded-xl" onClick={handleSetRate}>Update</Button>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <Label className="text-on-surface-variant/40 uppercase text-[10px] font-bold tracking-[0.3em] ml-2">Protocol Trading Limits</Label>
+            <div className="flex items-center gap-4">
+              <Input
+                placeholder="Min Limit"
+                className="bg-surface-lowest ghost-border h-16 rounded-xl text-2xl font-bold px-8 shadow-inner focus-visible:neon-glow"
+                defaultValue={offer ? offer.min : undefined}
+                onChange={(e) => form.setFieldValue('min', e.target.value)}
               />
-            </Form.Item>
-            <Form.Item name={'preview'}>
-              <Input style={{ width: 150 }} prefix={'~'} suffix={form.getFieldValue('fiat')} disabled />
-            </Form.Item>
-            {offer && (
-              <Form.Item>
-                <Button onClick={handleSetRate}>Update</Button>
-              </Form.Item>
-            )}
-          </Space>
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <Space>
-            <Form.Item name="min" label="Limits" rules={required} initialValue={offer ? offer.min : undefined}>
-              <Input style={{ width: 120 }} />
-            </Form.Item>
-            <Form.Item name={'max'} label={'-'} rules={required} initialValue={offer ? offer.max : undefined}>
-              <Input style={{ width: 120 }} />
-            </Form.Item>
-            {offer && (
-              <Form.Item>
-                <Button onClick={handleSetLimits}>Update</Button>
-              </Form.Item>
-            )}
-          </Space>
-        </Col>
-      </Row>
-      <Form.Item name="terms" label="Terms" initialValue={offer ? offer.terms : undefined}>
-        <TextArea rows={4} placeholder={'Written in blockchain. Keep it short.'} />
-      </Form.Item>
-      {offer && (
-        <>
-          <Form.Item>
-            <Button onClick={handleSetTerms}>Update</Button>
-          </Form.Item>
-          <Form.Item>
-            <Button onClick={handleToggleDisabled}>{offer.disabled ? 'Enable' : 'Disable'}</Button>
-          </Form.Item>
-        </>
-      )}
-      {!offer && (
-        <Form.Item>
-          <Button loading={lockSubmit} type="primary" htmlType="submit">
-            Deploy contract
+              <span className="text-on-surface-variant/20 font-bold">—</span>
+              <Input
+                placeholder="Max Limit"
+                className="bg-surface-lowest ghost-border h-16 rounded-xl text-2xl font-bold px-8 shadow-inner focus-visible:neon-glow"
+                defaultValue={offer ? offer.max : undefined}
+                onChange={(e) => form.setFieldValue('max', e.target.value)}
+              />
+              {offer && handleSetLimits && (
+                <Button type="button" variant="outline" className="h-16 px-8 rounded-xl" onClick={handleSetLimits}>Update</Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Step 3: Terms */}
+      <div className="space-y-4">
+        <div className="text-[10px] font-bold uppercase tracking-[0.4em] text-on-surface-variant/40 ml-1">03 • Immutable Terms</div>
+        <Label className="text-on-surface-variant/40 uppercase text-[10px] font-bold tracking-[0.3em] ml-2 hidden">Terms & Conditions</Label>
+        <textarea
+          rows={6}
+          placeholder="Blockchain written. Keep terms concise, clear, and professional. Visible to all market participants."
+          className="flex min-h-[160px] w-full rounded-[2rem] ghost-border bg-surface-lowest px-10 py-8 text-lg font-medium tracking-tight ring-offset-background placeholder:text-on-surface-variant/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ghost-border disabled:cursor-not-allowed disabled:opacity-50 transition-all shadow-inner"
+          defaultValue={offer ? offer.terms : undefined}
+          onChange={(e) => form.setFieldValue('terms', e.target.value)}
+        />
+        {offer && handleSetTerms && (
+           <Button type="button" variant="outline" className="h-12 px-8 rounded-xl" onClick={handleSetTerms}>Update Terms</Button>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-6 pt-10">
+        {offer && handleToggleDisabled && (
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full h-16 border-white/5 bg-white/[0.02] hover:bg-destructive/10 hover:text-destructive transition-all rounded-2xl text-[10px] tracking-[0.3em]"
+            onClick={handleToggleDisabled}
+          >
+            {offer.disabled ? 'ACTIVATE PROTOCOL NODE' : 'DEACTIVATE PROTOCOL NODE'}
           </Button>
-        </Form.Item>
-      )}
-    </Form>
+        )}
+
+        {!offer && (
+          <Button type="submit" variant="neon" className="w-full h-20 text-xl font-bold tracking-[0.3em] rounded-2xl" disabled={lockSubmit}>
+            {lockSubmit ? 'Deploying Liquidity Node...' : 'DEPLOY SMART CONTRACT'}
+          </Button>
+        )}
+      </div>
+    </form>
   )
 }

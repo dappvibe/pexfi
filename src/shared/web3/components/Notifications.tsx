@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client/react'
-import { notification } from 'antd'
 import { useConnection } from 'wagmi'
+import { Bell } from 'lucide-react'
+import { useToast } from '@/components/ui/use-toast'
 import { Link } from 'react-router-dom'
 
 type NotificationEvent = {
@@ -43,22 +44,13 @@ const GET_NOTIFICATIONS = gql`
   }
 `
 
-const Context = React.createContext({
-  name: 'Default',
-})
-
 export default function Notifications() {
-  const [api, contextHolder] = notification.useNotification({
-    stack: false,
-    showProgress: true,
-    duration: 5,
-    placement: 'topRight',
-  })
   const { address } = useConnection()
+  const { toast } = useToast()
   const { data, startPolling, stopPolling } = useQuery(GET_NOTIFICATIONS, {
     variables: { account: address },
     skip: !address,
-    pollInterval: 30000, // Poll every 30 seconds
+    pollInterval: 30000,
   })
 
   useEffect(() => {
@@ -88,23 +80,17 @@ export default function Notifications() {
         return 'New Message'
       case 'DealState':
         switch (entry.event.arg0) {
-          case '0':
-            return 'New Deal'
-          case '1':
-            return 'Deal Accepted'
-          case '2':
-            return 'Deal Funded'
-          case '3':
-            return 'Deal Paid'
-          case '4':
-            return 'Deal Disputed'
-          case '5':
-            return 'Deal Canceled'
-          case '6':
-            return 'Dispute Resolved'
-          case '7':
-            return 'Deal Completed'
+          case '0': return 'New Deal'
+          case '1': return 'Deal Accepted'
+          case '2': return 'Deal Funded'
+          case '3': return 'Deal Paid'
+          case '4': return 'Deal Disputed'
+          case '5': return 'Deal Canceled'
+          case '6': return 'Dispute Resolved'
+          case '7': return 'Deal Completed'
+          default: return 'Deal Status Update'
         }
+      default: return 'New Notification'
     }
   }
 
@@ -114,11 +100,13 @@ export default function Notifications() {
     if (data && data.notifications) {
       ;[...data.notifications].reverse().forEach((entry: Notification) => {
         if (!shownNotifications.includes(entry.id)) {
-          api.info({
-            key: entry.id,
-            role: 'status',
-            message: buildMessage(entry),
-            description: <Link to={`/trade/deal/${entry.deal.id}`}>Go to deal</Link>,
+          toast({
+            title: buildMessage(entry),
+            description: (
+              <Link to={`/trade/deal/${entry.deal.id}`} className="underline font-bold text-primary">
+                View deal details
+              </Link>
+            ),
           })
 
           shownNotifications.push(entry.id)
@@ -126,14 +114,17 @@ export default function Notifications() {
         }
       })
     }
-  }, [data])
+  }, [data, toast])
 
-  const contextValue = useMemo(
-    () => ({
-      name: 'Ant Design',
-    }),
-    []
+  return (
+    <div className="relative group">
+      <Bell className="h-5 w-5 text-foreground/40 group-hover:text-primary transition-colors cursor-pointer" />
+      {data?.notifications?.length > 0 && (
+        <span className="absolute -top-1 -right-1 flex h-3 w-3">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+        </span>
+      )}
+    </div>
   )
-
-  return <Context.Provider value={contextValue}>{contextHolder}</Context.Provider>
 }

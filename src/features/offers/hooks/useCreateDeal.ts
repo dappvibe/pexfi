@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Form, message } from 'antd'
 import { decodeEventLog } from 'viem'
 import { usePublicClient } from 'wagmi'
 import { useAddress } from '@/shared/web3'
@@ -17,9 +16,14 @@ export function useCreateDeal({ offer }: UseCreateDealProps) {
   const publicClient = usePublicClient()
   const marketAddress = useAddress('Market#Market')
 
-  const [form] = Form.useForm()
   const [lockButton, setLockButton] = useState(false)
   const [newDealAddress, setNewDealAddress] = useState<string | undefined>()
+  const [formState, setFormState] = useState<any>({
+    tokenAmount: '',
+    fiatAmount: '',
+    method: 0,
+    paymentInstructions: ''
+  })
 
   const { deals } = useUserDeals({ 
     pollInterval: newDealAddress ? 3000 : 0 
@@ -41,7 +45,6 @@ export function useCreateDeal({ offer }: UseCreateDealProps) {
 
     try {
       const amount = BigInt(Math.floor(values['fiatAmount'] * 10 ** 6))
-      message.loading({ content: 'Deal submitted. Waiting for confirmation...', key: 'createDeal', duration: 0 })
       const hash = await createDealTx({
         address: offer.address,
         args: [
@@ -66,7 +69,6 @@ export function useCreateDeal({ offer }: UseCreateDealProps) {
             if (event.eventName === 'DealCreated') {
               const dealAddress = (event.args as any).deal
               setNewDealAddress(dealAddress)
-              message.success({ content: 'Deal created! Syncing...', key: 'createDeal', duration: 2 })
               break
             }
           } catch (e) {
@@ -75,10 +77,7 @@ export function useCreateDeal({ offer }: UseCreateDealProps) {
         }
       }
     } catch (e: any) {
-      message.error({
-        content: e.shortMessage || 'Failed to create deal',
-        key: 'createDeal',
-      })
+      console.error('Failed to create deal', e)
     } finally {
       setLockButton(false)
     }
@@ -87,18 +86,28 @@ export function useCreateDeal({ offer }: UseCreateDealProps) {
   const syncTokenAmount = (fiat: string) => {
     if (!offer || !offer.price) return
     const value = fiat.length > 0 ? (Number(fiat) / Number(offer.price)).toFixed(8) : ''
-    form.setFieldValue('tokenAmount', value)
+    setFormState((prev: any) => ({ ...prev, tokenAmount: value, fiatAmount: fiat }))
   }
 
   const syncFiatAmount = (token: string) => {
     if (!offer || !offer.price) return
     const value = token.length > 0 ? (Number(token) * Number(offer.price)).toFixed(2) : ''
-    form.setFieldValue('fiatAmount', value)
-    form.validateFields(['fiatAmount'])
+    setFormState((prev: any) => ({ ...prev, fiatAmount: value, tokenAmount: token }))
+  }
+
+  const form = {
+    getFieldProps: (name: string) => ({
+      value: formState[name],
+      onChange: (e: any) => setFormState((prev: any) => ({ ...prev, [name]: e.target.value }))
+    }),
+    getFieldsValue: () => formState,
+    setFieldValue: (name: string, value: any) => setFormState((prev: any) => ({ ...prev, [name]: value })),
+    getFieldError: (name: string) => null, // Simplified
+    validateFields: (names: string[]) => Promise.resolve(), // Simplified
   }
 
   let submitLabel = 'Open Deal'
-  let submitDisabled = false // Caller should handle account check if needed, or we can keep it here
+  let submitDisabled = false
 
   if (offer && offer.disabled) {
     submitLabel = 'Offer is disabled'

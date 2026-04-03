@@ -25,7 +25,7 @@ const transports = {
   [hardhat.id]: http('http://127.0.0.1:8545'),
 }
 
-export const thirdwebClient = createThirdwebClient({ clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID })
+export const thirdwebClient = createThirdwebClient({ clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID || "dev-client-id" })
 
 // E2E Testing Support: This is required to be here to automate provider in VITE env
 // We explicitly bypass 'typeof window' check in the static analysis so Vite does not tree-shake the E2E mock chunk in production builds
