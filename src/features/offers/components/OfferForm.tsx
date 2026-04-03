@@ -72,7 +72,7 @@ export default function OfferForm({
           </div>
 
           <div className="space-y-4">
-            <Label className="text-on-surface-variant/40 uppercase text-[10px] font-bold tracking-[0.3em] ml-2">Protocol Token</Label>
+            <Label htmlFor="token" className="text-on-surface-variant/40 uppercase text-[10px] font-bold tracking-[0.3em] ml-2">Protocol Token</Label>
             <Select
               defaultValue={offer ? offer.token?.symbol : undefined}
               onValueChange={(val) => {
@@ -81,7 +81,7 @@ export default function OfferForm({
               }}
               disabled={!!offer}
             >
-              <SelectTrigger className="bg-surface-lowest ghost-border h-14 rounded-xl text-xs font-bold uppercase tracking-widest px-6 shadow-inner">
+              <SelectTrigger id="token" className="bg-surface-lowest ghost-border h-14 rounded-xl text-xs font-bold uppercase tracking-widest px-6 shadow-inner">
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
               <SelectContent className="bg-surface-container border-white/10">
@@ -93,7 +93,7 @@ export default function OfferForm({
           </div>
 
           <div className="space-y-4">
-            <Label className="text-on-surface-variant/40 uppercase text-[10px] font-bold tracking-[0.3em] ml-2">Settlement Fiat</Label>
+            <Label htmlFor="fiat" className="text-on-surface-variant/40 uppercase text-[10px] font-bold tracking-[0.3em] ml-2">Settlement Fiat</Label>
             <Select
               defaultValue={offer ? offer.fiat : undefined}
               onValueChange={(val) => {
@@ -102,7 +102,7 @@ export default function OfferForm({
               }}
               disabled={!!offer}
             >
-              <SelectTrigger className="bg-surface-lowest ghost-border h-14 rounded-xl text-xs font-bold uppercase tracking-widest px-6 shadow-inner">
+              <SelectTrigger id="fiat" className="bg-surface-lowest ghost-border h-14 rounded-xl text-xs font-bold uppercase tracking-widest px-6 shadow-inner">
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
               <SelectContent className="bg-surface-container border-white/10">
@@ -114,13 +114,13 @@ export default function OfferForm({
           </div>
 
           <div className="space-y-4">
-            <Label className="text-on-surface-variant/40 uppercase text-[10px] font-bold tracking-[0.3em] ml-2">Handshake Method</Label>
+            <Label htmlFor="method" className="text-on-surface-variant/40 uppercase text-[10px] font-bold tracking-[0.3em] ml-2">Handshake Method</Label>
             <Select
               defaultValue={offer ? offer.method : undefined}
               onValueChange={(val) => form.setFieldValue('method', val)}
               disabled={!!offer}
             >
-              <SelectTrigger className="bg-surface-lowest ghost-border h-14 rounded-xl text-xs font-bold uppercase tracking-widest px-6 shadow-inner">
+              <SelectTrigger id="method" className="bg-surface-lowest ghost-border h-14 rounded-xl text-xs font-bold uppercase tracking-widest px-6 shadow-inner">
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
               <SelectContent className="bg-surface-container border-white/10">
@@ -138,10 +138,11 @@ export default function OfferForm({
         <div className="text-[10px] font-bold uppercase tracking-[0.4em] text-on-surface-variant/40 ml-1">02 • Market Economics</div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-end">
           <div className="space-y-4">
-            <Label className="text-on-surface-variant/40 uppercase text-[10px] font-bold tracking-[0.3em] ml-2">Exchange Margin (%)</Label>
+            <Label htmlFor="rate" className="text-on-surface-variant/40 uppercase text-[10px] font-bold tracking-[0.3em] ml-2">Exchange Margin (%)</Label>
             <div className="flex items-center gap-6">
               <div className="relative flex-1 group">
                 <Input
+                  id="rate"
                   type="number"
                   step="0.01"
                   className="bg-surface-lowest ghost-border h-16 rounded-xl pr-16 text-2xl font-bold shadow-inner group-focus-within:neon-glow transition-all"
@@ -168,9 +169,10 @@ export default function OfferForm({
           </div>
 
           <div className="space-y-4">
-            <Label className="text-on-surface-variant/40 uppercase text-[10px] font-bold tracking-[0.3em] ml-2">Protocol Trading Limits</Label>
+            <Label htmlFor="minLimit" className="text-on-surface-variant/40 uppercase text-[10px] font-bold tracking-[0.3em] ml-2">Protocol Trading Limits</Label>
             <div className="flex items-center gap-4">
               <Input
+                id="minLimit"
                 placeholder="Min Limit"
                 className="bg-surface-lowest ghost-border h-16 rounded-xl text-2xl font-bold px-8 shadow-inner focus-visible:neon-glow"
                 defaultValue={offer ? offer.min : undefined}
@@ -178,6 +180,7 @@ export default function OfferForm({
               />
               <span className="text-on-surface-variant/20 font-bold">—</span>
               <Input
+                id="maxLimit"
                 placeholder="Max Limit"
                 className="bg-surface-lowest ghost-border h-16 rounded-xl text-2xl font-bold px-8 shadow-inner focus-visible:neon-glow"
                 defaultValue={offer ? offer.max : undefined}
@@ -194,8 +197,9 @@ export default function OfferForm({
       {/* Step 3: Terms */}
       <div className="space-y-4">
         <div className="text-[10px] font-bold uppercase tracking-[0.4em] text-on-surface-variant/40 ml-1">03 • Immutable Terms</div>
-        <Label className="text-on-surface-variant/40 uppercase text-[10px] font-bold tracking-[0.3em] ml-2 hidden">Terms & Conditions</Label>
+        <Label htmlFor="terms" className="text-on-surface-variant/40 uppercase text-[10px] font-bold tracking-[0.3em] ml-2">Execution Terms</Label>
         <textarea
+          id="terms"
           rows={6}
           placeholder="Blockchain written. Keep terms concise, clear, and professional. Visible to all market participants."
           className="flex min-h-[160px] w-full rounded-[2rem] ghost-border bg-surface-lowest px-10 py-8 text-lg font-medium tracking-tight ring-offset-background placeholder:text-on-surface-variant/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ghost-border disabled:cursor-not-allowed disabled:opacity-50 transition-all shadow-inner"

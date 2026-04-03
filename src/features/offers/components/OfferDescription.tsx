@@ -2,6 +2,8 @@ import { Username } from '@/shared/web3'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 export default function OfferDescription({ offer }: { offer: any }) {
+  if (!offer) return null
+
   const items = [
     { label: 'Market Participant', children: <div className="flex items-center gap-3">
         <Avatar className="h-8 w-8 border border-white/10 p-0.5">

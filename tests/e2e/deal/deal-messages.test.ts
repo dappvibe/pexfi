@@ -14,10 +14,9 @@ test.describe.serial('Deal messaging', () => {
 
     const taker = await createParty(`/trade/offer/${offerAddress}`)
     await taker.setAccount(1)
-    await taker.page.getByPlaceholder('Crypto Amount').fill('0.1')
-    await taker.page.getByPlaceholder('Fiat Amount').fill('150')
-    await taker.page.getByRole('button', { name: 'Open Deal' }).click()
-    await expect(taker.page.getByText('Deal submitted')).toBeVisible()
+    await taker.page.getByPlaceholder('0.00').first().fill('0.1')
+    await taker.page.getByRole('button', { name: 'Initialize Deal' }).click()
+
     await taker.page.waitForURL(/\/trade\/deal\/0x[a-fA-F0-9]{40}/)
     const dealAddress = taker.page.url().split('/').pop()
     await maker.page.goto('/#/trade/deal/' + dealAddress)

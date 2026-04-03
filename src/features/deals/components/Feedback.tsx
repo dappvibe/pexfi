@@ -4,7 +4,7 @@ import { useDealFeedback } from '@/features/deals/hooks/useDealFeedback'
 import { useQueryOffer } from '@/features/offers/hooks/useQueryOffer'
 import { useConnection, useWriteContract } from 'wagmi'
 import { dealAbi } from '@/wagmi'
-import { equal } from '@/utils'
+import { isAddressEqual, type Address } from 'viem'
 import { Button } from '@/components/ui/button'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
@@ -14,7 +14,7 @@ import { useToast } from '@/components/ui/use-toast'
 export default function Feedback() {
   const { deal } = useDeal()
   const { feedback } = useDealFeedback(deal?.address, deal?.taker)
-  const { offer } = useQueryOffer(deal?.offer)
+  const { offer, isLoading } = useQueryOffer(deal?.offer)
   const { address: account } = useConnection()
   const { writeContractAsync, isPending } = useWriteContract()
   const { toast } = useToast()
@@ -22,16 +22,16 @@ export default function Feedback() {
   const [good, setGood] = useState<boolean | null>(null)
   const [comments, setComments] = useState('')
 
-  if (!account || !offer) return <div className="h-64 animate-pulse bg-white/5 rounded-[2rem]" />
+  if (!account || !offer || isLoading || !deal) return <div className="h-64 animate-pulse bg-white/5 rounded-[2rem]" />
 
-  const isOwner = equal(account, offer.owner)
-  const isTaker = equal(account, deal.taker)
+  const isOwner = isAddressEqual(account as Address, offer.owner)
+  const isTaker = isAddressEqual(account as Address, deal.taker)
 
   const feedbackGiven = isOwner ? feedback.forTaker?.given : isTaker ? feedback.forOwner?.given : false
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (good === null) return
+    if (good === null || !deal) return
 
     const t = toast({ title: "Submitting Feedback", description: "Waiting for wallet..." })
     try {

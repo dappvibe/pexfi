@@ -35,6 +35,7 @@ export default function OffersTable({ offers, loading, loadMore, totalOffers }) 
               return (
                 <TableRow
                   key={offer.id}
+                  data-row-key={offer.id.toLowerCase()}
                   className="group hover:bg-white/[0.02] border-white/5 transition-all duration-300 relative cursor-default"
                 >
                   <TableCell className="pl-10 py-10">
@@ -90,7 +91,7 @@ export default function OffersTable({ offers, loading, loadMore, totalOffers }) 
                   <TableCell className="pr-10 py-10 text-right">
                     <Button asChild size="default" variant={side === 'sell' ? 'neon' : 'outline'} className="min-w-[140px] h-12 text-[10px] rounded-xl">
                       <Link to={generatePath('/trade/offer/:id', { id: offer.id })}>
-                        {side === 'sell' ? 'Buy Protocol Assets' : 'Sell Protocol Assets'}
+                        {side === 'sell' ? 'Buy' : 'Sell'}
                       </Link>
                     </Button>
                   </TableCell>

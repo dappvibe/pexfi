@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 
 export default function OfferSubnav({ offer }: { offer: any }) {
+  if (!offer) return null
+
   return (
     <div className="flex items-center gap-4 py-4">
       <Link

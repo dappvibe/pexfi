@@ -39,29 +39,28 @@ export async function createOfferOnPage(page: Page, params: OfferParams = {}): P
   await page.goto('/#/trade/offer/new')
 
   if (p.isSell) {
-    await page.locator('#isSell').getByText('Sell').click()
+    await page.getByLabel('Sell').click()
   } else {
-    await page.locator('#isSell').getByText('Buy').click()
+    await page.getByLabel('Buy').click()
   }
 
-  await page.getByLabel('token').click()
-  await page.getByTitle(p.token).click()
+  await page.locator('#token').click()
+  await page.getByRole('option', { name: p.token }).click()
 
-  await page.getByLabel('for').click()
-  await page.getByTitle(p.fiat).click()
+  await page.locator('#fiat').click()
+  await page.getByRole('option', { name: p.fiat }).click()
 
-  await page.getByLabel('using').click()
-  await page.getByTitle(p.method).click()
+  await page.locator('#method').click()
+  await page.getByRole('option', { name: p.method }).click()
 
-  await page.getByLabel('Margin').click()
-  await page.getByLabel('Margin').fill(p.margin)
+  await page.locator('#rate').fill(p.margin)
 
-  await page.getByLabel('Limits').fill(p.limitMin)
-  await page.getByLabel('-', { exact: true }).fill(p.limitMax)
+  await page.locator('#minLimit').fill(p.limitMin)
+  await page.locator('#maxLimit').fill(p.limitMax)
 
-  await page.getByLabel('Terms').fill(p.terms)
+  await page.locator('#terms').fill(p.terms)
 
-  await page.getByRole('button', { name: 'Deploy contract' }).click()
+  await page.getByRole('button', { name: 'DEPLOY SMART CONTRACT' }).click()
   await expect(page).toHaveURL(/.*\/trade\/offer\/0x[0-9A-f]{40}$/, { timeout: 30000 })
 
   const address = page.url().split('/').pop()!
