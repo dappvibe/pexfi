@@ -12,6 +12,79 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-25..0" />
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-dim": "#131315",
+              "error": "#ffb4ab",
+              "surface-variant": "#353437",
+              "on-tertiary-fixed-variant": "#673d00",
+              "surface-container": "#201f22",
+              "primary-container": "#a078ff",
+              "outline-variant": "#494454",
+              "secondary-fixed-dim": "#d0bcff",
+              "primary-fixed": "#e9ddff",
+              "on-primary-container": "#340080",
+              "primary": "#d0bcff",
+              "on-secondary-fixed-variant": "#4e3b7c",
+              "on-tertiary-fixed": "#2c1700",
+              "inverse-surface": "#e5e1e4",
+              "on-error-container": "#ffdad6",
+              "surface-container-high": "#2a2a2c",
+              "secondary-container": "#513e7f",
+              "on-secondary-fixed": "#220b4e",
+              "on-background": "#e5e1e4",
+              "primary-fixed-dim": "#d0bcff",
+              "on-surface": "#e5e1e4",
+              "inverse-on-surface": "#313032",
+              "surface-container-low": "#1c1b1d",
+              "surface-container-highest": "#353437",
+              "on-secondary-container": "#c3adf7",
+              "secondary": "#d0bcff",
+              "inverse-primary": "#6d3bd7",
+              "surface-tint": "#d0bcff",
+              "tertiary-container": "#ca801e",
+              "on-surface-variant": "#cbc3d7",
+              "tertiary-fixed": "#ffdcbb",
+              "background": "#131315",
+              "secondary-fixed": "#e9ddff",
+              "on-primary-fixed": "#23005c",
+              "on-primary": "#3c0091",
+              "on-secondary": "#372464",
+              "surface-bright": "#39393b",
+              "surface": "#131315",
+              "on-tertiary-container": "#3f2300",
+              "tertiary-fixed-dim": "#ffb869",
+              "surface-container-lowest": "#0e0e10",
+              "tertiary": "#ffb869",
+              "on-tertiary": "#482900",
+              "outline": "#958ea0",
+              "on-error": "#690005",
+              "error-container": "#93000a",
+              "on-primary-fixed-variant": "#5516be"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+    <style>
+        .glass { background: rgba(53, 52, 55, 0.6); backdrop-filter: blur(20px); }
+        .primary-gradient { background: linear-gradient(135deg, #d0bcff 0%, #a078ff 100%); }
+        .text-gradient { background: linear-gradient(135deg, #d0bcff 0%, #a078ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .ambient-glow { box-shadow: 0 0 40px -10px rgba(208, 188, 255, 0.2); }
+    </style>
   </head>
   <body>
     <div id="root"></div>
