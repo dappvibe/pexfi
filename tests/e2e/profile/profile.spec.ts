@@ -4,7 +4,7 @@ test.describe('Profile', () => {
   test('should create a profile and display stats', async ({ page, setAccount }) => {
     // 1. Use a fresh account (index 9) to ensure no profile exists
     await page.goto('/')
-    await setAccount(0)
+    await setAccount(9)
 
     // 2. Navigate to own profile page
     await page.goto('/#/me')
