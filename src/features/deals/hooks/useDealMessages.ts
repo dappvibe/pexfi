@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Address } from 'viem'
 import { useChainId, usePublicClient, useWatchContractEvent } from 'wagmi'
 import { dealAbi } from '@/wagmi'
@@ -9,6 +9,8 @@ export type Message = {
   timestamp: number
 }
 
+const blockHashCache = new Map<string, number>()
+
 export function useDealMessages(address: Address | undefined) {
   const chainId = useChainId()
   const publicClient = usePublicClient()
@@ -18,51 +20,52 @@ export function useDealMessages(address: Address | undefined) {
     setMessages([])
   }, [chainId])
 
-  useEffect(() => {
+  const fetchLogs = useCallback(async () => {
     if (!address || !publicClient) return
-    publicClient
-      .getLogs({
-        address,
-        event: {
-          type: 'event',
-          name: 'Message',
-          inputs: [
-            { type: 'address', name: 'sender', indexed: true },
-            { type: 'string', name: 'message', indexed: false },
-          ],
-        },
-        fromBlock: 'earliest',
-        toBlock: 'latest',
-      })
-      .then(async (logs) => {
-        const blockHashToTimestamp = new Map<string, number>()
-        const validBlockHashes = logs.map((log) => log.blockHash).filter((hash): hash is NonNullable<typeof hash> => !!hash)
-        const uniqueBlockHashes = [...new Set(validBlockHashes)]
-        await Promise.all(
-          uniqueBlockHashes.map(async (hash) => {
-            const block = await publicClient.getBlock({ blockHash: hash })
-            blockHashToTimestamp.set(hash, Number(block.timestamp))
-          })
-        )
+    const logs = await publicClient.getLogs({
+      address,
+      event: {
+        type: 'event',
+        name: 'Message',
+        inputs: [
+          { type: 'address', name: 'sender', indexed: true },
+          { type: 'string', name: 'message', indexed: false },
+        ],
+      },
+      fromBlock: 'earliest',
+      toBlock: 'latest',
+    })
 
-        const parsed = logs.map((log) => ({
-          sender: log.args.sender as Address,
-          message: log.args.message as string,
-          timestamp: log.blockHash ? (blockHashToTimestamp.get(log.blockHash) ?? 0) : 0,
-        }))
-        setMessages(parsed)
+    const validBlockHashes = logs.map((log) => log.blockHash).filter((hash): hash is NonNullable<typeof hash> => !!hash)
+    const uniqueBlockHashes = [...new Set(validBlockHashes)]
+    const missingHashes = uniqueBlockHashes.filter(hash => !blockHashCache.has(hash))
+    
+    await Promise.all(
+      missingHashes.map(async (hash) => {
+        const block = await publicClient.getBlock({ blockHash: hash })
+        blockHashCache.set(hash, Number(block.timestamp))
       })
+    )
+
+    const parsed = logs.map((log) => ({
+      sender: log.args.sender as Address,
+      message: log.args.message as string,
+      timestamp: log.blockHash ? (blockHashCache.get(log.blockHash) ?? 0) : 0,
+    }))
+    
+    setMessages(parsed)
   }, [address, publicClient])
+
+  useEffect(() => {
+    fetchLogs()
+  }, [fetchLogs])
 
   useWatchContractEvent({
     address,
     abi: dealAbi,
     eventName: 'Message',
-    onLogs: (logs) => {
-      logs.forEach((log) => {
-        const { sender, message } = log.args as { sender: Address; message: string }
-        setMessages((prev) => [...prev, { sender, message, timestamp: Math.floor(Date.now() / 1000) }])
-      })
+    onLogs: () => {
+      fetchLogs()
     },
     enabled: !!address,
   })

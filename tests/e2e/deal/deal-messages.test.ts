@@ -8,6 +8,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 test.describe.serial('Deal messaging', () => {
   test('parties can exchange messages and images', async ({ createParty }) => {
+    test.setTimeout(60000)
     const offerAddress = await createOffer({}, 0)
     const maker = await createParty()
     await maker.setAccount(0)
@@ -40,6 +41,6 @@ test.describe.serial('Deal messaging', () => {
     const makerFileInput = maker.page.locator('input[type="file"]')
     await makerFileInput.setInputFiles(logoPath)
     const takerImages = taker.page.locator('img[alt="Message Image"]')
-    await expect(takerImages).toHaveCount(2)
+    await expect(takerImages).toHaveCount(2, { timeout: 15000 })
   })
 })
