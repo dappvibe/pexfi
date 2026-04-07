@@ -173,7 +173,6 @@ export async function createDeal(offerAddress: `0x${string}`, params: CreateDeal
     abi: offerAbi,
     functionName: 'createDeal',
     args: [
-      MARKET_ADDRESS,
       {
         fiatAmount: BigInt(Math.floor(Number(params.fiatAmount) * 10 ** 6)),
         paymentInstructions: params.paymentInstructions || 'e2e instructions',
