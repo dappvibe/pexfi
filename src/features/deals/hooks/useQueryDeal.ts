@@ -12,6 +12,16 @@ const GQL_DEAL = gql`
       fiatAmount
       terms
       paymentInstructions
+      feedbackForOwner {
+        id
+        upvote
+        message
+      }
+      feedbackForTaker {
+        id
+        upvote
+        message
+      }
     }
   }
 `
@@ -22,6 +32,16 @@ interface GraphDeal {
   fiatAmount: string
   terms: string | null
   paymentInstructions: string | null
+  feedbackForOwner: {
+    id: string
+    upvote: boolean
+    message: string
+  } | null
+  feedbackForTaker: {
+    id: string
+    upvote: boolean
+    message: string
+  } | null
 }
 
 export function useQueryDeal(dealId: string | undefined) {
@@ -38,6 +58,8 @@ export function useQueryDeal(dealId: string | undefined) {
     let fiatAmountFormatted = 0
     let terms = ''
     let paymentInstructions = ''
+    let feedbackForOwner: GraphDeal['feedbackForOwner'] = null
+    let feedbackForTaker: GraphDeal['feedbackForTaker'] = null
 
     if (subgraphData?.deal) {
       const d = subgraphData.deal
@@ -51,6 +73,8 @@ export function useQueryDeal(dealId: string | undefined) {
       fiatAmountFormatted = Number(fiatAmount) / 10 ** 6
       terms = d.terms || ''
       paymentInstructions = d.paymentInstructions || ''
+      feedbackForOwner = d.feedbackForOwner
+      feedbackForTaker = d.feedbackForTaker
     }
 
     return {
@@ -59,6 +83,8 @@ export function useQueryDeal(dealId: string | undefined) {
       fiatAmountFormatted,
       terms,
       paymentInstructions,
+      feedbackForOwner,
+      feedbackForTaker,
     }
   }, [subgraphData, methods])
 

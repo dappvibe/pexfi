@@ -21,6 +21,12 @@ export function useDeal() {
       fiatAmountFormatted: subgraphInfo?.fiatAmountFormatted || contractDeal.fiatAmountFormatted,
       terms: subgraphInfo?.terms || contractDeal.terms,
       paymentInstructions: subgraphInfo?.paymentInstructions || contractDeal.paymentInstructions,
+      feedbackForOwner: subgraphInfo?.feedbackForOwner
+        ? { given: true, upvote: subgraphInfo.feedbackForOwner.upvote }
+        : undefined,
+      feedbackForTaker: subgraphInfo?.feedbackForTaker
+        ? { given: true, upvote: subgraphInfo.feedbackForTaker.upvote }
+        : undefined,
     }
   }, [contractDeal, subgraphInfo])
 

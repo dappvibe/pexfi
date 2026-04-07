@@ -13,13 +13,23 @@ export type FeedbackState = {
   forTaker?: Feedback
 }
 
-export function useDealFeedback(address: Address | undefined, taker: Address | undefined) {
+export function useDealFeedback(
+  address: Address | undefined,
+  taker: Address | undefined,
+  initialFeedback?: FeedbackState,
+) {
   const chainId = useChainId()
-  const [feedback, setFeedback] = useState<FeedbackState>({})
+  const [feedback, setFeedback] = useState<FeedbackState>(initialFeedback || {})
 
   useEffect(() => {
-    setFeedback({})
-  }, [chainId])
+    setFeedback(initialFeedback || {})
+  }, [
+    chainId,
+    initialFeedback?.forOwner?.given,
+    initialFeedback?.forOwner?.upvote,
+    initialFeedback?.forTaker?.given,
+    initialFeedback?.forTaker?.upvote,
+  ])
 
   useWatchContractEvent({
     address,

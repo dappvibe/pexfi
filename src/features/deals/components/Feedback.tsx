@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { Button, Form, Input, Radio, Result, Skeleton } from 'antd'
 import { useDeal } from '@/features/deals/hooks/useDeal.ts'
 import { useDealFeedback } from '@/features/deals/hooks/useDealFeedback'
@@ -8,7 +9,12 @@ import { equal } from '@/utils'
 
 export default function Feedback() {
   const { deal } = useDeal()
-  const { feedback } = useDealFeedback(deal?.address, deal?.taker)
+  const initialFeedback = useMemo(() => ({
+    forOwner: deal?.feedbackForOwner,
+    forTaker: deal?.feedbackForTaker,
+  }), [deal?.feedbackForOwner, deal?.feedbackForTaker])
+
+  const { feedback } = useDealFeedback(deal?.address, deal?.taker, initialFeedback)
   const { offer } = useQueryOffer(deal?.offer)
   const { address: account } = useConnection()
   const { writeContractAsync, isPending } = useWriteContract()
