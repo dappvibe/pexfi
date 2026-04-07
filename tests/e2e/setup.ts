@@ -64,9 +64,13 @@ export async function createOfferOnPage(page: Page, params: OfferParams = {}): P
   await page.getByRole('button', { name: 'Deploy contract' }).click()
   await expect(page).toHaveURL(/.*\/trade\/offer\/0x[0-9A-f]{40}$/, { timeout: 30000 })
 
+  // Wait for subgraph to index the offer and skeleton to disappear
+  await expect(page.locator('.ant-skeleton')).not.toBeVisible({ timeout: 30000 })
+
   const address = page.url().split('/').pop()!
   return { address, params: p }
 }
+
 
 export async function createPartyContext(browser: import('@playwright/test').Browser, startPage = '/'): Promise<PartyContext & { ctx: BrowserContext }> {
   const ctx = await browser.newContext()

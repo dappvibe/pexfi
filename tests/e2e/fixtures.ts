@@ -18,6 +18,29 @@ export const publicClient = createPublicClient({
   transport,
 })
 
+/**
+ * Polls the subgraph until a given condition is met.
+ * Useful for ensuring the subgraph has indexed the latest transactions.
+ */
+async function waitForSubgraph(query: string, check: (data: any) => boolean) {
+  const url = 'http://localhost:8000/subgraphs/name/hardhat'
+  for (let i = 0; i < 60; i++) {
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query }),
+      })
+      const { data } = await response.json()
+      if (check(data)) return
+    } catch (e) {
+      // Ignore errors (e.g. subgraph not ready yet)
+    }
+    await new Promise((resolve) => setTimeout(resolve, 500))
+  }
+  throw new Error(`Subgraph timeout for query: ${query}`)
+}
+
 export type CreateOfferParams = {
   isSell?: boolean
   margin?: number | string
@@ -74,7 +97,15 @@ export async function createOffer(params: CreateOfferParams = {}, accountIndex =
 
   if (logs.length === 0) throw new Error('OfferCreated event not found')
 
-  return (logs[0].args as any).offer as `0x${string}`
+  const offerAddress = (logs[0].args as any).offer as `0x${string}`
+
+  // Wait for subgraph to index the offer
+  await waitForSubgraph(
+    `{ offer(id: "${offerAddress.toLowerCase()}") { id } }`,
+    (data) => !!data?.offer
+  )
+
+  return offerAddress
 }
 
 export type CreateDealParams = {
@@ -162,5 +193,14 @@ export async function createDeal(offerAddress: `0x${string}`, params: CreateDeal
 
   if (logs.length === 0) throw new Error('DealCreated event not found')
 
-  return (logs[0].args as any).deal as `0x${string}`
+  const dealAddress = (logs[0].args as any).deal as `0x${string}`
+
+  // Wait for subgraph to index the deal
+  await waitForSubgraph(
+    `{ deal(id: "${dealAddress.toLowerCase()}") { id } }`,
+    (data) => !!data?.deal
+  )
+
+  return dealAddress
 }
+
