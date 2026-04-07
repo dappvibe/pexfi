@@ -269,12 +269,17 @@ export default function Controls() {
       break
 
     case DealState.Accepted:
-      // Seller cannot cancel after accepting - must fund or wait for timeout
       if (isSeller) {
         controls.push(action.fund)
+        if (deal.allowCancelUnpaidAfter <= new Date()) {
+          controls.push(action.cancel)
+        }
       }
       if (isBuyer) {
         controls.push(action.countFund)
+        if (deal.allowCancelUnpaidAfter <= new Date()) {
+          controls.push(action.cancel)
+        }
       }
       break
 
@@ -288,7 +293,9 @@ export default function Controls() {
       }
       if (isBuyer) {
         controls.push(action.paid)
-        controls.push(action.cancel)
+        if (deal.allowCancelUnpaidAfter <= new Date()) {
+          controls.push(action.cancel)
+        }
       }
       break
 

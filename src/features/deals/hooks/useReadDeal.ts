@@ -124,6 +124,7 @@ export function useReadDeal(address: Address | undefined) {
       const newState = logs[0]?.args?.state
       if (newState !== undefined) {
         setState(Number(newState) as DealState)
+        refetch()
       }
     },
     enabled: !!address,

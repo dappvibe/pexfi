@@ -1,5 +1,5 @@
 import { test, expect } from '@tests/e2e/setup'
-import { accept, fund, markPaid, release, leaveFeedback } from './actions'
+import { accept, fund, markPaid, release, leaveFeedback, expectState } from './actions'
 import { createOffer } from '../fixtures'
 
 test.describe.serial('Deal flow', () => {
@@ -24,6 +24,7 @@ test.describe.serial('Deal flow', () => {
 
     // Deal progression
     await accept(maker)
+    await expectState(taker, 'Funding')
 
     await fund(taker)
     // Taker is seller, they should see "Waiting for payment"
@@ -60,7 +61,7 @@ test.describe.serial('Deal flow', () => {
 
     // Deal progression - maker funds since they're selling crypto
     await accept(maker)
-    await expect(taker.page.locator('#root').getByText('Accepted')).toBeVisible()
+    await expectState(taker, 'Funding')
 
     await fund(maker)
     // Maker is seller, they should see "Waiting for payment"

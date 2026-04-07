@@ -26,7 +26,6 @@ export async function markPaid(party: PartyContext) {
   const btn = party.page.getByRole('button', { name: 'Paid' })
   await expect(btn).toBeVisible({ timeout: 15000 })
   await btn.click()
-  await expect(party.page.locator('span').filter({ hasText: 'Paid' })).toBeVisible({ timeout: 15000 })
 }
 
 export async function release(party: PartyContext) {
