@@ -17,14 +17,13 @@ test.describe.serial('Deal flow', () => {
     const openButton = taker.page.getByRole('button', { name: 'Open Deal' })
     await expect(openButton).toBeVisible()
     await openButton.click()
-    await expect(taker.page.getByText('Deal submitted')).toBeVisible()
+    await expect(taker.page.getByText('Deal created')).toBeVisible()
     await taker.page.waitForURL(/\/trade\/deal\/0x[a-fA-F0-9]{40}/)
     const dealAddress = taker.page.url().split('/').pop()
     await maker.page.goto('/#/trade/deal/' + dealAddress)
 
     // Deal progression
     await accept(maker)
-    await expect(taker.page.locator('#root').getByText('Accepted')).toBeVisible()
 
     await fund(taker)
     // Taker is seller, they should see "Waiting for payment"

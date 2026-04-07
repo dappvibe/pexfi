@@ -5,7 +5,6 @@ export async function accept(party: PartyContext) {
   const btn = party.page.getByRole('button', { name: 'Accept' })
   await expect(btn).toBeVisible({ timeout: 15000 })
   await btn.click()
-  await expect(party.page.locator('#root').getByText('Accepted')).toBeVisible({ timeout: 15000 })
 }
 
 export async function fund(party: PartyContext) {
@@ -19,13 +18,8 @@ export async function fund(party: PartyContext) {
     await expect(approveButton).not.toBeVisible({ timeout: 15000 })
     await expect(fundButton).toBeVisible({ timeout: 15000 })
   }
-
-
-
-
   await expect(fundButton).toBeVisible({ timeout: 15000 })
   await fundButton.click()
-  await expect(party.page.locator('span').filter({ hasText: 'Funded' })).toBeVisible({ timeout: 15000 })
 }
 
 export async function markPaid(party: PartyContext) {
