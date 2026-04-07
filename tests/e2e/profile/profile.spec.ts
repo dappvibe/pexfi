@@ -10,14 +10,13 @@ test.describe('Profile', () => {
     await page.goto('/#/me')
 
     // 3. Verify "Mint" button or "Profile token ID:" is visible
-    const mintButton = page.getByRole('button', { name: 'Mint' })
-    const tokenIdText = page.locator('div.ant-card-head-title')
+    const mintButton = page.getByRole('button', { name: /mint/i })
+    const tokenIdText = page.getByText(/Profile token ID:/)
 
     // Wait for either the Mint button or the profile ID to appear
     await expect(async () => {
       const isMintVisible = await mintButton.isVisible()
-      const text = await tokenIdText.textContent()
-      const isProfileVisible = text?.includes('Profile token ID:')
+      const isProfileVisible = await tokenIdText.isVisible()
       expect(isMintVisible || isProfileVisible).toBeTruthy()
     }).toPass({ timeout: 10000 })
 
@@ -31,7 +30,7 @@ test.describe('Profile', () => {
 
     // 5. Verify that stats are displayed after minting (or if they were already there)
     // We expect "Profile token ID: " to appear
-    await expect(tokenIdText).toContainText('Profile token ID:', { timeout: 30000 })
+    await expect(tokenIdText).toBeVisible({ timeout: 30000 })
 
     // 6. Check that some stats are visible
     await expect(page.getByText('Rating')).toBeVisible()
@@ -47,15 +46,15 @@ test.describe('Profile', () => {
   test('should display existing profile stats', async ({ page, setAccount }) => {
     // Use the same account as before (it should already have a profile now)
     await page.goto('/')
-    await setAccount(7)
+    await setAccount(9)
 
     await page.goto('/#/me')
 
     // Should NOT show Mint button
-    await expect(page.getByRole('button', { name: 'Mint' })).not.toBeVisible()
+    await expect(page.getByRole('button', { name: /mint/i })).not.toBeVisible()
 
     // Should show stats directly
-    await expect(page.locator('div.ant-card-head-title')).toContainText('Profile token ID:')
+    await expect(page.getByText(/Profile token ID:/)).toBeVisible()
     await expect(page.getByText('Rating')).toBeVisible()
   })
 })
