@@ -14,7 +14,7 @@ export default function Feedback() {
     forTaker: deal?.feedbackForTaker,
   }), [deal?.feedbackForOwner, deal?.feedbackForTaker])
 
-  const { feedback } = useDealFeedback(deal?.address, deal?.taker, initialFeedback)
+  const { feedback, setFeedback } = useDealFeedback(deal?.address, deal?.taker, initialFeedback)
   const { offer } = useQueryOffer(deal?.offer)
   const { address: account } = useConnection()
   const { writeContractAsync, isPending } = useWriteContract()
@@ -28,12 +28,20 @@ export default function Feedback() {
   const feedbackGiven = isOwner ? feedback.forTaker?.given : isTaker ? feedback.forOwner?.given : false
 
   async function submit() {
-    await writeContractAsync({
+    const hash = await writeContractAsync({
       address: deal.address,
       abi: dealAbi,
       functionName: 'feedback',
       args: [form.getFieldValue('good'), form.getFieldValue('comments') || ''],
     })
+
+    if (hash) {
+      const fb = { given: true, upvote: form.getFieldValue('good') }
+      setFeedback((prev) => ({
+        ...prev,
+        ...(isOwner ? { forTaker: fb } : { forOwner: fb }),
+      }))
+    }
   }
 
   if (feedbackGiven) {

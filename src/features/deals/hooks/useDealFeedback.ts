@@ -48,5 +48,5 @@ export function useDealFeedback(
     enabled: !!address && !!taker,
   })
 
-  return { feedback }
+  return { feedback, setFeedback }
 }
