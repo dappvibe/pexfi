@@ -59,3 +59,66 @@ body {
 .ant-form-item-label label {
   height: auto !important;
 }
+
+.dark-select .ant-select-selector {
+  color: #e5e1e4 !important;
+  background: transparent !important;
+}
+
+.dark-select .ant-select-arrow {
+  color: #cbc3d7 !important;
+}
+
+/* Ensure borderless variants are truly transparent */
+.ant-input-borderless, 
+.ant-input-borderless:hover, 
+.ant-input-borderless:focus,
+.ant-select-borderless .ant-select-selector {
+  background-color: transparent !important;
+  color: #e5e1e4 !important;
+}
+
+/* Offers Table Styles */
+.offers-table-container .ant-table {
+  background: transparent !important;
+}
+
+.offers-table-container .ant-table-thead > tr > th {
+  background: transparent !important;
+  border-bottom: none !important;
+  color: #cbc3d7 !important;
+  font-size: 0.625rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  padding: 16px 24px !important;
+}
+
+.offers-table-container .ant-table-tbody > tr > td {
+  border-bottom: none !important;
+  padding: 24px !important;
+  transition: all 0.2s !important;
+  background: #1c1b1d !important; /* surface-container-low */
+  border-top: 1px solid rgba(73, 68, 84, 0.1) !important;
+  border-bottom: 1px solid rgba(73, 68, 84, 0.1) !important;
+}
+
+.offers-table-container .offer-row:hover > td {
+  background: #252426 !important; /* surface-container-high */
+}
+
+/* Row spacing effect */
+.offers-table-container .ant-table-content table {
+  border-separate: separate !important;
+  border-spacing: 0 12px !important;
+}
+
+.offers-table-container .offer-row td:first-child {
+  border-radius: 16px 0 0 16px !important;
+  border-left: 1px solid rgba(73, 68, 84, 0.1) !important;
+}
+
+.offers-table-container .offer-row td:last-child {
+  border-radius: 0 16px 16px 0 !important;
+  border-right: 1px solid rgba(73, 68, 84, 0.1) !important;
+}

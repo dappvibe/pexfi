@@ -16,7 +16,6 @@ export type OffersFilter = {
 }
 
 export type OffersRequestParams = {
-  // Where clause for fields. See the graph type Offer_filter
   filter: OffersFilter
   order: 'asc' | 'desc'
 }
@@ -24,7 +23,6 @@ export type OffersRequestParams = {
 
 export type Offer = {
   id: string
-  // the owner address is always here even if the profile is not created
   owner: string
   profile: {
     id: string
@@ -32,10 +30,9 @@ export type Offer = {
     rating: number
   } | null
   isSell: boolean
-  token: Pick<Token, 'id' | 'name' | 'decimals'>
+  token: Pick<Token, 'id' | 'name' | 'decimals' | 'address'>
   fiat: string
   methods: string
-  // rate is just a multiplier, not a price. must be factored by market price to display the actual price
   rate: number
   minFiat: number
   maxFiat: number
@@ -45,7 +42,6 @@ export type Offer = {
 
 export type UseQueryOffersResult = {
   offers: Offer[] | undefined
-  // We know the number of records only if all are fetched
   totalCount: number | null
   loading: boolean
   error: Error | undefined
@@ -112,7 +108,7 @@ export function useQueryOffers(params: OffersRequestParams): UseQueryOffersResul
         if (fetchMoreResult.offers.length < RECORDS_PER_FETCH) {
           setTotalCount(prev.offers.length + fetchMoreResult.offers.length)
         } // fetched all
-        return { offers: [...prev.offers, ...fetchMoreResult.offers] }
+        return { ...prev, offers: [...prev.offers, ...fetchMoreResult.offers] }
       },
     })
   }

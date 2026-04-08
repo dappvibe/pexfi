@@ -11,15 +11,13 @@ interface UsernameProps {
   address: string
   avatar?: boolean
   profile?: Profile | null
+  style?: React.CSSProperties
 }
 
-export default function Username({ address, avatar = false, profile = null }: UsernameProps) {
-  const trades = profile?.dealsCompleted ?? '-'
-  const rating = profile?.rating ?? '??'
-
+export default function Username({ address, avatar = false, profile = null, style }: UsernameProps) {
   const link = (
-    <Link to={'/profile/' + address}>
-      {shortenAddress(address)} ({trades}; {rating}%)
+    <Link to={'/profile/' + address} style={style}>
+      {shortenAddress(address)}
     </Link>
   )
 
