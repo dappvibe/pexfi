@@ -71,7 +71,53 @@ export const Providers = ({ children }: { children: ReactNode }) => {
         <QueryClientProvider client={queryClient}>
           <ApolloChainProvider>
             <HelmetProvider>
-              <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
+              <ConfigProvider
+                theme={{
+                  algorithm: theme.darkAlgorithm,
+                  token: {
+                    colorPrimary: '#d0bcff',
+                    colorBgBase: '#131315',
+                    colorSurface: '#131315',
+                    borderRadius: 8,
+                    fontFamily: 'Inter, sans-serif',
+                  },
+                  components: {
+                    Layout: {
+                      headerBg: '#131315',
+                      bodyBg: '#131315',
+                    },
+                    Card: {
+                      colorBgContainer: '#201f22',
+                    },
+                    Menu: {
+                      darkItemBg: 'transparent',
+                    },
+                    Select: {
+                      selectorBg: '#0e0e10',
+                      borderBg: 'transparent',
+                      colorBorder: 'transparent',
+                      colorTextPlaceholder: 'rgba(255,255,255,0.25)',
+                      controlHeightLG: 56,
+                    },
+                    Input: {
+                      activeBorderColor: 'rgba(208, 188, 255, 0.4)',
+                      hoverBorderColor: 'transparent',
+                      colorBorder: 'transparent',
+                    },
+                    InputNumber: {
+                      activeBorderColor: 'rgba(208, 188, 255, 0.4)',
+                      hoverBorderColor: 'transparent',
+                      colorBorder: 'transparent',
+                    },
+                    Radio: {
+                      buttonBg: 'transparent',
+                      buttonCheckedBg: '#353437',
+                      buttonSolidCheckedBg: '#353437',
+                      colorBorder: 'transparent',
+                    }
+                  },
+                }}
+              >
                 <AntdApp>{children}</AntdApp>
               </ConfigProvider>
             </HelmetProvider>

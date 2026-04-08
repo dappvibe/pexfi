@@ -61,6 +61,10 @@ export async function createOfferOnPage(page: Page, params: OfferParams = {}): P
 
   await page.getByLabel('Terms').fill(p.terms)
 
+  // Verify price is not zero
+  const priceLocator = page.locator('div:has-text("Resulting Price") >> div').last()
+  await expect(priceLocator).not.toHaveText('0.00', { timeout: 10000 })
+
   await page.getByRole('button', { name: 'Deploy contract' }).click()
   await expect(page).toHaveURL(/.*\/trade\/offer\/0x[0-9A-f]{40}$/, { timeout: 30000 })
 

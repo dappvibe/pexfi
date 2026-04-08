@@ -45,11 +45,16 @@ test.describe('Offer CRUD', () => {
   })
 
   test.describe('Update', () => {
-    test('updates the margin rate', async () => {
-      await page.getByLabel('Margin').fill('3')
+    test('updates the margin rate and verifies price change', async () => {
+      const priceLocator = page.locator('div:has-text("Resulting Price") >> div').last()
+      const initialPrice = await priceLocator.innerText()
+      
+      await page.getByLabel('Margin').fill('5')
+      await expect(priceLocator).not.toHaveText(initialPrice)
+      await expect(priceLocator).not.toHaveText('0.00')
+      
       await page.getByRole('button', { name: 'Update' }).first().click()
       await expect(page.getByText('Rate updated', { exact: true })).toBeVisible()
-      await expect(page.getByText('Rate updated', { exact: true })).not.toBeVisible()
     })
 
     test('updates the limits', async () => {

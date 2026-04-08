@@ -12,12 +12,12 @@ export default function Topnav() {
 
   const navItems = [
     {
-      key: 'sell',
-      label: <Link to={generatePath('/trade/sell/:token?/:fiat?/:method?', useParams() as any)}>Sell</Link>,
-    },
-    {
       key: 'buy',
       label: <Link to={generatePath('/trade/buy/:token?/:fiat?/:method?', useParams() as any)}>Buy</Link>,
+    },
+    {
+      key: 'sell',
+      label: <Link to={generatePath('/trade/sell/:token?/:fiat?/:method?', useParams() as any)}>Sell</Link>,
     },
     {
       key: 'docs',
@@ -28,15 +28,7 @@ export default function Topnav() {
   const userMenuItems = [
     {
       label: (
-        <Link to={'/trade/offer/new'} style={{ color: 'rgba(255, 255, 255, 0.65)' }}>
-          Create Offer
-        </Link>
-      ),
-      key: 'create-offer',
-    },
-    {
-      label: (
-        <Link to={'/me/offers'} style={{ color: 'rgba(255, 255, 255, 0.65)' }}>
+        <Link to={'/me/offers'}>
           My Offers
         </Link>
       ),
@@ -44,50 +36,82 @@ export default function Topnav() {
     },
     {
       label: (
-        <Link to={'/me/deals'} style={{ color: 'rgba(255, 255, 255, 0.65)' }}>
+        <Link to={'/me/deals'}>
           My Deals
         </Link>
       ),
       key: 'my-deals',
     },
-    {
-      label: (
-        <Link to={'/me'} style={{ color: 'rgba(255, 255, 255, 0.65)' }}>
-          Profile
-        </Link>
-      ),
-      key: 'profile',
-    },
   ]
 
-  // Use thirdweb account as fallback if wagmi is not yet synced
   const showUserMenu = isConnected || !!address || !!activeAccount
 
   return (
-    <Row align="middle" wrap={false}>
-      <Col xs={{ flex: '80px' }}>
-        <Link to={'/'} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <img alt={'Logo'} src={logo} style={{ maxWidth: '40px', height: 'auto' }} />
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      width: '100%',
+      height: '72px',
+      padding: '0 24px',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
+        <Link to={'/'} style={{
+          fontSize: '1.5rem',
+          fontWeight: 900,
+          letterSpacing: '-0.05em',
+          color: '#d0bcff',
+          textDecoration: 'none'
+        }}>
+          PEXFI
         </Link>
-      </Col>
-      <Col flex={'auto'}>
-        <Menu mode={'horizontal'} theme={'dark'} items={navItems} defaultSelectedKeys={[params.side]} />
-      </Col>
-      <Col flex="1">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-          {showUserMenu && (
-            <div style={{ display: 'flex', gap: '24px', marginRight: '24px' }}>
-              {userMenuItems.map((item) => (
-                <span key={item.key}>{item.label}</span>
-              ))}
-            </div>
+        <nav style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+          {navItems.map((item) => (
+            <span key={item.key} style={{
+              color: params.side === item.key ? '#d0bcff' : '#cbc3d7',
+              fontWeight: 600,
+              fontSize: '0.9375rem',
+              borderBottom: params.side === item.key ? '2px solid #d0bcff' : 'none',
+              paddingBottom: params.side === item.key ? '4px' : '0',
+              transition: 'color 0.2s'
+            }}>
+              {item.label}
+            </span>
+          ))}
+          <div style={{ width: '1px', height: '16px', background: 'rgba(53, 51, 55, 0.4)', margin: '0 8px' }} />
+          {userMenuItems.map((item) => (
+            <span key={item.key} style={{
+              color: '#cbc3d7',
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              transition: 'color 0.2s'
+            }}>
+              {item.label}
+            </span>
+          ))}
+        </nav>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', color: '#cbc3d7' }}>
+          <Notifications />
+          <WalletMenu />
+          {!showUserMenu && (
+             <button style={{
+               background: 'linear-gradient(135deg, #d0bcff 0%, #a078ff 100%)',
+               border: 'none',
+               padding: '10px 20px',
+               borderRadius: '12px',
+               fontSize: '0.875rem',
+               fontWeight: 700,
+               color: '#3c0091',
+               cursor: 'pointer'
+             }}>
+               Connect Wallet
+             </button>
           )}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: '0 0 auto' }}>
-            <WalletMenu />
-            <Notifications />
-          </div>
         </div>
-      </Col>
-    </Row>
+      </div>
+    </div>
   )
 }
