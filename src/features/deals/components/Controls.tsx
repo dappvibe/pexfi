@@ -54,16 +54,41 @@ function DealButton({
     }
   }
 
+  const primaryStyle = {
+    background: 'linear-gradient(135deg, #d0bcff 0%, #a078ff 100%)',
+    border: 'none',
+    height: '64px',
+    borderRadius: '16px',
+    fontWeight: 900,
+    color: '#3c0091',
+    fontSize: '1.25rem',
+    width: '100%',
+    boxShadow: '0 10px 30px rgba(160, 120, 255, 0.3)',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.05em'
+  }
+
+  const secondaryStyle = {
+    background: '#353437',
+    border: '1px solid rgba(149, 142, 160, 0.2)',
+    height: '56px',
+    borderRadius: '12px',
+    fontWeight: 700,
+    color: danger ? '#ffb4ab' : '#e5e1e4',
+    width: '100%'
+  }
+
   return (
-    <LoadingButton
-      type="primary"
+    <Button
+      type={danger ? 'default' : 'primary'}
       danger={danger}
       loading={isSimulating || isPending}
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
+      style={danger ? secondaryStyle : primaryStyle}
     >
       {label}
-    </LoadingButton>
+    </Button>
   )
 }
 
@@ -339,11 +364,48 @@ export default function Controls() {
 
   if (deal.state < DealState.Canceled || deal.state === DealState.Resolved) {
     return (
-      <Space>
-        {controls.map((button, index) => (
-          <React.Fragment key={index}>{button}</React.Fragment>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
+        {/* Main Action (First in list) */}
+        {controls.length > 0 && (
+          <div style={{ width: '100%' }}>
+            {controls.find(c => (c as any).props?.functionName !== 'dispute' && (c as any).props?.functionName !== 'cancel')}
+          </div>
+        )}
+        
+        {/* Secondary Actions (Cancel / Dispute) */}
+        <div style={{ display: 'flex', gap: '16px' }}>
+          {controls.filter(c => (c as any).props?.functionName === 'cancel').map((button, index) => (
+            <div key={`cancel-${index}`} style={{ flex: 1 }}>{button}</div>
+          ))}
+          {controls.filter(c => (c as any).props?.functionName === 'dispute').map((button, index) => (
+            <div key={`dispute-${index}`} style={{ flex: 1 }}>
+              {React.cloneElement(button as React.ReactElement, {
+                label: (
+                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>gavel</span>
+                    Dispute
+                  </span>
+                )
+              })}
+            </div>
+          ))}
+        </div>
+
+        {/* Status/Timer fallbacks */}
+        {controls.filter(c => typeof (c as any).props?.functionName === 'undefined').map((item, index) => (
+          <div key={`status-${index}`} style={{ 
+            textAlign: 'center', 
+            padding: '12px', 
+            background: '#201f22', 
+            borderRadius: '12px',
+            fontSize: '0.875rem',
+            color: '#cbc3d7',
+            border: '1px solid rgba(149, 142, 160, 0.1)'
+          }}>
+            {item}
+          </div>
         ))}
-      </Space>
+      </div>
     )
   } else if (deal.state === DealState.Completed) {
     // Resolved also allows feedback so that users don't abuse disputes to not have feedback

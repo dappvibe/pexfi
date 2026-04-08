@@ -97,7 +97,7 @@ export function useCreateDeal({ offer }: UseCreateDealProps) {
     form.validateFields(['fiatAmount'])
   }
 
-  let submitLabel = 'Open Deal'
+  let submitLabel = 'Accept Offer & Create Deal'
   let submitDisabled = false // Caller should handle account check if needed, or we can keep it here
 
   if (offer && offer.disabled) {

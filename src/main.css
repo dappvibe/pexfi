@@ -78,6 +78,15 @@ body {
   color: #e5e1e4 !important;
 }
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.rotate-animation {
+  animation: spin 2s linear infinite;
+}
+
 /* Offers Table Styles */
 .offers-table-container .ant-table {
   background: transparent !important;
