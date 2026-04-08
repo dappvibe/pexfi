@@ -4,6 +4,7 @@ import { Address } from 'viem'
 import { useConnection, useConfig } from 'wagmi'
 import { useActiveAccount } from 'thirdweb/react'
 import { waitForTransactionReceipt } from '@wagmi/core'
+import { message } from 'antd'
 import {
   useWriteProfileRegister,
   useWriteProfileUpdateInfo,
@@ -48,20 +49,31 @@ export function useProfilePage() {
 
   async function create() {
     if (!profileAddress) return
-    const hash = await register({ address: profileAddress })
-    await waitForTransactionReceipt(config, { hash })
+    try {
+      message.loading({ content: 'Minting profile token...', key: 'mintProfile' })
+      const hash = await register({ address: profileAddress })
+      if (!hash) throw new Error('Transaction rejected or failed')
+      
+      await waitForTransactionReceipt(config, { hash })
+      message.loading({ content: 'Profile minted! Syncing with indexer...', key: 'mintProfile' })
 
-    // Poll the graph for the indexed profile
-    let attempts = 0
-    const maxAttempts = 30
+      // Poll the graph for the indexed profile
+      let attempts = 0
+      const maxAttempts = 30
 
-    while (attempts < maxAttempts) {
-      const result = await refetchProfile()
-      if (result.data?.profile) {
-        break
+      while (attempts < maxAttempts) {
+        const result = await refetchProfile()
+        if (result.data?.profile) {
+          message.success({ content: 'Profile synchronized!', key: 'mintProfile' })
+          break
+        }
+        attempts++
+        await new Promise(resolve => setTimeout(resolve, 1000))
       }
-      attempts++
-      await new Promise(resolve => setTimeout(resolve, 1000))
+    } catch (e: any) {
+      console.error(e)
+      message.error({ content: e.shortMessage || e.message || 'Failed to mint profile', key: 'mintProfile' })
+      throw e // Re-throw for LoadingButton to stop loading state
     }
   }
 

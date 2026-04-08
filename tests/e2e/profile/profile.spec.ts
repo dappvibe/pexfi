@@ -9,9 +9,9 @@ test.describe('Profile', () => {
     // 2. Navigate to own profile page
     await page.goto('/#/me')
 
-    // 3. Verify "Mint" button or "Profile token ID:" is visible
+    // 3. Verify "Mint" button or "ID: " is visible
     const mintButton = page.getByRole('button', { name: /mint/i })
-    const tokenIdText = page.getByText(/Profile token ID:/)
+    const tokenIdText = page.getByText(/ID: /)
 
     // Wait for either the Mint button or the profile ID to appear
     await expect(async () => {
@@ -29,14 +29,15 @@ test.describe('Profile', () => {
     }
 
     // 5. Verify that stats are displayed after minting (or if they were already there)
-    // We expect "Profile token ID: " to appear
+    // We expect "ID: " to appear
     await expect(tokenIdText).toBeVisible({ timeout: 30000 })
 
     // 6. Check that some stats are visible
-    await expect(page.getByText('Rating')).toBeVisible()
-    await expect(page.getByText('Deals completed')).toBeVisible()
+    await expect(page.getByText('Rating', { exact: true })).toBeVisible()
+    await expect(page.getByText('Deals', { exact: true })).toBeVisible()
 
     // Initial stats should be 0 or '-'
+    // Note: there might be multiple '0's (deals, disputes)
     await expect(page.getByText('0', { exact: true }).first()).toBeVisible()
     await expect(page.getByText('-', { exact: true }).first()).toBeVisible() // Rating for 0 votes
 
@@ -54,7 +55,7 @@ test.describe('Profile', () => {
     await expect(page.getByRole('button', { name: /mint/i })).not.toBeVisible()
 
     // Should show stats directly
-    await expect(page.getByText(/Profile token ID:/)).toBeVisible()
-    await expect(page.getByText('Rating')).toBeVisible()
+    await expect(page.getByText(/ID: /)).toBeVisible()
+    await expect(page.getByText('Rating', { exact: true })).toBeVisible()
   })
 })
