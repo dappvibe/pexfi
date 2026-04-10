@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { Button, Dropdown, Space, Typography, Avatar } from 'antd'
+import { Dropdown, Space, Typography, Avatar } from 'antd'
 import { useAccount, useDisconnect, useBalance, useChains, useSwitchChain, useEnsName } from 'wagmi'
 import { mainnet, sepolia, hardhat } from 'wagmi/chains'
 import ConnectWalletModal from './ConnectWalletModal'
-import { DownOutlined, LogoutOutlined, GlobalOutlined } from '@ant-design/icons'
+import { LogoutOutlined, DownOutlined, GlobalOutlined } from '@ant-design/icons'
 
 const { Text } = Typography
 
@@ -16,13 +16,21 @@ const CHAIN_ICONS: Record<number, string> = {
 export default function WalletMenu() {
   const { address, isConnected, chain } = useAccount()
   const { disconnect } = useDisconnect()
-  const { data: balance } = useBalance({ address })
+  const { data: balance } = useBalance({ 
+    address,
+    query: {
+      enabled: !!address
+    }
+  })
   const { switchChain } = useSwitchChain()
   const chains = useChains()
   
   const { data: ensName } = useEnsName({ 
     address,
-    chainId: mainnet.id // ENS is only on Ethereum Mainnet
+    chainId: mainnet.id,
+    query: {
+      enabled: !!address
+    }
   })
   
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -33,22 +41,12 @@ export default function WalletMenu() {
   if (!isConnected) {
     return (
       <>
-        <Button 
-          type="primary" 
+        <button 
           onClick={() => setIsModalOpen(true)}
-          className="wallet-connect-button"
-          style={{
-            background: 'linear-gradient(135deg, #d0bcff 0%, #a078ff 100%)',
-            border: 'none',
-            height: '40px',
-            padding: '0 24px',
-            borderRadius: '12px',
-            fontWeight: 700,
-            color: '#3c0091'
-          }}
+          className="primary-gradient text-[#3c0091] px-5 py-2 rounded-xl font-bold transition-transform scale-95 active:scale-90 cursor-pointer border-none h-10"
         >
           Connect
-        </Button>
+        </button>
         <ConnectWalletModal 
           open={isModalOpen} 
           onCancel={() => setIsModalOpen(false)} 
@@ -71,6 +69,16 @@ export default function WalletMenu() {
 
   const walletMenuItems: any[] = [
     {
+      key: 'address',
+      label: (
+        <Space direction="vertical" size={0} style={{ padding: '4px 0' }}>
+          <Text type="secondary" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Connected as</Text>
+          <Text strong>{displayName}</Text>
+        </Space>
+      ),
+    },
+    { type: 'divider' },
+    {
       key: 'balance',
       label: (
         <Space direction="vertical" size={0} style={{ padding: '4px 0' }}>
@@ -90,45 +98,20 @@ export default function WalletMenu() {
   ]
 
   return (
-    <Space size={8}>
+    <div className="flex items-center gap-2">
       <Dropdown menu={{ items: networkMenuItems }} trigger={['click']} placement="bottomRight">
-        <Button style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          width: '40px',
-          height: '40px',
-          background: 'rgba(255, 255, 255, 0.05)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          borderRadius: '12px',
-          padding: 0
-        }}>
+        <button className="flex items-center justify-center bg-[#2A2A2C]/50 hover:bg-[#353437] p-2 rounded-lg transition-all border-none cursor-pointer h-10 w-10">
           <Avatar src={chain ? CHAIN_ICONS[chain.id] : undefined} size={20} icon={<GlobalOutlined />} />
-        </Button>
+        </button>
       </Dropdown>
 
       <Dropdown menu={{ items: walletMenuItems }} trigger={['click']} placement="bottomRight">
-        <Button style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          height: '40px',
-          background: 'rgba(255, 255, 255, 0.05)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          borderRadius: '12px'
-        }}>
-          <Space>
-            <div style={{ 
-              width: '8px', 
-              height: '8px', 
-              borderRadius: '50%', 
-              backgroundColor: '#52c41a',
-              boxShadow: '0 0 8px rgba(82, 196, 26, 0.5)'
-            }} />
-            <Text strong style={{ color: '#fff' }}>{displayName}</Text>
-            <DownOutlined style={{ fontSize: '10px', color: 'rgba(255,255,255,0.45)' }} />
-          </Space>
-        </Button>
+        <button className="flex items-center gap-2 bg-[#2A2A2C]/50 hover:bg-[#353437] px-3 py-2 rounded-lg transition-all border-none cursor-pointer h-10 text-[#D0BCFF]">
+          <div className="w-2 h-2 rounded-full bg-[#52c41a] shadow-[0_0_8px_rgba(82,196,26,0.5)]" />
+          <span className="font-bold text-sm hidden sm:inline">{displayName}</span>
+          <DownOutlined className="text-[10px] opacity-50" />
+        </button>
       </Dropdown>
-    </Space>
+    </div>
   )
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Helmet } from '@dr.pogodin/react-helmet'
 import { Link } from 'react-router-dom'
+import { Topnav } from '@/shared/layout'
 
 export default function LandingPage() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null)
@@ -32,40 +33,7 @@ export default function LandingPage() {
         />
       </Helmet>
 
-      {/* TopNavBar */}
-      <header className="bg-[#131315]/80 backdrop-blur-xl text-[#D0BCFF] font-['Inter'] font-semibold tracking-tight docked full-width top-0 z-50 border-b border-[#353437]/20 shadow-[0_20px_40px_rgba(0,0,0,0.4)] flex items-center justify-between px-6 py-4 w-full sticky top-0">
-        <div className="flex items-center gap-8">
-          <Link to="/" className="text-2xl font-black tracking-tighter text-[#D0BCFF]">
-            PEXFI
-          </Link>
-          <nav className="hidden md:flex items-center gap-2">
-            <Link className="text-[#CBC3D7] hover:text-[#D0BCFF] hover:bg-[#2A2A2C]/50 px-4 py-2 rounded-lg transition-all" to="/trade/buy">
-              Buy
-            </Link>
-            <Link className="text-[#CBC3D7] hover:text-[#D0BCFF] hover:bg-[#2A2A2C]/50 px-4 py-2 rounded-lg transition-all" to="/trade/sell">
-              Sell
-            </Link>
-            <a className="text-[#CBC3D7] hover:text-[#D0BCFF] hover:bg-[#2A2A2C]/50 px-4 py-2 rounded-lg transition-all" href="/docs">
-              Learn
-            </a>
-          </nav>
-        </div>
-        <div className="flex items-center gap-4">
-          <button
-            className="material-symbols-outlined text-on-surface-variant hover:bg-[#2A2A2C]/50 p-2 rounded-lg transition-all scale-95 active:scale-90"
-          >
-            notifications
-          </button>
-          <button
-            className="material-symbols-outlined text-on-surface-variant hover:bg-[#2A2A2C]/50 p-2 rounded-lg transition-all scale-95 active:scale-90"
-          >
-            account_circle
-          </button>
-          <button className="primary-gradient text-on-primary-container px-5 py-2 rounded-xl font-bold transition-transform scale-95 active:scale-90">
-            Connect Wallet
-          </button>
-        </div>
-      </header>
+      <Topnav />
 
       <main>
         {/* Alert Banner */}
@@ -204,27 +172,30 @@ export default function LandingPage() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-[#131315] font-['Inter'] text-xs tracking-widest uppercase w-full border-t border-[#353437]/10 py-12 px-8 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div className="flex flex-col items-center md:items-start gap-2">
-          <span className="text-sm font-bold text-[#D0BCFF]">PEXFI</span>
-          <span className="text-[#CBC3D7] normal-case tracking-normal">
-            © 2024 PEXFI. The Cyber-Native Frontier.
-          </span>
-        </div>
-        <div className="flex gap-8 items-center">
-          <a className="text-[#CBC3D7] hover:text-[#D0BCFF] transition-all underline-offset-4 hover:underline" href="#">
-            Terms
-          </a>
-          <a className="text-[#CBC3D7] hover:text-[#D0BCFF] transition-all underline-offset-4 hover:underline" href="#">
-            Privacy
-          </a>
-          <a className="text-[#CBC3D7] hover:text-[#D0BCFF] transition-all underline-offset-4 hover:underline" href="#">
-            Discord
-          </a>
-          <a className="text-[#CBC3D7] hover:text-[#D0BCFF] transition-all underline-offset-4 hover:underline" href="/docs">
-            Docs
-          </a>
+      {/* Shared Footer style should be extracted if we want it identical, 
+          but for now I will just make sure it matches the look */}
+      <footer className="bg-[#131315] font-['Inter'] text-xs tracking-widest uppercase w-full border-t border-[#353437]/10 py-12 px-8 flex flex-col md:flex-row justify-between items-center gap-4 mt-16">
+        <div className="width-container flex flex-col md:flex-row justify-between items-center gap-4 w-full">
+          <div className="flex flex-col items-center md:items-start gap-2">
+            <span className="text-sm font-bold text-[#D0BCFF]">PEXFI</span>
+            <span className="text-[#CBC3D7] normal-case tracking-normal">
+              © 2024 PEXFI. THE CYBER-NATIVE FRONTIER.
+            </span>
+          </div>
+          <div className="flex gap-8 items-center">
+            <a className="text-[#CBC3D7] hover:text-[#D0BCFF] transition-all underline-offset-4 hover:underline no-underline" href="#">
+              Terms
+            </a>
+            <a className="text-[#CBC3D7] hover:text-[#D0BCFF] transition-all underline-offset-4 hover:underline no-underline" href="#">
+              Privacy
+            </a>
+            <a className="text-[#CBC3D7] hover:text-[#D0BCFF] transition-all underline-offset-4 hover:underline no-underline" href="#">
+              Discord
+            </a>
+            <a className="text-[#CBC3D7] hover:text-[#D0BCFF] transition-all underline-offset-4 hover:underline no-underline" href="/docs">
+              Docs
+            </a>
+          </div>
         </div>
       </footer>
     </div>
