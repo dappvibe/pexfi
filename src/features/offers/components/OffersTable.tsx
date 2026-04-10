@@ -8,7 +8,7 @@ import { type Offer } from '@/features/offers/hooks/useQueryOffers'
 
 type MappedOffer = Offer & {
   method: string
-  price: string
+  price: number
   fiat: string
   rate: number
 }
@@ -58,7 +58,7 @@ export default function OffersTable({ offers, loading, loadMore, totalOffers }: 
             {formatMoney(fiat, text)}
           </div>
           <p style={{ margin: 0, fontSize: '0.625rem', color: '#cbc3d7', fontWeight: 700 }}>
-            {offer.rate > 10000 ? `${((offer.rate - 10000) / 100).toFixed(1)}% Above Market` : offer.rate < 10000 ? `${((10000 - offer.rate) / 100).toFixed(1)}% Below Market` : 'At Market Price'}
+            {offer.rate > 1 ? `${((offer.rate - 1) * 100).toFixed(1)}% Above Market` : offer.rate < 1 ? `${((1 - offer.rate) * 100).toFixed(1)}% Below Market` : 'At Market Price'}
           </p>
         </div>
       ),

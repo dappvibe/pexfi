@@ -18,10 +18,10 @@ export function useOfferPrice(offer: { token?: { address: string } | null, fiat:
     query: { enabled: enabled && !!marketArgs && !!marketAddress },
   })
 
-  const price = useMemo<string | undefined>(() => {
+  const price = useMemo<number | undefined>(() => {
     if (!offer || marketPrice === undefined) return undefined
     const basePrice = normalizeMarketPrice(marketPrice as bigint)
-    return (basePrice * offer.rate).toFixed(3)
+    return basePrice * offer.rate
   }, [offer, marketPrice])
 
   return { price, marketPrice, isLoading, error }

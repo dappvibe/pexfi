@@ -78,7 +78,6 @@ export function useOffersList({ superFilter = null }: { superFilter?: any } = {}
     query: {
       enabled: !!marketAddress && !!activeToken && !!activeFiat,
       staleTime: 30000,
-      select: (data): number => Number(data) / 1000000, // Market price is 1e6
     },
   })
 
@@ -108,7 +107,7 @@ export function useOffersList({ superFilter = null }: { superFilter?: any } = {}
         ...offer,
         fiat: hexToString(trim((offer.fiat as Address) || '0x00', { dir: 'right' })),
         rate: rate,
-        price: (price * rate).toFixed(2),
+        price: price * rate,
         method: decodeMethod(offer.methods, methods),
       }
     })
