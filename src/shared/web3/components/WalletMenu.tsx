@@ -1,11 +1,17 @@
 import { useState } from 'react'
-import { Button, Dropdown, Space, Typography } from 'antd'
+import { Button, Dropdown, Space, Typography, Avatar } from 'antd'
 import { useAccount, useDisconnect, useBalance, useChains, useSwitchChain, useEnsName } from 'wagmi'
-import { mainnet } from 'wagmi/chains'
+import { mainnet, sepolia, hardhat } from 'wagmi/chains'
 import ConnectWalletModal from './ConnectWalletModal'
-import { DownOutlined, LogoutOutlined, SwapOutlined } from '@ant-design/icons'
+import { DownOutlined, LogoutOutlined, GlobalOutlined } from '@ant-design/icons'
 
 const { Text } = Typography
+
+const CHAIN_ICONS: Record<number, string> = {
+  [mainnet.id]: 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/eth.png',
+  [sepolia.id]: 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/eth.png',
+  [hardhat.id]: 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/eth.png',
+}
 
 export default function WalletMenu() {
   const { address, isConnected, chain } = useAccount()
@@ -51,7 +57,19 @@ export default function WalletMenu() {
     )
   }
 
-  const menuItems: any[] = [
+  const networkMenuItems = chains.map(c => ({
+    key: c.id,
+    label: (
+      <Space>
+        <Avatar src={CHAIN_ICONS[c.id]} size={16} icon={<GlobalOutlined />} />
+        {c.name}
+      </Space>
+    ),
+    onClick: () => switchChain({ chainId: c.id }),
+    disabled: c.id === chain?.id
+  }))
+
+  const walletMenuItems: any[] = [
     {
       key: 'balance',
       label: (
@@ -60,18 +78,6 @@ export default function WalletMenu() {
           <Text strong>{balance?.formatted?.slice(0, 8) || '0.00'} {balance?.symbol}</Text>
         </Space>
       ),
-    },
-    { type: 'divider' },
-    {
-      key: 'network',
-      label: 'Switch Network',
-      icon: <SwapOutlined />,
-      children: chains.map(c => ({
-        key: c.id,
-        label: c.name,
-        onClick: () => switchChain({ chainId: c.id }),
-        disabled: c.id === chain?.id
-      }))
     },
     { type: 'divider' },
     {
@@ -84,27 +90,45 @@ export default function WalletMenu() {
   ]
 
   return (
-    <Dropdown menu={{ items: menuItems }} trigger={['click']} placement="bottomRight">
-      <Button style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        height: '40px',
-        background: 'rgba(255, 255, 255, 0.05)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        borderRadius: '12px'
-      }}>
-        <Space>
-          <div style={{ 
-            width: '8px', 
-            height: '8px', 
-            borderRadius: '50%', 
-            backgroundColor: '#52c41a',
-            boxShadow: '0 0 8px rgba(82, 196, 26, 0.5)'
-          }} />
-          <Text strong style={{ color: '#fff' }}>{displayName}</Text>
-          <DownOutlined style={{ fontSize: '10px', color: 'rgba(255,255,255,0.45)' }} />
-        </Space>
-      </Button>
-    </Dropdown>
+    <Space size={8}>
+      <Dropdown menu={{ items: networkMenuItems }} trigger={['click']} placement="bottomRight">
+        <Button style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          width: '40px',
+          height: '40px',
+          background: 'rgba(255, 255, 255, 0.05)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: '12px',
+          padding: 0
+        }}>
+          <Avatar src={chain ? CHAIN_ICONS[chain.id] : undefined} size={20} icon={<GlobalOutlined />} />
+        </Button>
+      </Dropdown>
+
+      <Dropdown menu={{ items: walletMenuItems }} trigger={['click']} placement="bottomRight">
+        <Button style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          height: '40px',
+          background: 'rgba(255, 255, 255, 0.05)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: '12px'
+        }}>
+          <Space>
+            <div style={{ 
+              width: '8px', 
+              height: '8px', 
+              borderRadius: '50%', 
+              backgroundColor: '#52c41a',
+              boxShadow: '0 0 8px rgba(82, 196, 26, 0.5)'
+            }} />
+            <Text strong style={{ color: '#fff' }}>{displayName}</Text>
+            <DownOutlined style={{ fontSize: '10px', color: 'rgba(255,255,255,0.45)' }} />
+          </Space>
+        </Button>
+      </Dropdown>
+    </Space>
   )
 }
