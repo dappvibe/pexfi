@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Button, Dropdown, Space, Typography } from 'antd'
-import { useAccount, useDisconnect, useBalance, useChains, useSwitchChain } from 'wagmi'
+import { useAccount, useDisconnect, useBalance, useChains, useSwitchChain, useEnsName } from 'wagmi'
+import { mainnet } from 'wagmi/chains'
 import ConnectWalletModal from './ConnectWalletModal'
 import { DownOutlined, LogoutOutlined, SwapOutlined } from '@ant-design/icons'
 
@@ -13,9 +14,15 @@ export default function WalletMenu() {
   const { switchChain } = useSwitchChain()
   const chains = useChains()
   
+  const { data: ensName } = useEnsName({ 
+    address,
+    chainId: mainnet.id // ENS is only on Ethereum Mainnet
+  })
+  
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const shortenAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`
+  const displayName = ensName || (address ? shortenAddress(address) : '')
 
   if (!isConnected) {
     return (
@@ -94,7 +101,7 @@ export default function WalletMenu() {
             backgroundColor: '#52c41a',
             boxShadow: '0 0 8px rgba(82, 196, 26, 0.5)'
           }} />
-          <Text strong style={{ color: '#fff' }}>{address ? shortenAddress(address) : ''}</Text>
+          <Text strong style={{ color: '#fff' }}>{displayName}</Text>
           <DownOutlined style={{ fontSize: '10px', color: 'rgba(255,255,255,0.45)' }} />
         </Space>
       </Button>
