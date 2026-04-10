@@ -1,5 +1,6 @@
-import { ReactNode, useMemo } from 'react'
+import { ReactNode, useMemo, useEffect } from 'react'
 import { useChainId, WagmiProvider } from 'wagmi'
+import { reconnect } from '@wagmi/core'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
 import { persistQueryClient } from '@tanstack/react-query-persist-client'
@@ -64,6 +65,10 @@ const ApolloChainProvider = ({ children }: { children: ReactNode }) => {
 }
 
 export const Providers = ({ children }: { children: ReactNode }) => {
+  useEffect(() => {
+    reconnect(config)
+  }, [])
+
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>

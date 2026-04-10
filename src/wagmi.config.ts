@@ -1,4 +1,4 @@
-import { createConfig, fallback, http, webSocket } from 'wagmi'
+import { createConfig, fallback, http, webSocket, createStorage } from 'wagmi'
 import { Chain, hardhat, mainnet, sepolia } from 'wagmi/chains'
 import { injected } from 'wagmi/connectors'
 
@@ -43,4 +43,7 @@ export const config = createConfig({
   chains: chains as [Chain, ...Chain[]],
   transports,
   connectors,
+  storage: createStorage({
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+  }),
 })
