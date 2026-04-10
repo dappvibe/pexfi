@@ -1,57 +1,103 @@
-import { ConnectButton, darkTheme } from 'thirdweb/react'
-import { createWallet } from 'thirdweb/wallets'
-import { useChains, useConnect, useConnectors, useDisconnect, useSwitchChain } from 'wagmi'
-import { thirdwebClient } from '@/wagmi.config.ts'
+import { useState } from 'react'
+import { Button, Dropdown, Space, Typography } from 'antd'
+import { useAccount, useDisconnect, useBalance, useChains, useSwitchChain } from 'wagmi'
+import ConnectWalletModal from './ConnectWalletModal'
+import { DownOutlined, LogoutOutlined, SwapOutlined } from '@ant-design/icons'
 
-const wallets = [
-  createWallet('io.metamask'),
-  createWallet('com.brave.wallet'),
-  createWallet('com.coinbase.wallet'),
-  createWallet('me.rainbow'),
-  createWallet('io.rabby'),
-  createWallet('io.zerion.wallet'),
-]
+const { Text } = Typography
 
 export default function WalletMenu() {
-  const { mutate: connect } = useConnect()
-  const connectors = useConnectors()
-  const { mutate: disconnect } = useDisconnect()
-  const { mutate: switchChain } = useSwitchChain()
+  const { address, isConnected, chain } = useAccount()
+  const { disconnect } = useDisconnect()
+  const { data: balance } = useBalance({ address })
+  const { switchChain } = useSwitchChain()
   const chains = useChains()
+  
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const connector = connectors.find((c) => c.id === 'in-app-wallet' || c.type === 'inAppWallet')
+  const shortenAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`
+
+  if (!isConnected) {
+    return (
+      <>
+        <Button 
+          type="primary" 
+          onClick={() => setIsModalOpen(true)}
+          className="wallet-connect-button"
+          style={{
+            background: 'linear-gradient(135deg, #d0bcff 0%, #a078ff 100%)',
+            border: 'none',
+            height: '40px',
+            padding: '0 24px',
+            borderRadius: '12px',
+            fontWeight: 700,
+            color: '#3c0091'
+          }}
+        >
+          Connect
+        </Button>
+        <ConnectWalletModal 
+          open={isModalOpen} 
+          onCancel={() => setIsModalOpen(false)} 
+        />
+      </>
+    )
+  }
+
+  const menuItems: any[] = [
+    {
+      key: 'balance',
+      label: (
+        <Space direction="vertical" size={0} style={{ padding: '4px 0' }}>
+          <Text type="secondary" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Balance</Text>
+          <Text strong>{balance?.formatted?.slice(0, 8) || '0.00'} {balance?.symbol}</Text>
+        </Space>
+      ),
+    },
+    { type: 'divider' },
+    {
+      key: 'network',
+      label: 'Switch Network',
+      icon: <SwapOutlined />,
+      children: chains.map(c => ({
+        key: c.id,
+        label: c.name,
+        onClick: () => switchChain({ chainId: c.id }),
+        disabled: c.id === chain?.id
+      }))
+    },
+    { type: 'divider' },
+    {
+      key: 'disconnect',
+      label: 'Disconnect',
+      icon: <LogoutOutlined />,
+      danger: true,
+      onClick: () => disconnect(),
+    },
+  ]
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-      <ConnectButton
-        client={thirdwebClient}
-        appMetadata={{
-          name: 'PEXFI P2P',
-          url: 'https://pexfi.com',
-          description: 'onchain P2P marketplace',
-        }}
-        chains={chains}
-        connectButton={{ className: 'wallet-connect-button', label: 'Connect' }}
-        connectModal={{
-          size: 'wide',
-          showThirdwebBranding: false,
-          title: 'Connect to PEXFI',
-        }}
-        detailsButton={{}}
-        detailsModal={{
-          assetTabs: ['token'],
-          hideBuyFunds: true,
-          manageWallet: { allowLinkingProfiles: false },
-          showTestnetFaucet: true,
-          networkSelector: {
-            onSwitch: (chain) => switchChain({ chainId: chain.id }),
-          },
-        }}
-        onConnect={() => connect({ connector: connector! })}
-        onDisconnect={() => disconnect()}
-        theme={darkTheme({})}
-        wallets={wallets}
-      />
-    </div>
+    <Dropdown menu={{ items: menuItems }} trigger={['click']} placement="bottomRight">
+      <Button style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        height: '40px',
+        background: 'rgba(255, 255, 255, 0.05)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        borderRadius: '12px'
+      }}>
+        <Space>
+          <div style={{ 
+            width: '8px', 
+            height: '8px', 
+            borderRadius: '50%', 
+            backgroundColor: '#52c41a',
+            boxShadow: '0 0 8px rgba(82, 196, 26, 0.5)'
+          }} />
+          <Text strong style={{ color: '#fff' }}>{address ? shortenAddress(address) : ''}</Text>
+          <DownOutlined style={{ fontSize: '10px', color: 'rgba(255,255,255,0.45)' }} />
+        </Space>
+      </Button>
+    </Dropdown>
   )
 }

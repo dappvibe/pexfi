@@ -1,24 +1,22 @@
-import { Avatar, Button, Result, Skeleton, Tabs } from 'antd'
+import { Avatar, Result, Skeleton, Tabs } from 'antd'
 import { Username } from '@/shared/web3'
 import { LoadingButton } from '@/shared/ui'
 import { useProfilePage } from '@/features/profile/hooks/useProfilePage'
 import { Helmet } from '@dr.pogodin/react-helmet'
 import { useConnection } from 'wagmi'
-import { useActiveAccount } from 'thirdweb/react'
 import OffersTable from '@/features/offers/components/OffersTable'
 import { useOffersList } from '@/features/offers/hooks/useOffersList'
 
 export default function ProfilePage() {
   const { isConnected, isConnecting, isReconnecting, address: connectedAddress } = useConnection()
-  const activeAccount = useActiveAccount()
-  const { address, tokenId, profile, stats, isOwnProfile, create, rating, loading } = useProfilePage()
+  const { address, tokenId, stats, isOwnProfile, create, rating, loading } = useProfilePage()
 
   // For the offers list filtered by owner
   const { offers, loading: offersLoading, loadMore, totalOffers } = useOffersList({
     superFilter: { owner: address, disabled: false }
   })
 
-  const reallyConnected = isConnected || !!connectedAddress || !!activeAccount
+  const reallyConnected = isConnected || !!connectedAddress
 
   if (isOwnProfile && (isConnecting || isReconnecting)) return <Skeleton active />
 
@@ -107,7 +105,7 @@ export default function ProfilePage() {
               label: <span style={{ fontWeight: 700, padding: '0 8px' }}>Active Offers</span>,
               children: (
                 <div style={{ marginTop: '24px' }}>
-                  <OffersTable offers={offers as any} loading={offersLoading} loadMore={loadMore} totalOffers={totalOffers} />
+                  <OffersTable offers={offers as any[]} loading={offersLoading} loadMore={loadMore} totalOffers={totalOffers} />
                 </div>
               ),
             },

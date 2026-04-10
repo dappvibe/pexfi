@@ -1,23 +1,19 @@
-import { Col, Menu, Row } from 'antd'
 import { generatePath, Link, useParams } from 'react-router-dom'
 import { Notifications, WalletMenu } from '@/shared/web3'
-import logo from '@/assets/images/logo.png'
 import { useConnection } from 'wagmi'
-import { useActiveAccount } from 'thirdweb/react'
 
 export default function Topnav() {
   const params = useParams()
   const { isConnected, address } = useConnection()
-  const activeAccount = useActiveAccount()
 
   const navItems = [
     {
       key: 'buy',
-      label: <Link to={generatePath('/trade/buy/:token?/:fiat?/:method?', useParams() as any)}>Buy</Link>,
+      label: <Link to={generatePath('/trade/buy/:token?/:fiat?/:method?', params as any)}>Buy</Link>,
     },
     {
       key: 'sell',
-      label: <Link to={generatePath('/trade/sell/:token?/:fiat?/:method?', useParams() as any)}>Sell</Link>,
+      label: <Link to={generatePath('/trade/sell/:token?/:fiat?/:method?', params as any)}>Sell</Link>,
     },
     {
       key: 'docs',
@@ -44,7 +40,7 @@ export default function Topnav() {
     },
   ]
 
-  const showUserMenu = isConnected || !!address || !!activeAccount
+  const showUserMenu = isConnected || !!address
 
   return (
     <div style={{

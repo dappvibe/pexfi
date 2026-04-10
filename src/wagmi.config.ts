@@ -1,7 +1,6 @@
 import { createConfig, fallback, http, webSocket } from 'wagmi'
 import { Chain, hardhat, mainnet, sepolia } from 'wagmi/chains'
-import { createThirdwebClient } from 'thirdweb'
-import { inAppWalletConnector } from '@thirdweb-dev/wagmi-adapter'
+import { injected } from 'wagmi/connectors'
 
 const chains: Chain[] = []
 switch (import.meta.env.MODE) {
@@ -25,8 +24,6 @@ const transports = {
   [hardhat.id]: http('http://127.0.0.1:8545'),
 }
 
-export const thirdwebClient = createThirdwebClient({ clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID })
-
 // E2E Testing Support: This is required to be here to automate provider in VITE env
 // We explicitly bypass 'typeof window' check in the static analysis so Vite does not tree-shake the E2E mock chunk in production builds
 const _isE2E = () => { try { return typeof window !== 'undefined' && ((window as any).webdriver || window.navigator?.webdriver) } catch(e) { return false } }
@@ -39,9 +36,7 @@ const connectors = _isE2E()
       }),
     ]
   : [
-      inAppWalletConnector({
-        client: thirdwebClient,
-      }),
+      injected(),
     ]
 
 export const config = createConfig({

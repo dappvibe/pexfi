@@ -1,4 +1,3 @@
-import { shortenAddress } from 'thirdweb/utils'
 import { Avatar, Space } from 'antd'
 import { Link } from 'react-router-dom'
 
@@ -13,6 +12,8 @@ interface UsernameProps {
   profile?: Profile | null
   style?: React.CSSProperties
 }
+
+const shortenAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`
 
 export default function Username({ address, avatar = false, profile = null, style }: UsernameProps) {
   const link = (
