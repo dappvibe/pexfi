@@ -28,19 +28,6 @@ export default function Topnav() {
     },
   ]
 
-  const userMenuItems = [
-    {
-      label: 'My Offers',
-      path: '/me/offers',
-      active: location.pathname === '/me/offers'
-    },
-    {
-      label: 'My Deals',
-      path: '/me/deals',
-      active: location.pathname === '/me/deals'
-    },
-  ]
-
   const showUserMenu = isConnected || !!address
 
   return (
@@ -69,25 +56,18 @@ export default function Topnav() {
                </Link>
              )
           ))}
-          
-          {showUserMenu && (
-            <>
-              <div className="w-[1px] h-4 bg-[#353437]/40 mx-2" />
-              {userMenuItems.map((item) => (
-                <Link 
-                  key={item.path} 
-                  to={item.path} 
-                  className={`px-4 py-2 rounded-lg transition-all no-underline ${item.active ? 'text-[#D0BCFF] bg-[#2A2A2C]/50' : 'text-[#CBC3D7] hover:text-[#D0BCFF] hover:bg-[#2A2A2C]/50'}`}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </>
-          )}
         </nav>
       </div>
 
       <div className="flex items-center gap-1 px-6">
+        {showUserMenu && (
+          <Link 
+            to="/trade/offer/new" 
+            className="px-4 py-2 rounded-lg bg-[#D0BCFF] text-[#131315] hover:bg-[#EADDFF] transition-all no-underline text-sm font-bold mr-2"
+          >
+            Create Offer
+          </Link>
+        )}
         <Notifications />
         <button className="material-symbols-outlined text-[#cbc3d7] hover:text-[#D0BCFF] hover:bg-[#2A2A2C]/50 p-2 rounded-lg transition-all scale-95 active:scale-90 border-none bg-transparent cursor-pointer relative">
           notifications

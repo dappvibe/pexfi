@@ -3,7 +3,8 @@ import { Dropdown, Space, Typography, Avatar } from 'antd'
 import { useAccount, useDisconnect, useBalance, useChains, useSwitchChain, useEnsName } from 'wagmi'
 import { mainnet, sepolia, hardhat } from 'wagmi/chains'
 import ConnectWalletModal from './ConnectWalletModal'
-import { LogoutOutlined, DownOutlined, GlobalOutlined } from '@ant-design/icons'
+import { LogoutOutlined, DownOutlined, GlobalOutlined, UserOutlined, TagOutlined, SwapOutlined } from '@ant-design/icons'
+import { useNavigate } from 'react-router-dom'
 
 const { Text } = Typography
 
@@ -14,6 +15,7 @@ const CHAIN_ICONS: Record<number, string> = {
 }
 
 export default function WalletMenu() {
+  const navigate = useNavigate()
   const { address, isConnected, chain } = useAccount()
   const { disconnect } = useDisconnect()
   const { data: balance } = useBalance({ 
@@ -86,6 +88,25 @@ export default function WalletMenu() {
           <Text strong>{balance?.formatted?.slice(0, 8) || '0.00'} {balance?.symbol}</Text>
         </Space>
       ),
+    },
+    { type: 'divider' },
+    {
+      key: 'profile',
+      label: 'Profile',
+      icon: <UserOutlined />,
+      onClick: () => navigate('/me'),
+    },
+    {
+      key: 'offers',
+      label: 'My Offers',
+      icon: <TagOutlined />,
+      onClick: () => navigate('/me/offers'),
+    },
+    {
+      key: 'deals',
+      label: 'My Deals',
+      icon: <SwapOutlined />,
+      onClick: () => navigate('/me/deals'),
     },
     { type: 'divider' },
     {
