@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Dropdown, Space, Typography, Avatar } from 'antd'
-import { useAccount, useDisconnect, useBalance, useChains, useSwitchChain, useEnsName } from 'wagmi'
+import { useAccount, useDisconnect, useChains, useSwitchChain, useEnsName } from 'wagmi'
 import { mainnet, sepolia, hardhat } from 'wagmi/chains'
 import ConnectWalletModal from './ConnectWalletModal'
 import { LogoutOutlined, DownOutlined, GlobalOutlined, UserOutlined, TagOutlined, SwapOutlined } from '@ant-design/icons'
@@ -18,12 +18,6 @@ export default function WalletMenu() {
   const navigate = useNavigate()
   const { address, isConnected, chain } = useAccount()
   const { disconnect } = useDisconnect()
-  const { data: balance } = useBalance({ 
-    address,
-    query: {
-      enabled: !!address
-    }
-  })
   const { switchChain } = useSwitchChain()
   const chains = useChains()
   
@@ -76,16 +70,6 @@ export default function WalletMenu() {
         <Space direction="vertical" size={0} style={{ padding: '4px 0' }}>
           <Text type="secondary" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Connected as</Text>
           <Text strong>{displayName}</Text>
-        </Space>
-      ),
-    },
-    { type: 'divider' },
-    {
-      key: 'balance',
-      label: (
-        <Space direction="vertical" size={0} style={{ padding: '4px 0' }}>
-          <Text type="secondary" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Balance</Text>
-          <Text strong>{balance?.formatted?.slice(0, 8) || '0.00'} {balance?.symbol}</Text>
         </Space>
       ),
     },
