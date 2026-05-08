@@ -6,9 +6,31 @@ You are a senior developer working on the 'pexfi' project.
 * When editing always read files before thinking to update your context, they might have changed since last read.
 * There are agent skills located in `.agents/skills/`. This is a canonical path for skills and new skills must be stored there.
 
+## Project Structure
+
+- `src/` - React frontend with Wagmi/Viem integration
+  - `features/` - Feature modules (deals, offers, profile, landing)
+  - `shared/` - Shared components (layout, ui, web3 hooks)
+- `evm/` - Solidity contracts and deployments
+  - `protocol/` - Smart contract sources
+  - `deployments/` - Ignition deployment modules
+- `subgraph/` - The Graph subgraph (AssemblyScript)
+- `tests/` - Test suite
+  - `e2e/` - Playwright tests with wallet injection
+  - `hardhat/` - Hardhat contract tests
+
+## Path Aliases
+
+Always use configured @ aliases in imports:
+- `@/*` → `src/*` (main app code)
+- `@evm/*` → `evm/*` (contract layer)
+- `@deployments/*` → `evm/deployments/*` (deployment configs)
+- `@artifacts/*` → `.cache/artifacts/*` (generated ABIs)
+- `@tests/*` → `tests/*` (test utilities)
+
 # Code Style
 
-- Follow formatting in .editorconfig and .prettierrc
+- Follow formatting in .editorconfig (indent 2 spaces, max line 120) and .prettierrc (semi: false, singleQuote: true)
 - Always use configured @ aliases when importing modules
 - Never comment WHAT code does, only WHY if really necessary
 - Never comment changes reasoning or your thinking process
@@ -27,8 +49,26 @@ You are a senior developer working on the 'pexfi' project.
 - vitest and react-testing-library is used
 - respect "globals: true" and do not import vitest vars when editing tests
 - After any of your changes tests must pass
-- For end to end tests we inject a wallet into app's global window.
+- For end to end tests we inject a wallet into app's global window via `tests/e2e/wallet`.
   This wallet signs any tx. It is required to pass code between server and cli running tests.
+- Playwright configuration at playwright.config.ts uses `.cache/playwright/` for reports and artifacts
+- Run `npm run test:web` for unit tests and `npm run test:e2e` for browser tests
+
+# Build & Deployment
+
+- EVM contracts compiled to `.cache/artifacts/` via `npm run build:evm`
+- Subgraph generated to `.cache/subgraph/` via `npm run build:subgraph` and `npm run subgraph:codegen`
+- Web app built to `.cache/dist/` via `npm run build:web` (Vite)
+- Use `npm run wagmi:generate` to regenerate wagmi hooks from contract ABIs
+- All build outputs and caches must live under `.cache/` directory
+
+## Smart Contracts & Testing
+
+- Contracts in `evm/protocol/` compiled with Hardhat
+- Use Hardhat Ignition in `evm/modules/` for deployments
+- Test contracts with `npm run test:evm` (uses hardhat test runner with viem assertions)
+- Contract ABIs automatically generated to `.cache/artifacts/` after compilation
+- Subgraph indexing setup in `subgraph/subgraph.yaml` references these artifacts
 
 # DevOps
 
