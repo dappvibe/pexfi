@@ -1,7 +1,7 @@
 import Topnav from './Topnav'
 import { Outlet } from 'react-router-dom'
 import { Analytics } from '@vercel/analytics/react'
-import { Announcement, ChatWidget } from '@/shared/ui'
+import { ChatWidget } from '@/shared/ui'
 import { Helmet } from '@dr.pogodin/react-helmet'
 
 export default function Layout() {
@@ -10,11 +10,10 @@ export default function Layout() {
       <Helmet>
         <title>PEXFI - Onchain P2P Marketplace</title>
       </Helmet>
-      
+
       <Topnav />
-      
+
       <main className="width-container pt-8">
-        <Announcement />
         <Outlet />
       </main>
 

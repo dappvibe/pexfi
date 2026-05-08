@@ -9,8 +9,8 @@ dataSources:
     network: "31337"
     source:
       abi: Market
-      address: "0x7700aD9484F16662010B2dDd5b56A0b6F8c4c3b3"
-      startBlock: 10402947
+      address: "0xE6E340D132b5f46d1e472DebcD681B2aBc16e57E"
+      startBlock: 21
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -58,8 +58,8 @@ dataSources:
     network: "31337"
     source:
       abi: Profile
-      address: "0x3a622DB2db50f463dF562Dc5F341545A64C580fc"
-      startBlock: 0
+      address: "0xc3e53F4d16Ae77Db1c982e75a937B9f60FE63690"
+      startBlock: 24
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
