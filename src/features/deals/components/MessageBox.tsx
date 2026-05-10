@@ -1,12 +1,31 @@
 import { useDeal } from '@/features/deals/hooks/useDeal.ts'
 import { useMemo, useRef, useEffect } from 'react'
-import { useConnection } from 'wagmi'
+import { useConnection, useWriteContract } from 'wagmi'
 import { useQueryOffer } from '@/features/offers/hooks/useQueryOffer'
 import { equal } from '@/utils'
-import { Button, Input, Skeleton } from 'antd'
+import { Button, Input, Skeleton, message } from 'antd'
+import { useDealMessages } from '@/features/deals/hooks/useDealMessages'
+import { dealAbi } from '@/wagmi'
 
 export default function MessageBox() {
-  const { deal, messages, sendMessage, isSending } = useDeal()
+  const { deal } = useDeal()
+  const { messages } = useDealMessages(deal?.address)
+  const { writeContractAsync, isPending: isSending } = useWriteContract()
+
+  const sendMessage = async (text: string) => {
+    if (!deal) return
+    try {
+      await writeContractAsync({
+        address: deal.address,
+        abi: dealAbi,
+        functionName: 'message',
+        args: [text],
+      })
+    } catch (e: any) {
+      message.error(e.shortMessage || 'Failed to send message')
+    }
+  }
+
   const { address } = useConnection()
   const { offer } = useQueryOffer(deal?.offer)
   const messagesEndRef = useRef<HTMLDivElement>(null)

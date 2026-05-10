@@ -39,9 +39,8 @@ test.describe('Offers List', () => {
     await page.goto('/#/trade/sell/USDC/EUR')
     console.log(`Navigated to /trade/sell/USDC/EUR. Looking for ${sellOfferAddress}`)
 
-    const row = page.locator(`tr[data-row-key="${sellOfferAddress.toLowerCase()}"]`)
-
     // Wait for the specific row to be visible
+    const row = page.locator(`tr:has(a[href*="${sellOfferAddress.toLowerCase()}"])`)
     await expect(row).toBeVisible({ timeout: 30000 })
 
     // Log button text for debugging
@@ -57,7 +56,7 @@ test.describe('Offers List', () => {
     await page.goto('/#/trade/buy/USDC/EUR')
     console.log(`Navigated to /trade/buy/USDC/EUR. Looking for ${buyOfferAddress}`)
 
-    const row = page.locator(`tr[data-row-key="${buyOfferAddress.toLowerCase()}"]`)
+    const row = page.locator(`tr:has(a[href*="${buyOfferAddress.toLowerCase()}"])`)
 
     await expect(row).toBeVisible({ timeout: 30000 })
 
@@ -94,9 +93,10 @@ test.describe('Offers List', () => {
     await new Promise(resolve => setTimeout(resolve, 5000))
 
     await page.goto('/#/trade/sell/USDC/EUR')
+    await page.reload() // clear apollo cache
 
-    const rowOld = page.locator(`tr[data-row-key="${sellOfferAddress.toLowerCase()}"]`)
-    const rowNew = page.locator(`tr[data-row-key="${otherMethodOffer.toLowerCase()}"]`)
+    const rowOld = page.locator(`tr:has(a[href*="${sellOfferAddress.toLowerCase()}"])`)
+    const rowNew = page.locator(`tr:has(a[href*="${otherMethodOffer.toLowerCase()}"])`)
 
     await expect(rowOld).toBeVisible({ timeout: 10000 })
     await expect(rowNew).toBeVisible({ timeout: 10000 })
@@ -116,8 +116,9 @@ test.describe('Offers List', () => {
 
   test('should filter by amount', async ({ page }) => {
     await page.goto('/#/trade/sell/USDC/EUR')
+    await page.reload() // clear apollo cache
 
-    const row = page.locator(`tr[data-row-key="${sellOfferAddress.toLowerCase()}"]`)
+    const row = page.locator(`tr:has(a[href*="${sellOfferAddress.toLowerCase()}"])`)
     await expect(row).toBeVisible({ timeout: 30000 })
 
     // sellOfferAddress has limits 20-200 EUR.

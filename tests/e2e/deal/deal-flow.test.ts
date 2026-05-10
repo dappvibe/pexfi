@@ -12,9 +12,9 @@ test.describe.serial('Deal flow', () => {
     // Open Deal
     const taker = await createParty(`/trade/offer/${offerAddress}`)
     await taker.setAccount(1)
-    await taker.page.getByPlaceholder('Crypto Amount').fill('0.1')
-    await taker.page.getByPlaceholder('Fiat Amount').fill('150')
-    const openButton = taker.page.getByRole('button', { name: 'Open Deal' })
+    await taker.page.locator('#tokenAmount').fill('0.1')
+    await taker.page.locator('#fiatAmount').fill('150')
+    const openButton = taker.page.getByRole('button', { name: 'Accept Offer & Create Deal' })
     await expect(openButton).toBeVisible()
     await openButton.click()
     await expect(taker.page.getByText('Deal created')).toBeVisible()
@@ -28,10 +28,10 @@ test.describe.serial('Deal flow', () => {
 
     await fund(taker)
     // Taker is seller, they should see "Waiting for payment"
-    await expect(taker.page.getByText('Waiting for payment')).toBeVisible()
+    await expect(taker.page.getByText('Waiting for payment').first()).toBeVisible()
     // Maker is buyer, they should see "Paid" button
     await expect(maker.page.getByRole('button', { name: 'Paid' })).toBeVisible()
-    await expect(maker.page.getByText('Waiting for payment')).not.toBeVisible()
+    await expect(maker.page.getByText('Waiting for payment').first()).not.toBeVisible()
     await markPaid(maker)
     await release(taker)
 
@@ -49,9 +49,9 @@ test.describe.serial('Deal flow', () => {
     // Open Deal
     const taker = await createParty(`/trade/offer/${offerAddress}`)
     await taker.setAccount(1)
-    await taker.page.getByPlaceholder('Crypto Amount').fill('0.1')
-    await taker.page.getByPlaceholder('Fiat Amount').fill('150')
-    const openButton = taker.page.getByRole('button', { name: 'Open Deal' })
+    await taker.page.locator('#tokenAmount').fill('0.1')
+    await taker.page.locator('#fiatAmount').fill('150')
+    const openButton = taker.page.getByRole('button', { name: 'Accept Offer & Create Deal' })
     await expect(openButton).toBeVisible()
     await openButton.click()
     await expect(taker.page.getByText('Deal submitted')).toBeVisible()
@@ -65,10 +65,10 @@ test.describe.serial('Deal flow', () => {
 
     await fund(maker)
     // Maker is seller, they should see "Waiting for payment"
-    await expect(maker.page.getByText('Waiting for payment')).toBeVisible()
+    await expect(maker.page.getByText('Waiting for payment').first()).toBeVisible()
     // Taker is buyer, they should see "Paid" button
     await expect(taker.page.getByRole('button', { name: 'Paid' })).toBeVisible()
-    await expect(taker.page.getByText('Waiting for payment')).not.toBeVisible()
+    await expect(taker.page.getByText('Waiting for payment').first()).not.toBeVisible()
     await markPaid(taker)
     await release(maker)
 

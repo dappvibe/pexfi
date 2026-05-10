@@ -49,7 +49,7 @@ export type UseQueryOffersResult = {
   refetch: () => void
 }
 
-const RECORDS_PER_FETCH = 20
+const RECORDS_PER_FETCH = 1000
 const GQL_OFFERS = gql`
   query Offers($first: Int, $skip: Int, $where: Offer_filter, $orderDirection: String) {
     offers(first: $first, skip: $skip, where: $where, orderDirection: $orderDirection, orderBy: ranging) {

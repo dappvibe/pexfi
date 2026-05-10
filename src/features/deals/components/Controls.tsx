@@ -1,7 +1,7 @@
 import React from 'react'
 import { useConnection, useReadContract, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
 import { dealAbi, erc20Abi, useReadPexfiVaultBalanceOf, useReadPexfiVestingOwner, useSimulateDeal, useWritePexfiVestingBond } from '@/wagmi'
-import { message, Skeleton, Space, Statistic } from 'antd'
+import { message, Skeleton, Space, Statistic, Button } from 'antd'
 import { useDeal } from '@/features/deals/hooks/useDeal.ts'
 import { useQueryOffer } from '@/features/offers/hooks/useQueryOffer'
 import { LoadingButton } from '@/shared/ui'
